@@ -1,0 +1,17 @@
+{
+  "flakes": [
+    {
+      "from": {
+        "type": "indirect",
+        "id": "nixpkgs"
+      },
+      "to": {
+        "type": "github",
+        "owner": "meta-introspector",
+        "repo": "nixpkgs",
+        "ref": "feature/CRQ-016-nixify"
+      }
+    }
+  ],
+  "version": 2
+}

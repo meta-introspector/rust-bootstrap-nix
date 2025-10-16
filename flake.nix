@@ -1,19 +1,59 @@
 {
-  description = "Python development environment extending rust-src";
+  description = "Python development environment extending rust-src with sccache";
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=3a285b7f77cacbe11c1b652d9990a9f5d2b64abc";
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
+    configToml.url = "path:./config.toml";
   };
-  
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake }:
+
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, configToml } :
     let
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
 
       pkgs_x86_64 = import nixpkgs { system = "x86_64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_x86_64 = pkgs_x86_64.rustChannels.nightly.rust.override { targets = [ "x86_64-unknown-linux-gnu" ]; };
+
+      # Define the sccache-enabled rustc package
+      sccachedRustc = (system: pkgs: rustToolchain:
+        let
+          cargo_bin = "${rustToolchain}/bin/cargo";
+          rustc_bin = "${rustToolchain}/bin/rustc";
+        in
+        (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
+          nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.sccache pkgs.curl ];
+          configurePhase = ''
+            # Skip the default configure script
+          '';
+          preConfigure = (oldAttrs.preConfigure or "") + ''
+            export RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache"
+            export SCCACHE_DIR="$TMPDIR/sccache"
+            export SCCACHE_TEMPDIR="$TMPDIR/sccache-tmp"
+            mkdir -p "$SCCACHE_DIR"
+            mkdir -p "$SCCACHE_TEMPDIR"
+            sccache --stop-server || true
+            sccache --start-server
+            export PATH="${pkgs.curl}/bin:$PATH"
+            export CURL="${pkgs.curl}/bin/curl"
+          '';
+          buildPhase = ''
+            cp ${configToml} ./config.toml
+            echo "rustc = \"${rustc_bin}\"" >> config.toml
+            echo "cargo = \"${cargo_bin}\"" >> config.toml
+            python x.py --config ./config.toml build
+          '';
+          preBuild = (oldAttrs.preBuild or "") + ''
+            sccache --zero-stats
+          '';
+          postBuild = (oldAttrs.postBuild or "") + ''
+            sccache --show-stats
+            sccache --stop-server
+          '';
+        })
+      );
+
     in
     {
       devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
@@ -78,8 +118,8 @@
         ]}";
       };
 
-      # Define packages.default to be the rustSrcFlake's default package
-      packages.aarch64-linux.default = rustSrcFlake.packages.aarch64-linux.default;
-      packages.x86_64-linux.default = rustSrcFlake.packages.x86_64-linux.default;
+      # Define packages.default to be the sccache-enabled rustc package
+      packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
+      packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
     };
 }
