@@ -5,15 +5,20 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs } :
+  outputs = { self, nixpkgs }:
     let
       system = "aarch64-linux";
       pkgs = import nixpkgs { inherit system; };
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
+      devShell = pkgs.mkShell {
         name = "minimal-python-dev-shell";
-        packages = with pkgs; [ python3 ];
+        packages = with pkgs; [ python3 git ];
       };
+
+      packages.${system}.helloPython = pkgs.writeScriptBin "hello-python" ''
+        #!${pkgs.python3}/bin/python
+        print("Hello from Nix Python!")
+      '';
     };
 }
