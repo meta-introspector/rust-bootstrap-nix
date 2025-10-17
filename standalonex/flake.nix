@@ -57,13 +57,30 @@ EOF
         phases = [ "buildPhase" "installPhase" ];
 
         buildPhase = ''
+          echo "Current directory: $(pwd)"
+          echo "TMPDIR: $TMPDIR"
+          ls -la $TMPDIR
+
+          # Create a writable temporary directory for x.py to work in
+          local_build_dir=$TMPDIR/xpy_work
+          echo "Creating local_build_dir: $local_build_dir"
+          mkdir -p $local_build_dir
+          cd $local_build_dir
+          echo "Changed to local_build_dir: $(pwd)"
+          ls -la .
+
           # Copy contents of the flake's source to the current writable directory
+          echo "Copying $src/. to . (excluding config.toml)"
           cp -r $src/. .
+          # Remove the read-only config.toml before copying
+          rm config.toml
+          ls -la .
 
           export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
 
           # Copy config.old.toml and inject rustc/cargo paths
-          cp ${rustSrcFlake}/config.old.toml config.toml
+          echo "Copying config.old.toml to config.toml"
+          cp config.old.toml config.toml
           sed -i "s|^#cargo = \".*\"|cargo = \"${pkgs.rust-bin.stable.latest.default}/bin/cargo\"|" config.toml
           sed -i "s|^#rustc = \".*\"|rustc = \"${pkgs.rust-bin.stable.latest.default}/bin/rustc\"|" config.toml
 
@@ -74,16 +91,20 @@ EOF
           export CARGO_HOME=$TMPDIR/.cargo
           mkdir -p $CARGO_HOME
 
-          # Change to the temporary home directory
-          cd $HOME
-
-          # Run x.py from the current working directory, passing $src as the source root
-          python3 $src/x.py build --json-output
+          echo "--- Running x.py build ---"
+          export RUST_BACKTRACE=full
+          ls -la $src/src/ci/channel # Verify existence of the file
+          echo "--- Running x.py build ---"
+          export RUST_BACKTRACE=full
+          python3 x.py build --json-output > $TMPDIR/xpy_build_output.json 2>&1
+          echo "--- x.py build finished ---"
         '';
 
         installPhase = ''
           mkdir -p $out
           mv $TMPDIR/xpy_build_output.json $out/xpy_build_output.json
+          # Print the content of the captured output for debugging
+          cat $out/xpy_build_output.json
         '';
       };
     };
