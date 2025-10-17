@@ -5,12 +5,10 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
-#    configToml.url = "path:./config.toml";
+
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake,
-  #configToml
-  } :
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake } :
     let
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
@@ -24,43 +22,40 @@
           cargo_bin = "${rustToolchain}/bin/cargo";
           rustc_bin = "${rustToolchain}/bin/rustc";
           cargoHome = "$TMPDIR/.cargo";
+          compiler_date = "2024-11-28";
+          build_triple = if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
         in
         (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.sccache pkgs.curl ];
-          configurePhase = ''
-            # Skip the default configure script
-          '';
-          preConfigure = (oldAttrs.preConfigure or "") + ''
-            export HOME="$TMPDIR"
-            export CARGO_HOME="${cargoHome}"
-            mkdir -p $CARGO_HOME
-            export RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache"
-            export SCCACHE_DIR="$TMPDIR/sccache"
-            export SCCACHE_TEMPDIR="$TMPDIR/sccache-tmp"
-            mkdir -p "$SCCACHE_DIR"
-            mkdir -p "$SCCACHE_TEMPDIR"
-            sccache --stop-server || true
-            sccache --start-server
-            export PATH="${pkgs.curl}/bin:$PATH"
-            export CURL="${pkgs.curl}/bin/curl"
-          '';
-          buildPhase = ''
-            echo "vendor = true" >> config.toml
-            echo "rustc = \"${rustc_bin}\"" >> config.toml
-            echo "cargo = \"${cargo_bin}\"" >> config.toml
-            echo "--- config.toml content ---"
-            cat ./config.toml
-            echo "--- file listing ---"
-            ls -l
-            python x.py build
-          '';
-          preBuild = (oldAttrs.preBuild or "") + ''
-            sccache --zero-stats
-          '';
-          postBuild = (oldAttrs.postBuild or "") + ''
-            sccache --show-stats
-            sccache --stop-server
-          '';
+          configurePhase = "# Skip the default configure script";
+          preConfigure = pkgs.lib.concatStringsSep "\n" [
+            (oldAttrs.preConfigure or "")
+            "export RUSTC_WRAPPER=\"${pkgs.sccache}/bin/sccache\""
+            "export SCCACHE_DIR=\"$TMPDIR/sccache\""
+            "export SCCACHE_TEMPDIR=\"$TMPDIR/sccache-tmp\""
+            "mkdir -p \"$SCCACHE_DIR\""
+            "mkdir -p \"$SCCACHE_TEMPDIR\""
+            "sccache --stop-server || true"
+            "sccache --start-server"
+            "export PATH=\"${pkgs.curl}/bin:$PATH\""
+            "export CURL=\"${pkgs.curl}/bin/curl\""
+          ];
+          buildPhase = pkgs.lib.concatStringsSep "\n" [
+
+            "echo \"vendor = true\" >> config.toml"
+            "echo \"rustc = \\\"${rustc_bin}\\\"\" >> config.toml"
+            "echo \"cargo = \\\"${cargo_bin}\\\"\" >> config.toml"
+            "echo \"HOME = \\\"$TMPDIR\\\"\" >> config.toml"
+            "echo \"CARGO_HOME = \\\"$TMPDIR/.cargo\\\"\" >> config.toml"
+            "mkdir -p \"$TMPDIR/.cargo\""
+            "mkdir -p \"build/${build_triple}/stage0\""
+            "echo \"${compiler_date}\" > \"build/${build_triple}/stage0/.rustc-stamp\""
+            "export HOME=\"$TMPDIR\""
+            "export CARGO_HOME=\"$TMPDIR/.cargo\""
+            "python x.py build"
+          ];
+          preBuild = (oldAttrs.preBuild or "") + "sccache --zero-stats";
+          postBuild = (oldAttrs.postBuild or "") + "sccache --show-stats\nsccache --stop-server";
         })
       );
 
@@ -75,7 +70,15 @@
           pkgs_aarch64.python3Packages.pip
           pkgs_aarch64.git
           pkgs_aarch64.curl
+          pkgs_aarch64.which # Add which to the devShell
         ];
+
+        # Set HOME and CARGO_HOME for the devShell
+        shellHook = ''
+          export HOME="$TMPDIR"
+          export CARGO_HOME="$HOME/.cargo"
+          mkdir -p $CARGO_HOME
+        '';
 
         nativeBuildInputs = [
           pkgs_aarch64.binutils
@@ -106,7 +109,15 @@
           pkgs_x86_64.python3Packages.pip
           pkgs_x86_64.git
           pkgs_x86_64.curl
+          pkgs_x86_64.which # Add which to the devShell
         ];
+
+        # Set HOME and CARGO_HOME for the devShell
+        shellHook = ''
+          export HOME="$TMPDIR"
+          export CARGO_HOME="$HOME/.cargo"
+          mkdir -p $CARGO_HOME
+        '';
 
         nativeBuildInputs = [
           pkgs_x86_64.binutils
