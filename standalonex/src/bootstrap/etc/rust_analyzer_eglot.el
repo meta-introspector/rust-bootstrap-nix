@@ -1,0 +1,1 @@
+;; dummy eglot config

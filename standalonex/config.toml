@@ -1,0 +1,2 @@
+rustc = "/nix/store/lrr9mf5sg6qbas19z1ixjna024zkqws4-rust-default-1.90.0/bin/rustc"
+cargo = "/nix/store/lrr9mf5sg6qbas19z1ixjna024zkqws4-rust-default-1.90.0/bin/cargo"
