@@ -32,9 +32,23 @@
         "type": "github"
       }
     },
+    "ourXpy": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-ZKcyV3x6dux9uCpqABjT522uRPqiDgMbKqppaUqrn3Q=",
+        "path": ".",
+        "type": "path"
+      },
+      "original": {
+        "path": ".",
+        "type": "path"
+      }
+    },
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
+        "ourXpy": "ourXpy",
         "rustOverlay": "rustOverlay",
         "rustSrc": "rustSrc"
       }

@@ -9,7 +9,7 @@
       flake = false; # Mark as non-flake input
     };
     ourXpy = {
-      url = "path:."; # Reference the current flake
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=standalonex";
       flake = false;
     };
   };
