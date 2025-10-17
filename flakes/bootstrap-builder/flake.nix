@@ -25,7 +25,7 @@
         src = rust-src; # Change src to the root of rust-src
 
         # cargoLock.lockFile = "${rust-src}/src/bootstrap/Cargo.lock";
-        cargoHash = "";
+        cargoHash = "sha256-JO1pHLT+BxJrWnydzgu7VO0bR3dRaMlm0XFyL5FqxzI=";
 
         # The cargo build command needs to be run from the src/bootstrap directory
         # So we will add a preBuild phase to change directory

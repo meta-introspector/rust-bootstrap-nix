@@ -1,0 +1,12 @@
+feat: Implement pure Nix flake for Rust bootstrap compiler
+
+This commit introduces a new Nix flake (`flakes/bootstrap-builder`) to build the Rust bootstrap compiler directly from source, eliminating the dependency on Python for this initial stage.
+
+Key changes include:
+- **New `bootstrap-builder` flake:** A dedicated flake (`flakes/bootstrap-builder/flake.nix`) has been created to build the `bootstrap` executable using `pkgs.rustPlatform.buildRustPackage`. This flake fetches the Rust source from `github:meta-introspector/rust` and builds the `src/bootstrap` crate.
+- **Updated `standalonex` flake:** The `standalonex/flake.nix` has been modified to utilize the newly built `bootstrap` executable from the `bootstrap-builder` flake. It now directly calls the `bootstrap` executable with the `dist` command to capture the full Rust build plan.
+- **Modified `bootstrap.py`:** The `standalonex/src/bootstrap/bootstrap.py` script has been adjusted to always output JSON for build commands and to execute all commands except `rustc` and `cargo` (unless it's the initial `cargo build` for the bootstrap compiler itself). This allows for comprehensive capture of the build process.
+- **Removed redundant flake:** The `flakes/xpy-json-output-flake` has been removed as its functionality is now integrated into the `standalonex` flake.
+- **Documentation:** A `README.md` has been added to the `standalonex` directory, explaining the JSON output generation and providing field explanations.
+
+This work is a step towards a pure Nix-based Rust bootstrap process, reducing reliance on external tools and improving reproducibility.
