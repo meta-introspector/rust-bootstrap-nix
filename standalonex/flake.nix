@@ -57,13 +57,16 @@ EOF
         phases = [ "buildPhase" "installPhase" ];
 
         buildPhase = ''
+          # Copy contents of the flake's source to the current writable directory
+          cp -r $src/. .
+
           export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
 
-          mkdir -p .cargo
-          cat > config.toml <<EOF
-rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
-cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
-EOF
+          # Copy config.old.toml and inject rustc/cargo paths
+          cp ${rustSrcFlake}/config.old.toml config.toml
+          sed -i "s|^#cargo = \".*\"|cargo = \"${pkgs.rust-bin.stable.latest.default}/bin/cargo\"|" config.toml
+          sed -i "s|^#rustc = \".*\"|rustc = \"${pkgs.rust-bin.stable.latest.default}/bin/rustc\"|" config.toml
+
           export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
 
           # Set HOME and CARGO_HOME to writable temporary directories
