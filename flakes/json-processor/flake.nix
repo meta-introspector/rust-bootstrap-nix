@@ -6,10 +6,11 @@
     # Reference the xpy-json-output-flake directly
     xpyJsonOutputFlake = {
       url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
+      inputs.rustSrc.follows = "rustSrc"; # Pass rustSrc to xpyJsonOutputFlake
     };
     # Reference the main Rust source code
     rustSrc = {
-      url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
+      url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
     };
     # Reference the evaluate-rust flake
     evaluateRustFlake = {
@@ -39,21 +40,25 @@
 
       # Parse all JSON files and evaluate commands
       evaluatedPackages = builtins.concatLists (
-        builtins.map (json: evaluateRustFlake.lib.evaluateCommand {
-          commandInfo = json;
-          rustSrc = rustSrc;
-          currentDepth = 0;
-          maxDepth = 8;
-        }) parsedJsons
+        builtins.map
+          (json: evaluateRustFlake.lib.evaluateCommand {
+            commandInfo = json;
+            rustSrc = rustSrc;
+            currentDepth = 0;
+            maxDepth = 8;
+          })
+          parsedJsons
       );
 
     in
     let
       generatedPackages = builtins.listToAttrs (
-        builtins.map (drv: {
-          name = drv.name; # Assuming the derivation has a 'name' attribute
-          value = drv;
-        }) evaluatedPackages
+        builtins.map
+          (drv: {
+            name = drv.name; # Assuming the derivation has a 'name' attribute
+            value = drv;
+          })
+          evaluatedPackages
       );
     in
     {

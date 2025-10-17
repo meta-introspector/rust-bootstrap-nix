@@ -25,16 +25,16 @@
     "rustSrc": {
       "flake": false,
       "locked": {
-        "lastModified": 1760638400,
-        "narHash": "sha256-7C00SAPgAaC9UKlgymfY32VwhmlRPhuhuWDdIBGsWP8=",
+        "lastModified": 1760716935,
+        "narHash": "sha256-S6wNH+ntvfB5zNlldeJ/8u8aMyNKaufetla8vSwaUFU=",
         "owner": "meta-introspector",
         "repo": "rust",
-        "rev": "e6c1b92d0abaa3f64032d6662cbcde980c826ff2",
+        "rev": "d772ccdfd1905e93362ba045f66dad7e2ccd469b",
         "type": "github"
       },
       "original": {
         "owner": "meta-introspector",
-        "ref": "e6c1b92d0abaa3f64032d6662cbcde980c826ff2",
+        "ref": "d772ccdfd1905e93362ba045f66dad7e2ccd469b",
         "repo": "rust",
         "type": "github"
       }
