@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     # Reference the standalonex flake within the rust-bootstrap-nix submodule
     standalonex = {
-      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=standalonex";
+      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=standalonex";
     };
   };
 
@@ -18,7 +18,7 @@
       parsedJson = builtins.fromJSON jsonContent;
     in
     {
-      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" {} ''
+      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" { } ''
         echo "--- Parsed JSON Output ---" > $out/output.txt
         echo "${builtins.toJSON parsedJson}" >> $out/output.txt
       '';

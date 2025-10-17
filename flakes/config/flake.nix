@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
+    rustBootstrapNix.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
   };
 
   outputs = { self, nixpkgs, rustBootstrapNix }:
@@ -15,7 +15,7 @@
       parsedJson = builtins.fromJSON jsonContent;
     in
     {
-      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" {} ''
+      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" { } ''
         echo "--- Parsed JSON Output ---" > $out/output.txt
         echo "${builtins.toJSON parsedJson}" >> $out/output.txt
       '';

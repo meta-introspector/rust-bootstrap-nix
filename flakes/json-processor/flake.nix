@@ -5,8 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     # Reference the xpy-json-output-flake directly
     xpyJsonOutputFlake = {
-      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
-      inputs.nixJsonOutputDir.follows = "xpyJsonOutputFlake.packages.aarch64-linux.default";
+      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
     };
     # Reference the main Rust source code
     rustSrc = {
@@ -14,7 +13,7 @@
     };
     # Reference the evaluate-rust flake
     evaluateRustFlake = {
-      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/evaluate-rust"; # Reference the evaluate-rust flake
+      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/evaluate-rust"; # Reference the evaluate-rust flake
     };
   };
 
