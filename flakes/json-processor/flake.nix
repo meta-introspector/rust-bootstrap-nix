@@ -17,7 +17,7 @@
       standalonexOutput = standalonex.packages.aarch64-linux.default;
 
       # List all JSON files in the standalonex output
-      jsonFiles = builtins.filter (name: builtins.match ".*\\.json" name != null) (builtins.readDir standalonexOutput);
+      jsonFiles = builtins.filter (name: builtins.match ".*\\.json" name != null) (builtins.attrNames (builtins.readDir standalonexOutput));
 
       # Function to read and parse a single JSON file
       readAndParseJson = filename:
@@ -29,11 +29,30 @@
       # Parse all JSON files
       parsedJsons = builtins.map readAndParseJson jsonFiles;
 
+      # Debugging: Print parsedJsons and type of json.command
+      _debug = builtins.trace "Parsed JSONs: ${builtins.toJSON parsedJsons}" (
+        builtins.map (json: builtins.trace "Command: ${json.command}, Type: ${builtins.typeOf json.command}" json) parsedJsons
+      );
+
+    in
+    let
+      generatedPackages = builtins.listToAttrs (
+        builtins.map (json: {
+          name = json.command; # Use the 'command' field as the package name
+          value = pkgs.runCommand json.command {} ''
+            mkdir -p $out
+            echo "--- Package for ${json.command} ---" > $out/output.txt
+            echo "${builtins.toJSON json}" >> $out/output.txt
+          '';
+        }) parsedJsons
+      );
     in
     {
-      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" {} ''
-        echo "--- Parsed JSON Output ---" > $out/output.txt
-        ${builtins.concatStringsSep "\n" (builtins.map (json: "echo \"${builtins.toJSON json}\"" ) parsedJsons)} >> $out/output.txt
-      '';
+      packages.aarch64-linux = generatedPackages // {
+        default = pkgs.symlinkJoin {
+          name = "all-processed-jsons";
+          paths = builtins.attrValues generatedPackages;
+        };
+      };
     };
 }
