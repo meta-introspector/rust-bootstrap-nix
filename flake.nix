@@ -5,12 +5,10 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
-#    configToml.url = "path:./config.toml";
+    configToml.url = "path:./config.toml";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake
-  #, configToml
-  } :
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, configToml } :
     let
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
@@ -23,6 +21,7 @@
         let
           cargo_bin = "${rustToolchain}/bin/cargo";
           rustc_bin = "${rustToolchain}/bin/rustc";
+          cargoHome = "$TMPDIR/.cargo";
         in
         (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.sccache pkgs.curl ];
@@ -30,6 +29,8 @@
             # Skip the default configure script
           '';
           preConfigure = (oldAttrs.preConfigure or "") + ''
+            export CARGO_HOME="${cargoHome}"
+            mkdir -p $CARGO_HOME
             export RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache"
             export SCCACHE_DIR="$TMPDIR/sccache"
             export SCCACHE_TEMPDIR="$TMPDIR/sccache-tmp"
@@ -41,6 +42,8 @@
             export CURL="${pkgs.curl}/bin/curl"
           '';
           buildPhase = ''
+            cp ${configToml} ./config.toml
+            echo "vendor = true" >> config.toml
             echo "rustc = \"${rustc_bin}\"" >> config.toml
             echo "cargo = \"${cargo_bin}\"" >> config.toml
             python x.py --config ./config.toml build
