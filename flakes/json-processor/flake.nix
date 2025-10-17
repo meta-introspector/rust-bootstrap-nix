@@ -6,7 +6,7 @@
     # Reference the xpy-json-output-flake directly
     xpyJsonOutputFlake = {
       url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
-      inputs.rustSrc.follows = "rustSrc"; # Pass rustSrc to xpyJsonOutputFlake
+      inputs.nixJsonOutputDir.follows = "xpyJsonOutputFlake.packages.aarch64-linux.default";
     };
     # Reference the main Rust source code
     rustSrc = {

@@ -4,11 +4,11 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
 
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake } :
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake }:
     let
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
@@ -26,7 +26,7 @@
           build_triple = if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
         in
         (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.sccache pkgs.curl ];
+          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.sccache pkgs.curl ];
           configurePhase = "# Skip the default configure script";
           preConfigure = pkgs.lib.concatStringsSep "\n" [
             (oldAttrs.preConfigure or "")

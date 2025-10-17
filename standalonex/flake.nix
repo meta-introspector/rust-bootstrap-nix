@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
   };
 
@@ -23,26 +23,26 @@
         ];
 
         shellHook = ''
-          # Add the flake's source directory to PATH
-          export PATH=${self}/:$PATH # self here refers to the flake's source directory in the Nix store
-          echo "x.py is available in your PATH."
+                    # Add the flake's source directory to PATH
+                    export PATH=${self}/:$PATH # self here refers to the flake's source directory in the Nix store
+                    echo "x.py is available in your PATH."
 
-          # Set environment variable for src/stage0 path
-          export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
+                    # Set environment variable for src/stage0 path
+                    export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
 
-          # Create config.toml with Nix-provided rustc and cargo paths
-          mkdir -p .cargo
-          cat > config.toml <<EOF
-rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
-cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
-EOF
-          export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
+                    # Create config.toml with Nix-provided rustc and cargo paths
+                    mkdir -p .cargo
+                    cat > config.toml <<EOF
+          rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
+          cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
+          EOF
+                    export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
 
-          # Create dummy etc/ files for bootstrap compilation
-          mkdir -p etc
-          echo "{}" > etc/rust_analyzer_settings.json
-          echo ";; dummy eglot config" > etc/rust_analyzer_eglot.el
-          echo "# dummy helix config" > etc/rust_analyzer_helix.toml
+                    # Create dummy etc/ files for bootstrap compilation
+                    mkdir -p etc
+                    echo "{}" > etc/rust_analyzer_settings.json
+                    echo ";; dummy eglot config" > etc/rust_analyzer_eglot.el
+                    echo "# dummy helix config" > etc/rust_analyzer_helix.toml
         '';
       };
 
