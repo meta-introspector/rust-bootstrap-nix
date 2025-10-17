@@ -1,3 +1,5 @@
+import json
+import os
 from __future__ import absolute_import, division, print_function
 import argparse
 import contextlib
@@ -194,20 +196,15 @@ def run(args, verbose=False, exception=False, is_bootstrap=False, **kwargs):
         args[0] += '.exe'
     # Use Popen here instead of call() as it apparently allows powershell on
     # Windows to not lock up waiting for input presumably.
-    ret = subprocess.Popen(args, **kwargs)
-    code = ret.wait()
-    if code != 0:
-        err = "failed to run: " + ' '.join(args)
-        if verbose or exception:
-            raise RuntimeError(err)
-        # For most failures, we definitely do want to print this error, or the user will have no
-        # idea what went wrong. But when we've successfully built bootstrap and it failed, it will
-        # have already printed an error above, so there's no need to print the exact command we're
-        # running.
-        if is_bootstrap:
-            sys.exit(1)
-        else:
-            sys.exit(err)
+    command_info = {
+        "command": args[0],
+        "args": args[1:],
+        "env": kwargs.get('env', os.environ.copy()),
+        "cwd": kwargs.get('cwd', os.getcwd()),
+        "type": "rust_compiler_invocation"
+    }
+    print(json.dumps(command_info))
+    sys.exit(0)
 
 def run_powershell(script, *args, **kwargs):
     """Run a powershell script"""

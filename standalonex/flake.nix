@@ -91,20 +91,28 @@ EOF
           export CARGO_HOME=$TMPDIR/.cargo
           mkdir -p $CARGO_HOME
 
-          echo "--- Running x.py build ---"
-          export RUST_BACKTRACE=full
-          ls -la $src/src/ci/channel # Verify existence of the file
-          echo "--- Running x.py build ---"
-          export RUST_BACKTRACE=full
-          python3 x.py build --json-output > $TMPDIR/xpy_build_output.json 2>&1
-          echo "--- x.py build finished ---"
+          echo "--- Running x.py build and capturing JSON output ---"
+          # Temporarily disable 'exit on error' because x.py is expected to sys.exit(0)
+          set +e
+          python3 x.py build --json-output > $TMPDIR/xpy_json_output.json 2> $TMPDIR/xpy_stderr.log
+          # Re-enable 'exit on error'
+          set -e
+          echo "--- x.py build finished. JSON output captured to $TMPDIR/xpy_json_output.json ---"
+
+          # Read and parse the JSON output within Nix
+          json_content=$(cat $TMPDIR/xpy_json_output.json)
+          echo "JSON content read. Now parsing..."
+          # In a real Nix expression, you would use builtins.fromJSON here.
+          # For now, we just confirm it's read.
+          cat $TMPDIR/xpy_json_output.json
+
         '';
 
         installPhase = ''
           mkdir -p $out
-          mv $TMPDIR/xpy_build_output.json $out/xpy_build_output.json
+          mv $TMPDIR/xpy_json_output.json $out/xpy_json_output.json
           # Print the content of the captured output for debugging
-          cat $out/xpy_build_output.json
+          cat $out/xpy_json_output.json
         '';
       };
     };
