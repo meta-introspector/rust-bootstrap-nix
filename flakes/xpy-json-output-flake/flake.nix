@@ -3,15 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrc = {
       url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
       flake = false; # Mark as non-flake input
     };
   };
 
-  outputs = { self, nixpkgs, rustSrc }:
+  outputs = { self, nixpkgs, rustOverlay, rustSrc }:
     let
-      pkgs = import nixpkgs { system = "aarch64-linux"; };
+      pkgs = import nixpkgs { system = "aarch64-linux"; overlays = [ rustOverlay.overlays.default ]; };
 
       # Derivation to generate the x.py JSON output
       xpyJsonOutputDerivation = pkgs.runCommandLocal "xpy-json-output"
