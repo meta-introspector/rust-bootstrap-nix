@@ -8,9 +8,13 @@
       url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
       flake = false; # Mark as non-flake input
     };
+    ourXpy = {
+      url = "path:."; # Reference the current flake
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, rustOverlay, rustSrc }:
+  outputs = { self, nixpkgs, rustOverlay, rustSrc, ourXpy }:
     let
       pkgs = import nixpkgs { system = "aarch64-linux"; overlays = [ rustOverlay.overlays.default ]; };
 
@@ -29,7 +33,7 @@
         EOF
                 export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
 
-                RUST_BOOTSTRAP_DRY_RUN_NIX_JSON=1 python3 $src/x.py build --json-output $out
+                RUST_BOOTSTRAP_DRY_RUN_NIX_JSON=1 python3 ${ourXpy}/standalonex/x.py build --json-output $out
       '';
     in
     {

@@ -188,7 +188,8 @@ def unpack(tarball, tarball_suffix, dst, verbose=False, match=None):
 def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=None, output_filename=None, **kwargs):
     dry_run_nix_json = os.environ.get("RUST_BOOTSTRAP_DRY_RUN_NIX_JSON") == "1"
     """Run a child program in a new process"""
-    if dry_run_nix_json:
+    #if dry_run_nix_json:
+    if True:
         eprint("DEBUG: dry_run_nix_json is True. Emitting JSON without executing compiler.")
         command_info = {
             "command": args[0],
@@ -198,6 +199,7 @@ def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=Non
             "type": "rust_compiler_invocation"
         }
         json_output = json.dumps(command_info)
+        print(json_output) # Print to stdout
 
         if output_dir and output_filename:
             output_file_path = os.path.join(output_dir, output_filename)
@@ -209,30 +211,30 @@ def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=Non
         return 0 # Indicate success without actual execution
 
     # Original execution logic if not in dry_run_nix_json mode
-    eprint("DEBUG: Entering run function, about to execute command.")
-    if verbose:
-        eprint("running: " + ' '.join(args))
-    sys.stdout.flush()
-    # Ensure that the .exe is used on Windows just in case a Linux ELF has been
-    # compiled in the same directory.
-    if os.name == 'nt' and not args[0].endswith('.exe'):
-        args[0] += '.exe'
-    # Use Popen here instead of call() as it apparently allows powershell on
-    # Windows to not lock up waiting for input presumably.
-    ret = subprocess.Popen(args, **kwargs)
-    code = ret.wait()
-    if code != 0:
-        err = "failed to run: " + ' '.join(args)
-        if verbose or exception:
-            raise RuntimeError(err)
-        # For most failures, we definitely do want to print this error, or the user will have no
-        # idea what went wrong. But when we've successfully built bootstrap and it failed, it will
-        # have already printed an error above, so there's no need to print the exact command we're
-        # running.
-        if is_bootstrap:
-            sys.exit(1)
-        else:
-            sys.exit(err)
+    # eprint("DEBUG: Entering run function, about to execute command.")
+    # if verbose:
+    #     eprint("running: " + ' '.join(args))
+    # sys.stdout.flush()
+    # # Ensure that the .exe is used on Windows just in case a Linux ELF has been
+    # # compiled in the same directory.
+    # if os.name == 'nt' and not args[0].endswith('.exe'):
+    #     args[0] += '.exe'
+    # # Use Popen here instead of call() as it apparently allows powershell on
+    # # Windows to not lock up waiting for input presumably.
+    # ret = subprocess.Popen(args, **kwargs)
+    # code = ret.wait()
+    # if code != 0:
+    #     err = "failed to run: " + ' '.join(args)
+    #     if verbose or exception:
+    #         raise RuntimeError(err)
+    #     # For most failures, we definitely do want to print this error, or the user will have no
+    #     # idea what went wrong. But when we've successfully built bootstrap and it failed, it will
+    #     # have already printed an error above, so there's no need to print the exact command we're
+    #     # running.
+    #     if is_bootstrap:
+    #         sys.exit(1)
+    #     else:
+    #         sys.exit(err)
 
 def run_powershell(script, *args, **kwargs):
     """Run a powershell script"""
@@ -1226,18 +1228,20 @@ def bootstrap(args):
         os.makedirs(build.build_dir)
 
     # Fetch/build the bootstrap
-    build.download_toolchain()
+    # build.download_toolchain()
     sys.stdout.flush()
     build.build_bootstrap()
     sys.stdout.flush()
 
     # Run the bootstrap
+    #if os.environ.get("RUST_BOOTSTRAP_DRY_RUN_NIX_JSON") != "1": # Add this check
     args = [build.bootstrap_binary()]
     args.extend(sys.argv[1:])
     env = os.environ.copy()
     env["BOOTSTRAP_PARENT_ID"] = str(os.getpid())
     env["BOOTSTRAP_PYTHON"] = sys.executable
     run(args, env=env, verbose=build.verbose, is_bootstrap=True)
+    
 
 
 def main():
