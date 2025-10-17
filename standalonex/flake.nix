@@ -66,10 +66,13 @@ cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
 EOF
           export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
 
-          mkdir -p etc
-          echo "{}" > etc/rust_analyzer_settings.json
-          echo ";; dummy eglot config" > etc/rust_analyzer_eglot.el
-          echo "# dummy helix config" > etc/rust_analyzer_helix.toml
+          # Set HOME and CARGO_HOME to writable temporary directories
+          export HOME=$TMPDIR
+          export CARGO_HOME=$TMPDIR/.cargo
+          mkdir -p $CARGO_HOME
+
+          # Change to the temporary home directory
+          cd $HOME
 
           # Run x.py from the current working directory, passing $src as the source root
           python3 $src/x.py build --json-output
