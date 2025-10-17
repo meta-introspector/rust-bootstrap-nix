@@ -31,8 +31,6 @@
       url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/json-processor";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rustSrc.follows = "rustSrc";
-      inputs.xpyJsonOutputFlake.follows = "rustBootstrapNixXpyJsonOutputFlake";
-      inputs.evaluateRustFlake.follows = "rustBootstrapNixEvaluateRustFlake";
     };
 
     rustBootstrapNixEvaluateRustFlake = {
