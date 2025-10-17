@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustBootstrapNix.url = "path:../.."; # Reference the parent directory (rust-bootstrap-nix submodule)
+    rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
   };
 
   outputs = { self, nixpkgs, rustBootstrapNix }:

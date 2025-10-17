@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     # Reference the standalonex flake within the rust-bootstrap-nix submodule
     standalonex = {
-      url = "path:../../standalonex"; # Relative path from this flake to standalonex flake
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=standalonex";
     };
   };
 

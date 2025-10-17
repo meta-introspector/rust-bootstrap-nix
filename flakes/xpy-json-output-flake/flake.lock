@@ -1,0 +1,45 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1757898380,
+        "narHash": "sha256-1Z0KAfbySsHu/IoZbBJLrPgs3IqQGup0T8J9S1ffAkE=",
+        "owner": "meta-introspector",
+        "repo": "nixpkgs",
+        "rev": "26833ad1dad83826ef7cc52e0009ca9b7097c79f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "rustSrc": "rustSrc"
+      }
+    },
+    "rustSrc": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1760638400,
+        "narHash": "sha256-7C00SAPgAaC9UKlgymfY32VwhmlRPhuhuWDdIBGsWP8=",
+        "owner": "meta-introspector",
+        "repo": "rust",
+        "rev": "e6c1b92d0abaa3f64032d6662cbcde980c826ff2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "e6c1b92d0abaa3f64032d6662cbcde980c826ff2",
+        "repo": "rust",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
