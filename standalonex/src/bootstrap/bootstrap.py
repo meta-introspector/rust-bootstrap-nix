@@ -186,55 +186,64 @@ def unpack(tarball, tarball_suffix, dst, verbose=False, match=None):
 
 
 def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=None, output_filename=None, **kwargs):
-    dry_run_nix_json = os.environ.get("RUST_BOOTSTRAP_DRY_RUN_NIX_JSON") == "1"
     """Run a child program in a new process"""
-    #if dry_run_nix_json:
-    if True:
-        eprint("DEBUG: dry_run_nix_json is True. Emitting JSON without executing compiler.")
-        command_info = {
-            "command": args[0],
-            "args": args[1:],
-            "env": kwargs.get('env', os.environ.copy()),
-            "cwd": kwargs.get('cwd', os.getcwd()),
-            "type": "rust_compiler_invocation"
-        }
-        json_output = json.dumps(command_info)
-        print(json_output) # Print to stdout
+    command_info = {
+        "command": args[0],
+        "args": args[1:],
+        "env": kwargs.get('env', os.environ.copy()),
+        "cwd": kwargs.get('cwd', os.getcwd()),
+        "type": "rust_compiler_invocation"
+    }
+    json_output = json.dumps(command_info, indent=2)
+    print(json_output) # Print to stdout
 
-        if output_dir and output_filename:
-            output_file_path = os.path.join(output_dir, output_filename)
-            with open(output_file_path, 'w') as f:
-                f.write(json_output)
-            eprint(f"DEBUG: JSON output written to {output_file_path}")
+    output_dir_from_env = os.environ.get("RUST_BOOTSTRAP_JSON_OUTPUT_DIR")
+    if output_dir_from_env:
+        output_dir = output_dir_from_env
+        # Create a unique filename for each invocation
+        output_filename = f"invocation_{time()}.json"
+        output_file_path = os.path.join(output_dir, output_filename)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        with open(output_file_path, 'w') as f:
+            f.write(json_output)
+        eprint(f"DEBUG: JSON output written to {output_file_path}")
+    elif output_dir and output_filename:
+        output_file_path = os.path.join(output_dir, output_filename)
+        with open(output_file_path, 'w') as f:
+            f.write(json_output)
+        eprint(f"DEBUG: JSON output written to {output_file_path}")
+    else:
+        eprint("DEBUG: output_dir or output_filename not specified, JSON not written to file.")
+
+    # Don't execute rustc or cargo
+    if "rustc" in args[0] or "cargo" in args[0]:
+        return 0
+
+    # Original execution logic
+    if verbose:
+        eprint("running: " + ' '.join(args))
+    sys.stdout.flush()
+    # Ensure that the .exe is used on Windows just in case a Linux ELF has been
+    # compiled in the same directory.
+    if os.name == 'nt' and not args[0].endswith('.exe'):
+        args[0] += '.exe'
+    # Use Popen here instead of call() as it apparently allows powershell on
+    # Windows to not lock up waiting for input presumably.
+    ret = subprocess.Popen(args, **kwargs)
+    code = ret.wait()
+    if code != 0:
+        err = "failed to run: " + ' '.join(args)
+        if verbose or exception:
+            raise RuntimeError(err)
+        # For most failures, we definitely do want to print this error, or the user will have no
+        # idea what went wrong. But when we've successfully built bootstrap and it failed, it will
+        # have already printed an error above, so there's no need to print the exact command we're
+        # running.
+        if is_bootstrap:
+            sys.exit(1)
         else:
-            eprint("DEBUG: output_dir or output_filename not specified, JSON not written to file.")
-        return 0 # Indicate success without actual execution
-
-    # Original execution logic if not in dry_run_nix_json mode
-    # eprint("DEBUG: Entering run function, about to execute command.")
-    # if verbose:
-    #     eprint("running: " + ' '.join(args))
-    # sys.stdout.flush()
-    # # Ensure that the .exe is used on Windows just in case a Linux ELF has been
-    # # compiled in the same directory.
-    # if os.name == 'nt' and not args[0].endswith('.exe'):
-    #     args[0] += '.exe'
-    # # Use Popen here instead of call() as it apparently allows powershell on
-    # # Windows to not lock up waiting for input presumably.
-    # ret = subprocess.Popen(args, **kwargs)
-    # code = ret.wait()
-    # if code != 0:
-    #     err = "failed to run: " + ' '.join(args)
-    #     if verbose or exception:
-    #         raise RuntimeError(err)
-    #     # For most failures, we definitely do want to print this error, or the user will have no
-    #     # idea what went wrong. But when we've successfully built bootstrap and it failed, it will
-    #     # have already printed an error above, so there's no need to print the exact command we're
-    #     # running.
-    #     if is_bootstrap:
-    #         sys.exit(1)
-    #     else:
-    #         sys.exit(err)
+            sys.exit(err)
 
 def run_powershell(script, *args, **kwargs):
     """Run a powershell script"""
