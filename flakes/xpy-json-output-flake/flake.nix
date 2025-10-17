@@ -16,11 +16,19 @@
       # Derivation to generate the x.py JSON output
       xpyJsonOutputDerivation = pkgs.runCommandLocal "xpy-json-output"
         {
-          nativeBuildInputs = [ pkgs.python3 ];
+          nativeBuildInputs = [ pkgs.python3 pkgs.rust-bin.stable.latest.default ];
           src = rustSrc; # The rust source code
         } ''
-        mkdir -p $out
-        RUST_BOOTSTRAP_DRY_RUN_NIX_JSON=1 python3 $src/x.py build --json-output $out
+                mkdir -p $out
+        
+                # Create config.toml with Nix-provided rustc and cargo paths
+                cat > config.toml <<EOF
+        rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
+        cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
+        EOF
+                export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
+
+                RUST_BOOTSTRAP_DRY_RUN_NIX_JSON=1 python3 $src/x.py build --json-output $out
       '';
     in
     {
