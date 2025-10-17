@@ -5,10 +5,12 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
-    configToml.url = "path:./config.toml";
+#    configToml.url = "path:./config.toml";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, configToml } :
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake,
+  #configToml
+  } :
     let
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
@@ -43,7 +45,6 @@
             export CURL="${pkgs.curl}/bin/curl"
           '';
           buildPhase = ''
-            cp ${configToml} ./config.toml
             echo "vendor = true" >> config.toml
             echo "rustc = \"${rustc_bin}\"" >> config.toml
             echo "cargo = \"${cargo_bin}\"" >> config.toml
