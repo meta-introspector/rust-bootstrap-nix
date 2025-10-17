@@ -1,5 +1,5 @@
 patch-binaries-for-nix = true
-#vendor = true
+vendor = true
 
 
 # SPDX-FileCopyrightText: 2025 Anza Technology Inc. <https://www.anza.xyz>
