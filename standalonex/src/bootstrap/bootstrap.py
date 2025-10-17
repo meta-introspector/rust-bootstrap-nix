@@ -185,7 +185,8 @@ def unpack(tarball, tarball_suffix, dst, verbose=False, match=None):
     shutil.rmtree(os.path.join(dst, fname))
 
 
-def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=None, output_filename=None, dry_run_nix_json=False, **kwargs):
+def run(args, verbose=False, exception=False, is_bootstrap=False, output_dir=None, output_filename=None, **kwargs):
+    dry_run_nix_json = os.environ.get("RUST_BOOTSTRAP_DRY_RUN_NIX_JSON") == "1"
     """Run a child program in a new process"""
     if dry_run_nix_json:
         eprint("DEBUG: dry_run_nix_json is True. Emitting JSON without executing compiler.")

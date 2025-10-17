@@ -20,7 +20,7 @@
           src = rustSrc; # The rust source code
         } ''
         mkdir -p $out
-        python3 $src/x.py build --json-output $out
+        RUST_BOOTSTRAP_DRY_RUN_NIX_JSON=1 python3 $src/x.py build --json-output $out
       '';
     in
     {

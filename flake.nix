@@ -46,7 +46,6 @@
             "echo \"rustc = \\\"${rustc_bin}\\\"\" >> config.toml"
             "echo \"cargo = \\\"${cargo_bin}\\\"\" >> config.toml"
             "echo \"HOME = \\\"$TMPDIR\\\"\" >> config.toml"
-            "echo \"CARGO_HOME = \\\"$TMPDIR/.cargo\\\"\" >> config.toml"
             "mkdir -p \"$TMPDIR/.cargo\""
             "mkdir -p \"build/${build_triple}/stage0\""
             "echo \"${compiler_date}\" > \"build/${build_triple}/stage0/.rustc-stamp\""
