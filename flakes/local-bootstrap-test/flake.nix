@@ -2,10 +2,10 @@
   description = "Test flake for local rust-bootstrap-nix mirror";
 
   inputs = {
-    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    rustSrc.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
-    naersk.url = "github:meta-introspector/naersk?ref=feature/CRQ-016-nixify";
+    nixpkgs.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify"; # Original ref: feature/CRQ-016-nixify
+    rustOverlay.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify"; # Original ref: feature/CRQ-016-nixify
+    rustSrc.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
+    naersk.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/naersk?ref=feature/CRQ-016-nixify";
 
     # Local mirror references
     rustBootstrapNix = {
