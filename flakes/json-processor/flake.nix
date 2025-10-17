@@ -3,26 +3,26 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    # Reference the standalonex flake within the rust-bootstrap-nix submodule
-    standalonex = {
-      url = "path:../../standalonex"; # Relative path from this flake to standalonex flake
+    # Reference the xpy-json-output-flake
+    xpyJsonOutputFlake = {
+      url = "path:../xpy-json-output-flake"; # Relative path from this flake to xpy-json-output-flake
     };
   };
 
-  outputs = { self, nixpkgs, standalonex }:
+  outputs = { self, nixpkgs, xpyJsonOutputFlake }:
     let
       pkgs = import nixpkgs { system = "aarch64-linux"; };
 
-      # Get the output path of the standalonex flake
-      standalonexOutput = standalonex.packages.aarch64-linux.default;
+      # Get the output path from xpyJsonOutputFlake
+      jsonOutputContent = xpyJsonOutputFlake.packages.aarch64-linux.default;
 
-      # List all JSON files in the standalonex output
-      jsonFiles = builtins.filter (name: builtins.match ".*\\.json" name != null) (builtins.attrNames (builtins.readDir standalonexOutput));
+      # List all JSON files in the jsonOutput
+      jsonFiles = builtins.filter (name: builtins.match ".*\\.json" name != null) (builtins.attrNames (builtins.readDir jsonOutputContent));
 
       # Function to read and parse a single JSON file
       readAndParseJson = filename:
         let
-          jsonContent = builtins.readFile "${standalonexOutput}/${filename}";
+          jsonContent = builtins.readFile "${jsonOutputContent}/${filename}";
         in
         builtins.fromJSON jsonContent;
 
