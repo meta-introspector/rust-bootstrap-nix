@@ -52,7 +52,7 @@ EOF
 
         src = self; # Use the flake's own source as input
 
-        nativeBuildInputs = [ pkgs.python3 ];
+        nativeBuildInputs = [ pkgs.python3 pkgs.jq ];
 
         phases = [ "buildPhase" "installPhase" ];
 
@@ -91,29 +91,29 @@ EOF
           export CARGO_HOME=$TMPDIR/.cargo
           mkdir -p $CARGO_HOME
 
-          echo "--- Running x.py build and capturing JSON output ---"
-          # Temporarily disable 'exit on error' because x.py is expected to sys.exit(0)
-          set +e
-          python3 x.py build --json-output > $TMPDIR/xpy_json_output.json 2> $TMPDIR/xpy_stderr.log
-          # Re-enable 'exit on error'
-          set -e
-          echo "--- x.py build finished. JSON output captured to $TMPDIR/xpy_json_output.json ---"
-
-          # Read and parse the JSON output within Nix
-          json_content=$(cat $TMPDIR/xpy_json_output.json)
-          echo "JSON content read. Now parsing..."
-          # In a real Nix expression, you would use builtins.fromJSON here.
-          # For now, we just confirm it's read.
-          cat $TMPDIR/xpy_json_output.json
-
-        '';
-
-        installPhase = ''
+          # Create $out directory before calling python script
           mkdir -p $out
-          mv $TMPDIR/xpy_json_output.json $out/xpy_json_output.json
-          # Print the content of the captured output for debugging
-          cat $out/xpy_json_output.json
+
+          echo "--- Running test_json_output.py to generate JSON files ---"
+          set +e
+          GENERATED_JSON_FILENAMES=$(python3 test_json_output.py --output-dir $out 2> $TMPDIR/test_json_output_stderr.log)
+          set -e
+          echo "--- test_json_output.py finished. Generated JSON filenames: $GENERATED_JSON_FILENAMES ---"
+          echo "--- Content of test_json_output_stderr.log ---"
+          cat $TMPDIR/test_json_output_stderr.log
+          echo "--- End of test_json_output_stderr.log content ---"
+
+          echo "--- Validating JSON output with jq ---"
+          for filename in $GENERATED_JSON_FILENAMES; do
+            echo "Validating $filename..."
+            jq . $out/$filename
+          done
+          echo "--- JSON validation successful ---"
+
         '';
+
+        # Remove installPhase as the file is copied in buildPhase
+        installPhase = "";
       };
     };
 }
