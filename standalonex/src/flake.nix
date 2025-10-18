@@ -2,10 +2,10 @@
   description = "Nix flake for the Rust bootstrap workspace";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    flake-utils.url = "github:numtide/flake-utils";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/v0.12.0"; # Re-add cargo2nix input
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify";
+    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify";
+    rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
   };
 
   outputs = { self, nixpkgs, flake-utils, cargo2nix, rust-overlay }:

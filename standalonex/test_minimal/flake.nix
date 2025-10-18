@@ -2,51 +2,36 @@
   description = "A minimal Rust project using cargo2nix";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    flake-utils.url = "github:numtide/flake-utils";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/v0.12.0";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify";
+    rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
+    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, flake-utils, cargo2nix, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay, cargo2nix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
             rust-overlay.overlays.default
-            cargo2nix.overlays.default
+            cargo2nix.overlays.default # Apply cargo2nix overlay here
           ];
         };
 
-        rustVersion = "1.75.0"; # Specify your desired Rust version
+        rustVersion = "1.75.0"; # Explicitly set rust version
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
-          packageFun = import ./Cargo.nix;
+          packageFun = (import ./Cargo.nix) { inherit pkgs; lib = pkgs.lib; workspaceSrc = ./.; rustLib = pkgs.rustPlatform; }; # Pass pkgs, lib, workspaceSrc, and rustLib to Cargo.nix
+          workspaceSrc = ./.; # Explicitly pass workspaceSrc
         };
 
-        helloRustApp = rustPkgs.hello-rust; # Assuming the crate name is hello-rust
+        helloRustApp = rustPkgs.workspace.hello-rust;
       in
       {
         packages = {
           hello-rust = helloRustApp;
           default = helloRustApp;
-        };
-
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.rust-bin.stable.${rustVersion}.default
-            pkgs.cargo
-            pkgs.rustc
-            pkgs.rustfmt
-            pkgs.clippy
-            pkgs.git
-            pkgs.pkg-config
-            pkgs.cmake
-            pkgs.libiconv # For macOS
-          ];
-          CARGO_HOME = "${pkgs.writeText "cargo-home" ""}"; # Prevent cargo from writing to ~/.cargo
-          RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
         };
       });
 }
