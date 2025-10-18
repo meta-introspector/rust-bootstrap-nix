@@ -10,10 +10,12 @@
   outputs = { self, nixpkgs, flake-utils, cargo2nix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        cargoNixPkgs = import cargo2nix { inherit pkgs; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ cargo2nix.overlays.default ];
+        };
         rustPkgs = pkgs.rust-bin.stable.latest.default;
-        cargoNix = cargoNixPkgs.lib.${system}.importCargoLock {
+        cargoNix = pkgs.importCargoLock {
           lockFile = ./Cargo.lock;
           cargoToml = ./Cargo.toml;
           inherit rustPkgs;
