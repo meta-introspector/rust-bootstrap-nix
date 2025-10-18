@@ -13,6 +13,8 @@
         rustPkgs = pkgs.rust-bin.stable.latest.default;
         cargoNix = import ./Cargo.nix {
           inherit pkgs rustPkgs;
+          rustPackages = rustPkgs;
+          buildRustPackages = rustPkgs;
           lib = pkgs.lib;
         };
       in
