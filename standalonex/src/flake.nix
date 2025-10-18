@@ -15,6 +15,7 @@
           inherit pkgs rustPkgs;
           rustPackages = rustPkgs;
           buildRustPackages = rustPkgs;
+          hostPlatform = pkgs.stdenv.hostPlatform;
           lib = pkgs.lib;
         };
       in
