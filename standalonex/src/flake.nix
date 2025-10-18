@@ -12,10 +12,10 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ cargo2nix.overlay ];
+          overlays = [ cargo2nix.overlays.default ];
         };
         rustPkgs = pkgs.rust-bin.stable.latest.default;
-        cargoNix = pkgs.rust.importCargoLock {
+        cargoNix = pkgs.importCargoLock {
           lockFile = ./Cargo.lock;
           cargoToml = ./Cargo.toml;
           inherit rustPkgs;
