@@ -10,39 +10,42 @@
   outputs = { self, nixpkgs, flake-utils, cargo2nix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        # Apply the cargo2nix overlay
-        pkgsWithCargo2nix = import nixpkgs {
+        pkgs = import nixpkgs {
           inherit system;
           overlays = [ cargo2nix.overlays.default ];
         };
-        rustPkgs = pkgsWithCargo2nix.rust-bin.stable.latest.default;
-        cargoNix = pkgsWithCargo2nix.importCargoLock {
-          lockFile = ./Cargo.lock;
-          cargoToml = ./Cargo.toml;
-          inherit rustPkgs;
+
+        rustVersion = pkgs.rust-bin.stable.latest.version; # Or a specific version like "1.75.0"
+
+        rustPkgs = pkgs.rustBuilder.makePackageSet {
+          inherit rustVersion;
+          packageFun = import ./Cargo.nix;
         };
+
+        bootstrapApp = rustPkgs.workspace.bootstrap;
+        buildHelperApp = rustPkgs.workspace.build_helper;
       in
       {
         packages = {
-          bootstrap = cargoNix.workspace.bootstrap;
-          build_helper = cargoNix.workspace.build_helper;
+          bootstrap = bootstrapApp;
+          build_helper = buildHelperApp;
+          default = bootstrapApp; # Make bootstrap the default package
         };
 
-        devShells.default = pkgsWithCargo2nix.mkShell {
+        devShells.default = pkgs.mkShell {
           buildInputs = [
-            rustPkgs
-            pkgsWithCargo2nix.cargo
-            pkgsWithCargo2nix.rustc
-            pkgsWithCargo2nix.rustfmt
-            pkgsWithCargo2nix.clippy
-            pkgsWithCargo2nix.git
-            pkgsWithCargo2nix.pkg-config
-            pkgsWithCargo2nix.cmake
-            pkgsWithCargo2nix.libiconv # For macOS
+            pkgs.rust-bin.stable.${rustVersion}.default
+            pkgs.cargo
+            pkgs.rustc
+            pkgs.rustfmt
+            pkgs.clippy
+            pkgs.git
+            pkgs.pkg-config
+            pkgs.cmake
+            pkgs.libiconv # For macOS
           ];
-          CARGO_HOME = "${pkgsWithCargo2nix.writeText "cargo-home" ""}"; # Prevent cargo from writing to ~/.cargo
-          RUST_SRC_PATH = "${rustPkgs}/lib/rustlib/src/rust/library";
+          CARGO_HOME = "${pkgs.writeText "cargo-home" ""}"; # Prevent cargo from writing to ~/.cargo
+          RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
         };
       });
 }
