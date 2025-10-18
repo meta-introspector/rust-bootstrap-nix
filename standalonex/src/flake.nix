@@ -4,45 +4,29 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
-    rust-overlay.url = "github:oxalica/rust-overlay"; # Add rust-overlay
+    cargo2nix.url = "github:cargo2nix/cargo2nix/v0.12.0"; # Re-add cargo2nix input
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils, cargo2nix, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ rust-overlay.overlays.default ]; # Apply rust-overlay
-        };
-        rustToolchain = pkgs.rust-bin.stable.latest.default;
-
-        # Arguments for Cargo.nix
-        cargoNixArgs = {
-          rustPackages = rustToolchain;
-          buildRustPackages = rustToolchain; # Assuming same for now
-          hostPlatform = pkgs.stdenv.hostPlatform;
-          lib = pkgs.lib;
-          mkRustCrate = pkgs.rustPlatform.buildRustPackage;
-          rustLib = pkgs.rustPlatform;
-          workspaceSrc = ./.; # Current directory as workspace source
-          ignoreLockHash = false; # Or true if we want to ignore
-          cargoConfig = { };
-          release = true; # Default value
-          rootFeatures = [ "bootstrap/default" "build_helper/default" ]; # Default value
-          hostPlatformCpu = null;
-          hostPlatformFeatures = [ ];
-          target = null;
-          codegenOpts = null;
-          profileOpts = null;
-          cargoUnstableFlags = null;
-          rustcLinkFlags = null;
-          rustcBuildFlags = null;
+          overlays = [
+            rust-overlay.overlays.default
+            cargo2nix.overlays.default # Apply cargo2nix overlay here
+          ];
         };
 
-        cargoNix = import ./Cargo.nix cargoNixArgs;
+        rustVersion = "1.75.0"; # Explicitly set rust version
+        rustPkgs = pkgs.rustBuilder.makePackageSet {
+          inherit rustVersion;
+          packageFun = import ./Cargo.nix;
+        };
 
-        bootstrapApp = cargoNix.workspace.bootstrap;
-        buildHelperApp = cargoNix.workspace.build_helper;
+        bootstrapApp = rustPkgs.workspace.bootstrap;
+        buildHelperApp = rustPkgs.workspace.build_helper;
       in
       {
         packages = {
@@ -53,7 +37,7 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = [
-            rustToolchain
+            pkgs.rust-bin.stable.${rustVersion}.default
             pkgs.cargo
             pkgs.rustc
             pkgs.rustfmt
@@ -64,7 +48,7 @@
             pkgs.libiconv # For macOS
           ];
           CARGO_HOME = "${pkgs.writeText "cargo-home" ""}"; # Prevent cargo from writing to ~/.cargo
-          RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
         };
       });
 }
