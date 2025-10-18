@@ -14,7 +14,6 @@
 
         # Arguments for Cargo.nix
         cargoNixArgs = {
-          inherit pkgs;
           rustPackages = rustToolchain;
           buildRustPackages = rustToolchain; # Assuming same for now
           hostPlatform = pkgs.stdenv.hostPlatform;
