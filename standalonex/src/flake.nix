@@ -4,21 +4,16 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/v0.12.0";
   };
 
-  outputs = { self, nixpkgs, flake-utils, cargo2nix }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ cargo2nix.overlays.default ];
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
         rustPkgs = pkgs.rust-bin.stable.latest.default;
-        cargoNix = pkgs.importCargoLock {
-          lockFile = ./Cargo.lock;
-          cargoToml = ./Cargo.toml;
-          inherit rustPkgs;
+        cargoNix = import ./Cargo.nix {
+          inherit pkgs rustPkgs;
+          lib = pkgs.lib;
         };
       in
       {
