@@ -15,7 +15,7 @@
           overlays = [ cargo2nix.overlays.default ];
         };
 
-        rustVersion = pkgs.rust-bin.stable.latest.version; # Or a specific version like "1.75.0"
+        rustVersion = "1.75.0"; # Or a specific version like "1.75.0"
 
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
