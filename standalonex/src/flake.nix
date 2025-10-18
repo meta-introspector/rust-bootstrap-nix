@@ -15,7 +15,7 @@
           overlays = [ cargo2nix.overlays.default ];
         };
         rustPkgs = pkgs.rust-bin.stable.latest.default;
-        cargoNix = pkgs.importCargoLock {
+        cargoNix = pkgs.cargo2nix.importCargoLock {
           lockFile = ./Cargo.lock;
           cargoToml = ./Cargo.toml;
           inherit rustPkgs;
