@@ -30,9 +30,9 @@
       in
       {
         packages = {
-          bootstrap = bootstrapApp;
-          build_helper = buildHelperApp;
-          default = bootstrapApp; # Make bootstrap the default package
+          bootstrap = bootstrapApp { }; # Call the function to get the derivation
+          build_helper = buildHelperApp { }; # Call the function to get the derivation
+          default = bootstrapApp { }; # Call the function to get the derivation
         };
 
         devShells.default = pkgs.mkShell {
