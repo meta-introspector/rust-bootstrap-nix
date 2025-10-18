@@ -22,11 +22,8 @@
           buildRustPackages = rustToolchain; # Assuming same for now
           hostPlatform = pkgs.stdenv.hostPlatform;
           lib = pkgs.lib;
-          # These are usually provided by cargo2nix's internal functions
-          # We need to find a way to get them or define them.
-          # For now, let's try to pass dummy values or find them in pkgs.rustPlatform
-          mkRustCrate = pkgs.rustPlatform.buildRustPackage; # This is a guess
-          rustLib = pkgs.rustPlatform; # This is a guess
+          mkRustCrate = pkgs.rustPlatform.buildRustPackage;
+          rustLib = pkgs.rustPlatform;
           workspaceSrc = ./.; # Current directory as workspace source
           ignoreLockHash = false; # Or true if we want to ignore
           cargoConfig = { };
