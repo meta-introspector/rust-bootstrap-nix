@@ -4,6 +4,7 @@
 args@{ release ? true
 , rootFeatures ? [
     "bootstrap/default"
+    "build_helper/default"
   ]
 , rustPackages
 , buildRustPackages
@@ -59,6 +60,7 @@ else
     cargo2nixVersion = "0.12.0";
     workspace = {
       bootstrap = rustPackages.unknown.bootstrap."0.0.0";
+      build_helper = rustPackages.unknown.build_helper."0.1.0";
     };
     "registry+https://github.com/rust-lang/crates.io-index".aho-corasick."1.1.3" = overridableMkRustCrate (profileName: rec {
       name = "aho-corasick";
