@@ -26,7 +26,7 @@
           workspaceSrc = ./.;
         };
 
-        helloRustApp = rustPkgs.workspace.hello-rust;
+        helloRustApp = rustPkgs.workspace.hello-rust { }; # Call the function to get the derivation
       in
       {
         packages = {
