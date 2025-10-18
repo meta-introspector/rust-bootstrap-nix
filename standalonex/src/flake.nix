@@ -19,7 +19,7 @@
           ];
         };
 
-        rustVersion = "1.75.0"; # Explicitly set rust version
+        rustVersion = "1.84.1"; # Explicitly set rust version
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
           packageFun = import ./Cargo.nix;
