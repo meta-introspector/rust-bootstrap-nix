@@ -45,27 +45,4 @@
           RUST_SRC_PATH = "${rustPkgs}/lib/rustlib/src/rust/library";
         };
       });
-  in
-  {
-  packages = {
-    bootstrap = cargoNix.workspace.bootstrap;
-    build_helper = cargoNix.workspace.build_helper;
-  };
-
-  devShells.default = pkgs.mkShell {
-    buildInputs = [
-      rustPkgs
-      pkgs.cargo
-      pkgs.rustc
-      pkgs.rustfmt
-      pkgs.clippy
-      pkgs.git
-      pkgs.pkg-config
-      pkgs.cmake
-      pkgs.libiconv # For macOS
-    ];
-    CARGO_HOME = "${pkgs.writeText "cargo-home" ""}"; # Prevent cargo from writing to ~/.cargo
-    RUST_SRC_PATH = "${rustPkgs}/lib/rustlib/src/rust/library";
-  };
-});
 }
