@@ -15,15 +15,15 @@
           inherit system;
           overlays = [
             rust-overlay.overlays.default
-            cargo2nix.overlays.default # Apply cargo2nix overlay here
+            cargo2nix.overlays.default
           ];
         };
 
         rustVersion = "1.75.0"; # Explicitly set rust version
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
-          packageFun = (import ./Cargo.nix) { inherit pkgs; lib = pkgs.lib; workspaceSrc = ./.; rustLib = pkgs.rustPlatform; }; # Pass pkgs, lib, workspaceSrc, and rustLib to Cargo.nix
-          workspaceSrc = ./.; # Explicitly pass workspaceSrc
+          packageFun = import ./Cargo.nix;
+          workspaceSrc = ./.;
         };
 
         helloRustApp = rustPkgs.workspace.hello-rust;
@@ -32,6 +32,22 @@
         packages = {
           hello-rust = helloRustApp;
           default = helloRustApp;
+        };
+
+        devShells.default = pkgs.mkShell {
+          buildInputs = [
+            pkgs.rust-bin.stable.${rustVersion}.default
+            pkgs.cargo
+            pkgs.rustc
+            pkgs.rustfmt
+            pkgs.clippy
+            pkgs.git
+            pkgs.pkg-config
+            pkgs.cmake
+            pkgs.libiconv # For macOS
+          ];
+          CARGO_HOME = "${pkgs.writeText "cargo-home" ""}";
+          RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
         };
       });
 }
