@@ -1,2 +1,2 @@
-rustc = "/nix/store/lrr9mf5sg6qbas19z1ixjna024zkqws4-rust-default-1.90.0/bin/rustc"
-cargo = "/nix/store/lrr9mf5sg6qbas19z1ixjna024zkqws4-rust-default-1.90.0/bin/cargo"
+[build]
+src = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex"

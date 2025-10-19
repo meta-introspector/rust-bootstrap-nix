@@ -45,3 +45,47 @@ This document details the various configuration files used within the `rust-boot
 **Description:** This file appears to be an older or template version of `standalonex/config.toml`. It is specifically used by the `standalonex/flake.nix`'s `buildPhase` as a base to generate the active `config.toml` by injecting the correct Nix store paths for `rustc` and `cargo` using `sed`.
 
 **Purpose:** To serve as a template for generating the runtime `config.toml` within the `standalonex` build process, allowing for dynamic injection of Nix-specific paths.
+
+## Configuring Relocatable Installation Paths for Nix
+
+For Nix-based builds and to ensure the resulting artifacts are relocatable, it's crucial to properly configure the installation paths. The `[install]` section in your `config.toml` allows you to define a base prefix for all installed components.
+
+### `[install]` Section
+
+This section controls where the built artifacts will be placed.
+
+*   `prefix`:
+    *   **Purpose:** Specifies the base directory for all installed components. In a Nix environment, this will typically be a path within the Nix store (e.g., `/nix/store/...-rust-toolchain`). All other installation paths (like `bindir`, `libdir`, etc.) will be derived from this prefix unless explicitly overridden.
+    *   **Example:** `prefix = "/nix/store/some-hash-my-rust-package"`
+
+*   `bindir`:
+    *   **Purpose:** Specifies the directory for executable binaries.
+    *   **Behavior:** If `prefix` is set and `bindir` is *not* explicitly defined, `bindir` will automatically default to `prefix/bin`. This ensures that your executables are placed correctly within the specified installation prefix.
+    *   **Example (explicitly set):** `bindir = "/usr/local/bin"` (overrides the default `prefix/bin`)
+
+*   `libdir`, `sysconfdir`, `docdir`, `mandir`, `datadir`:
+    *   **Purpose:** These fields specify directories for libraries, configuration files, documentation, manual pages, and data files, respectively.
+    *   **Behavior:** If `prefix` is set, these paths are typically expected to be relative to the `prefix` unless an absolute path is provided.
+
+### Nix-Specific Binary Patching
+
+The `[build]` section also includes a relevant option for Nix:
+
+*   `patch-binaries-for-nix`:
+    *   **Purpose:** This boolean option enables Nix-specific patching of binaries. This is essential for ensuring that compiled artifacts are truly relocatable within the Nix store, often involving adjustments to RPATHs and other internal paths.
+    *   **Example:** `patch-binaries-for-nix = true`
+
+### Example `config.toml` for Relocatable Nix Builds
+
+```toml
+# config.toml
+[install]
+prefix = "/nix/store/some-hash-my-rust-package"
+# bindir will automatically be set to "/nix/store/some-hash-my-rust-package/bin"
+# libdir = "lib" # would resolve to /nix/store/some-hash-my-rust-package/lib
+
+[build]
+patch-binaries-for-nix = true
+```
+
+This configuration ensures that your Rust project builds and installs in a manner compatible with Nix's strict path requirements, promoting reproducibility and relocatability.
