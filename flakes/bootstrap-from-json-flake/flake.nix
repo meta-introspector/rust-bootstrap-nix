@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rust-bootstrap-nix = {
-      url = "path:../../..";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify";
       flake = false;
     };
   };

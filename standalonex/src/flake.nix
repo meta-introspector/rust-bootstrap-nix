@@ -22,26 +22,25 @@
         rustVersion = "1.84.1"; # Explicitly set rust version
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
-          packageFun = (import ./Cargo.nix) {
-            lib = pkgs.lib; # Explicitly pass lib
-            hostPlatform = pkgs.stdenv.hostPlatform; # Explicitly pass hostPlatform
-            rustLib = pkgs.rustPlatform; # Explicitly pass rustLib
-            mkRustCrate = pkgs.rustPlatform.buildRustPackage; # Explicitly pass mkRustCrate
-            rustPackages = pkgs.rustBuilder.rustPackages; # Explicitly pass rustPackages
-            buildRustPackages = pkgs.rustBuilder.rustPackages; # Explicitly pass buildRustPackages
-            workspaceSrc = ./.; # Explicitly pass workspaceSrc
-            ignoreLockHash = false; # Explicitly pass ignoreLockHash
-            overrides = pkgs.rustBuilder.overrides.make (final: prev: {
-              globset = prev.globset.overrideAttrs (old: {
+          packageFun = args: (import ./Cargo.nix) (args // {
+            lib = pkgs.lib;
+            hostPlatform = pkgs.stdenv.hostPlatform;
+            rustLib = pkgs.rustPlatform;
+            mkRustCrate = pkgs.rustPlatform.buildRustPackage;
+            workspaceSrc = ./.;
+            ignoreLockHash = false;
+            cargo2nix = cargo2nix; # Pass cargo2nix itself
+          });
+          packageOverrides = pkgs.rustBuilder.overrides.make (final: prev: {
+            globset = prev.globset.overrideAttrs (old: {
+              version = "0.4.16";
+              src = pkgs.rustBuilder.fetchCratesIo {
+                name = "globset";
                 version = "0.4.16";
-                src = pkgs.rustBuilder.fetchCratesIo {
-                  name = "globset";
-                  version = "0.4.16";
-                  sha256 = "54a1028dfc5f5df5da8a56a73e6c153c9a9708ec57232470703592a3f18e49f5"; # SHA256 for globset 0.4.16
-                };
-              });
+                sha256 = "54a1028dfc5f5df5da8a56a73e6c153c9a9708ec57232470703592a3f18e49f5"; # SHA256 for globset 0.4.16
+              };
             });
-          };
+          });
         };
 
         bootstrapApp = rustPkgs.workspace.bootstrap;

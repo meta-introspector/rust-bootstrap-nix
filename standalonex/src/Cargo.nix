@@ -23,6 +23,7 @@ args@{ release ? true
 , workspaceSrc
 , ignoreLockHash
 , cargoConfig ? { }
+, cargo2nix # Add cargo2nix to arguments
 ,
 }:
 let
@@ -38,7 +39,8 @@ if !lockHashIgnored && (nixifiedLockHash != currentLockHash) then
   throw ("Cargo.nix ${nixifiedLockHash} is out of sync with Cargo.lock ${currentLockHash}")
 else
   let
-    inherit (rustLib) fetchCratesIo fetchCrateLocal fetchCrateGit fetchCrateAlternativeRegistry expandFeatures decideProfile genDrvsByProfile;
+    inherit (rustLib) fetchCratesIo fetchCrateLocal fetchCrateGit fetchCrateAlternativeRegistry expandFeatures decideProfile;
+    inherit (cargo2nix.lib) genDrvsByProfile;# Inherit from cargo2nix.lib
     cargoConfig' = if cargoConfig != { } then cargoConfig else
     if builtins.pathExists ./.cargo/config then lib.importTOML ./.cargo/config else
     if builtins.pathExists ./.cargo/config.toml then lib.importTOML ./.cargo/config.toml else { };

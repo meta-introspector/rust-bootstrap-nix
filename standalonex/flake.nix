@@ -6,7 +6,7 @@
     rustSrcFlake.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     bootstrap-compiler = {
-      url = "path:../flakes/bootstrap-from-json-flake";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/bootstrap-from-json-flake";
     };
   };
 
