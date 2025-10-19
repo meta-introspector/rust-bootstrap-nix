@@ -25,6 +25,7 @@
           packageFun = (import ./Cargo.nix) {
             lib = pkgs.lib; # Explicitly pass lib
             hostPlatform = pkgs.stdenv.hostPlatform; # Explicitly pass hostPlatform
+            rustLib = pkgs.rustPlatform; # Explicitly pass rustLib
             overrides = pkgs.rustBuilder.overrides.make (final: prev: {
               globset = prev.globset.overrideAttrs (old: {
                 version = "0.4.16";
