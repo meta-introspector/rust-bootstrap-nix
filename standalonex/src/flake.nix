@@ -22,18 +22,18 @@
         rustVersion = "1.84.1"; # Explicitly set rust version
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
-          packageFun = import ./Cargo.nix;
-          workspaceSrc = ./.;
-          overrides = pkgs.rustBuilder.overrides.make (final: prev: {
-            globset = prev.globset.overrideAttrs (old: {
-              version = "0.4.16";
-              src = pkgs.rustBuilder.fetchCratesIo {
-                name = "globset";
+          packageFun = (import ./Cargo.nix) {
+            overrides = pkgs.rustBuilder.overrides.make (final: prev: {
+              globset = prev.globset.overrideAttrs (old: {
                 version = "0.4.16";
-                sha256 = "54a1028dfc5f5df5da8a56a73e6c153c9a9708ec57232470703592a3f18e49f5"; # SHA256 for globset 0.4.16
-              };
+                src = pkgs.rustBuilder.fetchCratesIo {
+                  name = "globset";
+                  version = "0.4.16";
+                  sha256 = "54a1028dfc5f5df5da8a56a73e6c153c9a9708ec57232470703592a3f18e49f5"; # SHA256 for globset 0.4.16
+                };
+              });
             });
-          });
+          };
         };
 
         bootstrapApp = rustPkgs.workspace.bootstrap;
