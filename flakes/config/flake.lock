@@ -150,11 +150,11 @@
         "rustSrcFlake": "rustSrcFlake"
       },
       "locked": {
-        "lastModified": 1760840743,
-        "narHash": "sha256-WHC5NEQrBzA8XIc2/LbW5+L6yd0OejU4BrnSJRX3Tl4=",
+        "lastModified": 1760843413,
+        "narHash": "sha256-yq5Ecemr7zgP2APDjsibeNCq6OBcPu8zTyx59ZhuPMA=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "97b6f70cf840bcdef2297a979a11b87a51eb7124",
+        "rev": "34d7b3a99776f3d07eda9e1cee3931d8c17fa421",
         "type": "github"
       },
       "original": {

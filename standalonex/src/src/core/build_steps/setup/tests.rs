@@ -8,7 +8,7 @@ fn check_matching_settings_hash() {
     let editor = EditorKind::Vscode;
     let mut hasher = sha2::Sha256::new();
     hasher.update(&editor.settings_template());
-    let hash = hex_encode(hasher.finalize().as_slice());
+    let hash = hex_encode(hasher.finalize());
     assert_eq!(
         &hash,
         editor.hashes().last().unwrap(),

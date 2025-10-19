@@ -3,14 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=3487cd3843083db70ee30023f19344568ade9c9f";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    bootstrap-compiler = {
-      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/bootstrap-from-json-flake";
-    };
   };
 
-  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, bootstrap-compiler }:
+  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay }:
     let
       pkgs = import nixpkgs {
         system = "aarch64-linux";
@@ -36,8 +33,8 @@
                     # Create config.toml with Nix-provided rustc and cargo paths
                     mkdir -p .cargo
                     cat > config.toml <<EOF
-          rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
-          cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
+          rustc = "${pkgs.rust-bin.stable."1.84.1".default}/bin/rustc"
+          cargo = "${pkgs.rust-bin.stable."1.84.1".default}/bin/cargo"
           EOF
                     export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
 
@@ -49,36 +46,14 @@
         '';
       };
 
-      packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
-        pname = "xpy-build-output";
+      packages.aarch64-linux.default = pkgs.rustPlatform.buildRustPackage {
+        pname = "bootstrap";
         version = "0.1.0";
 
-        src = self; # Use the flake's own source as input
-
-        nativeBuildInputs = [ pkgs.python3 pkgs.jq bootstrap-compiler.packages.aarch64-linux.default ];
-
-        phases = [ "buildPhase" "installPhase" ];
-
-        buildPhase = ''
-            # Set environment variables
-            export RUST_BOOTSTRAP_JSON_OUTPUT_DIR=$out
-
-            # Create config.toml
-            cat > config.toml <<EOF
-          rustc = "${pkgs.rust-bin.stable.latest.default}/bin/rustc"
-          cargo = "${pkgs.rust-bin.stable.latest.default}/bin/cargo"
-          EOF
-            export RUST_BOOTSTRAP_CONFIG=$(pwd)/config.toml
-
-            # Run the bootstrap compiler
-            ${bootstrap-compiler.packages.aarch64-linux.default}/bin/bootstrap dist
-
-            # List the output
-            ls -la $out
-        '';
-
-        # Remove installPhase as the file is copied in buildPhase
-        installPhase = "";
+        src = ./src;
+        cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+        rustc = pkgs.rust-bin.stable."1.84.1".default;
+        doCheck = false;
       };
     };
 }

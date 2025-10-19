@@ -1384,6 +1384,7 @@ impl Config {
         }
 
         if cfg!(test) {
+            eprintln!("DEBUG: CARGO_TARGET_DIR: {:?}", env::var_os("CARGO_TARGET_DIR"));
             // Use the build directory of the original x.py invocation, so that we can set `initial_rustc` properly.
             config.out = Path::new(
                 &env::var_os("CARGO_TARGET_DIR").expect("cargo test directly is not supported"),
@@ -1412,8 +1413,10 @@ impl Config {
         // Give a hard error if `--config` or `RUST_BOOTSTRAP_CONFIG` are set to a missing path,
         // but not if `config.toml` hasn't been created.
         let mut toml = if !using_default_path || toml_path.exists() {
+            eprintln!("DEBUG: current_dir: {:?}", env::current_dir());
+            eprintln!("DEBUG: toml_path before canonicalize: {:?}", toml_path);
             config.config = Some(if cfg!(not(feature = "bootstrap-self-test")) {
-                toml_path.canonicalize().unwrap()
+                toml_path.canonicalize().unwrap_or_else(|_| toml_path.clone())
             } else {
                 toml_path.clone()
             });
@@ -2767,6 +2770,10 @@ impl Config {
             fs::read_to_string(self.src.join("src/version")).unwrap().trim(),
         )
         .unwrap();
+
+        eprintln!("DEBUG: stage0_version: {:?}", stage0_version);
+        eprintln!("DEBUG: source_version: {:?}", source_version);
+
         if !(source_version == stage0_version
             || (source_version.major == stage0_version.major
                 && (source_version.minor == stage0_version.minor

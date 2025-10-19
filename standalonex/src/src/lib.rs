@@ -1736,7 +1736,7 @@ Executed at: {executed_at}"#,
             }
         }
         if let Ok(()) = fs::hard_link(&src, dst) {
-            // Attempt to "easy copy" by creating a hard link (symlinks are priviledged on windows),
+            // Attempt to "easy copy" by creating a hard link (symlinks are hard on windows),
             // but if that fails just fall back to a slow `copy` operation.
         } else {
             if let Err(e) = fs::copy(&src, dst) {
@@ -2010,7 +2010,7 @@ pub fn generate_smart_stamp_hash(
     hasher.update(status);
     hasher.update(additional_input);
 
-    hex_encode(hasher.finalize().as_slice())
+    hex_encode(hasher.finalize())
 }
 
 /// Ensures that the behavior dump directory is properly initialized.

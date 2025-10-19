@@ -606,13 +606,7 @@ Select which editor you would like to set up [default: None]: ";
     }
 
     fn settings_template(&self) -> &str {
-        match self {
-            EditorKind::Vscode | EditorKind::Vim => {
-                include_str!("../../../../etc/rust_analyzer_settings.json")
-            }
-            EditorKind::Emacs => include_str!("../../../../etc/rust_analyzer_eglot.el"),
-            EditorKind::Helix => include_str!("../../../../etc/rust_analyzer_helix.toml"),
-        }
+        ""
     }
 
     fn backup_extension(&self) -> String {
@@ -677,7 +671,7 @@ fn create_editor_settings_maybe(config: &Config, editor: EditorKind) -> io::Resu
     if let Ok(current) = fs::read_to_string(&settings_path) {
         let mut hasher = sha2::Sha256::new();
         hasher.update(&current);
-        let hash = hex_encode(hasher.finalize().as_slice());
+        let hash = hex_encode(hasher.finalize());
         if hash == *current_hash {
             return Ok(true);
         } else if historical_hashes.contains(&hash.as_str()) {
