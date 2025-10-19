@@ -3,9 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    # Reference the xpy-json-output-flake directly
-    xpyJsonOutputFlake = {
-      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/xpy-json-output-flake";
+    bootstrapFromJsonFlake = {
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/bootstrap-from-json-flake";
     };
     # Reference the main Rust source code
     rustSrc = {
@@ -17,12 +16,12 @@
     };
   };
 
-  outputs = { self, nixpkgs, xpyJsonOutputFlake, rustSrc, evaluateRustFlake }:
+  outputs = { self, nixpkgs, bootstrapFromJsonFlake, rustSrc, evaluateRustFlake }:
     let
       pkgs = import nixpkgs { system = "aarch64-linux"; };
 
       # Get the output path from xpyJsonOutputFlake
-      jsonOutputContent = xpyJsonOutputFlake.packages.aarch64-linux.default;
+      jsonOutputContent = bootstrapFromJsonFlake.packages.aarch64-linux.default;
 
       # List all JSON files in the jsonOutput
       jsonFiles = builtins.filter (name: builtins.match ".*\\.json" name != null) (builtins.attrNames (builtins.readDir jsonOutputContent));
