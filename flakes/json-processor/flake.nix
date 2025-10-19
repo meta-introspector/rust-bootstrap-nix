@@ -5,15 +5,15 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     # Reference the xpy-json-output-flake directly
     xpyJsonOutputFlake = {
-      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/xpy-json-output-flake";
     };
     # Reference the main Rust source code
     rustSrc = {
-      url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
+      url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
     };
     # Reference the evaluate-rust flake
     evaluateRustFlake = {
-      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/evaluate-rust"; # Reference the evaluate-rust flake
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/evaluate-rust"; # Reference the evaluate-rust flake
     };
   };
 

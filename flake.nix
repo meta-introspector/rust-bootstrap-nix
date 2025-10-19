@@ -70,6 +70,7 @@
           pkgs_aarch64.git
           pkgs_aarch64.curl
           pkgs_aarch64.which # Add which to the devShell
+          pkgs_aarch64.statix # Add statix to the devShell
         ];
 
         # Set HOME and CARGO_HOME for the devShell
@@ -109,6 +110,7 @@
           pkgs_x86_64.git
           pkgs_x86_64.curl
           pkgs_x86_64.which # Add which to the devShell
+          pkgs_x86_64.statix # Add statix to the devShell
         ];
 
         # Set HOME and CARGO_HOME for the devShell

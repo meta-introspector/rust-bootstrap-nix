@@ -3,9 +3,9 @@
 
   inputs = {
     #nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    nixpkgs.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     # Reference the standalonex flake within the rust-bootstrap-nix submodule
-    #standalonex.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=standalonex";
+    #standalonex.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=standalonex";
   };
 
   #      packages.aarch64-linux.default = pkgs.runCommand "processed-json-output" { } ''

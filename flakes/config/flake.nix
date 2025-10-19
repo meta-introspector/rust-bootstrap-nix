@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustBootstrapNix.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
+    rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify";
   };
 
   outputs = { self, nixpkgs, rustBootstrapNix }:
