@@ -23,6 +23,7 @@
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
           packageFun = (import ./Cargo.nix) {
+            lib = pkgs.lib; # Explicitly pass lib
             overrides = pkgs.rustBuilder.overrides.make (final: prev: {
               globset = prev.globset.overrideAttrs (old: {
                 version = "0.4.16";
