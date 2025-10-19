@@ -167,6 +167,16 @@ impl LldMode {
     }
 }
 
+/// Configuration for CI-related paths and settings.
+#[derive(Debug, Default, Clone)]
+pub struct CiConfig {
+    pub channel_file: PathBuf,
+    pub version_file: PathBuf,
+    pub tools_dir: PathBuf,
+    pub llvm_project_dir: PathBuf,
+    pub gcc_dir: PathBuf,
+}
+
 /// Global configuration for the entire build and/or bootstrap.
 ///
 /// This structure is parsed from `config.toml`, and some of the fields are inferred from `git` or build-time parameters.
@@ -385,6 +395,8 @@ pub struct Config {
     initial_rustfmt: RefCell<RustfmtState>,
     #[cfg(test)]
     pub initial_rustfmt: RefCell<RustfmtState>,
+
+    pub ci: CiConfig,
 
     /// The paths to work with. For example: with `./x check foo bar` we get
     /// `paths=["foo", "bar"]`.
@@ -658,6 +670,7 @@ pub(crate) struct TomlConfig {
     rust: Option<Rust>,
     target: Option<HashMap<String, TomlTarget>>,
     dist: Option<Dist>,
+    ci: Option<Ci>,
     profile: Option<String>,
 }
 
@@ -981,6 +994,17 @@ define_config! {
     }
 }
 
+define_config! {
+    /// TOML representation of CI-related paths and settings.
+    struct Ci {
+        channel_file: Option<String> = "channel-file",
+        version_file: Option<String> = "version-file",
+        tools_dir: Option<String> = "tools-dir",
+        llvm_project_dir: Option<String> = "llvm-project-dir",
+        gcc_dir: Option<String> = "gcc-dir",
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum StringOrBool {
@@ -1220,6 +1244,12 @@ define_config! {
 
 impl Config {
     pub fn default_opts() -> Config {
+        let src_path = {
+            let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            // Undo `src/bootstrap`
+            manifest_dir.parent().unwrap().parent().unwrap().to_owned()
+        };
+
         Config {
             bypass_bootstrap_lock: false,
             llvm_optimize: true,
@@ -1250,16 +1280,20 @@ impl Config {
             // set by build.rs
             build: TargetSelection::from_user(env!("BUILD_TRIPLE")),
 
-            src: {
-                let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                // Undo `src/bootstrap`
-                manifest_dir.parent().unwrap().parent().unwrap().to_owned()
-            },
+            src: src_path.clone(),
             out: PathBuf::from("build"),
 
             // This is needed by codegen_ssa on macOS to ship `llvm-objcopy` aliased to
             // `rust-objcopy` to workaround bad `strip`s on macOS.
             llvm_tools_enabled: true,
+
+            ci: CiConfig {
+                channel_file: src_path.join("src/ci/channel"),
+                version_file: src_path.join("src/version"),
+                tools_dir: src_path.join("src/tools"),
+                llvm_project_dir: src_path.join("src/llvm-project"),
+                gcc_dir: src_path.join("src/gcc"),
+            },
 
             ..Default::default()
         }
@@ -1368,7 +1402,7 @@ impl Config {
             toml_path = config.src.join(toml_path);
         }
 
-        let file_content = t!(fs::read_to_string(config.src.join("src/ci/channel")));
+        let file_content = t!(fs::read_to_string(&config.ci.channel_file));
         let ci_channel = file_content.trim_end();
 
         // Give a hard error if `--config` or `RUST_BOOTSTRAP_CONFIG` are set to a missing path,
@@ -1453,6 +1487,20 @@ impl Config {
             exit!(2)
         }
         toml.merge(override_toml, ReplaceOpt::Override);
+
+        let Ci {
+            channel_file,
+            version_file,
+            tools_dir,
+            llvm_project_dir,
+            gcc_dir,
+        } = toml.ci.unwrap_or_default();
+
+        set(&mut config.ci.channel_file, channel_file.map(PathBuf::from));
+        set(&mut config.ci.version_file, version_file.map(PathBuf::from));
+        set(&mut config.ci.tools_dir, tools_dir.map(PathBuf::from));
+        set(&mut config.ci.llvm_project_dir, llvm_project_dir.map(PathBuf::from));
+        set(&mut config.ci.gcc_dir, gcc_dir.map(PathBuf::from));
 
         config.change_id = toml.change_id.inner;
 
@@ -1668,19 +1716,19 @@ impl Config {
         let default = config.channel == "dev";
         config.omit_git_hash = toml.rust.as_ref().and_then(|r| r.omit_git_hash).unwrap_or(default);
 
-        config.rust_info = GitInfo::new(config.omit_git_hash, &config.src);
-        config.cargo_info = GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/cargo"));
+        config.rust_info = GitInfo::new(config.omit_git_hash, &config.src); // config.src is still the overall source root
+        config.cargo_info = GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("cargo"));
         config.rust_analyzer_info =
-            GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/rust-analyzer"));
+            GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("rust-analyzer"));
         config.clippy_info =
-            GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/clippy"));
-        config.miri_info = GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/miri"));
+            GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("clippy"));
+        config.miri_info = GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("miri"));
         config.rustfmt_info =
-            GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/rustfmt"));
+            GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("rustfmt"));
         config.enzyme_info =
-            GitInfo::new(config.omit_git_hash, &config.src.join("src/tools/enzyme"));
-        config.in_tree_llvm_info = GitInfo::new(false, &config.src.join("src/llvm-project"));
-        config.in_tree_gcc_info = GitInfo::new(false, &config.src.join("src/gcc"));
+            GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("enzyme"));
+        config.in_tree_llvm_info = GitInfo::new(false, &config.ci.llvm_project_dir);
+        config.in_tree_gcc_info = GitInfo::new(false, &config.ci.gcc_dir);
 
         if let Some(rust) = toml.rust {
             let Rust {
@@ -1849,7 +1897,7 @@ impl Config {
                 );
 
                 let channel = config
-                    .read_file_by_commit(&PathBuf::from("src/ci/channel"), commit)
+                    .read_file_by_commit(&config.ci.channel_file, commit)
                     .trim()
                     .to_owned();
 
@@ -2298,11 +2346,11 @@ impl Config {
                 .trim()
                 .to_owned();
             let version =
-                self.read_file_by_commit(&PathBuf::from("src/version"), commit).trim().to_owned();
+                self.read_file_by_commit(&config.ci.version_file, commit).trim().to_owned();
             (channel, version)
         } else {
-            let channel = fs::read_to_string(self.src.join("src/ci/channel"));
-            let version = fs::read_to_string(self.src.join("src/version"));
+            let channel = fs::read_to_string(&self.ci.channel_file);
+            let version = fs::read_to_string(&self.ci.version_file);
             match (channel, version) {
                 (Ok(channel), Ok(version)) => {
                     (channel.trim().to_owned(), version.trim().to_owned())
