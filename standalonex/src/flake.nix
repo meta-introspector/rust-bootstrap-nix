@@ -24,6 +24,7 @@
           inherit rustVersion;
           packageFun = (import ./Cargo.nix) {
             lib = pkgs.lib; # Explicitly pass lib
+            hostPlatform = pkgs.stdenv.hostPlatform; # Explicitly pass hostPlatform
             overrides = pkgs.rustBuilder.overrides.make (final: prev: {
               globset = prev.globset.overrideAttrs (old: {
                 version = "0.4.16";
