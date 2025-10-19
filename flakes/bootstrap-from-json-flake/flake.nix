@@ -37,6 +37,9 @@
         nativeBuildInputs = [ pkgs.rust-bin.stable.latest.default ];
 
         buildPhase = ''
+          export HOME=$TMPDIR
+          export CARGO_HOME=$TMPDIR/.cargo
+          mkdir -p $CARGO_HOME
           ${bootstrapBuildPlan.command} ${builtins.concatStringsSep " " bootstrapBuildPlan.args}
         '';
 

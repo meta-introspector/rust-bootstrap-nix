@@ -1861,11 +1861,13 @@ Executed at: {executed_at}"#,
     }
 
     fn symlink_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, src: P, link: Q) -> io::Result<()> {
+        if self.config.dry_run() { return Ok(()); }
         #[cfg(unix)]
-        use std::os::unix::fs::symlink as symlink_file;
+        std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
         #[cfg(windows)]
-        use std::os::windows::fs::symlink_file;
-        if !self.config.dry_run() { symlink_file(src.as_ref(), link.as_ref()) } else { Ok(()) }
+        std::os::windows::fs::symlink_file(src.as_ref(), link.as_ref())
+        #[cfg(not(any(unix, windows)))]
+        Err(io::Error::new(io::ErrorKind::Other, "symlinks not supported on this platform"))
     }
 
     /// Returns if config.ninja is enabled, and checks for ninja existence,

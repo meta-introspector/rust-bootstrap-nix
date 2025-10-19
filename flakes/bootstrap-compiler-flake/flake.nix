@@ -22,7 +22,7 @@
         pname = "bootstrap";
         version = "0.1.0";
 
-        src = "${rust-bootstrap-nix}/standalonex/src/bootstrap";
+        src = "${rust-bootstrap-nix}/standalonex/src";
 
         cargoLock.lockFile = "${rust-bootstrap-nix}/standalonex/src/bootstrap/Cargo.lock";
       };
