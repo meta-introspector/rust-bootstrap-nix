@@ -26,6 +26,7 @@
             lib = pkgs.lib; # Explicitly pass lib
             hostPlatform = pkgs.stdenv.hostPlatform; # Explicitly pass hostPlatform
             rustLib = pkgs.rustPlatform; # Explicitly pass rustLib
+            mkRustCrate = pkgs.rustPlatform.buildRustPackage; # Explicitly pass mkRustCrate
             workspaceSrc = ./.; # Explicitly pass workspaceSrc
             overrides = pkgs.rustBuilder.overrides.make (final: prev: {
               globset = prev.globset.overrideAttrs (old: {
