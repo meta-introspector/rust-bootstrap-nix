@@ -42,11 +42,11 @@
     "rust-bootstrap-nix": {
       "flake": false,
       "locked": {
-        "lastModified": 1760843413,
-        "narHash": "sha256-yq5Ecemr7zgP2APDjsibeNCq6OBcPu8zTyx59ZhuPMA=",
+        "lastModified": 1760872571,
+        "narHash": "sha256-PlwSuUrhS40UCwiJE2MU7oe2IXUYqRqGabZNLUtpcHk=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "34d7b3a99776f3d07eda9e1cee3931d8c17fa421",
+        "rev": "0c52a17258d855c7a7de39b06e1bf81319d40275",
         "type": "github"
       },
       "original": {

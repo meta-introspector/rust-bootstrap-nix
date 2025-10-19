@@ -17,46 +17,44 @@
       rustToolchain_x86_64 = pkgs_x86_64.rustChannels.nightly.rust.override { targets = [ "x86_64-unknown-linux-gnu" ]; };
 
       # Define the sccache-enabled rustc package
-      sccachedRustc = (system: pkgs: rustToolchain:
-        let
-          cargo_bin = "${rustToolchain}/bin/cargo";
-          rustc_bin = "${rustToolchain}/bin/rustc";
-          cargoHome = "$TMPDIR/.cargo";
-          compiler_date = "2024-11-28";
-          build_triple = if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
-        in
-        (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.sccache pkgs.curl ];
-          configurePhase = "# Skip the default configure script";
-          preConfigure = pkgs.lib.concatStringsSep "\n" [
-            (oldAttrs.preConfigure or "")
-            "export RUSTC_WRAPPER=\"${pkgs.sccache}/bin/sccache\""
-            "export SCCACHE_DIR=\"$TMPDIR/sccache\""
-            "export SCCACHE_TEMPDIR=\"$TMPDIR/sccache-tmp\""
-            "mkdir -p \"$SCCACHE_DIR\""
-            "mkdir -p \"$SCCACHE_TEMPDIR\""
-            "sccache --stop-server || true"
-            "sccache --start-server"
-            "export PATH=\"${pkgs.curl}/bin:$PATH\""
-            "export CURL=\"${pkgs.curl}/bin/curl\""
-          ];
-          buildPhase = pkgs.lib.concatStringsSep "\n" [
+      # sccachedRustc = (system: pkgs: rustToolchain:
+      #   let
+      #     cargo_bin = "${rustToolchain}/bin/cargo";
+      #     rustc_bin = "${rustToolchain}/bin/rustc";
+      #     cargoHome = "$TMPDIR/.cargo";
+      #     compiler_date = "2024-11-28";
+      #     build_triple = if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
+      #   in
+      #   (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
+      #     nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.sccache pkgs.curl ];
+      #     configurePhase = "# Skip the default configure script";
+      #     preConfigure = pkgs.lib.concatStringsSep "\n" [
+      #       (oldAttrs.preConfigure or "")
+      #       "export RUSTC_WRAPPER=\"${pkgs.sccache}/bin/sccache\""
+      #       "export SCCACHE_DIR=\"$TMPDIR/sccache\""
+      #       "export SCCACHE_TEMPDIR=\"$TMPDIR/sccache-tmp\""
+      #       "mkdir -p \"$SCCACHE_DIR\""
+      #       "mkdir -p \"$SCCACHE_TEMPDIR\""
+      #       "sccache --stop-server || true"
+      #       "sccache --start-server"
+      #       "export PATH=\"${pkgs.curl}/bin:$PATH\""
+      #       "export CURL=\"${pkgs.curl}/bin/curl\""
+      #     ];
+      #     buildPhase = pkgs.lib.concatStringsSep "\n" [
 
-            "echo \"vendor = true\" >> config.toml"
-            "echo \"rustc = \\\"${rustc_bin}\\\"\" >> config.toml"
-            "echo \"cargo = \\\"${cargo_bin}\\\"\" >> config.toml"
-            "echo \"HOME = \\\"$TMPDIR\\\"\" >> config.toml"
-            "mkdir -p \"$TMPDIR/.cargo\""
-            "mkdir -p \"build/${build_triple}/stage0\""
-            "echo \"${compiler_date}\" > \"build/${build_triple}/stage0/.rustc-stamp\""
-            "export HOME=\"$TMPDIR\""
-            "export CARGO_HOME=\"$TMPDIR/.cargo\""
-            "python x.py build"
-          ];
-          preBuild = (oldAttrs.preBuild or "") + "sccache --zero-stats";
-          postBuild = (oldAttrs.postBuild or "") + "sccache --show-stats\nsccache --stop-server";
-        })
-      );
+
+
+      #       "mkdir -p \"$TMPDIR/.cargo\""
+      #       "mkdir -p \"build/${build_triple}/stage0\""
+      #       "echo \"${compiler_date}\" > \"build/${build_triple}/stage0/.rustc-stamp\""
+      #       "export HOME=\"$TMPDIR\""
+      #       "export CARGO_HOME=\"$TMPDIR/.cargo\""
+      #       "python x.py build"
+      #     ];
+      #     preBuild = (oldAttrs.preBuild or "") + "sccache --zero-stats";
+      #     postBuild = (oldAttrs.postBuild or "") + "sccache --show-stats\nsccache --stop-server";
+      #   })
+      # );
 
     in
     {
@@ -141,7 +139,7 @@
       };
 
       # Define packages.default to be the sccache-enabled rustc package
-      packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
-      packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
+      # packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
+      # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
     };
 }

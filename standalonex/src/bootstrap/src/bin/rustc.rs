@@ -52,7 +52,12 @@ fn main() {
         ("RUSTC_REAL", "RUSTC_LIBDIR")
     };
 
-    let sysroot = env::var_os("RUSTC_SYSROOT").expect("RUSTC_SYSROOT was not set");
+    let sysroot = env::var_os("RUSTC_SYSROOT").unwrap_or_else(|| {
+        eprintln!("FATAL: RUSTC_SYSROOT was not set.");
+        eprintln!("       This environment variable is required by the rustc shim to locate the Rust standard library.");
+        eprintln!("       Please ensure RUSTC_SYSROOT is set to the correct path of the Rust toolchain sysroot.");
+        std::process::exit(1);
+    });
     let on_fail = env::var_os("RUSTC_ON_FAIL").map(Command::new);
 
     let rustc_real = env::var_os(rustc).unwrap_or_else(|| panic!("{:?} was not set", rustc));
