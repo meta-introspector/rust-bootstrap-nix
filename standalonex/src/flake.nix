@@ -27,7 +27,10 @@
             hostPlatform = pkgs.stdenv.hostPlatform; # Explicitly pass hostPlatform
             rustLib = pkgs.rustPlatform; # Explicitly pass rustLib
             mkRustCrate = pkgs.rustPlatform.buildRustPackage; # Explicitly pass mkRustCrate
+            rustPackages = pkgs.rustBuilder.rustPackages; # Explicitly pass rustPackages
+            buildRustPackages = pkgs.rustBuilder.rustPackages; # Explicitly pass buildRustPackages
             workspaceSrc = ./.; # Explicitly pass workspaceSrc
+            ignoreLockHash = false; # Explicitly pass ignoreLockHash
             overrides = pkgs.rustBuilder.overrides.make (final: prev: {
               globset = prev.globset.overrideAttrs (old: {
                 version = "0.4.16";
