@@ -40,7 +40,7 @@ if !lockHashIgnored && (nixifiedLockHash != currentLockHash) then
 else
   let
     inherit (rustLib) fetchCratesIo fetchCrateLocal fetchCrateGit fetchCrateAlternativeRegistry expandFeatures decideProfile;
-    inherit (cargo2nix.lib) genDrvsByProfile;# Inherit from cargo2nix.lib
+    inherit (cargo2nix) genDrvsByProfile;# Inherit from cargo2nix
     cargoConfig' = if cargoConfig != { } then cargoConfig else
     if builtins.pathExists ./.cargo/config then lib.importTOML ./.cargo/config else
     if builtins.pathExists ./.cargo/config.toml then lib.importTOML ./.cargo/config.toml else { };

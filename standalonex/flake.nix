@@ -20,6 +20,8 @@
 
         packages = [
           pkgs.python3
+          pkgs.rust-bin.stable."1.84.1".default
+          pkgs.cargo
         ];
 
         shellHook = ''
