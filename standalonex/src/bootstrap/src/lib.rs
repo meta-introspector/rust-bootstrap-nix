@@ -1736,7 +1736,7 @@ Executed at: {executed_at}"#,
             }
         }
         if let Ok(()) = fs::hard_link(&src, dst) {
-            // Attempt to "easy copy" by creating a hard link (symlinks are priviledged on windows),
+            // Attempt to "easy copy" by creating a hard link (symlinks are privileged on windows),
             // but if that fails just fall back to a slow `copy` operation.
         } else {
             if let Err(e) = fs::copy(&src, dst) {
@@ -1862,12 +1862,13 @@ Executed at: {executed_at}"#,
 
     fn symlink_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, src: P, link: Q) -> io::Result<()> {
         if self.config.dry_run() { return Ok(()); }
-        #[cfg(unix)]
-        std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
-        #[cfg(windows)]
-        std::os::windows::fs::symlink_file(src.as_ref(), link.as_ref())
-        #[cfg(not(any(unix, windows)))]
-        Err(io::Error::new(io::ErrorKind::Other, "symlinks not supported on this platform"))
+        if cfg!(unix) {
+            std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
+        } /* else if cfg!(windows) {
+            std::os::windows::fs::symlink_file(src.as_ref(), link.as_ref())
+        } */ else {
+            Err(io::Error::new(io::ErrorKind::Other, "symlinks not supported on this platform"))
+        }
     }
 
     /// Returns if config.ninja is enabled, and checks for ninja existence,

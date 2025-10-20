@@ -51,6 +51,9 @@
 
         src = ./src;
         cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+        preBuild = ''
+          cd bootstrap
+        '';
         rustc = pkgs.rust-bin.stable."1.84.1".default;
         doCheck = false;
       };
