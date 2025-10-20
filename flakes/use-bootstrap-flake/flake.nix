@@ -50,5 +50,13 @@
 
       bootstrap_path = bootstrap_path;
       rust_1_84_1_rustc_path = rust_1_84_1_rustc_path;
+
+      packages.aarch64-linux.run-bootstrap-and-save-output = pkgs.runCommand "run-bootstrap-output"
+        {
+          nativeBuildInputs = [ standalonex.packages.aarch64-linux.default ];
+        } ''
+        mkdir -p $out/share
+        ${standalonex.packages.aarch64-linux.default}/bin/bootstrap --help > $out/share/bootstrap_output.txt 2>&1
+      '';
     };
 }
