@@ -39,7 +39,7 @@
           export RUSTC_SYSROOT=${rust_1_84_1_sysroot}
           export RUSTC_SNAPSHOT_LIBDIR=${rust_1_84_1_libdir}
           export LD_LIBRARY_PATH=${rust_1_84_1_libdir}
-          export RUST_BACKTRACE=full
+          # export RUST_BACKTRACE=full
           export LD_DEBUG=all
           echo "Bootstrap binary is available in your PATH."
         '';
