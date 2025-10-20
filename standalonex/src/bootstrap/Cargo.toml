@@ -34,6 +34,8 @@ path = "src/bin/sccache-plus-cl.rs"
 test = false
 
 [dependencies]
+ignore = "=0.4.23"
+globset = "=0.4.16"
 # Most of the time updating these dependencies requires modifications to the
 # bootstrap codebase(e.g., https://github.com/rust-lang/rust/issues/124565);
 # otherwise, some targets will fail. That's why these dependencies are explicitly pinned.
@@ -45,7 +47,7 @@ clap = { version = "4.4", default-features = false, features = ["std", "usage", 
 clap_complete = "4.4"
 fd-lock = "4.0"
 home = "0.5"
-ignore = "0.4"
+
 libc = "0.2"
 object = { version = "0.36.3", default-features = false, features = ["archive", "coff", "read_core", "unaligned"] }
 opener = "0.5"

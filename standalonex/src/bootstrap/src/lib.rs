@@ -367,13 +367,13 @@ impl Build {
         if bootstrap_out.ends_with("deps") {
             bootstrap_out.pop();
         }
-        if !bootstrap_out.join(exe("rustc", config.build)).exists() && !cfg!(test) {
-            // this restriction can be lifted whenever https://github.com/rust-lang/rfcs/pull/3028 is implemented
-            panic!(
-                "`rustc` not found in {}, run `cargo build --bins` before `cargo run`",
-                bootstrap_out.display()
-            )
-        }
+       // if !bootstrap_out.join(exe("rustc", config.build)).exists() && !cfg!(test) {
+        //    // this restriction can be lifted whenever https://github.com/rust-lang/rfcs/pull/3028 is implemented
+         //   panic!(
+         //       "`rustc` not found in {}, run `cargo build --bins` before `cargo run`",
+          //      bootstrap_out.display()
+          //  )
+       // }
 
         if rust_info.is_from_tarball() && config.description.is_none() {
             config.description = Some("built from a source tarball".to_owned());
@@ -2013,7 +2013,7 @@ pub fn generate_smart_stamp_hash(
     hasher.update(status);
     hasher.update(additional_input);
 
-    hex_encode(hasher.finalize().as_slice())
+    hex_encode(hasher.finalize())
 }
 
 /// Ensures that the behavior dump directory is properly initialized.

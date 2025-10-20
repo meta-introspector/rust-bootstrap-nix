@@ -1,2 +1,6 @@
+change-id = 133207
+[build]
+patch-binaries-for-nix=true
 rustc = "/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/rustc"
+#/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/rustc
 cargo = "/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/cargo"

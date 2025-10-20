@@ -31,6 +31,7 @@
 
           # Set environment variable for src/stage0 path
           export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
+          export RUST_SRC_ROOT=${rustSrcFlake}
 
           # In a Nix environment, it's generally preferred to manage config.toml statically
           # or pass tool paths via environment variables to the bootstrap process,
@@ -49,11 +50,13 @@
         pname = "bootstrap";
         version = "0.1.0";
 
-        src = ./src;
+        src = pkgs.lib.cleanSource ./.;
+        sourceRoot = "src/bootstrap";
         cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
         preBuild = ''
-          cd bootstrap
+          ln -s ${rustSrcFlake}/tools $src/src/tools
         '';
+
         rustc = pkgs.rust-bin.stable."1.84.1".default;
         doCheck = false;
       };

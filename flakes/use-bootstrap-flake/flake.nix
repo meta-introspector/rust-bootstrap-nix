@@ -1,5 +1,5 @@
 {
-  description = "A flake to use the built bootstrap binary";
+  description = "A flake for bootstrapping rust";
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
@@ -12,13 +12,9 @@
 
   outputs = { self, nixpkgs, rustOverlay, standalonex }:
     let
-      pkgs = import nixpkgs {
-        system = "aarch64-linux";
-        overlays = [ rustOverlay.overlays.default ];
-      };
-
-      bootstrap_path = standalonex.packages.aarch64-linux.default;
+      pkgs = import nixpkgs { system = "aarch64-linux"; overlays = [ rustOverlay.overlays.default ]; };
       rust_1_84_1_toolchain = pkgs.rust-bin.stable."1.84.1".default;
+      bootstrap_path = standalonex.packages.aarch64-linux.default;
       rust_1_84_1_rustc_path = "${rust_1_84_1_toolchain}/bin/rustc";
       rust_1_84_1_sysroot = pkgs.runCommand "get-sysroot-1-84-1" { } "${rust_1_84_1_rustc_path} --print sysroot > $out";
       rust_1_84_1_libdir = pkgs.runCommand "get-libdir-1-84-1" { } "echo ${rust_1_84_1_sysroot}/lib/rustlib/${pkgs.stdenv.hostPlatform.config}/lib > $out";
@@ -26,11 +22,9 @@
     in
     {
       devShells.aarch64-linux.default = pkgs.mkShell {
-        name = "use-bootstrap-dev-shell";
-
         packages = [
-          bootstrap_path # The built bootstrap binary
-          rust_1_84_1_toolchain # The desired Rust toolchain
+          rust_1_84_1_toolchain
+          bootstrap_path
         ];
 
         shellHook = ''
@@ -41,16 +35,10 @@
           export RUSTC_SNAPSHOT_LIBDIR=${rust_1_84_1_libdir}
           export LD_LIBRARY_PATH=${rust_1_84_1_libdir}
           # export RUST_BACKTRACE=full
-          export LD_DEBUG=all
+          #export LD_DEBUG=all
           echo "Bootstrap binary is available in your PATH."
         '';
       };
-
-      rust_1_84_1_sysroot = rust_1_84_1_sysroot;
-      rust_1_84_1_libdir = pkgs.runCommand "get-libdir-1-84-1" { } "echo ${rust_1_84_1_sysroot}/lib/rustlib/${pkgs.stdenv.hostPlatform.config}/lib > $out";
-
-      bootstrap_path = bootstrap_path;
-      rust_1_84_1_rustc_path = rust_1_84_1_rustc_path;
 
       packages.aarch64-linux = {
         run-bootstrap-and-save-output = pkgs.runCommand "run-bootstrap-output"
@@ -71,7 +59,7 @@
           mkdir -p $out/share
           cd $standalonexSrc/src/bootstrap
           # Capture both stdout and stderr to the file
-          cargo build --verbose > $out/share/cargo_build_output.txt 2>&1 || true # Continue on error to capture output
+          cargo build --verbose | tee $out/share/cargo_build_output.txt 2>&1 || true # Continue on error to capture output
         '';
       };
     };

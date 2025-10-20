@@ -387,7 +387,7 @@ impl Config {
             reader.consume(l);
         }
 
-        let checksum = hex_encode(hasher.finalize().as_slice());
+        let checksum = hex_encode(hasher.finalize());
         let verified = checksum == expected;
 
         if !verified {
