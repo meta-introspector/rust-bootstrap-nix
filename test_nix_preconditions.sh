@@ -33,16 +33,16 @@ log_info "2. Verifying Rust toolchain sysroot for pkgs.rust-bin.stable.\"1.84.1\
 
 RUST_TOOLCHAIN_PATH=$(nix eval --raw --extra-experimental-features "nix-command flakes" --expr '
   let
-    flake = builtins.getFlake "path:."; # Reference the current flake
-    pkgs = import flake.inputs.nixpkgs {
-      system = builtins.currentSystem;
-      overlays = [ flake.inputs.rust-overlay.overlays.default ]; # Use the rust-overlay input
+    standalonexFlake = builtins.getFlake "github:meta-introspector/rust-bootstrap-nix?rev=be3f35712b133efd47073a3a45203ddca533fe01&dir=standalonex";
+    pkgs = import standalonexFlake.inputs.nixpkgs {
+      system = "aarch64-linux"; # Explicitly set system
+      overlays = [ standalonexFlake.inputs.rustOverlay.overlays.default ];
     };
   in
-  pkgs.rust-bin.stable."1.84.1".default
+  pkgs.rustPlatform.rustLibSrc # Access the rustLibSrc attribute
 ')
 
-if [[ -d "$RUST_TOOLCHAIN_PATH/lib/rustlib/src/rust" ]]; then
+if [[ -d "$RUST_TOOLCHAIN_PATH" ]]; then
     log_success "Rust toolchain sysroot found at: $RUST_TOOLCHAIN_PATH/lib/rustlib/src/rust"
 else
     log_failure "Rust toolchain sysroot NOT found at: $RUST_TOOLCHAIN_PATH/lib/rustlib/src/rust"
@@ -52,7 +52,12 @@ echo ""
 # --- Precondition 3: Verify Rust source flake (rustSrcFlake) exists ---
 log_info "3. Verifying Rust source flake (rustSrcFlake) exists..."
 
-RUST_SRC_FLAKE_PATH=$(nix path-info --json github:meta-introspector/rust?ref=3487cd3843083db70ee30023f19344568ade9c9f | jq -r '.[0].path')
+RUST_SRC_FLAKE_PATH=$(nix eval --raw --extra-experimental-features "nix-command flakes" --expr '
+  let
+    standalonexFlake = builtins.getFlake "github:meta-introspector/rust-bootstrap-nix?rev=be3f35712b133efd47073a3a45203ddca533fe01&dir=standalonex";
+  in
+  standalonexFlake.inputs.rustSrcFlake.outPath
+')
 
 if [[ -d "$RUST_SRC_FLAKE_PATH" ]]; then
     log_success "Rust source flake found at: $RUST_SRC_FLAKE_PATH"

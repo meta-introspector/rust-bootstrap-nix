@@ -89,3 +89,22 @@ patch-binaries-for-nix = true
 ```
 
 This configuration ensures that your Rust project builds and installs in a manner compatible with Nix's strict path requirements, promoting reproducibility and relocatability.
+
+## Preconditions for Nix Flake Build
+
+The `test_nix_preconditions.sh` script verifies essential environmental setups required for a successful Nix-based build of the Rust bootstrap. Ensuring these preconditions are met helps in maintaining a reproducible and stable build environment.
+
+### 1. Nix Command Availability
+
+*   **Check:** Verifies that the `nix` command-line tool is installed and accessible in the system's `PATH`.
+*   **Importance:** Nix is fundamental to this build system, as it manages dependencies, builds packages, and ensures reproducibility. Without the `nix` command, the build process cannot proceed.
+
+### 2. Rust Toolchain Sysroot Existence
+
+*   **Check:** Evaluates the Nix store path for the `pkgs.rust-bin.stable."1.84.1".default` Rust toolchain (including its source) and confirms that the Rust source directory exists within it.
+*   **Importance:** The Rust bootstrap process often requires access to the Rust compiler's source code (sysroot) for various build stages and internal operations. This precondition ensures that the necessary source components are available from the Nix-managed Rust toolchain.
+
+### 3. Rust Source Flake (rustSrcFlake) Existence
+
+*   **Check:** Evaluates the Nix store path for the `rustSrcFlake` input (which represents the Rust compiler's source code) as defined in `standalonex/flake.nix`, and verifies that this path exists and contains a known file (`src/ci/channel`).
+*   **Importance:** The `bootstrap` binary needs to know the location of the Rust compiler's source tree to perform its build tasks. This precondition ensures that the `rustSrcFlake` input is correctly resolved and available, providing the necessary source for the bootstrap process.
