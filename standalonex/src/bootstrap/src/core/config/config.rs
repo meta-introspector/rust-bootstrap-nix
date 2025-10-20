@@ -702,7 +702,7 @@ trait Merge {
 impl Merge for TomlConfig {
     fn merge(
         &mut self,
-        TomlConfig { build, install, llvm, rust, dist, target, profile: _, change_id }: Self,
+        TomlConfig { build, install, llvm, rust, dist, target, profile: _, change_id, ci }: Self,
         replace: ReplaceOpt,
     ) {
         fn do_merge<T: Merge>(x: &mut Option<T>, y: Option<T>, replace: ReplaceOpt) {
@@ -720,6 +720,7 @@ impl Merge for TomlConfig {
         do_merge(&mut self.llvm, llvm, replace);
         do_merge(&mut self.rust, rust, replace);
         do_merge(&mut self.dist, dist, replace);
+        do_merge(&mut self.ci, ci, replace);
 
         match (self.target.as_mut(), target) {
             (_, None) => {}
@@ -996,6 +997,7 @@ define_config! {
 
 define_config! {
     /// TOML representation of CI-related paths and settings.
+    #[derive(Default)]
     struct Ci {
         channel_file: Option<String> = "channel-file",
         version_file: Option<String> = "version-file",
@@ -1369,9 +1371,7 @@ impl Config {
 
         // Infer the rest of the configuration.
 
-        config.src = if let Some(src) = toml.build.as_ref().and_then(|b| b.src.clone()) {
-            src
-        } else if let Some(src) = flags.src {
+        config.src = if let Some(src) = flags.src {
             src
         } else {
             let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -2346,7 +2346,7 @@ impl Config {
                 .trim()
                 .to_owned();
             let version =
-                self.read_file_by_commit(&config.ci.version_file, commit).trim().to_owned();
+                self.read_file_by_commit(&self.ci.version_file, commit).trim().to_owned();
             (channel, version)
         } else {
             let channel = fs::read_to_string(&self.ci.channel_file);
