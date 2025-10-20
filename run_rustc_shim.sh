@@ -18,7 +18,7 @@ export RUSTC_SYSROOT="$RUST_TOOLCHAIN_BASE_PATH"
 export RUSTC_SNAPSHOT_LIBDIR="$RUST_TOOLCHAIN_BASE_PATH/lib"
 export LD_LIBRARY_PATH="/nix/store/x9w1w2c9rycrdkp3ynmwjkyk2v40vyb0-get-libdir-1-84-1"
 export RUST_BACKTRACE=full
-export LD_DEBUG=files
+# export LD_DEBUG=files
 
 BOOTSTRAP_RUSTC_PATH=$(nix path-info --json ./standalonex#packages.aarch64-linux.default | jq -r '.[0].path')
 "$BOOTSTRAP_RUSTC_PATH/bin/rustc" --version 2>&1 | tee bootstrap_debug_direct.log
