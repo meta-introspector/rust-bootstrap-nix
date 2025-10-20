@@ -193,13 +193,13 @@
         "rustSrcFlake": "rustSrcFlake"
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-JIFdi7V8r8c56TJNAW0ihkK+Sm6+rdV1D5XtaACTWY8=",
-        "path": "../../standalonex",
+        "lastModified": 1760961925,
+        "narHash": "sha256-PazWbw328/kTepTusrMEOxQ2rR6VK+S1EB7lp/VSSJY=",
+        "path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex",
         "type": "path"
       },
       "original": {
-        "path": "../../standalonex",
+        "path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex",
         "type": "path"
       }
     },

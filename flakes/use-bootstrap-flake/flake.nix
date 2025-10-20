@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     standalonex = {
-      url = "path:../../standalonex";
+      url = "path:/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -22,6 +22,7 @@
       rust_1_84_1_rustc_path = "${rust_1_84_1_toolchain}/bin/rustc";
       rust_1_84_1_sysroot = pkgs.runCommand "get-sysroot-1-84-1" { } "${rust_1_84_1_rustc_path} --print sysroot > $out";
       rust_1_84_1_libdir = pkgs.runCommand "get-libdir-1-84-1" { } "echo ${rust_1_84_1_sysroot}/lib/rustlib/${pkgs.stdenv.hostPlatform.config}/lib > $out";
+      rustSrcPath = standalonex.inputs.rustSrcFlake.outPath; # Correctly get the rust source path
     in
     {
       devShells.aarch64-linux.default = pkgs.mkShell {
@@ -51,12 +52,27 @@
       bootstrap_path = bootstrap_path;
       rust_1_84_1_rustc_path = rust_1_84_1_rustc_path;
 
-      packages.aarch64-linux.run-bootstrap-and-save-output = pkgs.runCommand "run-bootstrap-output"
-        {
-          nativeBuildInputs = [ standalonex.packages.aarch64-linux.default ];
-        } ''
-        mkdir -p $out/share
-        ${standalonex.packages.aarch64-linux.default}/bin/bootstrap --help > $out/share/bootstrap_output.txt 2>&1
-      '';
+      packages.aarch64-linux = {
+        run-bootstrap-and-save-output = pkgs.runCommand "run-bootstrap-output"
+          {
+            nativeBuildInputs = [ standalonex.packages.aarch64-linux.default ];
+            rustSrc = rustSrcPath; # Pass the rustSrcPath as a build input
+          } ''
+          mkdir -p $out/share
+          ${standalonex.packages.aarch64-linux.default}/bin/bootstrap test tidy --src "$rustSrc" > $out/share/bootstrap_output.txt 2>&1
+        '';
+        default = self.packages.aarch64-linux.run-bootstrap-and-save-output;
+
+        run-cargo-build-and-save-output = pkgs.runCommand "run-cargo-build-output"
+          {
+            nativeBuildInputs = [ pkgs.cargo pkgs.rustc pkgs.git ]; # Added pkgs.git
+            standalonexSrc = standalonex;
+          } ''
+          mkdir -p $out/share
+          cd $standalonexSrc/src/bootstrap
+          # Capture both stdout and stderr to the file
+          cargo build --verbose > $out/share/cargo_build_output.txt 2>&1 || true # Continue on error to capture output
+        '';
+      };
     };
 }
