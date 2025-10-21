@@ -5,3 +5,8 @@ result
 logs/
 Makefile~
 *.log
+*~
+*#
+*/build
+/standalonex/src/target/
+/standalonex/src/bootstrap/build/

@@ -22,7 +22,7 @@ pub(crate) fn parse(config: &str) -> Config {
 
 #[test]
 #[ignore]
-fn download_ci_llvm() {
+pub fn download_ci_llvm() {
     let config = parse("");
     let is_available = llvm::is_ci_llvm_available(&config, config.llvm_assertions);
     if is_available {
@@ -56,8 +56,8 @@ fn download_ci_llvm() {
 //   - https://github.com/rust-lang/rust/issues/109120
 //   - https://github.com/rust-lang/rust/pull/109162#issuecomment-1496782487
 #[test]
-fn detect_src_and_out() {
-    fn test(cfg: Config, build_dir: Option<&str>) {
+pub fn detect_src_and_out() {
+pub fn test(cfg: Config, build_dir: Option<&str>) {
         // This will bring absolute form of `src/bootstrap` path
         let current_dir = std::env::current_dir().unwrap();
 
@@ -108,12 +108,12 @@ fn detect_src_and_out() {
 }
 
 #[test]
-fn clap_verify() {
+pub fn clap_verify() {
     Flags::command().debug_assert();
 }
 
 #[test]
-fn override_toml() {
+pub fn override_toml() {
     let config = Config::parse_inner(
         Flags::parse(&[
             "check".to_owned(),
@@ -208,7 +208,7 @@ runner = "x86_64-runner"
 
 #[test]
 #[should_panic]
-fn override_toml_duplicate() {
+pub fn override_toml_duplicate() {
     Config::parse_inner(
         Flags::parse(&[
             "check".to_owned(),
@@ -221,8 +221,8 @@ fn override_toml_duplicate() {
 }
 
 #[test]
-fn profile_user_dist() {
-    fn get_toml(file: &Path) -> Result<TomlConfig, toml::de::Error> {
+pub fn profile_user_dist() {
+pub fn get_toml(file: &Path) -> Result<TomlConfig, toml::de::Error> {
         let contents =
             if file.ends_with("config.toml") || env::var_os("RUST_BOOTSTRAP_CONFIG").is_some() {
                 "profile = \"user\"".to_owned()
@@ -237,7 +237,7 @@ fn profile_user_dist() {
 }
 
 #[test]
-fn rust_optimize() {
+pub fn rust_optimize() {
     assert!(parse("").rust_optimize.is_release());
     assert!(!parse("rust.optimize = false").rust_optimize.is_release());
     assert!(parse("rust.optimize = true").rust_optimize.is_release());
@@ -250,12 +250,12 @@ fn rust_optimize() {
 
 #[test]
 #[should_panic]
-fn invalid_rust_optimize() {
+pub fn invalid_rust_optimize() {
     parse("rust.optimize = \"a\"");
 }
 
 #[test]
-fn verify_file_integrity() {
+pub fn verify_file_integrity() {
     let config = parse("");
 
     let tempfile = config.tempdir().join(".tmp-test-file");
@@ -271,7 +271,7 @@ fn verify_file_integrity() {
 }
 
 #[test]
-fn rust_lld() {
+pub fn rust_lld() {
     assert!(matches!(parse("").lld_mode, LldMode::Unused));
     assert!(matches!(parse("rust.use-lld = \"self-contained\"").lld_mode, LldMode::SelfContained));
     assert!(matches!(parse("rust.use-lld = \"external\"").lld_mode, LldMode::External));
@@ -281,12 +281,12 @@ fn rust_lld() {
 
 #[test]
 #[should_panic]
-fn parse_config_with_unknown_field() {
+pub fn parse_config_with_unknown_field() {
     parse("unknown-key = 1");
 }
 
 #[test]
-fn parse_change_id_with_unknown_field() {
+pub fn parse_change_id_with_unknown_field() {
     let config = r#"
         change-id = 3461
         unknown-key = 1
@@ -297,7 +297,7 @@ fn parse_change_id_with_unknown_field() {
 }
 
 #[test]
-fn order_of_clippy_rules() {
+pub fn order_of_clippy_rules() {
     let args = vec![
         "clippy".to_string(),
         "--fix".to_string(),
@@ -329,7 +329,7 @@ fn order_of_clippy_rules() {
 }
 
 #[test]
-fn clippy_rule_separate_prefix() {
+pub fn clippy_rule_separate_prefix() {
     let args =
         vec!["clippy".to_string(), "-A clippy:all".to_string(), "-W clippy::style".to_string()];
     let config = Config::parse(Flags::parse(&args));
@@ -347,7 +347,7 @@ fn clippy_rule_separate_prefix() {
 }
 
 #[test]
-fn verbose_tests_default_value() {
+pub fn verbose_tests_default_value() {
     let config = Config::parse(Flags::parse(&["build".into(), "compiler".into()]));
     assert_eq!(config.verbose_tests, false);
 
@@ -356,7 +356,7 @@ fn verbose_tests_default_value() {
 }
 
 #[test]
-fn parse_rust_std_features() {
+pub fn parse_rust_std_features() {
     let config = parse("rust.std-features = [\"panic-unwind\", \"backtrace\"]");
     let expected_features: BTreeSet<String> =
         ["panic-unwind", "backtrace"].into_iter().map(|s| s.to_string()).collect();
@@ -364,7 +364,7 @@ fn parse_rust_std_features() {
 }
 
 #[test]
-fn parse_rust_std_features_empty() {
+pub fn parse_rust_std_features_empty() {
     let config = parse("rust.std-features = []");
     let expected_features: BTreeSet<String> = BTreeSet::new();
     assert_eq!(config.rust_std_features, expected_features);
@@ -372,17 +372,17 @@ fn parse_rust_std_features_empty() {
 
 #[test]
 #[should_panic]
-fn parse_rust_std_features_invalid() {
+pub fn parse_rust_std_features_invalid() {
     parse("rust.std-features = \"backtrace\"");
 }
 
 #[test]
-fn parse_jobs() {
+pub fn parse_jobs() {
     assert_eq!(parse("build.jobs = 1").jobs, Some(1));
 }
 
 #[test]
-fn jobs_precedence() {
+pub fn jobs_precedence() {
     // `--jobs` should take precedence over using `--set build.jobs`.
 
     let config = Config::parse_inner(
@@ -435,7 +435,7 @@ fn jobs_precedence() {
 }
 
 #[test]
-fn check_rustc_if_unchanged_paths() {
+pub fn check_rustc_if_unchanged_paths() {
     let config = parse("");
     let normalised_allowed_paths: Vec<_> = RUSTC_IF_UNCHANGED_ALLOWED_PATHS
         .iter()

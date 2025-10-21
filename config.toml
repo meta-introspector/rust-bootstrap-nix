@@ -1,2 +1,5 @@
-[build]
-src = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex"
+vendor = true
+rustc = "/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/rustc"
+cargo = "/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/cargo"
+HOME = "/data/data/com.termux.nix/files/usr/tmp/nix-shell.CtCPT5/nix-shell.oWJVF0/tmp.KkJjJ587Ch"
+CARGO_HOME = "/data/data/com.termux.nix/files/usr/tmp/nix-shell.CtCPT5/nix-shell.oWJVF0/tmp.KkJjJ587Ch/.cargo"

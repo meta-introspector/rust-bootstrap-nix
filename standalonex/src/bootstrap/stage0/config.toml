@@ -1,10 +1,5 @@
-change-id = 133207
 [build]
+vendor = true
 patch-binaries-for-nix=true
-rust_src_path = "/nix/store/k7wrn478pqvwbzcr7gkbjghcphp62kxd-source"
 rustc = "/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/rustc"
-#/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/rustc
 cargo = "/nix/store/qdz7ccxq8k902nyzc9pb606cp1pam12c-rust-default-1.84.1/bin/cargo"
-
-[paths]
-cargo = "build/cargo_home"

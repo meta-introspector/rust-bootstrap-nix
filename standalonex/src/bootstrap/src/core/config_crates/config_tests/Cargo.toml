@@ -1,0 +1,10 @@
+[package]
+name = "config_tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+config_core = { path = "../config_core" }
+config_macros = { path = "../config_macros" }
+
+[workspace]

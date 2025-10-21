@@ -1,7 +1,8 @@
-//! Build-and-run steps for `./x.py test` test fixtures
-//!
-//! `./x.py test` (aka [`Kind::Test`]) is currently allowed to reach build steps in other modules.
-//! However, this contains ~all test parts we expect people to be able to build and run locally.
+use crate::prelude::*;
+// Build-and-run steps for `./x.py test` test fixtures
+//
+// `./x.py test` (aka [`Kind::Test`]) is currently allowed to reach build steps in other modules.
+// However, this contains ~all test parts we expect people to be able to build and run locally.
 
 use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
@@ -18,7 +19,8 @@ use crate::core::builder::{
     self, Alias, Builder, Compiler, Kind, RunConfig, ShouldRun, Step, crate_description,
 };
 use crate::core::config::TargetSelection;
-use crate::core::config::flags::{Subcommand, get_completion};
+use crate::core::config::flags::get_completion;
+use crate::Subcommand;
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{
     self, LldThreads, add_link_lib_path, add_rustdoc_cargo_linker_args, dylib_path, dylib_path_var,

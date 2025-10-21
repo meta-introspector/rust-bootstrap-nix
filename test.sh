@@ -1,13 +1,8 @@
 #!/bin/sh
 
-echo "--- Setting up Test Environment (Replicating Nix Build) ---"
+set -euo pipefail
 
-# Hardcoded Nix store paths (obtained from previous nix eval)
-SCCACHE_PATH="/nix/store/wnb0ak90fv19ys0hxzb9c2jkfdshys1a-sccache-0.10.0"
-CURL_PATH="/nix/store/l93sz0xmd0pm4xjyz9bhlyfgh09bzsxn-curl-8.14.1-bin"
-RUSTC_PATH="/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/rustc"
-CARGO_PATH="/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/cargo"
-GREP_PATH="/nix/store/v2i6say53v0al0s4gv7kpq178wp73qyl-gnugrep-3.12/bin/grep" # Assuming grep is available in Nixpkgs
+echo "--- Setting up Test Environment (Replicating Nix Build) ---"
 
 # Define paths and variables (replicating Nix build environment)
 TMPDIR=$(mktemp -d)
@@ -18,47 +13,13 @@ export CARGO_WORKSPACE_ROOT="/nonexistent/workspace/root" # Attempt to trick car
 mkdir -p "$CARGO_HOME"
 mkdir -p "$CARGO_TARGET_DIR"
 
-# Add sccache and grep to PATH for immediate use in the script
-export PATH="${SCCACHE_PATH}/bin:${GREP_PATH}:${PATH}"
-#/nix/store/wnb0ak90fv19ys0hxzb9c2jkfdshys1a-sccache-0.10.0/bin/sccache 
+# Determine the current flake's GitHub reference dynamically if possible,
+# or use a hardcoded one for now as per user's instruction.
+# For this specific case, the user provided the exact reference.
+FLAKE_REF="github:meta-introspector/rust-bootstrap-nix?rev=be3f35712b133efd47073a3a45203ddca533fe01&dir=standalonex"
 
-# Replicating preConfigure logic
-#export RUSTC_WRAPPER="${SCCACHE_PATH}/bin/sccache"
-#export SCCACHE_DIR="$TMPDIR/sccache"
-#export SCCACHE_TEMPDIR="$TMPDIR/sccache-tmp"
-#mkdir -p "$SCCACHE_DIR"
-#mkdir -p "$SCCACHE_TEMPDIR"
-#env
-#sccache --stop-server || true # Stop any existing sccache server
-#sccache --start-server
-
-export PATH="${CURL_PATH}/bin:$PATH"
-export CURL="${CURL_PATH}/bin/curl"
-
-# Replicating buildPhase logic
-CONFIG_TOML_PATH="./config.toml"
-COMPILER_DATE=$(${GREP_PATH} -oP 'compiler_date=\K.*' /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/src/stage0) # Using absolute path for src/stage0
-
-cat > "$CONFIG_TOML_PATH" <<EOF
-vendor = true
-rustc = "$RUSTC_PATH"
-cargo = "$CARGO_PATH"
-HOME = "$HOME"
-CARGO_HOME = "$CARGO_HOME"
-EOF
-
-BUILD_TRIPLE="aarch64-unknown-linux-gnu" # Assuming aarch64-linux
-BIN_ROOT="build/${BUILD_TRIPLE}/stage0"
-mkdir -p "$BIN_ROOT"
-echo "$COMPILER_DATE" > "${BIN_ROOT}/.rustc-stamp"
-
-# Run the build command
-pushd /data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/
-python .//x.py build -vv -- --no-default-features --features ""
-popd
-
-#echo "--- Stopping sccache server ---"
-#sccache --stop-server # Ensure sccache server is stopped after build
+# Run the build command within the Nix shell
+nix shell "$FLAKE_REF#devShells.aarch64-linux.default" --command "./build_rust_bootstrap.sh"
 
 echo "--- Cleaning up temporary directory ---"
 rm -rf "$TMPDIR"

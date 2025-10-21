@@ -1,20 +1,21 @@
-//! Implementation of bootstrap, the Rust build system.
-//!
-//! This module, and its descendants, are the implementation of the Rust build
-//! system. Most of this build system is backed by Cargo but the outer layer
-//! here serves as the ability to orchestrate calling Cargo, sequencing Cargo
-//! builds, building artifacts like LLVM, etc. The goals of bootstrap are:
-//!
-//! * To be an easily understandable, easily extensible, and maintainable build
-//!   system.
-//! * Leverage standard tools in the Rust ecosystem to build the compiler, aka
-//!   crates.io and Cargo.
-//! * A standard interface to build across all platforms, including MSVC
-//!
-//! ## Further information
-//!
-//! More documentation can be found in each respective module below, and you can
-//! also check out the `src/bootstrap/README.md` file for more information.
+use crate::prelude::*;
+/// Implementation of bootstrap, the Rust build system.
+///
+/// This module, and its descendants, are the implementation of the Rust build
+/// system. Most of this build system is backed by Cargo but the outer layer
+/// here serves as the ability to orchestrate calling Cargo, sequencing Cargo
+/// builds, building artifacts like LLVM, etc. The goals of bootstrap are:
+///
+/// * To be an easily understandable, easily extensible, and maintainable build
+///   system.
+/// * Leverage standard tools in the Rust ecosystem to build the compiler, aka
+///   crates.io and Cargo.
+/// * A standard interface to build across all platforms, including MSVC
+///
+/// ## Further information
+///
+/// More documentation can be found in each respective module below, and you can
+/// also check out the `src/bootstrap/README.md` file for more information.
 
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -33,9 +34,17 @@ use termcolor::{ColorChoice, StandardStream, WriteColor};
 use utils::channel::GitInfo;
 use utils::helpers::hex_encode;
 
+
 use crate::core::builder;
 use crate::core::builder::{Builder, Kind};
-use crate::core::config::{DryRun, LldMode, LlvmLibunwind, Target, TargetSelection, flags};
+
+pub use crate::core::config::*;
+use crate::core::config::dry_run::DryRun;
+use crate::core::config::lld_mode::LldMode;
+use crate::core::config::llvm_lib_unwind::LlvmLibunwind;
+use crate::core::config::target_selection::Target;
+use crate::core::config::target_selection::TargetSelection;
+use crate::core::config::flags;
 use crate::utils::exec::{BehaviorOnFailure, BootstrapCommand, CommandOutput, OutputMode, command};
 use crate::utils::helpers::{
     self, dir_is_empty, exe, libdir, mtime, output, set_file_times, symlink_dir,
@@ -43,10 +52,11 @@ use crate::utils::helpers::{
 
 mod core;
 mod utils;
+pub mod prelude;
 
 pub use core::builder::PathSet;
 pub use core::config::Config;
-pub use core::config::flags::{Flags, Subcommand};
+pub use core::config::flags::Flags;
 
 pub use utils::change_tracker::{
     CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,

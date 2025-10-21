@@ -1,3 +1,4 @@
+use crate::prelude::*;
 mod cargo;
 
 use std::any::{Any, type_name};
@@ -18,7 +19,7 @@ pub use crate::Compiler;
 use crate::core::build_steps::{
     check, clean, clippy, compile, dist, doc, gcc, install, llvm, run, setup, test, tool, vendor,
 };
-use crate::core::config::flags::Subcommand;
+
 use crate::core::config::{DryRun, TargetSelection};
 use crate::utils::cache::Cache;
 use crate::utils::exec::{BootstrapCommand, command};
