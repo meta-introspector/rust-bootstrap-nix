@@ -36,6 +36,7 @@ dependencies = [
 name = "bootstrap"
 version = "0.0.0"
 dependencies = [
+ "bootstrap-config-utils",
  "build_helper",
  "cc",
  "clap",
@@ -65,6 +66,10 @@ dependencies = [
  "windows 0.52.0",
  "xz2",
 ]
+
+[[package]]
+name = "bootstrap-config-utils"
+version = "0.1.0"
 
 [[package]]
 name = "bstr"

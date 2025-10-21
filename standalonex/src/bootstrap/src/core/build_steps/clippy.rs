@@ -8,6 +8,8 @@ use crate::core::build_steps::compile::std_crates_for_run_make;
 use crate::core::builder;
 use crate::core::builder::{Alias, Kind, RunConfig, Step, crate_description};
 use crate::{Mode, Subcommand, TargetSelection};
+use crate::core::types::{LintConfig, Rustc, RustcConfig};
+use crate::core::build_steps::rustc_step_common::rustc_should_run;
 
 /// Disable the most spammy clippy lints
 const IGNORED_RULES_FOR_STD_AND_RUSTC: &[&str] = &[
@@ -85,45 +87,9 @@ pub fn get_clippy_rules_in_order(all_args: &[String], config: &LintConfig) -> Ve
     result.into_iter().map(|v| v.1).collect()
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct LintConfig {
-    pub allow: Vec<String>,
-    pub warn: Vec<String>,
-    pub deny: Vec<String>,
-    pub forbid: Vec<String>,
-}
 
-impl LintConfig {
-    fn new(builder: &Builder<'_>) -> Self {
-        match builder.config.cmd.clone() {
-            Subcommand::Clippy { allow, deny, warn, forbid, .. } => {
-                Self { allow, warn, deny, forbid }
-            }
-            _ => unreachable!("LintConfig can only be called from `clippy` subcommands."),
-        }
-    }
 
-    fn merge(&self, other: &Self) -> Self {
-        let merged = |self_attr: &[String], other_attr: &[String]| -> Vec<String> {
-            self_attr.iter().cloned().chain(other_attr.iter().cloned()).collect()
-        };
-        // This is written this way to ensure we get a compiler error if we add a new field.
-        Self {
-            allow: merged(&self.allow, &other.allow),
-            warn: merged(&self.warn, &other.warn),
-            deny: merged(&self.deny, &other.deny),
-            forbid: merged(&self.forbid, &other.forbid),
-        }
-    }
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Std {
-    pub target: TargetSelection,
-    config: LintConfig,
-    /// Whether to lint only a subset of crates.
-    crates: Vec<String>,
-}
 
 impl Step for Std {
     type Output = ();
@@ -175,27 +141,21 @@ impl Step for Std {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Rustc {
-    pub target: TargetSelection,
-    config: LintConfig,
-    /// Whether to lint only a subset of crates.
-    crates: Vec<String>,
-}
 
-impl Step for Rustc {
+
+impl Step for Rustc<LintConfig> {
     type Output = ();
     const ONLY_HOSTS: bool = true;
     const DEFAULT: bool = true;
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
-        run.crate_or_deps("rustc-main").path("compiler")
+        rustc_should_run(run)
     }
 
     fn make_run(run: RunConfig<'_>) {
         let crates = run.make_run_crates(Alias::Compiler);
-        let config = LintConfig::new(run.builder);
-        run.builder.ensure(Rustc { target: run.target, config, crates });
+        let config = <LintConfig as RustcTaskConfig>::default_config(run.builder);
+        run.builder.ensure(Rustc { target: run.target, crates, config });
     }
 
     /// Lints the compiler.

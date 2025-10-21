@@ -11,6 +11,8 @@ use std::str::FromStr;
 use std::{env, process};
 
 use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
+use bootstrap_config_utils::parse;
+use bootstrap_config_utils::dry_run;
 use build_helper::ci::CiEnv;
 
 fn main() {
@@ -21,7 +23,7 @@ fn main() {
     }
 
     let flags = Flags::parse(&args);
-    let config = Config::parse(flags);
+    let config = parse::parse(flags);
 
     let mut build_lock;
     let _build_lock_guard;
@@ -173,7 +175,7 @@ fn check_version(config: &Config) -> Option<String> {
             "update `config.toml` to use `change-id = {latest_change_id}` instead"
         ));
 
-        if io::stdout().is_terminal() && !config.dry_run {
+        if io::stdout().is_terminal() && !dry_run::dry_run(&config) {
             t!(fs::write(warned_id_path, latest_change_id.to_string()));
         }
     } else {

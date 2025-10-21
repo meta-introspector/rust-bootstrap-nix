@@ -10,3 +10,4 @@ Makefile~
 */build
 /standalonex/src/target/
 /standalonex/src/bootstrap/build/
+/standalonex/src/bootstrap/target/
