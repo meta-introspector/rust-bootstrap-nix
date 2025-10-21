@@ -1,7 +1,7 @@
 // This will be the lib.rs for the new bootstrap-config-utils crate
 use std::path::{PathBuf, Path};
 use std::collections::HashMap;
-use bootstrap::TargetSelection;
+//use bootstrap::TargetSelection;
 use serde_derive::Deserialize;
 pub mod default_opts;
 pub mod get_builder_toml;
@@ -40,8 +40,8 @@ pub struct ParsedConfig {
     pub initial_cargo: Option<std::path::PathBuf>,
     pub dry_run: bool,
     pub hosts: Vec<String>,
-    pub targets: Vec<String>,
-    pub target_config: std::collections::HashMap<TargetSelection, LocalTargetConfig>,
+//    pub targets: Vec<String>,
+//    pub target_config: std::collections::HashMap<TargetSelection, LocalTargetConfig>,
     pub nodejs: Option<std::path::PathBuf>,
     pub npm: Option<std::path::PathBuf>,
     pub gdb: Option<std::path::PathBuf>,
