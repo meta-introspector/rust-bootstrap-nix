@@ -265,7 +265,7 @@ impl Cargo {
             self.rustdocflags.arg(&arg);
         }
 
-        if !builder.config.dry_run()
+        if !builder.config.dry_run
             && builder.cc.borrow()[&target].args().iter().any(|arg| arg == "-gz")
         {
             self.rustflags.arg("-Clink-arg=-gz");
@@ -760,7 +760,7 @@ impl Builder<'_> {
         //
         // Only clear out the directory if we're compiling std; otherwise, we
         // should let Cargo take care of things for us (via depdep info)
-        if !self.config.dry_run() && mode == Mode::Std && cmd_kind == Kind::Build {
+        if !self.config.dry_run && mode == Mode::Std && cmd_kind == Kind::Build {
             self.clear_if_dirty(&out_dir, &self.rustc(compiler));
         }
 

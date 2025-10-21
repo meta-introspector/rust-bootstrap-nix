@@ -10,7 +10,7 @@ pub enum SplitDebuginfo {
 impl std::str::FromStr for SplitDebuginfo {
     type Err = ();
 
-pub fn from_str(s: &str) -> Result<Self, Self::Err> {
+fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "packed" => Ok(SplitDebuginfo::Packed),
             "unpacked" => Ok(SplitDebuginfo::Unpacked),

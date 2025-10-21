@@ -68,7 +68,7 @@ impl BuildMetrics {
 
     pub(crate) fn enter_step<S: Step>(&self, step: &S, builder: &Builder<'_>) {
         // Do not record dry runs, as they'd be duplicates of the actual steps.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 
@@ -96,7 +96,7 @@ impl BuildMetrics {
 
     pub(crate) fn exit_step(&self, builder: &Builder<'_>) {
         // Do not record dry runs, as they'd be duplicates of the actual steps.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 
@@ -119,7 +119,7 @@ impl BuildMetrics {
 
     pub(crate) fn begin_test_suite(&self, metadata: TestSuiteMetadata, builder: &Builder<'_>) {
         // Do not record dry runs, as they'd be duplicates of the actual steps.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 
@@ -130,7 +130,7 @@ impl BuildMetrics {
 
     pub(crate) fn record_test(&self, name: &str, outcome: TestOutcome, builder: &Builder<'_>) {
         // Do not record dry runs, as they'd be duplicates of the actual steps.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 

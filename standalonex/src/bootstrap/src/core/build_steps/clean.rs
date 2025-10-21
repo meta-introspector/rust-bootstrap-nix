@@ -97,7 +97,7 @@ clean_crate_tree! {
 }
 
 fn clean(build: &Build, all: bool, stage: Option<u32>) {
-    if build.config.dry_run() {
+    if build.config.dry_run {
         return;
     }
 

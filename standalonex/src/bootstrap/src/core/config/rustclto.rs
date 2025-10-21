@@ -12,7 +12,7 @@ pub enum RustcLto {
 impl std::str::FromStr for RustcLto {
     type Err = String;
 
-pub fn from_str(s: &str) -> Result<Self, Self::Err> {
+fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "thin-local" => Ok(RustcLto::ThinLocal),
             "thin" => Ok(RustcLto::Thin),

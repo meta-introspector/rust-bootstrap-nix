@@ -7,7 +7,7 @@ pub enum StringOrBool {
 }
 
 impl Default for StringOrBool {
-pub fn default() -> StringOrBool {
+fn default() -> StringOrBool {
         StringOrBool::Bool(false)
     }
 }

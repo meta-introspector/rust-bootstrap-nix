@@ -523,7 +523,7 @@ impl Step for Miri {
 
         // Miri has its own "target dir" for ui test dependencies. Make sure it gets cleared when
         // the sysroot gets rebuilt, to avoid "found possibly newer version of crate `std`" errors.
-        if !builder.config.dry_run() {
+        if !builder.config.dry_run {
             let ui_test_dep_dir = builder.stage_out(host_compiler, Mode::ToolStd).join("miri_ui");
             // The mtime of `miri_sysroot` changes when the sysroot gets rebuilt (also see
             // <https://github.com/RalfJung/rustc-build-sysroot/commit/10ebcf60b80fe2c3dc765af0ff19fdc0da4b7466>).
@@ -1953,7 +1953,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
         if builder.config.llvm_enabled(compiler.host) {
             let llvm::LlvmResult { llvm_config, .. } =
                 builder.ensure(llvm::Llvm { target: builder.config.build });
-            if !builder.config.dry_run() {
+            if !builder.config.dry_run {
                 let llvm_version =
                     command(&llvm_config).arg("--version").run_capture_stdout(builder).stdout();
                 let llvm_components =
@@ -1975,13 +1975,13 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
             // requirement, but the `-L` library path is not propagated across
             // separate compilations. We can add LLVM's library path to the
             // platform-specific environment variable as a workaround.
-            if !builder.config.dry_run() && suite.ends_with("fulldeps") {
+            if !builder.config.dry_run && suite.ends_with("fulldeps") {
                 let llvm_libdir =
                     command(&llvm_config).arg("--libdir").run_capture_stdout(builder).stdout();
                 add_link_lib_path(vec![llvm_libdir.trim().into()], &mut cmd);
             }
 
-            if !builder.config.dry_run() && matches!(mode, "run-make" | "coverage-run") {
+            if !builder.config.dry_run && matches!(mode, "run-make" | "coverage-run") {
                 // The llvm/bin directory contains many useful cross-platform
                 // tools. Pass the path to run-make tests so they can use them.
                 // (The coverage-run tests also need these tools to process
@@ -1993,7 +1993,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
                 cmd.arg("--llvm-bin-dir").arg(llvm_bin_path);
             }
 
-            if !builder.config.dry_run() && mode == "run-make" {
+            if !builder.config.dry_run && mode == "run-make" {
                 // If LLD is available, add it to the PATH
                 if builder.config.lld_enabled {
                     let lld_install_root =
@@ -2013,7 +2013,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
 
         // Only pass correct values for these flags for the `run-make` suite as it
         // requires that a C++ compiler was configured which isn't always the case.
-        if !builder.config.dry_run() && mode == "run-make" {
+        if !builder.config.dry_run && mode == "run-make" {
             cmd.arg("--cc")
                 .arg(builder.cc(target))
                 .arg("--cxx")
@@ -2054,7 +2054,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
             //
             // Note that if we encounter `PATH` we make sure to append to our own `PATH`
             // rather than stomp over it.
-            if !builder.config.dry_run() && target.is_msvc() {
+            if !builder.config.dry_run && target.is_msvc() {
                 for (k, v) in builder.cc.borrow()[&target].env() {
                     if k != "PATH" {
                         cmd.env(k, v);
@@ -2064,7 +2064,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
         }
 
         // Special setup to enable running with sanitizers on MSVC.
-        if !builder.config.dry_run()
+        if !builder.config.dry_run
             && target.contains("msvc")
             && builder.config.sanitizers_enabled(target)
         {
@@ -2109,7 +2109,7 @@ NOTE: if you're sure you want to do this, please open an issue as to why. In the
 
         cmd.arg("--adb-path").arg("adb");
         cmd.arg("--adb-test-dir").arg(ADB_TEST_DIR);
-        if target.contains("android") && !builder.config.dry_run() {
+        if target.contains("android") && !builder.config.dry_run {
             // Assume that cc for this target comes from the android sysroot
             cmd.arg("--android-cross-path")
                 .arg(builder.cc(target).parent().unwrap().parent().unwrap());
@@ -3245,7 +3245,7 @@ impl Step for TestHelpers {
     /// Compiles the `rust_test_helpers.c` library which we used in various
     /// `run-pass` tests for ABI testing.
     fn run(self, builder: &Builder<'_>) {
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
         // The x86_64-fortanix-unknown-sgx target doesn't have a working C

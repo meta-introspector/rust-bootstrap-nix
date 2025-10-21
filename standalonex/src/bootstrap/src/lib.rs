@@ -322,7 +322,7 @@ impl Build {
         let in_tree_llvm_info = config.in_tree_llvm_info.clone();
         let in_tree_gcc_info = config.in_tree_gcc_info.clone();
 
-        let initial_target_libdir_str = if config.dry_run() {
+        let initial_target_libdir_str = if config.dry_run {
             "/dummy/lib/path/to/lib/".to_string()
         } else {
             output(
@@ -336,7 +336,7 @@ impl Build {
         let initial_target_dir = Path::new(&initial_target_libdir_str).parent().unwrap();
         let initial_lld = initial_target_dir.join("bin").join("rust-lld");
 
-        let initial_sysroot = if config.dry_run() {
+        let initial_sysroot = if config.dry_run {
             "/dummy".to_string()
         } else {
             output(Command::new(&config.initial_rustc).arg("--print").arg("sysroot"))
@@ -605,7 +605,7 @@ impl Build {
             _ => (),
         }
 
-        if !self.config.dry_run() {
+        if !self.config.dry_run {
             {
                 // We first do a dry-run. This is a sanity-check to ensure that
                 // steps don't do anything expensive in the dry-run.
@@ -930,7 +930,7 @@ impl Build {
         stderr: OutputMode,
     ) -> CommandOutput {
         command.mark_as_executed();
-        if self.config.dry_run() && !command.run_always {
+        if self.config.dry_run && !command.run_always {
             return CommandOutput::default();
         }
 
@@ -1202,7 +1202,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the C compiler for the target specified.
     fn cc(&self, target: TargetSelection) -> PathBuf {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return PathBuf::new();
         }
         self.cc.borrow()[&target].path().into()
@@ -1211,7 +1211,7 @@ Executed at: {executed_at}"#,
     /// Returns a list of flags to pass to the C compiler for the target
     /// specified.
     fn cflags(&self, target: TargetSelection, which: GitRepo, c: CLang) -> Vec<String> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Vec::new();
         }
         let base = match c {
@@ -1257,7 +1257,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the `ar` archive utility for the target specified.
     fn ar(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return None;
         }
         self.ar.borrow().get(&target).cloned()
@@ -1265,7 +1265,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the `ranlib` utility for the target specified.
     fn ranlib(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return None;
         }
         self.ranlib.borrow().get(&target).cloned()
@@ -1273,7 +1273,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the C++ compiler for the target specified.
     fn cxx(&self, target: TargetSelection) -> Result<PathBuf, String> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Ok(PathBuf::new());
         }
         match self.cxx.borrow().get(&target) {
@@ -1284,7 +1284,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the linker for the given target if it needs to be overridden.
     fn linker(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Some(PathBuf::new());
         }
         if let Some(linker) = self.config.target_config.get(&target).and_then(|c| c.linker.clone())
@@ -1670,7 +1670,7 @@ Executed at: {executed_at}"#,
     }
 
     fn read_stamp_file(&self, stamp: &Path) -> Vec<(PathBuf, DependencyType)> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Vec::new();
         }
 
@@ -1719,7 +1719,7 @@ Executed at: {executed_at}"#,
     }
 
     fn copy_link_internal(&self, src: &Path, dst: &Path, dereference_symlinks: bool) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         self.verbose_than(1, || println!("Copy/Link {src:?} to {dst:?}"));
@@ -1767,7 +1767,7 @@ Executed at: {executed_at}"#,
     /// when this function is called.
     /// Will attempt to use hard links if possible and fall back to copying.
     pub fn cp_link_r(&self, src: &Path, dst: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         for f in self.read_dir(src) {
@@ -1827,7 +1827,7 @@ Executed at: {executed_at}"#,
     }
 
     fn install(&self, src: &Path, dstdir: &Path, perms: u32) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         let dst = dstdir.join(src.file_name().unwrap());
@@ -1841,21 +1841,21 @@ Executed at: {executed_at}"#,
     }
 
     fn read(&self, path: &Path) -> String {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return String::new();
         }
         t!(fs::read_to_string(path))
     }
 
     fn create_dir(&self, dir: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         t!(fs::create_dir_all(dir))
     }
 
     fn remove_dir(&self, dir: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         t!(fs::remove_dir_all(dir))
@@ -1864,14 +1864,14 @@ Executed at: {executed_at}"#,
     fn read_dir(&self, dir: &Path) -> impl Iterator<Item = fs::DirEntry> {
         let iter = match fs::read_dir(dir) {
             Ok(v) => v,
-            Err(_) if self.config.dry_run() => return vec![].into_iter(),
+            Err(_) if self.config.dry_run => return vec![].into_iter(),
             Err(err) => panic!("could not read dir {dir:?}: {err:?}"),
         };
         iter.map(|e| t!(e)).collect::<Vec<_>>().into_iter()
     }
 
     fn symlink_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, src: P, link: Q) -> io::Result<()> {
-        if self.config.dry_run() { return Ok(()); }
+        if self.config.dry_run { return Ok(()); }
         if cfg!(unix) {
             std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
         } /* else if cfg!(windows) {

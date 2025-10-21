@@ -124,7 +124,7 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
         );
         crate::exit!(1);
     };
-    if build.config.dry_run() {
+    if build.config.dry_run {
         return;
     }
 

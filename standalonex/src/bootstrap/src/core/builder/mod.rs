@@ -1404,7 +1404,7 @@ impl<'a> Builder<'a> {
     /// Note that this returns `None` if LLVM is disabled, or if we're in a
     /// check build or dry-run, where there's no need to build all of LLVM.
     fn llvm_config(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.llvm_enabled(target) && self.kind != Kind::Check && !self.config.dry_run() {
+        if self.config.llvm_enabled(target) && self.kind != Kind::Check && !self.config.dry_run {
             let llvm::LlvmResult { llvm_config, .. } = self.ensure(llvm::Llvm { target });
             if llvm_config.is_file() {
                 return Some(llvm_config);
@@ -1453,7 +1453,7 @@ impl<'a> Builder<'a> {
             (out, dur - deps)
         };
 
-        if self.config.print_step_timings && !self.config.dry_run() {
+        if self.config.print_step_timings && !self.config.dry_run {
             let step_string = format!("{step:?}");
             let brace_index = step_string.find('{').unwrap_or(0);
             let type_string = type_name::<S>();
@@ -1527,7 +1527,7 @@ impl<'a> Builder<'a> {
     }
 
     pub(crate) fn open_in_browser(&self, path: impl AsRef<Path>) {
-        if self.config.dry_run() || !self.config.cmd.open() {
+        if self.config.dry_run || !self.config.cmd.open() {
             return;
         }
 

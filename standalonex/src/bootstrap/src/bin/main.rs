@@ -10,10 +10,7 @@ use std::io::{self, BufRead, BufReader, IsTerminal, Write};
 use std::str::FromStr;
 use std::{env, process};
 
-use bootstrap::{
-    Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids,
-    human_readable_changes, t,
-};
+use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
 use build_helper::ci::CiEnv;
 
 fn main() {
@@ -176,7 +173,7 @@ fn check_version(config: &Config) -> Option<String> {
             "update `config.toml` to use `change-id = {latest_change_id}` instead"
         ));
 
-        if io::stdout().is_terminal() && !config.dry_run() {
+        if io::stdout().is_terminal() && !config.dry_run {
             t!(fs::write(warned_id_path, latest_change_id.to_string()));
         }
     } else {

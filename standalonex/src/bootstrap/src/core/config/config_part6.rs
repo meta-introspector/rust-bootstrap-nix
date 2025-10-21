@@ -3,11 +3,11 @@ pub struct OptimizeVisitor;
 impl serde::de::Visitor<'_> for OptimizeVisitor {
     type Value = RustOptimize;
 
-pub fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str(r#"one of: 0, 1, 2, 3, "s", "z", true, false"#)
     }
 
-pub fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
@@ -18,7 +18,7 @@ pub fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         }
     }
 
-pub fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
@@ -29,7 +29,7 @@ pub fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
         }
     }
 
-pub fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
+fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {

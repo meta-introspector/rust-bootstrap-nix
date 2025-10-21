@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
 
 #[derive(Default, Clone)]
 pub struct Stage0 {
@@ -24,8 +26,9 @@ pub struct Stage0Config {
     pub nightly_branch: String,
 }
 
-pub fn parse_stage0_file() -> Stage0 {
-    let stage0_content = include_str!("../../stage0");
+pub fn parse_stage0_file(path: &Path) -> Stage0 {
+    let stage0_content = std::fs::read_to_string(path)
+        .expect(&format!("Failed to read stage0 file: {}", path.display()));
 
     let mut stage0 = Stage0::default();
     for line in stage0_content.lines() {

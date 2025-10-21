@@ -16,9 +16,9 @@ struct ConfigInput {
 
 struct ConfigField {
     ident: Ident,
-    colon_token: Token![:],
+    colon_token: syn::token::Colon,
     ty: syn::Type,
-    eq_token: Option<Token![=]>,
+    eq_token: Option<syn::token::Eq>,
     key: Option<LitStr>,
 }
 

@@ -115,7 +115,7 @@ impl Step for Profile {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        if run.builder.config.dry_run() {
+        if run.builder.config.dry_run {
             return;
         }
 
@@ -239,7 +239,7 @@ impl Step for Link {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        if run.builder.config.dry_run() {
+        if run.builder.config.dry_run {
             return;
         }
         if let [cmd] = &run.paths[..] {
@@ -251,7 +251,7 @@ impl Step for Link {
     fn run(self, builder: &Builder<'_>) -> Self::Output {
         let config = &builder.config;
 
-        if config.dry_run() {
+        if config.dry_run {
             return;
         }
 
@@ -263,7 +263,7 @@ impl Step for Link {
         let stage_path =
             ["build", config.build.rustc_target_arg(), "stage1"].join(MAIN_SEPARATOR_STR);
 
-        if stage_dir_exists(&stage_path[..]) && !config.dry_run() {
+        if stage_dir_exists(&stage_path[..]) && !config.dry_run {
             attempt_toolchain_link(builder, &stage_path[..]);
         }
     }
@@ -456,7 +456,7 @@ impl Step for Hook {
         run.alias("hook")
     }
     fn make_run(run: RunConfig<'_>) {
-        if run.builder.config.dry_run() {
+        if run.builder.config.dry_run {
             return;
         }
         if let [cmd] = &run.paths[..] {
@@ -467,7 +467,7 @@ impl Step for Hook {
     }
     fn run(self, builder: &Builder<'_>) -> Self::Output {
         let config = &builder.config;
-        if config.dry_run() {
+        if config.dry_run {
             return;
         }
         t!(install_git_hook_maybe(builder, config));
@@ -633,7 +633,7 @@ impl Step for Editor {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        if run.builder.config.dry_run() {
+        if run.builder.config.dry_run {
             return;
         }
         if let [cmd] = &run.paths[..] {
@@ -645,7 +645,7 @@ impl Step for Editor {
 
     fn run(self, builder: &Builder<'_>) -> Self::Output {
         let config = &builder.config;
-        if config.dry_run() {
+        if config.dry_run {
             return;
         }
         match EditorKind::prompt_user() {

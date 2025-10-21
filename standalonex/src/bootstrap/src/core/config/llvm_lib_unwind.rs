@@ -10,7 +10,7 @@ pub enum LlvmLibunwind {
 impl FromStr for LlvmLibunwind {
     type Err = String;
 
-pub fn from_str(value: &str) -> Result<Self, Self::Err> {
+fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
             "no" => Ok(Self::No),
             "in-tree" => Ok(Self::InTree),

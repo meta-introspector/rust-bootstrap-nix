@@ -13,6 +13,7 @@
         system = "aarch64-linux";
         overlays = [ rustOverlay.overlays.default ];
       };
+      buildHelperSrc = pkgs.lib.cleanSource ./src/build_helper;
     in
     {
       devShells.aarch64-linux.default = pkgs.mkShell {
@@ -46,19 +47,71 @@
         '';
       };
 
-      packages.aarch64-linux.default = pkgs.rustPlatform.buildRustPackage {
-        pname = "bootstrap";
-        version = "0.1.0";
+      packages.aarch64-linux = {
+        default = pkgs.rustPlatform.buildRustPackage {
+          pname = "bootstrap";
+          version = "0.1.0";
 
-        src = pkgs.lib.cleanSource ./.;
-        sourceRoot = "src/bootstrap";
-        cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
-        preBuild = ''
-          ln -s ${rustSrcFlake}/tools $src/src/tools
-        '';
+          src = pkgs.lib.cleanSource ./src/bootstrap;
+          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          rustc = pkgs.rust-bin.stable."1.84.1".default;
+          doCheck = false;
+          postPatch = ''
+                        mkdir -p .cargo
+                        cat > config.toml <<EOF
+            [paths]
+            tools = "${rustSrcFlake}/tools"
 
-        rustc = pkgs.rust-bin.stable."1.84.1".default;
-        doCheck = false;
+            [build]
+            stage0_path = "${self}/src/stage0"
+            EOF
+                        cp -r ${buildHelperSrc} build_helper
+          '';
+        };
+
+        bootstrap-main = pkgs.rustPlatform.buildRustPackage {
+          pname = "bootstrap-main";
+          version = "0.1.0";
+
+          src = pkgs.lib.cleanSource ./src/bootstrap;
+          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          rustc = pkgs.rust-bin.stable."1.84.1".default;
+          doCheck = false;
+          cargoBuildFlags = [ "--bin" "bootstrap" ];
+          postPatch = ''
+                        mkdir -p .cargo
+                        cat > config.toml <<EOF
+            [paths]
+            tools = "${rustSrcFlake}/tools"
+
+            [build]
+            stage0_path = "${self}/src/stage0"
+            EOF
+                        cp -r ${buildHelperSrc} build_helper
+          '';
+        };
+
+        nix-bootstrap = pkgs.rustPlatform.buildRustPackage {
+          pname = "nix-bootstrap";
+          version = "0.1.0";
+
+          src = pkgs.lib.cleanSource ./src/bootstrap;
+          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          rustc = pkgs.rust-bin.stable."1.84.1".default;
+          doCheck = false;
+          cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
+          postPatch = ''
+                        mkdir -p .cargo
+                        cat > config.toml <<EOF
+            [paths]
+            tools = "${rustSrcFlake}/tools"
+
+            [build]
+            stage0_path = "${self}/src/stage0"
+            EOF
+                        cp -r ${buildHelperSrc} build_helper
+          '';
+        };
       };
     };
 }

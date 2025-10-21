@@ -17,5 +17,6 @@ pub(crate) struct TomlConfig {
     dist: Option<Dist>,
     ci: Option<Ci>,
     profile: Option<String>,
+    stage0_path: Option<PathBuf>,
 }
 

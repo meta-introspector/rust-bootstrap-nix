@@ -39,7 +39,7 @@ impl LldMode {
 
 
 impl<'de> Deserialize<'de> for LldMode {
-pub fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -48,18 +48,18 @@ pub fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         impl serde::de::Visitor<'_> for LldModeVisitor {
             type Value = LldMode;
 
-pub fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("one of true, 'self-contained' or 'external'")
             }
 
-pub fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
             where
                 E: serde::de::Error,
             {
                 Ok(if v { LldMode::External } else { LldMode::Unused })
             }
 
-pub fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
             where
                 E: serde::de::Error,
             {

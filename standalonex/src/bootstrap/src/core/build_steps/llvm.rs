@@ -509,7 +509,7 @@ impl Step for Llvm {
         if target != builder.config.build {
             let LlvmResult { llvm_config, .. } =
                 builder.ensure(Llvm { target: builder.config.build });
-            if !builder.config.dry_run() {
+            if !builder.config.dry_run {
                 let llvm_bindir =
                     command(&llvm_config).arg("--bindir").run_capture_stdout(builder).stdout();
                 let host_bin = Path::new(llvm_bindir.trim());
@@ -524,7 +524,7 @@ impl Step for Llvm {
             if builder.config.llvm_clang {
                 let build_bin = builder.llvm_out(builder.config.build).join("build").join("bin");
                 let clang_tblgen = build_bin.join("clang-tblgen").with_extension(EXE_EXTENSION);
-                if !builder.config.dry_run() && !clang_tblgen.exists() {
+                if !builder.config.dry_run && !clang_tblgen.exists() {
                     panic!("unable to find {}", clang_tblgen.display());
                 }
                 cfg.define("CLANG_TABLEGEN", clang_tblgen);
@@ -553,7 +553,7 @@ impl Step for Llvm {
             cfg.define(key, val);
         }
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return res;
         }
 
@@ -615,7 +615,7 @@ impl Step for Llvm {
 }
 
 fn check_llvm_version(builder: &Builder<'_>, llvm_config: &Path) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -915,7 +915,7 @@ impl Step for Enzyme {
             "src/tools/enzyme",
             Some("The Enzyme sources are required for autodiff."),
         );
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             let out_dir = builder.enzyme_out(self.target);
             return out_dir;
         }
@@ -1005,7 +1005,7 @@ impl Step for Lld {
 
     /// Compile LLD for `target`.
     fn run(self, builder: &Builder<'_>) -> PathBuf {
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return PathBuf::from("lld-out-dir-test-gen");
         }
         let target = self.target;
@@ -1138,7 +1138,7 @@ impl Step for Sanitizers {
         }
 
         let LlvmResult { llvm_config, .. } = builder.ensure(Llvm { target: builder.config.build });
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return runtimes;
         }
 
@@ -1312,7 +1312,7 @@ impl Step for CrtBeginEnd {
 
         let out_dir = builder.native_dir(self.target).join("crt");
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return out_dir;
         }
 
@@ -1386,7 +1386,7 @@ impl Step for Libunwind {
             Some("The LLVM sources are required for libunwind."),
         );
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return PathBuf::new();
         }
 

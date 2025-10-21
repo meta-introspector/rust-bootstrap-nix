@@ -34,7 +34,7 @@ pub(crate) fn try_run_tests(
     cmd: &mut BootstrapCommand,
     stream: bool,
 ) -> bool {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         cmd.mark_as_executed();
         return true;
     }

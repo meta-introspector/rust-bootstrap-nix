@@ -58,7 +58,7 @@ impl Config {
     }
 
     pub(crate) fn get_builder_toml(&self, build_name: &str) -> Result<TomlConfig, toml::de::Error> {
-        if self.dry_run() {
+        if self.dry_run {
             return Ok(TomlConfig::default());
         }
 
@@ -147,7 +147,9 @@ impl Config {
             .to_path_buf();
         }
 
-        config.stage0_metadata = build_helper::stage0_parser::parse_stage0_file();
+        config.stage0_metadata = build_helper::stage0_parser::parse_stage0_file(
+            &toml.stage0_path.expect("stage0_path must be set"),
+        );
 
         // Read from `--config`, then `RUST_BOOTSTRAP_CONFIG`, then `./config.toml`, then `config.toml` in the root directory.
         let toml_path = flags
@@ -369,7 +371,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         };
 
         // NOTE: it's important this comes *after* we set `initial_rustc` just above.
-        if config.dry_run() {
+        if config.dry_run {
             let dir = config.out.join("tmp-dry-run");
             t!(fs::create_dir_all(&dir));
             config.out = dir;
@@ -1055,7 +1057,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     /// `status.success()`.
     #[deprecated = "use `Builder::try_run` instead where possible"]
     pub(crate) fn try_run(&self, cmd: &mut Command) -> Result<(), ()> {
-        if self.dry_run() {
+        if self.dry_run {
             return Ok(());
         }
         self.verbose(|| println!("running: {cmd:?}"));
@@ -1184,7 +1186,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     /// This is computed on demand since LLVM might have to first be downloaded from CI.
     pub(crate) fn llvm_link_shared(&self) -> bool {
         let mut opt = self.llvm_link_shared.get();
-        if opt.is_none() && self.dry_run() {
+        if opt.is_none() && self.dry_run {
             // just assume static for now - dynamic linking isn't supported on all platforms
             return false;
         }
@@ -1215,7 +1217,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
 
     pub(crate) fn download_rustc_commit(&self) -> Option<&str> {
         static DOWNLOAD_RUSTC: OnceLock<Option<String>> = OnceLock::new();
-        if self.dry_run() && DOWNLOAD_RUSTC.get().is_none() {
+        if self.dry_run && DOWNLOAD_RUSTC.get().is_none() {
             // avoid trying to actually download the commit
             return self.download_rustc_commit.as_deref();
         }
@@ -1287,7 +1289,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             RustfmtState::SystemToolchain(p) | RustfmtState::Downloaded(p) => Some(p.clone()),
             RustfmtState::Unavailable => None,
             r @ RustfmtState::LazyEvaluated => {
-                if self.dry_run() {
+                if self.dry_run {
                     return Some(PathBuf::new());
                 }
                 let path = self.maybe_download_rustfmt();
@@ -1521,7 +1523,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     pub fn check_stage0_version(&self, program_path: &Path, component_name: &'static str) {
         use build_helper::util::fail;
 
-        if self.dry_run() {
+        if self.dry_run {
             return;
         }
 

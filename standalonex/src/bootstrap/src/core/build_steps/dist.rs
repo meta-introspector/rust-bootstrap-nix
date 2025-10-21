@@ -173,7 +173,7 @@ fn make_win_dist(
     target: TargetSelection,
     builder: &Builder<'_>,
 ) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -912,7 +912,7 @@ impl Step for Src {
 
     /// Creates the `rust-src` installer component
     fn run(self, builder: &Builder<'_>) -> GeneratedTarball {
-        if !builder.config.dry_run() {
+        if !builder.config.dry_run {
             builder.require_submodule("src/llvm-project", None);
         }
 
@@ -1333,7 +1333,7 @@ impl Step for CodegenBackend {
     }
 
     fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return None;
         }
 
@@ -1511,7 +1511,7 @@ impl Step for Extended {
         let etc = builder.src.join("src/etc/installer");
 
         // Avoid producing tarballs during a dry run.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 
@@ -1929,7 +1929,7 @@ impl Step for Extended {
             let _time = timeit(builder);
             cmd.run(builder);
 
-            if !builder.config.dry_run() {
+            if !builder.config.dry_run {
                 t!(move_file(exe.join(&filename), distdir(builder).join(&filename)));
             }
         }
@@ -1965,7 +1965,7 @@ fn install_llvm_file(
     destination: &Path,
     install_symlink: bool,
 ) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -2039,7 +2039,7 @@ fn maybe_install_llvm(
         if llvm_dylib_path.exists() {
             builder.install(&llvm_dylib_path, dst_libdir, 0o644);
         }
-        !builder.config.dry_run()
+        !builder.config.dry_run
     } else if let llvm::LlvmBuildStatus::AlreadyBuilt(llvm::LlvmResult { llvm_config, .. }) =
         llvm::prebuilt_llvm_config(builder, target, true)
     {
@@ -2058,7 +2058,7 @@ fn maybe_install_llvm(
             };
             install_llvm_file(builder, &file, dst_libdir, install_symlink);
         }
-        !builder.config.dry_run()
+        !builder.config.dry_run
     } else {
         false
     }

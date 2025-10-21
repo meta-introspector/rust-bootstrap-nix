@@ -15,7 +15,7 @@ pub enum DebuginfoLevel {
 // NOTE: can't derive(Deserialize) because the intermediate trip through toml::Value only
 // deserializes i64, and derive() only generates visit_u64
 impl<'de> Deserialize<'de> for DebuginfoLevel {
-pub fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -48,7 +48,7 @@ pub fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 }
 /// Suitable for passing to `-C debuginfo`
 impl Display for DebuginfoLevel {
-pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use DebuginfoLevel::*;
         f.write_str(match self {
             None => "0",

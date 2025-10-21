@@ -89,7 +89,7 @@ impl TargetSelection {
 }
 
 impl fmt::Display for TargetSelection {
-pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.triple)?;
         if let Some(file) = self.file {
             write!(f, "({file})")?;
@@ -105,7 +105,7 @@ pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 }
 
 impl PartialEq<&str> for TargetSelection {
-pub fn eq(&self, other: &&str) -> bool {
+fn eq(&self, other: &&str) -> bool {
         self.triple == *other
     }
 }
@@ -113,7 +113,7 @@ pub fn eq(&self, other: &&str) -> bool {
 // Targets are often used as directory names throughout bootstrap.
 // This impl makes it more ergonomics to use them as such.
 impl AsRef<Path> for TargetSelection {
-pub fn as_ref(&self) -> &Path {
+fn as_ref(&self) -> &Path {
         self.triple.as_ref()
     }
 }

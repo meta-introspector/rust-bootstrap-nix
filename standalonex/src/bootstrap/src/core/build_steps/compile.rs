@@ -718,7 +718,7 @@ fn copy_sanitizers(
 ) -> Vec<PathBuf> {
     let runtimes: Vec<llvm::SanitizerRuntime> = builder.ensure(llvm::Sanitizers { target });
 
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return Vec::new();
     }
 
@@ -1452,7 +1452,7 @@ impl Step for CodegenBackend {
 
         let _guard = builder.msg_build(compiler, format_args!("codegen backend {backend}"), target);
         let files = run_cargo(builder, cargo, vec![], &tmp_stamp, vec![], false, false);
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
         let mut files = files.into_iter().filter(|f| {
@@ -1500,7 +1500,7 @@ fn copy_codegen_backends_to_sysroot(
     let dst = builder.sysroot_codegen_backends(target_compiler);
     t!(fs::create_dir_all(&dst), dst);
 
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -1560,7 +1560,7 @@ pub fn compiler_file(
     c: CLang,
     file: &str,
 ) -> PathBuf {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return PathBuf::new();
     }
     let mut cmd = command(compiler);
@@ -1784,7 +1784,7 @@ impl Step for Assemble {
         if builder.config.llvm_enabled(target_compiler.host) {
             let llvm::LlvmResult { llvm_config, .. } =
                 builder.ensure(llvm::Llvm { target: target_compiler.host });
-            if !builder.config.dry_run() && builder.config.llvm_tools_enabled {
+            if !builder.config.dry_run && builder.config.llvm_tools_enabled {
                 let llvm_bin_dir =
                     command(llvm_config).arg("--bindir").run_capture_stdout(builder).stdout();
                 let llvm_bin_dir = Path::new(llvm_bin_dir.trim());
@@ -2165,11 +2165,7 @@ pub fn run_cargo(
         }
     });
 
-    if !ok {
-        crate::exit!(1);
-    }
-
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return Vec::new();
     }
 
@@ -2221,37 +2217,36 @@ pub fn run_cargo(
     deps.into_iter().map(|(d, _)| d).collect()
 }
 
-pub fn stream_cargo(
-    builder: &Builder<'_>,
-    cargo: Cargo,
-    tail_args: Vec<String>,
-    cb: &mut dyn FnMut(CargoMessage<'_>),
-) -> bool {
-    let mut cmd = cargo.into_cmd();
-    let cargo = cmd.as_command_mut();
-    // Instruct Cargo to give us json messages on stdout, critically leaving
-    // stderr as piped so we can get those pretty colors.
-    let mut message_format = if builder.config.json_output {
-        String::from("json")
-    } else {
-        String::from("json-render-diagnostics")
-    };
-    if let Some(s) = &builder.config.rustc_error_format {
-        message_format.push_str(",json-diagnostic-");
-        message_format.push_str(s);
-    }
-    cargo.arg("--message-format").arg(message_format).stdout(Stdio::piped());
+    pub fn stream_cargo(
+        builder: &Builder<'_>,
+        cargo: Cargo,
+        tail_args: Vec<String>,
+        cb: &mut dyn FnMut(CargoMessage<'_>),
+    ) -> bool {
+        let mut cmd = cargo.into_cmd();
+        let cargo = cmd.as_command_mut();
+        // Instruct Cargo to give us json messages on stdout, critically leaving
+        // stderr as piped so we can get those pretty colors.
+        let mut message_format = if builder.config.json_output {
+            String::from("json")
+        } else {
+            String::from("json-render-diagnostics")
+        };
+        if let Some(s) = &builder.config.rustc_error_format {
+            message_format.push_str(",json-diagnostic-");
+            message_format.push_str(s);
+        }
+        cargo.arg("--message-format").arg(message_format).stdout(Stdio::piped());
 
-    for arg in tail_args {
-        cargo.arg(arg);
-    }
+        for arg in tail_args {
+            cargo.arg(arg);
+        }
 
-    builder.verbose(|| println!("running: {cargo:?}"));
+        builder.verbose(|| println!("running: {cargo:?}"));
 
-    if builder.config.dry_run() {
-        return true;
-    }
-
+        if builder.config.dry_run {
+            return true;
+        }
     let mut child = match cargo.spawn() {
         Ok(child) => child,
         Err(e) => panic!("failed to execute command: {cargo:?}\nERROR: {e}"),

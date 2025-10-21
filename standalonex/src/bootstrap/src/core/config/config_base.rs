@@ -38,6 +38,7 @@ pub struct Config {
     pub test_compare_mode: bool,
     pub color: Color,
     pub patch_binaries_for_nix: Option<bool>,
+    pub stage0_path: Option<PathBuf>,
     pub stage0_metadata: build_helper::stage0_parser::Stage0,
     pub android_ndk: Option<PathBuf>,
     /// Whether to use the `c` feature of the `compiler_builtins` crate.
