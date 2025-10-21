@@ -1,0 +1,18 @@
+      1 
+      1     |
+      1     |      ^
+      1 ...
+      1  14 | ) -> ParsedConfig {
+      1 275 |     }
+      1    Compiling bootstrap-config-utils v0.1.0 (/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/config_utils)
+      1 error: could not compile `bootstrap-config-utils` (lib) due to 1 previous error
+      1 error: this file contains an unclosed delimiter
+      1 note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+      1 note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+      1 note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+      1 package:   /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/Cargo.toml
+      1    --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner.rs:275:7
+      1     |                   - unclosed delimiter
+      1 warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+      1 warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+      1 workspace: /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/Cargo.toml

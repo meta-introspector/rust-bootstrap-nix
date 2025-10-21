@@ -1,13 +1,15 @@
+use std::path::absolute;
 use bootstrap::Config;
 use bootstrap::TomlConfig;
 use bootstrap::Build;
 use bootstrap::TargetSelection;
-use bootstrap::threads_from_config;
-use bootstrap::set;
+use crate::core::config::config_part2::{set, threads_from_config};
 use bootstrap::Flags;
 use bootstrap::TargetSelectionList;
 use std::path::PathBuf;
 use std::env;
+use std::fs;
+use crate::utils::helpers::{exe, t};
 
 pub fn parse_inner_build(config: &mut Config, toml: &mut TomlConfig, flags: &Flags) {
     let Build {
@@ -73,7 +75,7 @@ pub fn parse_inner_build(config: &mut Config, toml: &mut TomlConfig, flags: &Fla
     // To avoid writing to random places on the file system, `config.out` needs to be an absolute path.
     if !config.out.is_absolute() {
         // `canonicalize` requires the path to already exist. Use our vendored copy of `absolute` instead.
-        config.out = bootstrap::absolute(&config.out).expect("can't make empty path absolute");
+        config.out = absolute(&config.out).expect("can't make empty path absolute");
     }
 
     if cargo_clippy.is_some() && rustc.is_none() {
@@ -96,7 +98,7 @@ pub fn parse_inner_build(config: &mut Config, toml: &mut TomlConfig, flags: &Fla
             .join(config.build)
             .join("stage0")
             .join("bin")
-            .join(bootstrap::exe("rustc", config.build))
+            .join(exe("rustc", config.build))
     };
 
     config.initial_cargo = if let Some(cargo) = cargo {
@@ -111,13 +113,13 @@ pub fn parse_inner_build(config: &mut Config, toml: &mut TomlConfig, flags: &Fla
             .join(config.build)
             .join("stage0")
             .join("bin")
-            .join(bootstrap::exe("cargo", config.build))
+            .join(exe("cargo", config.build))
     };
 
     // NOTE: it's important this comes *after* we set `initial_rustc` just above.
     if config.dry_run {
         let dir = config.out.join("tmp-dry-run");
-        bootstrap::t!(std::fs::create_dir_all(&dir));
+        t!(fs::create_dir_all(&dir));
         config.out = dir;
     }
 

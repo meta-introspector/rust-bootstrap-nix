@@ -15,12 +15,14 @@ pub use crate::core::config::subcommand::get_completion;
 
 
 
+#[derive(Clone, ValueEnum)]
 pub enum Warnings {
     Default,
     Deny,
     Warn,
 }
 
+#[derive(Clone, ValueEnum)]
 pub enum Color {
     Auto,
     Always,

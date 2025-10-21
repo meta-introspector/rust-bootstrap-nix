@@ -47,7 +47,8 @@ globset = "=0.4.16"
 cc = "=1.1.22"
 cmake = "=0.1.48"
 
-build_helper = { path = "../src/build_helper" }
+
+
 clap = { version = "4.4", default-features = false, features = ["std", "usage", "help", "derive", "error-context"] }
 clap_complete = "4.4"
 fd-lock = "4.0"
@@ -103,5 +104,3 @@ debug = 0
 [profile.dev.package]
 # Only use debuginfo=1 to further reduce compile times.
 bootstrap.debug = 1
-
-[workspace]

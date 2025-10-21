@@ -57,6 +57,7 @@ pub mod prelude;
 pub use core::builder::PathSet;
 pub use core::config::Config;
 pub use core::config::flags::Flags;
+pub use crate::Subcommand;
 
 pub use utils::change_tracker::{
     CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,
@@ -284,6 +285,22 @@ forward! {
     llvm_link_shared() -> bool,
     download_rustc() -> bool,
     initial_rustfmt() -> Option<PathBuf>,
+    last_modified_commit(modified_paths: &[&str], option_name: &str, if_unchanged: bool) -> Option<String>,
+    needs_sanitizer_runtime_built(target: TargetSelection) -> bool,
+    llvm_libunwind(target: TargetSelection) -> LlvmLibunwind,
+    ci_llvm_root() -> PathBuf,
+    profiler_path(target: TargetSelection) -> Option<&str>,
+    profiler_enabled(target: TargetSelection) -> bool,
+    ci_rustc_dir() -> PathBuf,
+    default_codegen_backend(target: TargetSelection) -> Option<String>,
+    libdir_relative() -> Option<&Path>,
+    llvm_enabled(target: TargetSelection) -> bool,
+    codegen_backends(target: TargetSelection) -> &[String],
+    git_config() -> GitConfig<'_>,
+    update_submodule(relative_path: &str),
+    submodules() -> bool,
+    args() -> Vec<&str>,
+    test_args() -> Vec<&str>,
 }
 
 impl Build {
@@ -592,12 +609,12 @@ impl Build {
                 return core::build_steps::format::format(
                     &builder::Builder::new(self),
                     *check,
-                    *all,
+                    all,
                     &self.config.paths,
                 );
             }
             Subcommand::Suggest { run } => {
-                return core::build_steps::suggest::suggest(&builder::Builder::new(self), *run);
+                return core::build_steps::suggest::suggest(&builder::Builder::new(self), run);
             }
             Subcommand::Perf { .. } => {
                 return core::build_steps::perf::perf(&builder::Builder::new(self));
