@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
+    configuration-nix.url = "./configuration-nix";
   };
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix }:
@@ -170,6 +170,10 @@
       packages.aarch64-linux.generatedConfigToml = pkgs_aarch64.runCommand "config.toml"
         {
           nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default pkgs_aarch64.nix ];
+          RUSTC_PATH = "${rustToolchain_aarch64}/bin/rustc";
+          CARGO_PATH = "${rustToolchain_aarch64}/bin/cargo";
+          HOME_PATH = "$HOME";
+          CARGO_HOME_PATH = "$CARGO_HOME";
         } ''
         mkdir -p $(dirname $out)
         ${configuration-nix.packages.aarch64-linux.default}/bin/configuration-nix
@@ -181,6 +185,10 @@
       packages.x86_64-linux.generatedConfigToml = pkgs_x86_64.runCommand "config.toml"
         {
           nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default pkgs_x86_64.nix ];
+          RUSTC_PATH = "${rustToolchain_x86_64}/bin/rustc";
+          CARGO_PATH = "${rustToolchain_x86_64}/bin/cargo";
+          HOME_PATH = "$HOME";
+          CARGO_HOME_PATH = "$CARGO_HOME";
         } ''
         mkdir -p $(dirname $out)
         ${configuration-nix.packages.x86_64-linux.default}/bin/configuration-nix
