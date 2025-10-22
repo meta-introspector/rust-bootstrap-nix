@@ -10,6 +10,7 @@
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake }:
     let
+      lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
       rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
 
@@ -56,8 +57,31 @@
       #   })
       # );
 
+      # Define packages.default to be the sccache-enabled rustc package
+      # packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
+      # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
+
+      # Import the config-extractor
+      configExtractor = import (self + "/examples/config-extractor.nix") {
+        inherit lib;
+        pkgs = pkgs_aarch64;
+      };
+
+      # Example usage: Extract config from standalonex/config.toml
+      parsedConfig = configExtractor.extractConfig {
+        configFilePath = self + "/standalonex/config.toml";
+        extraConfig = {
+          build = {
+            patch-binaries-for-nix = false;
+          };
+        };
+      };
     in
     {
+      packages.aarch64-linux.showParsedConfig = pkgs_aarch64.writeText "parsed-config.json" (
+        builtins.toJSON parsedConfig
+      );
+
       devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
         name = "python-rust-fix-dev-shell";
 
