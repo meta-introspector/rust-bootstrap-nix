@@ -170,9 +170,10 @@
       packages.aarch64-linux.generatedConfigToml = pkgs_aarch64.runCommand "config.toml"
         {
           nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default pkgs_aarch64.nix ];
+          CONFIG_OUTPUT_PATH = "$TMPDIR/config.toml"; # Write to a temporary file in the build directory
         } ''
         ${configuration-nix.packages.aarch64-linux.default}/bin/configuration-nix
-        mv config.toml.tmp $out
+        mv $CONFIG_OUTPUT_PATH $out
       '';
       apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
@@ -180,9 +181,10 @@
       packages.x86_64-linux.generatedConfigToml = pkgs_x86_64.runCommand "config.toml"
         {
           nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default pkgs_x86_64.nix ];
+          CONFIG_OUTPUT_PATH = "$TMPDIR/config.toml"; # Write to a temporary file in the build directory
         } ''
         ${configuration-nix.packages.x86_64-linux.default}/bin/configuration-nix
-        mv config.toml.tmp $out
+        mv $CONFIG_OUTPUT_PATH $out
       '';
       apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
     };
