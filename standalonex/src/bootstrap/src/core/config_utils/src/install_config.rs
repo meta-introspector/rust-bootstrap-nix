@@ -1,11 +1,12 @@
 use std::path::PathBuf;
-use crate::ParsedConfig;
-use crate::LocalTomlConfig;
-use crate::ConfigApplicator;
-use serde::Deserialize;
+use crate::parsed_config::ParsedConfig;
+use crate::local_toml_config::LocalTomlConfig;
+use crate::config_applicator::ConfigApplicator;
+use serde_derive::Deserialize;
 
 
 #[derive(Debug, Default, Deserialize)]
+#[derive(Clone)]
 pub struct Install {
     pub prefix: Option<PathBuf>,
     pub sysconfdir: Option<PathBuf>,

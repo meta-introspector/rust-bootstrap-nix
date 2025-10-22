@@ -1,8 +1,8 @@
 use std::path::{PathBuf, Path};
-use crate::ParsedConfig;
-use crate::LocalTomlConfig;
-use crate::LocalFlags;
-use crate::ConfigApplicator;
+use crate::parsed_config::ParsedConfig;
+use crate::local_toml_config::LocalTomlConfig;
+use crate::local_flags::LocalFlags;
+use crate::config_applicator::ConfigApplicator;
 
 pub struct BuildConfigApplicator;
 

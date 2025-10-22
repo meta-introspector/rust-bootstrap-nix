@@ -1,10 +1,4 @@
 [workspace]
-resolver = "2"
 members = [
-    "standalonex/src/build_helper",
-    "standalonex/src/bootstrap",
     "standalonex/src/bootstrap/src/core/config_utils",
 ]
-
-[patch.crates-io]
-build_helper = { path = "standalonex/src/build_helper" }

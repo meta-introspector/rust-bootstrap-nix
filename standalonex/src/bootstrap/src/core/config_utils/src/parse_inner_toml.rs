@@ -1,14 +1,13 @@
-use bootstrap::Config;
-use bootstrap::Flags;
-use bootstrap::TomlConfig;
-use bootstrap::get_toml;
-use bootstrap::exit;
+use crate::parsed_config::ParsedConfig;
+use crate::local_flags::LocalFlags;
+use crate::local_toml_config::LocalTomlConfig;
+use crate::get_toml;
 use std::path::Path;
 use std::path::PathBuf;
 use std::env;
 use std::fs;
 
-pub fn parse_inner_toml(config: &mut Config, flags: &Flags, get_toml: impl Fn(&Path) -> Result<TomlConfig, toml::de::Error>) -> TomlConfig {
+pub fn parse_inner_toml(config: &mut ParsedConfig, flags: &LocalFlags, get_toml: impl Fn(&Path) -> Result<LocalTomlConfig, toml::de::Error>) -> LocalTomlConfig {
     // Read from `--config`, then `RUST_BOOTSTRAP_CONFIG`, then `./config.toml`, then `config.toml` in the root directory.
     let toml_path = flags
         .config
@@ -30,10 +29,10 @@ pub fn parse_inner_toml(config: &mut Config, flags: &Flags, get_toml: impl Fn(&P
         });
         get_toml(&toml_path).unwrap_or_else(|e| {
             eprintln!("ERROR: Failed to parse '{}': {e}", toml_path.display());
-            exit!(2);
+            std::process::exit(2);
         })
     } else {
         config.config = None;
-        TomlConfig::default()
+        LocalTomlConfig::default()
     }
 }

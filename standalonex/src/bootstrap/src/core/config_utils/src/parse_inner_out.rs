@@ -1,8 +1,8 @@
-use bootstrap::Config;
+use crate::parsed_config::ParsedConfig;
 use std::path::Path;
 use std::env;
 
-pub fn parse_inner_out(config: &mut Config) {
+pub fn parse_inner_out(config: &mut ParsedConfig) {
     if cfg!(test) {
         // Use the build directory of the original x.py invocation, so that we can set `initial_rustc` properly.
         config.out = Path::new(

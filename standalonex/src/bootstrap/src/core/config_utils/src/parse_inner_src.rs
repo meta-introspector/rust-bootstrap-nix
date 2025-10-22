@@ -1,9 +1,9 @@
-use bootstrap::Config;
-use bootstrap::Flags;
+use crate::parsed_config::ParsedConfig;
+use crate::local_flags::LocalFlags;
 use std::path::PathBuf;
 use std::env;
 
-pub fn parse_inner_src(config: &mut Config, flags: &Flags, build_src_from_toml: &Option<PathBuf>) {
+pub fn parse_inner_src(config: &mut ParsedConfig, flags: &LocalFlags, build_src_from_toml: &Option<PathBuf>) {
     config.src = if let Some(src) = flags.src.clone() {
         src
     } else if let Some(src) = build_src_from_toml.clone() {

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
-use crate::ParsedConfig;
-use crate::LocalTomlConfig;
-use crate::ConfigApplicator;
+use crate::parsed_config::ParsedConfig;
+use crate::local_toml_config::LocalTomlConfig;
+use crate::config_applicator::ConfigApplicator;
 
 pub struct CiConfigApplicator;
 

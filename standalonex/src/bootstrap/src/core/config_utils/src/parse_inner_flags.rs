@@ -1,10 +1,6 @@
-use crate::ParsedConfig;
-use crate::LocalFlags;
+use crate::parsed_config::ParsedConfig;
+use crate::local_flags::LocalFlags;
 
 pub fn parse_inner_flags(config: &mut ParsedConfig, flags: &mut LocalFlags) {
-    config.cmd = flags.subcommand.take();
-    config.incremental = flags.incremental;
-    config.dry_run = flags.dry_run;
-    config.verbose = Some(flags.verbose);
-    config.stage = flags.stage.unwrap_or_default();
+    // These fields are no longer part of LocalFlags and are handled elsewhere.
 }
