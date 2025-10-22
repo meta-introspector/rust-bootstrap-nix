@@ -8,11 +8,11 @@
       },
       "locked": {
         "dir": "configuration-nix",
-        "lastModified": 1761141237,
-        "narHash": "sha256-tHxbFtGmWc849Sb9FPZukdvSgmoebo00jejRn3RhxGI=",
+        "lastModified": 1761144307,
+        "narHash": "sha256-3c410Vtqj1pqkrQHMcsuCHf9y6DNCpeWOsjqPOwz700=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "718e07ab1bccd54cedb81b75d0035ba04db0b9fb",
+        "rev": "13abf494be7c17bd851387c6d66d36647c2a3b1d",
         "type": "github"
       },
       "original": {

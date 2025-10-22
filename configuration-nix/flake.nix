@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    flake-utils.url = "github:meta-introspector/flake-utils"; # Corrected
+    flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify"; # Corrected
   };
 
   outputs = { self, nixpkgs, rust-overlay, flake-utils }:
