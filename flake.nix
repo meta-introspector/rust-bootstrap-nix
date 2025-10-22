@@ -169,7 +169,7 @@
 
       packages.aarch64-linux.generatedConfigToml = pkgs_aarch64.runCommand "config.toml"
         {
-          nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default ];
+          nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default pkgs_aarch64.nix ];
         } ''
         ${configuration-nix.packages.aarch64-linux.default}/bin/configuration-nix
         mv config.toml $out
@@ -180,7 +180,7 @@
 
       packages.x86_64-linux.generatedConfigToml = pkgs_x86_64.runCommand "config.toml"
         {
-          nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default ];
+          nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default pkgs_x86_64.nix ];
         } ''
         ${configuration-nix.packages.x86_64-linux.default}/bin/configuration-nix
         mv config.toml $out
