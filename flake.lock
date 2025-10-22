@@ -8,11 +8,11 @@
       },
       "locked": {
         "dir": "configuration-nix",
-        "lastModified": 1761144307,
-        "narHash": "sha256-3c410Vtqj1pqkrQHMcsuCHf9y6DNCpeWOsjqPOwz700=",
+        "lastModified": 1761153238,
+        "narHash": "sha256-AiSjbpquoWeZD0H784mFbnxXmRqc/D0pa5aTOs9dHG0=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "13abf494be7c17bd851387c6d66d36647c2a3b1d",
+        "rev": "29b72ccb01e0d1ce6a2693225126cac330dbee91",
         "type": "github"
       },
       "original": {
@@ -37,6 +37,7 @@
       },
       "original": {
         "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
         "repo": "flake-utils",
         "type": "github"
       }
