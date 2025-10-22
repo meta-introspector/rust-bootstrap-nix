@@ -76,6 +76,23 @@
           };
         };
       };
+      # Helper function to generate config.toml for a given stage
+      generateConfigTomlForStage = { system, pkgs, rustToolchain, configurationNix, stageNum }:
+        pkgs.runCommand "config-stage-${toString stageNum}.toml"
+          {
+            nativeBuildInputs = [ configurationNix.packages.${system}.default pkgs.nix ];
+            RUSTC_PATH = "${rustToolchain}/bin/rustc";
+            CARGO_PATH = "${rustToolchain}/bin/cargo";
+            HOME_PATH = "$TMPDIR/home"; # Use a temporary home directory
+            CARGO_HOME_PATH = "$TMPDIR/cargo-home"; # Use a temporary cargo home directory
+          } ''
+          mkdir -p $(dirname $out)
+          mkdir -p $HOME_PATH
+          mkdir -p $CARGO_HOME_PATH
+          ${configurationNix.packages.${system}.default}/bin/configuration-nix
+          mv config.toml $out
+        '';
+
     in
     {
       packages.aarch64-linux.showParsedConfig = pkgs_aarch64.writeText "parsed-config.json" (
@@ -167,33 +184,23 @@
       # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
 
 
-      packages.aarch64-linux.generatedConfigToml = pkgs_aarch64.runCommand "config.toml"
-        {
-          nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default pkgs_aarch64.nix ];
-          RUSTC_PATH = "${rustToolchain_aarch64}/bin/rustc";
-          CARGO_PATH = "${rustToolchain_aarch64}/bin/cargo";
-          HOME_PATH = "$HOME";
-          CARGO_HOME_PATH = "$CARGO_HOME";
-        } ''
-        mkdir -p $(dirname $out)
-        ${configuration-nix.packages.aarch64-linux.default}/bin/configuration-nix
-        mv config.toml $out
-      '';
+      packages.aarch64-linux.generatedConfigToml = generateConfigTomlForStage {
+        system = "aarch64-linux";
+        pkgs = pkgs_aarch64;
+        rustToolchain = rustToolchain_aarch64;
+        configurationNix = configuration-nix;
+        stageNum = 0; # Example stage number
+      };
       apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
 
-      packages.x86_64-linux.generatedConfigToml = pkgs_x86_64.runCommand "config.toml"
-        {
-          nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default pkgs_x86_64.nix ];
-          RUSTC_PATH = "${rustToolchain_x86_64}/bin/rustc";
-          CARGO_PATH = "${rustToolchain_x86_64}/bin/cargo";
-          HOME_PATH = "$HOME";
-          CARGO_HOME_PATH = "$CARGO_HOME";
-        } ''
-        mkdir -p $(dirname $out)
-        ${configuration-nix.packages.x86_64-linux.default}/bin/configuration-nix
-        mv config.toml $out
-      '';
+      packages.x86_64-linux.generatedConfigToml = generateConfigTomlForStage {
+        system = "x86_64-linux";
+        pkgs = pkgs_x86_64;
+        rustToolchain = rustToolchain_x86_64;
+        configurationNix = configuration-nix;
+        stageNum = 0; # Example stage number
+      };
       apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
     };
 }
