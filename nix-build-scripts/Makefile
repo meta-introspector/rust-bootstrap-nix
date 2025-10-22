@@ -1,4 +1,4 @@
-.PHONY: all build
+.PHONY: all build generate-configuration-nix-lock fast-build
 
 all: build
 
