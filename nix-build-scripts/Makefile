@@ -1,10 +1,12 @@
-.PHONY: all build
+.PHONY: all build generate-configuration-nix-lock
 
 all: build
 
-build:
-	@echo "Copying workspace Cargo.lock to configuration-nix/..."
-	cp ../Cargo.lock ../configuration-nix/Cargo.lock
+generate-configuration-nix-lock:
+	@echo "Generating Cargo.lock for configuration-nix..."
+	cargo -Z unstable-options generate-lockfile --lockfile-path ../configuration-nix/Cargo.lock --manifest-path ../configuration-nix/Cargo.toml
+
+build: generate-configuration-nix-lock
 	@echo "Building generated config.toml..."
 	nix build ..#generatedConfigToml
 	@echo "Generated config.toml is at $(shell nix build ..#generatedConfigToml --no-link --print-out-paths)"
