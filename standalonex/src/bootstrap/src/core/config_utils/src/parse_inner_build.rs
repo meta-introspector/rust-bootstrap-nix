@@ -3,6 +3,8 @@ use crate::parsed_config::ParsedConfig;
 use crate::local_toml_config::LocalTomlConfig;
 use crate::local_flags::LocalFlags;
 use crate::local_build::LocalBuild;
+use crate::dry_run::DryRun;
+
 pub fn parse_inner_build(config: &mut ParsedConfig, toml: &mut LocalTomlConfig, flags: &LocalFlags) {
     let LocalBuild {
         build,
@@ -58,7 +60,7 @@ pub fn parse_inner_build(config: &mut ParsedConfig, toml: &mut LocalTomlConfig, 
 
     config.initial_cargo_clippy = cargo_clippy;
 
-    if config.dry_run != crate::dry_run::DryRun::Disabled {
+    if config.dry_run != DryRun::Disabled {
         let dir = config.out.join("tmp-dry-run");
         config.out = dir;
     }

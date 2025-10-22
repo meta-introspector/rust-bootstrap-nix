@@ -1,10 +1,4 @@
-feat: Baseline commit before refactoring bootstrap-config-utils
+feat: Integrate Nix config-extractor and add test output
 
-This commit establishes a baseline before commencing the refactoring of
-`bootstrap-config-utils` as outlined in `BRAINDUMP5.md`. All current
-modifications and newly created files related to the initial stages of
-this refactoring are included.
-
-The refactoring aims to make `bootstrap-config-utils` a pure parsing and
-configuration preparation crate, returning a `ParsedConfig` struct
-independent of `bootstrap` crate types.
+Integrates the `config-extractor.nix` tool into the main `flake.nix`.
+Adds a new `packages.<system>.showParsedConfig` output to demonstrate and test the `config-extractor.nix` functionality by parsing `standalonex/config.toml` and applying overrides.

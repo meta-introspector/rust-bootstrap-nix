@@ -4,11 +4,10 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
-
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake }:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils }:
     let
       lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
@@ -165,5 +164,37 @@
       # Define packages.default to be the sccache-enabled rustc package
       # packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
       # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
+
+      packages.aarch64-linux.configuration-nix = pkgs_aarch64.rustPlatform.buildRustPackage {
+        pname = "configuration-nix";
+        version = "0.1.0";
+        src = ./configuration-nix;
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+        };
+        buildInputs = [ rustToolchain_aarch64 ];
+      };
+
+      apps.aarch64-linux.generateConfig = flake-utils.lib.mkApp {
+        drv = pkgs_aarch64.writeShellScriptBin "generate-config" ''
+          ${self.packages.aarch64-linux.configuration-nix}/bin/configuration-nix
+        '';
+      };
+
+      packages.x86_64-linux.configuration-nix = pkgs_x86_64.rustPlatform.buildRustPackage {
+        pname = "configuration-nix";
+        version = "0.1.0";
+        src = ./configuration-nix;
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+        };
+        buildInputs = [ rustToolchain_x86_64 ];
+      };
+
+      apps.x86_64-linux.generateConfig = flake-utils.lib.mkApp {
+        drv = pkgs_x86_64.writeShellScriptBin "generate-config" ''
+          ${self.packages.x86_64-linux.configuration-nix}/bin/configuration-nix
+        '';
+      };
     };
 }

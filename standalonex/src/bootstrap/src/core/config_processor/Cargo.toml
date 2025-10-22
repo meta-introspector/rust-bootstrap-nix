@@ -1,0 +1,9 @@
+[package]
+name = "bootstrap-config-processor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bootstrap-config-utils = { path = "../config_utils" }
+# Placeholder for the main bootstrap crate dependency
+# bootstrap = { path = "../../../../" } # Adjust path as needed

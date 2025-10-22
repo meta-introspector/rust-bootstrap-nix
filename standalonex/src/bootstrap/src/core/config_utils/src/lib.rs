@@ -7,7 +7,6 @@ pub mod parse;
 pub mod parse_inner_flags;
 pub mod parse_inner_src;
 pub mod parse_inner_out;
-pub mod parse_inner_stage0;
 pub mod parse_inner_toml;
 pub mod parse_inner_build;
 pub mod dry_run;

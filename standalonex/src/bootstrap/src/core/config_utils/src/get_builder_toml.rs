@@ -3,11 +3,12 @@ use crate::parsed_config::ParsedConfig;
 use crate::local_toml_config::LocalTomlConfig;
 use crate::target_selection::TargetSelection;
 use crate::get_toml;
+use crate::dry_run::DryRun;
 
 const BUILDER_CONFIG_FILENAME: &str = "config.toml";
 
 pub fn get_builder_toml(config: &ParsedConfig, build_name: &str) -> Result<LocalTomlConfig, toml::de::Error> {
-    if config.dry_run != crate::dry_run::DryRun::Disabled {
+    if config.dry_run != DryRun::Disabled {
         return Ok(LocalTomlConfig::default());
     }
 

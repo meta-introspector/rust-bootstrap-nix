@@ -3,13 +3,25 @@
 version = 4
 
 [[package]]
+name = "bootstrap-config-processor"
+version = "0.1.0"
+dependencies = [
+ "bootstrap-config-utils",
+]
+
+[[package]]
 name = "bootstrap-config-utils"
 version = "0.1.0"
 dependencies = [
  "serde",
  "serde_derive",
+ "stage0_parser_crate",
  "toml",
 ]
+
+[[package]]
+name = "configuration-nix"
+version = "0.1.0"
 
 [[package]]
 name = "proc-macro2"
@@ -56,6 +68,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "stage0_parser_crate"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]
