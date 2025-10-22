@@ -504,11 +504,11 @@
       },
       "locked": {
         "dir": "standalonex",
-        "lastModified": 1761175769,
-        "narHash": "sha256-6Wv49rzd36wyHWDb5vwWBj/VilhoAuWtFmchcG1A6VE=",
+        "lastModified": 1761175787,
+        "narHash": "sha256-A1qvJ1zdZabnGtMJiqxrdUIqg9fZoZR6OtKxyt/wyro=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "e3da9ef188fcd7597ce83ceb378ff15d9e8fbca2",
+        "rev": "5cb9b823e3c9aeac3f756ea2b1dfe3c9d571313f",
         "type": "github"
       },
       "original": {
