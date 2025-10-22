@@ -20,8 +20,9 @@ fn main() {
 
     let config_file_path = env::var("CONFIG_OUTPUT_PATH")
         .unwrap_or_else(|_| "../../config.toml".to_string());
+    let final_output_path = format!("{}/config.toml", config_file_path);
 
-    fs::write(&config_file_path, config_content)
+    fs::write(&final_output_path, config_content)
         .expect("Failed to write config.toml");
 
     println!("Generated config.toml at {}", config_file_path);
