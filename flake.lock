@@ -7,14 +7,21 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "path": "./configuration-nix",
-        "type": "path"
+        "dir": "configuration-nix",
+        "lastModified": 1761141237,
+        "narHash": "sha256-tHxbFtGmWc849Sb9FPZukdvSgmoebo00jejRn3RhxGI=",
+        "owner": "meta-introspector",
+        "repo": "rust-bootstrap-nix",
+        "rev": "718e07ab1bccd54cedb81b75d0035ba04db0b9fb",
+        "type": "github"
       },
       "original": {
-        "path": "./configuration-nix",
-        "type": "path"
-      },
-      "parent": []
+        "dir": "configuration-nix",
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "rust-bootstrap-nix",
+        "type": "github"
+      }
     },
     "flake-utils": {
       "inputs": {
