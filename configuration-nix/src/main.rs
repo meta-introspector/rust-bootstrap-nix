@@ -18,8 +18,9 @@ fn main() {
         rustc_path, cargo_path, home_dir, cargo_home_dir
     );
 
-    let config_file_path = env::var("CONFIG_OUTPUT_PATH")
-        .unwrap_or_else(|_| "../../config.toml".to_string());
+    let config_file_path = "config.toml".to_string(); // Write to a fixed filename
+
+    println!("Attempting to write config.toml to: {}", config_file_path); // Debug print
 
     fs::write(&config_file_path, config_content).unwrap();
 
