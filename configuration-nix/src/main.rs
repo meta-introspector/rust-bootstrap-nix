@@ -36,7 +36,16 @@ fn get_nix_path(attr: &str) -> String {
         .arg("--expr")
         .arg(&expr)
         .output()
-        .expect(&format!("Failed to execute nix command for {}", attr));
+        .unwrap_or_else(|e| {
+            eprintln!("Failed to execute nix command for {}: {}", attr, e);
+            std::process::exit(1);
+        });
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        eprintln!("Nix command failed for {}: {}", attr, stderr);
+        std::process::exit(1);
+    }
 
     let path = String::from_utf8_lossy(&output.stdout);
     path.trim().to_string()
