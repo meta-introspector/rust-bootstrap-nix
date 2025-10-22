@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
+    configuration-nix.url = "path:./configuration-nix";
   };
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix }:
@@ -166,36 +166,26 @@
       # packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
       # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
 
-      packages.aarch64-linux.configuration-nix = pkgs_aarch64.rustPlatform.buildRustPackage {
-        pname = "configuration-nix";
-        version = "0.1.0";
-        src = configuration-nix;
-        cargoLock = {
-          lockFile = configuration-nix + "/Cargo.lock";
-        };
-        buildInputs = [ rustToolchain_aarch64 ];
-      };
 
-      apps.aarch64-linux.generateConfig = flake-utils.lib.mkApp {
-        drv = pkgs_aarch64.writeShellScriptBin "generate-config" ''
-          ${self.packages.aarch64-linux.configuration-nix}/bin/configuration-nix
-        '';
-      };
+      packages.aarch64-linux.generatedConfigToml = pkgs_aarch64.runCommand "config.toml"
+        {
+          nativeBuildInputs = [ configuration-nix.packages.aarch64-linux.default ];
+        } ''
+        ${configuration-nix.packages.aarch64-linux.default}/bin/configuration-nix
+        mv config.toml $out
+      '';
 
-      packages.x86_64-linux.configuration-nix = pkgs_x86_64.rustPlatform.buildRustPackage {
-        pname = "configuration-nix";
-        version = "0.1.0";
-        src = configuration-nix;
-        cargoLock = {
-          lockFile = configuration-nix + "/Cargo.lock";
-        };
-        buildInputs = [ rustToolchain_x86_64 ];
-      };
+      apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
-      apps.x86_64-linux.generateConfig = flake-utils.lib.mkApp {
-        drv = pkgs_x86_64.writeShellScriptBin "generate-config" ''
-          ${self.packages.x86_64-linux.configuration-nix}/bin/configuration-nix
-        '';
-      };
+
+      packages.x86_64-linux.generatedConfigToml = pkgs_x86_64.runCommand "config.toml"
+        {
+          nativeBuildInputs = [ configuration-nix.packages.x86_64-linux.default ];
+        } ''
+        ${configuration-nix.packages.x86_64-linux.default}/bin/configuration-nix
+        mv config.toml $out
+      '';
+
+      apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
     };
 }
