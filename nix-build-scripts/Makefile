@@ -3,6 +3,8 @@
 all: build
 
 build:
+	@echo "Copying workspace Cargo.lock to configuration-nix/..."
+	cp ../Cargo.lock ../configuration-nix/Cargo.lock
 	@echo "Building generated config.toml..."
 	nix build ..#generatedConfigToml
 	@echo "Generated config.toml is at $(shell nix build ..#generatedConfigToml --no-link --print-out-paths)"
