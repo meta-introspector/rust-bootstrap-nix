@@ -6,5 +6,3 @@ edition = "2021"
 [dependencies]
 config_core = { path = "../config_core" }
 config_macros = { path = "../config_macros" }
-
-[workspace]

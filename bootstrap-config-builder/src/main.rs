@@ -5,7 +5,8 @@ use std::{
     path::PathBuf,
 };
 
-mod utils; // Declare the utils module
+pub mod utils; // Declare the utils module as public
+mod preconditions; // Declare the preconditions module
 
 /// A tool to generate config.toml for the rust-bootstrap process by querying Nix flakes.
 #[derive(Parser, Debug)]
@@ -30,10 +31,34 @@ struct Args {
     /// Output file path
     #[arg(long, short, default_value = "config.toml")]
     output: PathBuf,
+
+    /// The flake reference for the rust-bootstrap-nix repository
+    #[arg(long)]
+    rust_bootstrap_nix_flake_ref: String,
+
+    /// The flake reference for the rust source
+    #[arg(long)]
+    rust_src_flake_ref: String,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    // Run precondition checks
+    preconditions::check_nix_command_available()?;
+    preconditions::check_rust_toolchain_sysroot(
+        &args.rust_bootstrap_nix_flake_ref,
+        &args.system,
+        // Assuming rust-overlay is an input to rust-bootstrap-nix flake
+        // and its ref is the same as rust_bootstrap_nix_flake_ref for now.
+        // This might need to be a separate argument if it varies.
+        &args.rust_bootstrap_nix_flake_ref,
+    )?;
+    preconditions::check_rust_src_flake_exists(
+        &args.rust_bootstrap_nix_flake_ref,
+        &args.rust_src_flake_ref,
+    )?;
+
 
     // 1. Validate the project root
     let project_root = utils::validate_project_root(&args.project_root)?;
@@ -60,6 +85,8 @@ fn main() -> Result<()> {
         &rust_src_flake_path,
         &args.stage,
         &args.target,
+        &args.rust_bootstrap_nix_flake_ref,
+        &args.rust_src_flake_ref,
     );
 
     // 4. Write the output file
