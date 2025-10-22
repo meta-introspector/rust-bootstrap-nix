@@ -21,6 +21,8 @@ fn main() {
     let config_file_path = env::var("CONFIG_OUTPUT_PATH")
         .unwrap_or_else(|_| "../../config.toml".to_string());
 
+    println!("Attempting to write config.toml to: {}", config_file_path); // Debug print
+
     fs::write(&config_file_path, config_content)
         .expect("Failed to write config.toml");
 
