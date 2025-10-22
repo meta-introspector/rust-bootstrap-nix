@@ -1,6 +1,6 @@
 ## Overall Plan: Refactor `configuration-nix` and Integrate with `config-generator`
 
-This plan breaks down the task into logical, smaller steps. I will execute these steps sequentially, using `read_file` before each `replace` operation to ensure the `old_string` is accurate.
+This plan breaks down the task into logical, smaller steps. I will execute these steps sequentially, using `read_file` before each modification to ensure accuracy, and then `write_file` to apply the changes.
 
 ### Part 1: Refactor `configuration-nix/src/main.rs` to use `config_generator` module
 
@@ -24,3 +24,7 @@ This plan breaks down the task into logical, smaller steps. I will execute these
     *   **Update `generateConfigTomlForStage`:** Simplify the `pkgs.runCommand` to just call `configurationNix.packages.${system}.default` with `stageNum` and `targetTriple` as arguments. Remove the environment variables `RUSTC_PATH`, `CARGO_PATH`, etc., as the Rust program will now discover these itself.
     *   **Update `configGeneratorScript`:** Simplify the script to just call `configurationNix.packages.${system}.default` with `stageNum` and `targetTriple` as arguments.
     *   **Update `packages` output:** Ensure the `packages` output correctly calls `generateConfigTomlForStage` with the required arguments.
+
+### Current Status: `bootstrap-config-builder` Refactoring
+
+The `bootstrap-config-builder` crate has been successfully refactored to use utility functions in `utils.rs` and now correctly generates `config.toml` by querying Nix flakes. This was achieved by directly overwriting files using `write_file` after modifications were confirmed.

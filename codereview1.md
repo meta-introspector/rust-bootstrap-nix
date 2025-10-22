@@ -67,6 +67,6 @@ fn main() {
 ### Components to Replace/Refactor:
 
 -   **Path Discovery:** The current method of finding the `flake.nix` by traversing parent directories is not robust for a general-purpose tool. **Replacement Strategy:** Our new tool should likely receive the path to the project root as a command-line argument or assume it is being run from the root.
--   **Error Handling:** The code is littered with `.unwrap()` and `.expect()`. **Refactoring Strategy:** We must introduce proper error handling using `Result` types throughout the application (e.g., with the help of crates like `anyhow` or `thiserror`) to make the tool reliable.
+-   **Error Handling:** The code in `configuration-nix` is littered with `.unwrap()` and `.expect()`. **Refactoring Strategy:** Our new `bootstrap-config-builder` crate now uses proper error handling with `anyhow::Result` and `with_context` to make the tool reliable. This approach should be adopted for `configuration-nix` as well.
 -   **Hardcoded Values:** The names of the flake inputs (`nixpkgs`, `rustSrcFlake`, etc.) are hardcoded strings. **Refactoring Strategy:** For future flexibility, these could be loaded from a configuration file or passed as arguments, though for the initial version, keeping them hardcoded is acceptable.
 -   **Implicit CWD:** The final `config.toml` is written to the current working directory. This should be made an explicit output path.

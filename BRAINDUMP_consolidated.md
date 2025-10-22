@@ -32,18 +32,19 @@ Resolve build errors for the `bootstrap` crate and its dependencies within the `
 
 ## Plan Moving Forward:
 
-1.  **Clean up `ParsedConfig` duplicates**: Carefully review `lib.rs` and remove any duplicate field declarations in `ParsedConfig`.
-2.  **Implement `Clone` for structs**: Add `#[derive(Clone)]` to `LocalLlvm`, `LocalRust`, `LocalTargetConfig`, and `Install` structs in `lib.rs` and `install_config.rs` respectively.
-3.  **Address `default_opts.rs` field errors**:
+1.  **`bootstrap-config-builder` Refactoring Complete**: The `bootstrap-config-builder` crate has been successfully refactored to use utility functions in `utils.rs` and now correctly generates `config.toml` by querying Nix flakes. This was achieved by directly overwriting files using `write_file` after modifications were confirmed.
+2.  **Clean up `ParsedConfig` duplicates**: Carefully review `lib.rs` and remove any duplicate field declarations in `ParsedConfig`.
+3.  **Implement `Clone` for structs**: Add `#[derive(Clone)]` to `LocalLlvm`, `LocalRust`, `LocalTargetConfig`, and `Install` structs in `lib.rs` and `install_config.rs` respectively.
+4.  **Address `default_opts.rs` field errors**: 
     *   Add remaining missing fields (`channel`, `codegen_tests`, `stdout_is_tty`, `stderr_is_tty`, `src`, `ci`, `targets`) to `ParsedConfig` in `lib.rs`.
     *   Wrap `bool`, `PathBuf`, `String` values in `Some()` where `Option<T>` is expected in `default_opts.rs`.
-4.  **Fix `TargetSelection` access**: In `get_builder_toml.rs`, change `config.build.triple` to `config.build.0`.
-5.  **Remove `build_helper` imports**: Go through `parse_inner_stage0.rs` and `try_run.rs` and remove `use build_helper;` and any code that relies on it.
-6.  **Remove `bootstrap` imports**: Systematically go through all files in `bootstrap-config-utils` and remove `use bootstrap::...` statements. Replace `bootstrap::Config` with `crate::ParsedConfig`, `bootstrap::Flags` with `crate::LocalFlags`, `bootstrap::TomlConfig` with `crate::LocalTomlConfig`. For other `bootstrap` types/functions, either copy their definitions into `lib.rs` (if basic) or remove/refactor their usage.
-7.  **Address `crate::llvm_assertions_config` and `crate::rust_channel_git_hash_config`**: Create dummy modules for these in `bootstrap-config-utils/src/` if they are truly internal to `bootstrap-config-utils` and not external dependencies.
-8.  **Address `crate::core` and `crate::utils`**: Comment out or refactor code that uses these if they are not part of `bootstrap-config-utils`.
-9.  **Fix `E0507` in `parse_inner_build.rs`**: Change `toml.build.unwrap_or_default()` to `toml.build.clone().unwrap_or_default()`.
-10. **Re-run `report.sh`** after each significant batch of changes.
+5.  **Fix `TargetSelection` access**: In `get_builder_toml.rs`, change `config.build.triple` to `config.build.0`.
+6.  **Remove `build_helper` imports**: Go through `parse_inner_stage0.rs` and `try_run.rs` and remove `use build_helper;` and any code that relies on it.
+7.  **Remove `bootstrap` imports**: Systematically go through all files in `bootstrap-config-utils` and remove `use bootstrap::...` statements. Replace `bootstrap::Config` with `crate::ParsedConfig`, `bootstrap::Flags` with `crate::LocalFlags`, `bootstrap::TomlConfig` with `crate::LocalTomlConfig`. For other `bootstrap` types/functions, either copy their definitions into `lib.rs` (if basic) or remove/refactor their usage.
+8.  **Address `crate::llvm_assertions_config` and `crate::rust_channel_git_hash_config`**: Create dummy modules for these in `bootstrap-config-utils/src/` if they are truly internal to `bootstrap-config-utils` and not external dependencies.
+9.  **Address `crate::core` and `crate::utils`**: Comment out or refactor code that uses these if they are not part of `bootstrap-config-utils`.
+10. **Fix `E0507` in `parse_inner_build.rs`**: Change `toml.build.unwrap_or_default()` to `toml.build.clone().unwrap_or_default()`.
+11. **Re-run `report.sh`** after each significant batch of changes.
 
 ---
 
@@ -96,50 +97,6 @@ Attempts to compile `config_standalone` as a separate crate encountered persiste
 ## Current Goal:
 Refactor `bootstrap-config-utils` to be a pure parsing and configuration preparation crate. It should return a `ParsedConfig` struct that is free of direct dependencies on `bootstrap` crate types.
 
-## Steps Taken (Summary):
-*   Created workspace in the current directory (`/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix`).
-*   Removed conflicting `[workspace]` sections from sub-crates (`standalonex/src/bootstrap/Cargo.toml` and `standalonex/src/bootstrap/src/core/config_utils/Cargo.toml`).
-*   Defined `ParsedConfig`, `LocalFlags`, `LocalCiConfig`, `LocalBuild`, `LocalLlvm`, `LocalRust`, `LocalTargetConfig`, `LocalDist` structs in `src/lib.rs` of `bootstrap-config-utils`.
-*   Modified `parse_inner` function signature in `src/parse_inner.rs` to return `ParsedConfig` and accept `LocalFlags` and `LocalTomlConfig`.
-*   Removed `use crate::...` statements (referencing `bootstrap` types) from `src/parse_inner.rs`.
-*   Replaced `Config::default_opts()` with `ParsedConfig::default()` in `src/parse_inner.rs`.
-*   Updated `parse_inner_flags` in `src/parse_inner_flags.rs` to use `ParsedConfig` and `LocalFlags`.
-*   Replaced `Ci` destructuring and `set` calls with direct assignments to `ParsedConfig` fields in `src/parse_inner.rs`.
-*   Commented out the `config.dry_run` block in `src/parse_inner.rs`.
-*   Replaced `config.hosts` and `config.targets` assignments with direct assignments using primitive types in `src/parse_inner.rs`.
-*   Replaced assignments from `build_config` to `config` fields (e.g., `nodejs`, `npm`, `gdb`, etc.), removing `set` calls.
-*   Replaced `config.verbose` and `config.verbose_tests` assignments with direct assignments using primitive types.
-*   Replaced `toml.install` processing with direct assignments to `ParsedConfig` fields.
-*   Replaced `config.llvm_assertions` assignment with direct assignment from `toml.llvm.assertions`.
-*   Removed local `let mut` declarations for LLVM, Rust, and debug info options.
-*   Replaced `toml.rust` processing with direct assignments to `ParsedConfig` fields.
-*   Replaced `toml.llvm` processing with direct assignments to `ParsedConfig` fields.
-*   Replaced `toml.target` processing with direct assignments to `ParsedConfig` fields.
-*   Commented out `config.llvm_from_ci` block.
-*   Replaced `toml.dist` processing with direct assignments to `ParsedConfig` fields.
-*   Replaced `toml.rustfmt` processing with direct assignments to `ParsedConfig` fields.
-*   Commented out `lld_enabled` block.
-*   Commented out `config.lld_mode` block.
-*   Replaced `config.rust_std_features` assignment.
-*   Replaced Rust debug and overflow check assignments.
-*   Replaced debug info level assignments.
-*   Commented out `config.stage` block.
-*   Commented out `#[cfg(not(test))]` block.
-
-## Next Steps:
-1.  **Clean up `src/parse_inner.rs`**: Remove redundant `use` statements, leftover commented code, and address any remaining fields that are not yet handled (e.g., `config.src`, `config.channel`, `config.build`, `config.out`, `config.initial_cargo_clippy`, `config.initial_rustc`, `config.initial_cargo`, `config.target_config`).
-2.  **Split `src/parse_inner.rs`** into smaller, more manageable modules.
-3.  **Create `bootstrap-config-processor` crate**: This crate will take the `ParsedConfig` as input and construct the actual `bootstrap::Config` object.
-4.  **Move logic from `bootstrap-config-utils` to `bootstrap-config-processor`**: Transfer the logic that uses `bootstrap` crate types and performs complex configuration logic.
-5.  **Refactor LLVM into its own crate**: Further isolate LLVM-specific configuration and logic into a dedicated crate.
-
----
-
-# Braindump 5: Refactoring bootstrap-config-utils - New Strategy
-
-## Current Goal:
-Refactor `bootstrap-config-utils` to be a pure parsing and configuration preparation crate. It should return a `ParsedConfig` struct that is free of direct dependencies on `bootstrap` crate types.
-
 ## Progress Made:
 *   Removed conflicting `[workspace]` sections.
 *   Defined `ParsedConfig`, `LocalFlags`, `LocalCiConfig`, `LocalBuild`, `LocalLlvm`, `LocalRust`, `LocalTargetConfig`, `LocalDist` structs in `src/lib.rs` of `bootstrap-config-utils`.
@@ -169,12 +126,18 @@ Refactor `bootstrap-config-utils` to be a pure parsing and configuration prepara
 *   Updated `src/lib.rs` to declare `pub mod rust_channel_git_hash_config;`.
 *   Updated `parse_inner.rs` to use `rust_channel_git_hash_config::RustChannelGitHashConfigApplicator` via the `ConfigApplicator` trait.
 
-## Challenges Encountered:
-*   Frequent API errors with the `replace` tool due to strict string matching requirements, especially with large code blocks and evolving file content. This has significantly slowed down the refactoring process.
-*   Difficulty in maintaining a consistent state due to the `replace` tool's limitations.
+## Plan Moving Forward:
 
-## Proposed New Strategy:
-1.  **Focus on `write_file` for entire files:** Instead of trying to use `replace` for incremental changes within a file, we will use `write_file` to completely overwrite files when significant changes are made. This will reduce the chances of `old_string` mismatches.
-2.  **Batch changes:** Group related changes together and apply them in a single `write_file` operation for a given file.
-3.  **Prioritize functional correctness over perfect modularity in the short term:** Get the code compiling and working with the new structure, even if some modules are still a bit large. We can refine modularity later.
-4.  **Re-evaluate the "nix config generator" idea:** Once `bootstrap-config-utils` is stable and modular, we can revisit the idea of an external Nix config generator crate.
+1.  **`bootstrap-config-builder` Refactoring Complete**: The `bootstrap-config-builder` crate has been successfully refactored to use utility functions in `utils.rs` and now correctly generates `config.toml` by querying Nix flakes. This was achieved by directly overwriting files using `write_file` after modifications were confirmed.
+2.  **Clean up `ParsedConfig` duplicates**: Carefully review `lib.rs` and remove any duplicate field declarations in `ParsedConfig`.
+3.  **Implement `Clone` for structs**: Add `#[derive(Clone)]` to `LocalLlvm`, `LocalRust`, `LocalTargetConfig`, and `Install` structs in `lib.rs` and `install_config.rs` respectively.
+4.  **Address `default_opts.rs` field errors**: 
+    *   Add remaining missing fields (`channel`, `codegen_tests`, `stdout_is_tty`, `stderr_is_tty`, `src`, `ci`, `targets`) to `ParsedConfig` in `lib.rs`.
+    *   Wrap `bool`, `PathBuf`, `String` values in `Some()` where `Option<T>` is expected in `default_opts.rs`.
+5.  **Fix `TargetSelection` access**: In `get_builder_toml.rs`, change `config.build.triple` to `config.build.0`.
+6.  **Remove `build_helper` imports**: Go through `parse_inner_stage0.rs` and `try_run.rs` and remove `use build_helper;` and any code that relies on it.
+7.  **Remove `bootstrap` imports**: Systematically go through all files in `bootstrap-config-utils` and remove `use bootstrap::...` statements. Replace `bootstrap::Config` with `crate::ParsedConfig`, `bootstrap::Flags` with `crate::LocalFlags`, `bootstrap::TomlConfig` with `crate::LocalTomlConfig`. For other `bootstrap` types/functions, either copy their definitions into `lib.rs` (if basic) or remove/refactor their usage.
+8.  **Address `crate::llvm_assertions_config` and `crate::rust_channel_git_hash_config`**: Create dummy modules for these in `bootstrap-config-utils/src/` if they are truly internal to `bootstrap-config-utils` and not external dependencies.
+9.  **Address `crate::core` and `crate::utils`**: Comment out or refactor code that uses these if they are not part of `bootstrap-config-utils`.
+10. **Fix `E0507` in `parse_inner_build.rs`**: Change `toml.build.unwrap_or_default()` to `toml.build.clone().unwrap_or_default()`.
+11. **Re-run `report.sh`** after each significant batch of changes.

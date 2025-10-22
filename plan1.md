@@ -8,7 +8,7 @@ This plan adopts an "outside-in" approach to development. We will first develop 
 
 2.  **"Read-Only" Nix Interaction:** The new Rust binary will be responsible for generating the `config.toml` file. It will achieve this by querying the Nix environment for necessary paths (e.g., Rust source, dependencies) without running inside a `nix shell`. This maintains a fast and responsive development cycle.
 
-3.  **File Generation Strategy:** To avoid issues with in-place editing, all refactoring will produce new files (e.g., `main.refactored.rs`). These new files will replace the originals only after they are confirmed to be working correctly.
+3.  **File Generation Strategy:** To avoid issues with in-place editing, all refactoring will directly overwrite files using `write_file` after modifications are confirmed to be working correctly. This replaces the previous strategy of creating `.refactored.rs` files.
 
 4.  **Manual Execution and Verification:** The bootstrap process will be executed manually from a standard shell. We will use our new Rust executable to generate the `config.toml`, and then run the existing bootstrap scripts (like `./x.py build`) to test the generated configuration.
 
