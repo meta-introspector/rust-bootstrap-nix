@@ -20,9 +20,7 @@ fn main() {
 
     let config_file_path = "config.toml".to_string(); // Write to a fixed filename
 
-    println!("Attempting to write config.toml to: {}", config_file_path); // Debug print
-
-    fs::write(&config_file_path, config_content).unwrap();
+    fs::write(&config_file_file_path, config_content).unwrap();
 
     println!("Generated config.toml at {}", config_file_path);
 }
