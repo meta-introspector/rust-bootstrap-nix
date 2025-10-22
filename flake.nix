@@ -5,9 +5,10 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+    configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils }:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix }:
     let
       lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
@@ -168,9 +169,9 @@
       packages.aarch64-linux.configuration-nix = pkgs_aarch64.rustPlatform.buildRustPackage {
         pname = "configuration-nix";
         version = "0.1.0";
-        src = ./configuration-nix;
+        src = configuration-nix;
         cargoLock = {
-          lockFile = ./Cargo.lock;
+          lockFile = configuration-nix + "/Cargo.lock";
         };
         buildInputs = [ rustToolchain_aarch64 ];
       };
@@ -184,9 +185,9 @@
       packages.x86_64-linux.configuration-nix = pkgs_x86_64.rustPlatform.buildRustPackage {
         pname = "configuration-nix";
         version = "0.1.0";
-        src = ./configuration-nix;
+        src = configuration-nix;
         cargoLock = {
-          lockFile = ./Cargo.lock;
+          lockFile = configuration-nix + "/Cargo.lock";
         };
         buildInputs = [ rustToolchain_x86_64 ];
       };
