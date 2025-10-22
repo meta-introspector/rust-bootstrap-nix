@@ -14,9 +14,7 @@ pub fn check_nix_command_available() -> Result<()> {
 }
 
 pub fn check_rust_toolchain_sysroot(
-    _rust_bootstrap_nix_flake_ref: &str, // Not directly used in this simplified check
-    _system: &str, // Not directly used in this simplified check
-    rust_src_flake_path: &str, // Now takes rust_src_flake_path
+    rust_src_flake_path: &str,
 ) -> Result<()> {
     // Simplified check: just verify if the rust_src_flake_path exists and contains src/ci/channel
     let known_file = format!("{}/src/ci/channel", rust_src_flake_path);
@@ -28,11 +26,3 @@ pub fn check_rust_toolchain_sysroot(
     }
 }
 
-pub fn check_rust_src_flake_exists(
-    _rust_bootstrap_nix_flake_ref: &str, // Not directly used in this simplified check
-    _rust_src_flake_ref: &str,
-) -> Result<()> {
-    // This function is now redundant with the simplified check_rust_toolchain_sysroot.
-    // For now, let's just return Ok(()) as the check is done in check_rust_toolchain_sysroot
-    Ok(())
-}

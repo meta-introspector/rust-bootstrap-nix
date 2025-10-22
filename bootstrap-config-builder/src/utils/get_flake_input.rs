@@ -12,7 +12,7 @@ pub fn get_flake_input(flake_path_str: &str, input_name: &str) -> Result<String>
     let expr = format_new::format_new(&composed_path, flake_path_str, input_name);
 
     let mut command = Command::new("nix");
-    command.args(&["eval", "--raw", "--extra-experimental-features", "nix-command flakes", "--impure", "--expr", &expr]);
+    command.args(&["eval", "--raw", "--extra-experimental-features", "nix-command flakes", "--expr", &expr]);
 
     debug!("Executing Nix command: {:?}", command);
     debug!("Working directory: {:?}

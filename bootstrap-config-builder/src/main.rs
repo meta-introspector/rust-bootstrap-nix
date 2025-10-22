@@ -92,16 +92,10 @@ fn main() -> Result<()> {
     debug!("rust_src_flake_path: {}", rust_src_flake_path);
 
     preconditions::check_rust_toolchain_sysroot(
-        &args.rust_bootstrap_nix_flake_ref, // This argument is no longer directly used in check_rust_toolchain_sysroot
-        &args.system, // This argument is no longer directly used in check_rust_toolchain_sysroot
-        &rust_src_flake_path, // Pass the correct rust_src_flake_path
+        &rust_src_flake_path,
     )?;
     info!("Rust toolchain sysroot check passed.");
-    preconditions::check_rust_src_flake_exists(
-        &args.rust_bootstrap_nix_flake_ref,
-        &args.rust_src_flake_ref,
-    )?;
-    info!("Rust source flake check passed.");
+
 
 
     // 3. Construct the config.toml content
@@ -121,19 +115,16 @@ fn main() -> Result<()> {
     );
     debug!("Generated config content:\n{}", config_content);
 
-    // 4. Print to stdout
-    println!("Generated config values:");
-    println!("  system: {}", args.system);
-    println!("  flake_path_str: {}", flake_path_str);
-    println!("  nixpkgs_path: {}", nixpkgs_path);
-    println!("  rust_overlay_path: {}", rust_overlay_path);
-    println!("  rust_bootstrap_nix_path: {}", rust_bootstrap_nix_path);
-    println!("  configuration_nix_path: {}", configuration_nix_path);
-    println!("  rust_src_flake_path: {}", rust_src_flake_path);
-    println!("  stage: {}", args.stage);
-    println!("  target: {}", args.target);
-    println!("  rust_bootstrap_nix_flake_ref: {}", args.rust_bootstrap_nix_flake_ref);
-    println!("  rust_src_flake_ref: {}", args.rust_src_flake_ref);
+    // 4. Handle output based on dry_run flag
+    if args.dry_run {
+        info!("Dry run enabled. Generated config will be printed to stdout.");
+        println!("{}", config_content);
+    } else {
+        info!("Writing generated config to file: {:?}", args.output);
+        fs::write(&args.output, config_content)
+            .context(format!("Failed to write config to file: {:?}", args.output))?;
+        info!("Config successfully written to {:?}", args.output);
+    }
 
     Ok(())
 }

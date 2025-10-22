@@ -11,6 +11,10 @@ struct Args {
     /// The flake reference to inspect (e.g., "nixpkgs", "github:NixOS/nixpkgs/nixos-23.11")
     #[arg()]
     flake_ref: String,
+
+    /// Output raw JSON from 'nix flake show' command.
+    #[arg(long, default_value_t = false)]
+    json: bool,
 }
 
 fn main() -> Result<()> {
@@ -40,6 +44,11 @@ fn main() -> Result<()> {
     let json_output: Value = serde_json::from_slice(&output.stdout)
         .with_context(|| "Failed to parse nix flake show JSON output")?;
 
+    if args.json {
+        println!("{}", serde_json::to_string_pretty(&json_output)?);
+        return Ok(());
+    }
+
     println!("Flake Attributes for {}:", args.flake_ref);
 
     if let Some(inputs) = json_output.get("inputs") {
@@ -57,8 +66,9 @@ fn main() -> Result<()> {
             for (system, system_outputs) in outputs_obj {
                 println!("  {}:", system);
                 if let Some(system_outputs_obj) = system_outputs.as_object() {
-                    for (key, _) in system_outputs_obj {
-                        println!("    - {}", key);
+                    for (key, value) in system_outputs_obj {
+                        let output_type = value.get("type").and_then(|t| t.as_str()).unwrap_or("unknown");
+                        println!("    - {}: {}", key, output_type);
                     }
                 }
             }

@@ -6,9 +6,10 @@
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
     configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
+    standalonex.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=standalonex";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix }:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex }:
     let
       lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
@@ -140,6 +141,7 @@
             ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
           '';
         };
+        default = self.inputs.standalonex.packages.${pkgs_aarch64.system}.default;
       };
 
       packages.x86_64-linux = configTomlStages_x86_64 // {
@@ -165,6 +167,7 @@
             ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
           '';
         };
+        default = self.inputs.standalonex.packages.${pkgs_x86_64.system}.default;
       };
 
       devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
@@ -178,6 +181,7 @@
           pkgs_aarch64.curl
           pkgs_aarch64.which # Add which to the devShell
           pkgs_aarch64.statix # Add statix to the devShell
+          pkgs_aarch64.rust-analyzer # Add rust-analyzer to the devShell
         ];
 
         # Set HOME and CARGO_HOME for the devShell
@@ -218,6 +222,7 @@
           pkgs_x86_64.curl
           pkgs_x86_64.which # Add which to the devShell
           pkgs_x86_64.statix # Add statix to the devShell
+          pkgs_x86_64.rust-analyzer # Add rust-analyzer to the devShell
         ];
 
         # Set HOME and CARGO_HOME for the devShell
