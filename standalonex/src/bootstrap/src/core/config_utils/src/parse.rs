@@ -1,11 +1,7 @@
 
 use crate::parsed_config::ParsedConfig;
-use std::path::{Path, PathBuf};
-use std::env;
-use toml;
 
 use crate::parse_inner_flags;
-use crate::parse_inner_stage0;
 use crate::parse_inner_toml;
 use crate::parse_inner_src;
 use crate::parse_inner_out;
@@ -32,7 +28,7 @@ pub fn parse(mut flags: LocalFlags) -> ParsedConfig {
 
     parse_inner_out::parse_inner_out(&mut config);
 
-    let mut toml = parse_inner_toml::parse_inner_toml(&mut config, &flags, get_toml::get_toml);
+    let toml = parse_inner_toml::parse_inner_toml(&mut config, &flags, get_toml::get_toml);
 
     // Apply various configuration applicators
     let mut applicators: Vec<Box<dyn ConfigApplicator>> = Vec::new();

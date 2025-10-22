@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use crate::target_selection::TargetSelection;
 
+#[derive(Default)]
 pub struct LocalFlags {
     pub set: Vec<String>,
     pub jobs: Option<u32>,

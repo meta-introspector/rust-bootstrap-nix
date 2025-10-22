@@ -23,18 +23,18 @@ impl ConfigApplicator for InstallConfigApplicator {
     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig) {
         if let Some(install) = &toml.install {
             let Install { prefix, sysconfdir, docdir, bindir, libdir, mandir, datadir } = install;
-            config.prefix = prefix.clone().map(PathBuf::from);
-            config.sysconfdir = sysconfdir.clone().map(PathBuf::from);
-            config.datadir = datadir.clone().map(PathBuf::from);
-            config.docdir = docdir.clone().map(PathBuf::from);
+            config.prefix = prefix.clone();
+            config.sysconfdir = sysconfdir.clone();
+            config.datadir = datadir.clone();
+            config.docdir = docdir.clone();
             // Handle bindir specifically, as it's not an Option in Config
             if let Some(b) = bindir {
-                config.bindir = Some(PathBuf::from(b.clone()));
+                config.bindir = Some(b.clone());
             } else if let Some(p) = &config.prefix {
                 config.bindir = Some(p.join("bin"));
             }
-            config.libdir = libdir.clone().map(PathBuf::from);
-            config.mandir = mandir.clone().map(PathBuf::from);
+            config.libdir = libdir.clone();
+            config.mandir = mandir.clone();
         }
     }
 }

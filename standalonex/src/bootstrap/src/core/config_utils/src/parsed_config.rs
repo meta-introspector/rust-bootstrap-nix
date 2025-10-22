@@ -1,7 +1,5 @@
 // This will be the lib.rs for the new bootstrap-config-utils crate
-use std::path::{PathBuf, Path};
-use std::collections::HashMap;
-use serde_derive::Deserialize;
+use std::path::PathBuf;
 use crate::target_selection::TargetSelection;
 use crate::dry_run::DryRun;
 use crate::local_ci_config::LocalCiConfig;

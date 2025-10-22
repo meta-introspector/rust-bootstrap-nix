@@ -1,7 +1,6 @@
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use crate::parsed_config::ParsedConfig;
 use crate::local_toml_config::LocalTomlConfig;
-use crate::local_flags::LocalFlags;
 use crate::config_applicator::ConfigApplicator;
 
 pub struct BuildConfigApplicator;
@@ -35,12 +34,12 @@ impl ConfigApplicator for BuildConfigApplicator {
             config.hosts.clone()
         };
 
-        config.nodejs = build_config.nodejs.map(PathBuf::from);
-        config.npm = build_config.npm.map(PathBuf::from);
-        config.gdb = build_config.gdb.map(PathBuf::from);
-        config.lldb = build_config.lldb.map(PathBuf::from);
-        config.python = build_config.python.map(PathBuf::from);
-        config.reuse = build_config.reuse.map(PathBuf::from);
+        config.nodejs = build_config.nodejs;
+        config.npm = build_config.npm;
+        config.gdb = build_config.gdb;
+        config.lldb = build_config.lldb;
+        config.python = build_config.python;
+        config.reuse = build_config.reuse;
         config.submodules = build_config.submodules;
         config.android_ndk = build_config.android_ndk;
         config.bootstrap_cache_path = build_config.bootstrap_cache_path;

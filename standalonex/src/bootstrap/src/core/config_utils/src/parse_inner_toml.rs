@@ -1,11 +1,9 @@
 use crate::parsed_config::ParsedConfig;
 use crate::local_flags::LocalFlags;
 use crate::local_toml_config::LocalTomlConfig;
-use crate::get_toml;
 use std::path::Path;
 use std::path::PathBuf;
 use std::env;
-use std::fs;
 
 pub fn parse_inner_toml(config: &mut ParsedConfig, flags: &LocalFlags, get_toml: impl Fn(&Path) -> Result<LocalTomlConfig, toml::de::Error>) -> LocalTomlConfig {
     // Read from `--config`, then `RUST_BOOTSTRAP_CONFIG`, then `./config.toml`, then `config.toml` in the root directory.

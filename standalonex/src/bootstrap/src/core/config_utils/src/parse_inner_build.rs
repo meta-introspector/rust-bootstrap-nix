@@ -1,6 +1,4 @@
 use std::path::PathBuf;
-use std::env;
-use std::fs;
 use crate::parsed_config::ParsedConfig;
 use crate::local_toml_config::LocalTomlConfig;
 use crate::local_flags::LocalFlags;
@@ -65,12 +63,12 @@ pub fn parse_inner_build(config: &mut ParsedConfig, toml: &mut LocalTomlConfig, 
         config.out = dir;
     }
 
-    config.nodejs = nodejs.map(PathBuf::from);
-    config.npm = npm.map(PathBuf::from);
-    config.gdb = gdb.map(PathBuf::from);
-    config.lldb = lldb.map(PathBuf::from);
-    config.python = python.map(PathBuf::from);
-    config.reuse = reuse.map(PathBuf::from);
+    config.nodejs = nodejs;
+    config.npm = npm;
+    config.gdb = gdb;
+    config.lldb = lldb;
+    config.python = python;
+    config.reuse = reuse;
     config.submodules = submodules;
     config.android_ndk = android_ndk;
     config.bootstrap_cache_path = bootstrap_cache_path;

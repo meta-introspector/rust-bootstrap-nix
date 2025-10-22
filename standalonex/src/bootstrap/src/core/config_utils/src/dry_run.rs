@@ -1,15 +1,12 @@
 use crate::parsed_config::ParsedConfig;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(Default)]
 pub enum DryRun {
+    #[default]
     Disabled,
     SelfCheck,
     UserSelected,
-}
-impl Default for DryRun {
-    fn default() -> Self {
-        DryRun::Disabled
-    }
 }
 
 pub fn dry_run(config: &ParsedConfig) -> bool {
