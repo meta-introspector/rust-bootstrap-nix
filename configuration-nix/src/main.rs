@@ -23,11 +23,6 @@ fn main() {
 
     println!("Attempting to write config.toml to: {}", config_file_path); // Debug print
 
-    if let Some(parent) = std::path::Path::new(&config_file_path).parent() {
-        fs::create_dir_all(parent)
-            .expect("Failed to create parent directory for config.toml");
-    }
-
     fs::write(&config_file_path, config_content)
         .expect("Failed to write config.toml");
 
