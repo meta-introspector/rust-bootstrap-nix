@@ -184,22 +184,38 @@
       # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
 
 
-      packages.aarch64-linux.generatedConfigToml = generateConfigTomlForStage {
+      packages.aarch64-linux.configStage0 = generateConfigTomlForStage {
         system = "aarch64-linux";
         pkgs = pkgs_aarch64;
         rustToolchain = rustToolchain_aarch64;
         configurationNix = configuration-nix;
-        stageNum = 0; # Example stage number
+        stageNum = 0;
+      };
+
+      packages.aarch64-linux.configStage1 = generateConfigTomlForStage {
+        system = "aarch64-linux";
+        pkgs = pkgs_aarch64;
+        rustToolchain = rustToolchain_aarch64;
+        configurationNix = configuration-nix;
+        stageNum = 1;
       };
       apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
 
-      packages.x86_64-linux.generatedConfigToml = generateConfigTomlForStage {
+      packages.x86_64-linux.configStage0 = generateConfigTomlForStage {
         system = "x86_64-linux";
         pkgs = pkgs_x86_64;
         rustToolchain = rustToolchain_x86_64;
         configurationNix = configuration-nix;
-        stageNum = 0; # Example stage number
+        stageNum = 0;
+      };
+
+      packages.x86_64-linux.configStage1 = generateConfigTomlForStage {
+        system = "x86_64-linux";
+        pkgs = pkgs_x86_64;
+        rustToolchain = rustToolchain_x86_64;
+        configurationNix = configuration-nix;
+        stageNum = 1;
       };
       apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
     };
