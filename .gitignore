@@ -14,4 +14,4 @@ Makefile~
 target/
 *.d
 *.so
-/.pre-commit-config.local.yaml
+/.pre-commit-config.local.yamlnix-build-scripts/.#Makefile
