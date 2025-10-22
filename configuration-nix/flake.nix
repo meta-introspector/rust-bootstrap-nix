@@ -5,6 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify"; # Corrected
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
   };
 
   outputs = { self, nixpkgs, rust-overlay, flake-utils }:

@@ -1,17 +1,14 @@
-use std::{env, fs, process::Command};
+mod config_generator;
 
 fn main() {
-    let rustc_path = env::var("RUSTC_PATH").expect("RUSTC_PATH not set");
-    let cargo_path = env::var("CARGO_PATH").expect("CARGO_PATH not set");
-    let home_path = env::var("HOME_PATH").expect("HOME_PATH not set");
-    let cargo_home_path = env::var("CARGO_HOME_PATH").expect("CARGO_HOME_PATH not set");
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        eprintln!("Usage: {} <stage_num> <target_triple>", args[0]);
+        std::process::exit(1);
+    }
 
-    let config_content = format!(
-        r#"[rust]\nrustc = "{}"\ncargo = "{}"\n\n[build]\nrustc = "{}"\ncargo = "{}"\n\n[env]\nHOME = "{}"\nCARGO_HOME = "{}"\n"#,
-        rustc_path, cargo_path, rustc_path, cargo_path, home_path, cargo_home_path
-    );
+    let stage_num = &args[1];
+    let target_triple = &args[2];
 
-    let config_file_path = "config.toml".to_string(); // Write to a fixed filename
-
-    fs::write(&config_file_path, config_content).unwrap();
+    config_generator::generate_config_toml(stage_num, target_triple);
 }
