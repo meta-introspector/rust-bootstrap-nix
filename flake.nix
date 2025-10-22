@@ -76,6 +76,7 @@
           };
         };
       };
+
       # Helper function to generate config.toml for a given stage
       generateConfigTomlForStage = { system, pkgs, rustToolchain, configurationNix, stageNum }:
         pkgs.runCommand "config-stage-${toString stageNum}.toml"
@@ -93,11 +94,78 @@
           mv config.toml $out
         '';
 
+      # Generate config.toml for multiple stages
+      configTomlStages_aarch64 = lib.mapAttrs' (stageNum: config: { name = "configStage${stageNum}"; value = config; }) (lib.genAttrs (map toString (lib.range 0 2)) (stageNum:
+        generateConfigTomlForStage {
+          system = "aarch64-linux";
+          pkgs = pkgs_aarch64;
+          rustToolchain = rustToolchain_aarch64; # Use the same toolchain for now
+          configurationNix = configuration-nix;
+          stageNum = stageNum;
+        }
+      ));
+
+      # Generate config.toml for multiple stages
+      configTomlStages_x86_64 = lib.mapAttrs' (stageNum: config: { name = "configStage${stageNum}"; value = config; }) (lib.genAttrs (map toString (lib.range 0 2)) (stageNum:
+        generateConfigTomlForStage {
+          system = "x86_64-linux";
+          pkgs = pkgs_x86_64;
+          rustToolchain = rustToolchain_x86_64; # Use the same toolchain for now
+          configurationNix = configuration-nix;
+          stageNum = stageNum;
+        }
+      ));
     in
     {
-      packages.aarch64-linux.showParsedConfig = pkgs_aarch64.writeText "parsed-config.json" (
-        builtins.toJSON parsedConfig
-      );
+      packages.aarch64-linux = configTomlStages_aarch64 // {
+        bootstrapConfigBuilder = pkgs_aarch64.stdenv.mkDerivation {
+          pname = "rust-bootstrap-config-builder";
+          version = "0.1.0";
+
+          # No source needed, as we are just arranging existing outputs
+          src = null;
+
+          # Depend on the configTomlStages derivations
+          configStage0 = configTomlStages_aarch64.configStage0;
+          configStage1 = configTomlStages_aarch64.configStage1;
+          configStage2 = configTomlStages_aarch64.configStage2;
+
+          installPhase = ''
+            mkdir -p $out/standalonex/src/bootstrap/stage0
+            mkdir -p $out/standalonex/src/bootstrap/stage1
+            mkdir -p $out/standalonex/src/bootstrap/stage2
+            
+            ln -s $configStage0 $out/standalonex/src/bootstrap/stage0/config.toml
+            ln -s $configStage1 $out/standalonex/src/bootstrap/stage1/config.toml
+            ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
+          '';
+        };
+      };
+
+      packages.x86_64-linux = configTomlStages_x86_64 // {
+        bootstrapConfigBuilder = pkgs_x86_64.stdenv.mkDerivation {
+          pname = "rust-bootstrap-config-builder";
+          version = "0.1.0";
+
+          # No source needed, as we are just arranging existing outputs
+          src = null;
+
+          # Depend on the configTomlStages derivations
+          configStage0 = configTomlStages_x86_64.configStage0;
+          configStage1 = configTomlStages_x86_64.configStage1;
+          configStage2 = configTomlStages_x86_64.configStage2;
+
+          installPhase = ''
+            mkdir -p $out/standalonex/src/bootstrap/stage0
+            mkdir -p $out/standalonex/src/bootstrap/stage1
+            mkdir -p $out/standalonex/src/bootstrap/stage2
+            
+            ln -s $configStage0 $out/standalonex/src/bootstrap/stage0/config.toml
+            ln -s $configStage1 $out/standalonex/src/bootstrap/stage1/config.toml
+            ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
+          '';
+        };
+      };
 
       devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
         name = "python-rust-fix-dev-shell";
@@ -179,44 +247,8 @@
         ]}";
       };
 
-      # Define packages.default to be the sccache-enabled rustc package
-      # packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
-      # packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
-
-
-      packages.aarch64-linux.configStage0 = generateConfigTomlForStage {
-        system = "aarch64-linux";
-        pkgs = pkgs_aarch64;
-        rustToolchain = rustToolchain_aarch64;
-        configurationNix = configuration-nix;
-        stageNum = 0;
-      };
-
-      packages.aarch64-linux.configStage1 = generateConfigTomlForStage {
-        system = "aarch64-linux";
-        pkgs = pkgs_aarch64;
-        rustToolchain = rustToolchain_aarch64;
-        configurationNix = configuration-nix;
-        stageNum = 1;
-      };
       apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
-
-      packages.x86_64-linux.configStage0 = generateConfigTomlForStage {
-        system = "x86_64-linux";
-        pkgs = pkgs_x86_64;
-        rustToolchain = rustToolchain_x86_64;
-        configurationNix = configuration-nix;
-        stageNum = 0;
-      };
-
-      packages.x86_64-linux.configStage1 = generateConfigTomlForStage {
-        system = "x86_64-linux";
-        pkgs = pkgs_x86_64;
-        rustToolchain = rustToolchain_x86_64;
-        configurationNix = configuration-nix;
-        stageNum = 1;
-      };
       apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
     };
 }

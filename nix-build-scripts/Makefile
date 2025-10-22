@@ -1,6 +1,6 @@
-.PHONY: all build generate-configuration-nix-lock fast-build
+SHELL := /nix/store/hxmi7d6vbdgbzklm4icfk2y83ncw8la9-bash-5.3p3/bin/bash
 
-all: build
+.PHONY: build generate-configuration-nix-lock fast-build
 
 build: generate-configuration-nix-lock
 	@echo "Updating Nix flake lock file..."

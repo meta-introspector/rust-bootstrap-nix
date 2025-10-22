@@ -2,5 +2,5 @@
 members = [
     "standalonex/src/bootstrap/src/core/config_utils",
     "standalonex/src/bootstrap/src/core/config_processor",
-    "standalonex/src/stage0_parser_crate", "configuration-nix",
+    "standalonex/src/stage0_parser_crate", "configuration-nix", "bootstrap-config-builder",
 ]

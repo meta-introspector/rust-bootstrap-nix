@@ -1,4 +1,7 @@
-feat: Integrate Nix config-extractor and add test output
+feat(config): Refactor bootstrap config generation
 
-Integrates the `config-extractor.nix` tool into the main `flake.nix`.
-Adds a new `packages.<system>.showParsedConfig` output to demonstrate and test the `config-extractor.nix` functionality by parsing `standalonex/config.toml` and applying overrides.
+This commit refactors the bootstrap configuration generation logic.
+
+- The logic from `configuration-nix/src/main.rs` has been moved to a new, dedicated file `configuration-nix/src/config_generator.rs`.
+- The generation strategy is changed from reading environment variables to actively querying Nix for flake input paths using `nix eval`.
+- The `configuration-nix` flake is updated to support this new approach.
