@@ -49,11 +49,8 @@
 
       packages.aarch64-linux = {
         default = pkgs.rustPlatform.buildRustPackage {
-          pname = "bootstrap";
-          version = "0.1.0";
-
-          src = pkgs.lib.cleanSource ./src/bootstrap;
-          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          src = pkgs.lib.cleanSource ./src;
+          cargoLock.lockFile = ./src/Cargo.lock;
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
           postPatch = ''
@@ -73,8 +70,7 @@
           pname = "bootstrap-main";
           version = "0.1.0";
 
-          src = pkgs.lib.cleanSource ./src/bootstrap;
-          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          cargoLock.lockFile = ./src/Cargo.lock;
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
           cargoBuildFlags = [ "--bin" "bootstrap" ];
@@ -95,8 +91,8 @@
           pname = "nix-bootstrap";
           version = "0.1.0";
 
-          src = pkgs.lib.cleanSource ./src/bootstrap;
-          cargoLock.lockFile = ./src/bootstrap/Cargo.lock;
+          src = pkgs.lib.cleanSource ./src;
+          cargoLock.lockFile = ./src/Cargo.lock;
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
           cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
