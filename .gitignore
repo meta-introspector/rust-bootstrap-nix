@@ -15,4 +15,3 @@ target/
 *.d
 *.so
 /.pre-commit-config.local.yamlnix-build-scripts/.#Makefile
-generated_config.toml
