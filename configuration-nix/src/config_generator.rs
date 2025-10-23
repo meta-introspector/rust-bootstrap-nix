@@ -1,6 +1,7 @@
 // configuration-nix/src/config_generator.rs
 
 use crate::config_params::ConfigParams;
+use std::fs;
 
 pub fn generate_config_toml(params: &ConfigParams) {
 
