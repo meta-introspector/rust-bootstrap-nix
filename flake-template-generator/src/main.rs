@@ -36,6 +36,8 @@ struct Args {
 struct NixConfig {
     #[serde(default)]
     nixpkgs_path: String,
+    #[serde(default)]
+    base_branch: String,
     // Add other nix-related fields as needed
 }
 
@@ -160,8 +162,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf();
     let branch_name = format!("feature/{}/{}/{}/{}", args.component, args.arch, args.phase, args.step);
 
+    // Explicitly checkout the base branch to ensure a stable HEAD
+    let base_branch_name = if config.nix.base_branch.is_empty() {
+        "feature/CRQ-016-nixify".to_string() // Fallback if not specified
+    } else {
+        config.nix.base_branch
+    };
+    run_git_command(&repo_root, &["checkout", &base_branch_name], "Failed to checkout base branch")?;
+
     // Create and checkout new branch
-    run_git_command(&repo_root, &["checkout", "-b", &branch_name, "HEAD"], "Failed to create and checkout new branch")?;
+    run_git_command(&repo_root, &["checkout", "-b", &branch_name], "Failed to create and checkout new branch")?;
 
     // Add generated files
     run_git_command(&repo_root, &["add", &args.output_dir.to_string_lossy()], "Failed to add generated files")?;

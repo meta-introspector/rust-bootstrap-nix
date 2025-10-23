@@ -5,6 +5,7 @@
 
 [nix]
 nixpkgs_path = ""
+base_branch = "feature/CRQ-016-nixify"
 rust_overlay_path = ""
 rust_bootstrap_nix_path = ""
 configuration_nix_path = ""
