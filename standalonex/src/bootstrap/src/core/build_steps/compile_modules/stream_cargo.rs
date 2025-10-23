@@ -59,7 +59,7 @@ pub fn stream_cargo(
     let status = t!(child.wait());
     if builder.is_verbose() && !status.success() {
         eprintln!(
-            "command did not execute successfully: {cargo:?}\n\                  expected success, got: {status}"
+            "command did not execute successfully: {cargo:?}\nexpected success, got: {status}"
         );
     }
     status.success()

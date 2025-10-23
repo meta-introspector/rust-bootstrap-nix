@@ -1295,7 +1295,9 @@ impl<'a> Builder<'a> {
 
     /// Gets a path to the compiler specified.
     pub fn rustc(&self, compiler: Compiler) -> PathBuf {
-        if compiler.is_snapshot(self) {
+        if let Some(path) = &self.build.config.initial_rustc {
+            path.clone()
+        } else if compiler.is_snapshot(self) {
             self.initial_rustc.clone()
         } else {
             self.sysroot(compiler).join("bin").join(exe("rustc", compiler.host))

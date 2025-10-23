@@ -225,6 +225,5 @@ impl Step for Compiletest {
         if let Some(compiletest_diff_tool) = &builder.config.compiletest_diff_tool {
             cmd.arg("--compiletest-diff-tool").arg(compiletest_diff_tool);
         }
-
-        let mut flags = if is_rustdoc { Vec::new() } else { vec!["-Crpath".to_string()] };
-        flags.push(format!(
+    }
+}

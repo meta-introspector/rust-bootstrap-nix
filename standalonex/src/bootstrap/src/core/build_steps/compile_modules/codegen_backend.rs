@@ -38,7 +38,7 @@ fn is_codegen_cfg_needed(path: &TaskPath, run: &RunConfig<'_>) -> bool {
             && needs_codegen_backend_config
         {
             run.builder.info(
-                "WARNING: no codegen-backends config matched the requested path to build a codegen backend. \                                HELP: add backend to codegen-backends in config.toml.",
+                                include_str!("string_constants.txt"),
             );
             return true;
         }
@@ -84,7 +84,7 @@ impl Step for CodegenBackend {
 
         if builder.config.keep_stage.contains(&compiler.stage) {
             builder.info(
-                "WARNING: Using a potentially old codegen backend. \                                This may not behave well.",
+                                include_str!("codegen_backend_warning_2.txt"),
             );
             // Codegen backends are linked separately from this step today, so we don't do
             // anything here.

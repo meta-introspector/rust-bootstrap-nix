@@ -1,3 +1,4 @@
+use super::test_split::*;
 use crate::prelude::*;
 // Build-and-run steps for `./x.py test` test fixtures
 //
@@ -29,58 +30,7 @@ use crate::utils::helpers::{
 use crate::utils::render_tests::{add_flags_and_try_run_tests, try_run_tests};
 use crate::{CLang, DocTests, GitRepo, Mode, envify};
 
-mod common_test_fields;
 
-const ADB_TEST_DIR: &str = "/data/local/tmp/work";
-
-mod crate_bootstrap;
-mod linkcheck;
-mod check_if_tidy_is_installed;
-mod html_check;
-mod cargotest;
-mod cargo;
-mod rust_analyzer;
-mod rustfmt;
-mod miri;
-mod cargo_miri;
-mod compiletest_test;
-mod clippy;
-mod path_for_cargo;
-mod rustdoc_theme;
-mod rustdoc_js_std;
-mod rustdoc_js_not_std;
-mod get_browser_ui_test_version_inner;
-mod get_browser_ui_test_version;
-mod rustdoc_gui;
-mod tidy;
-mod testdir;
-mod run_make_support;
-mod crate_run_make_support;
-mod crate_build_helper;
-mod run_make;
-mod coverage;
-mod mir_opt;
-mod compiletest;
-mod book_test;
-mod error_index;
-mod markdown_test;
-mod rustc_guide;
-mod crate_librustc;
-mod run_cargo_test;
-mod prepare_cargo_test;
-mod crate_mod;
-mod crate_rustdoc;
-mod crate_rustdoc_json_types;
-mod remote_copy_libs;
-mod distcheck;
-mod bootstrap;
-mod tier_check;
-mod lint_docs;
-mod rust_installer;
-mod test_helpers;
-mod codegen_cranelift;
-mod codegen_gcc;
-mod test_float_parse;
 
 macro_rules! default_test {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {

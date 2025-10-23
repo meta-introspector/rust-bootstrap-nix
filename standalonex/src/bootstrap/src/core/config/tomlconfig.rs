@@ -4,6 +4,7 @@ use crate::prelude::*;
 /// This structure uses `Decodable` to automatically decode a TOML configuration
 /// file into this format, and then this is traversed and written into the above
 /// `Config` structure.
+#[derive(Deserialize, Default)]
 pub(crate) struct Nix {
     nixpkgs_path: Option<PathBuf>,
     rust_overlay_path: Option<PathBuf>,

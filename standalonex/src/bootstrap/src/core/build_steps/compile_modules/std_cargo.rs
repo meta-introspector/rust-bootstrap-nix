@@ -43,9 +43,7 @@ pub fn std_cargo(builder: &Builder<'_>, target: TargetSelection, stage: u32, car
         builder.require_submodule(
             "src/llvm-project",
             Some(
-                "The `build.optimized-compiler-builtins` config option \ 
-                 requires `compiler-rt` sources from LLVM."
-            ),
+                                include_str!("std_cargo_warning_1.txt"),            ),
         );
         let compiler_builtins_root = builder.src.join("src/llvm-project/compiler-rt");
         assert!(compiler_builtins_root.exists());
@@ -134,5 +132,6 @@ pub fn std_cargo(builder: &Builder<'_>, target: TargetSelection, stage: u32, car
     // separate setting for the compiler.
     cargo.rustflag("-Cforce-frame-pointers=yes");
 
-    let html_root =
-        format!(
+//    let html_root =
+//        String::new();
+}

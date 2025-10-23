@@ -61,7 +61,7 @@ pub use crate::Subcommand;
 
 pub use utils::change_tracker::{CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,};
 
-macro_rules! forward! {
+macro_rules! forward {
     ( $( $fn:ident( $($param:ident: $ty:ty),* ) $( -> $ret:ty)? ),+ $(,)? ) => {
         impl Build {
             $( fn $fn(&self, $($param: $ty),* ) $( -> $ret)? {

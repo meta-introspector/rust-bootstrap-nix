@@ -5,6 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=3487cd3843083db70ee30023f19344568ade9c9f";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
+    configTomlPath.url = "path:./generated_config.toml";
   };
 
   outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, configTomlPath }:

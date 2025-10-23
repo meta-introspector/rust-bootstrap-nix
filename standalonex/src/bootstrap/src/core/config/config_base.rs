@@ -62,6 +62,8 @@ pub struct Config {
     pub rust_bootstrap_nix_path: Option<PathBuf>,
     pub configuration_nix_path: Option<PathBuf>,
     pub rust_src_flake_path: Option<PathBuf>,
+    pub rustc_versions: Vec<String>,
+    pub cargo_versions: Vec<String>,
     pub jobs: Option<u32>,
     pub cmd: Subcommand,
     pub incremental: bool,
@@ -236,66 +238,4 @@ pub struct Config {
 
     /// Command for visual diff display, e.g. `diff-tool --color=always`.
     pub compiletest_diff_tool: Option<String>,
-
-    pub fn resolve_nix_paths(&mut self) -> Result<()> {
-        // Helper to get flake path
-        let get_flake_path = |flake_url: &str| -> Result<PathBuf> {
-            let output = Command::new("nix")
-                .arg("flake")
-                .arg("prefetch")
-                .arg(flake_url)
-                .arg("--json")
-                .output()
-                .context(format!("Failed to execute 'nix flake prefetch {}'", flake_url))?;
-
-            if !output.status.success() {
-                anyhow::bail!(
-                    "nix flake prefetch failed for {}: {}",
-                    flake_url,
-                    String::from_utf8_lossy(&output.stderr)
-                );
-            }
-
-            let json_output: serde_json::Value = serde_json::from_slice(&output.stdout)
-                .context(format!("Failed to parse JSON output from nix flake prefetch for {}", flake_url))?;
-
-            let path = json_output["path"]
-                .as_str()
-                .context(format!("'path' field not found in nix flake prefetch output for {}", flake_url))?
-                .into();
-            Ok(path)
-        };
-
-        // Resolve nixpkgs_path
-        if self.nixpkgs_path.is_none() {
-            let nixpkgs_rev = "26833ad1dad83826ef7cc52e0009ca9b7097c79f"; // From configuration-nix/flake.lock
-            let nixpkgs_url = format!("github:meta-introspector/nixpkgs?rev={}", nixpkgs_rev);
-            self.nixpkgs_path = Some(get_flake_path(&nixpkgs_url)?);
-        }
-
-        // Resolve rust_overlay_path
-        if self.rust_overlay_path.is_none() {
-            let rust_overlay_rev = "eee7767f08f58eb56822d7e85423098eb3e6dd65"; // From configuration-nix/flake.lock
-            let rust_overlay_url = format!("github:meta-introspector/rust-overlay?rev={}", rust_overlay_rev);
-            self.rust_overlay_path = Some(get_flake_path(&rust_overlay_url)?);
-        }
-
-        // Resolve rust_src_flake_path
-        if self.rust_src_flake_path.is_none() {
-            let rust_src_flake_rev = "3487cd3843083db70ee30023f19344568ade9c9f"; // From configuration-nix/flake.lock
-            let rust_src_flake_url = format!("github:meta-introspector/rust?rev={}", rust_src_flake_rev);
-            self.rust_src_flake_path = Some(get_flake_path(&rust_src_flake_url)?);
-        }
-
-        // For local paths, assume current directory or relative path
-        if self.rust_bootstrap_nix_path.is_none() {
-            self.rust_bootstrap_nix_path = Some(env::current_dir()?);
-        }
-        if self.configuration_nix_path.is_none() {
-            self.configuration_nix_path = Some(env::current_dir()?.join("configuration-nix"));
-        }
-
-        Ok(())
-    }
-
 }
