@@ -62,6 +62,7 @@ impl Config {
         let toml_path = flags
             .config
             .clone()
+            .or_else(|| env::var_os("RUST_BOOTSTRAP_GENERATED_CONFIG").map(PathBuf::from))
             .or_else(|| env::var_os("RUST_BOOTSTRAP_CONFIG").map(PathBuf::from));
         let using_default_path = toml_path.is_none();
         let mut toml_path = toml_path.unwrap_or_else(|| PathBuf::from("config.toml"));
@@ -172,6 +173,17 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         set(&mut config.ci.gcc_dir, gcc_dir.map(PathBuf::from));
 
         config.change_id = toml.change_id.inner;
+
+        if let Some(nix) = toml.nix {
+            config.nixpkgs_path = nix.nixpkgs_path;
+            config.rust_overlay_path = nix.rust_overlay_path;
+            config.rust_bootstrap_nix_path = nix.rust_bootstrap_nix_path;
+            config.configuration_nix_path = nix.configuration_nix_path;
+            config.rust_src_flake_path = nix.rust_src_flake_path;
+        }
+
+        // Resolve Nix paths dynamically if not already set
+        config.resolve_nix_paths().expect("Failed to resolve Nix paths");
 
         let Build {
             build,

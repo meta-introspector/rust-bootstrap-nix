@@ -4,6 +4,14 @@ use crate::prelude::*;
 /// This structure uses `Decodable` to automatically decode a TOML configuration
 /// file into this format, and then this is traversed and written into the above
 /// `Config` structure.
+pub(crate) struct Nix {
+    nixpkgs_path: Option<PathBuf>,
+    rust_overlay_path: Option<PathBuf>,
+    rust_bootstrap_nix_path: Option<PathBuf>,
+    configuration_nix_path: Option<PathBuf>,
+    rust_src_flake_path: Option<PathBuf>,
+}
+
 #[derive(Deserialize, Default)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub(crate) struct TomlConfig {
@@ -16,6 +24,7 @@ pub(crate) struct TomlConfig {
     target: Option<HashMap<String, TomlTarget>>,
     dist: Option<Dist>,
     ci: Option<Ci>,
+    nix: Option<Nix>,
     profile: Option<String>,
     stage0_path: Option<PathBuf>,
 }
