@@ -12,6 +12,16 @@ serde = { version = "1.0.198", features = ["derive"] }
 log = "0.4.21"
 env_logger = "0.11.3"
 
+[dev-dependencies]
+tempfile = "3.10.1"
+
+[lib]
+path = "src/lib.rs"
+
 [[bin]]
 name = "nix-dir"
 path = "src/bin/nix-dir.rs"
+
+[[bin]]
+name = "bootstrap-config-generator"
+path = "src/lib.rs"

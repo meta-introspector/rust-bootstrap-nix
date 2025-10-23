@@ -6,7 +6,8 @@ use toml;
 use crate::config::AppConfig;
 
 pub mod utils; // Declare the utils module as public
-mod preconditions; // Declare the preconditions module
+pub mod preconditions; // Declare the preconditions module
+
 pub mod args; // Declare the args module
 pub mod config; // Declare the config module
 
@@ -74,6 +75,26 @@ fn main() -> Result<()> {
         app_config.target.as_deref().unwrap_or_default(),
         app_config.rust_bootstrap_nix_flake_ref.as_deref().unwrap_or_default(),
         app_config.rust_src_flake_ref.as_deref().unwrap_or_default(),
+        app_config.rustc_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.cargo_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.rust_channel.as_deref().unwrap_or("stable"),
+        app_config.rust_download_rustc.unwrap_or(false),
+        app_config.rust_parallel_compiler.unwrap_or(false),
+        app_config.rust_llvm_tools.unwrap_or(false),
+        app_config.rust_debuginfo_level.unwrap_or(0),
+        app_config.patch_binaries_for_nix.unwrap_or(false),
+        app_config.vendor.unwrap_or(false),
+        app_config.build_dir.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.build_jobs.unwrap_or(0),
+        app_config.home_dir.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.cargo_home_dir.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.install_prefix.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.install_sysconfdir.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.dist_sign_folder.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.dist_upload_addr.as_deref().unwrap_or_default(),
+        app_config.llvm_download_ci_llvm.unwrap_or(false),
+        app_config.llvm_ninja.unwrap_or(false),
+        app_config.change_id.as_deref().unwrap_or_default(),
     );
     debug!("Generated config content:\n{}", config_content);
 

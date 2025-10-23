@@ -1950,54 +1950,7 @@ to download LLVM rather than building it.
         self.config.ninja_in_file
     }
 
-    pub fn colored_stdout<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stdout, self.config.stdout_is_tty, f)
-    }
 
-    pub fn colored_stderr<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stderr, self.config.stderr_is_tty, f)
-    }
-
-    fn colored_stream_inner<R, F, C>(&self, constructor: C, is_tty: bool, f: F) -> R
-    where
-        C: Fn(ColorChoice) -> StandardStream,
-        F: FnOnce(&mut dyn WriteColor) -> R,
-    {
-        let choice = match self.config.color {
-            flags::Color::Always => ColorChoice::Always,
-            flags::Color::Never => ColorChoice::Never,
-            flags::Color::Auto if !is_tty => ColorChoice::Never,
-            flags::Color::Auto => ColorChoice::Auto,
-        };
-        let mut stream = constructor(choice);
-        let result = f(&mut stream);
-        stream.reset().unwrap();
-        result
-    }
-    pub fn colored_stdout<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stdout, self.config.stdout_is_tty, f)
-    }
-
-    pub fn colored_stderr<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stderr, self.config.stderr_is_tty, f)
-    }
-
-    fn colored_stream_inner<R, F, C>(&self, constructor: C, is_tty: bool, f: F) -> R
-    where
-        C: Fn(ColorChoice) -> StandardStream,
-        F: FnOnce(&mut dyn WriteColor) -> R,
-    {
-        let choice = match self.config.color {
-            flags::Color::Always => ColorChoice::Always,
-            flags::Color::Never => ColorChoice::Never,
-            flags::Color::Auto if !is_tty => ColorChoice::Never,
-            flags::Color::Auto => ColorChoice::Auto,
-        };
-        let mut stream = constructor(choice);
-        let result = f(&mut stream);
-        stream.reset().unwrap();
-        result
-    }
 }
 
 #[cfg(unix)]
