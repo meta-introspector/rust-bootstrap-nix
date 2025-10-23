@@ -24,7 +24,15 @@ The Rust bootstrap process has been modified to read this `generated_config.toml
 To use this new system, you can either:
 
 1.  **Generate `generated_config.toml` manually:** Run the `bootstrap-config-builder` with the desired `--rustc-path`, `--cargo-path`, and `--rust-src-flake-path` arguments.
-2.  **Let the bootstrap process handle it:** If `generated_config.toml` is not present, the bootstrap process will automatically resolve the Nix paths for you.
+    *   **Using Makefile target:** You can use the `generate-seed-config` Makefile target to generate the `generated_config.toml` in the `bootstrap-config-builder/` directory.
+        ```bash
+        make generate-seed-config
+        ```
+2.  **Generate the flake directory:** Use the `generate-flake-dir` Makefile target to create the `target/generated-flake` directory containing the dynamically generated `flake.nix` and `config.toml`.
+    ```bash
+    make generate-flake-dir
+    ```
+3.  **Let the bootstrap process handle it:** If `generated_config.toml` is not present, the bootstrap process will automatically resolve the Nix paths for you.
 
 For more detailed information, please refer to the `docs/Nix_Integration.md` file.
 

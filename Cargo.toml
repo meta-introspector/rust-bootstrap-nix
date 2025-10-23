@@ -5,5 +5,5 @@ members = [
     "standalonex/src/stage0_parser_crate",
     "configuration-nix",
     "bootstrap-config-builder",
-    "standalonex/src/bootstrap/src/core/config_crates/config_tests",
+    "standalonex/src/bootstrap/src/core/config_crates/config_tests", "flake-template-generator",
 ]

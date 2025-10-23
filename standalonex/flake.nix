@@ -5,16 +5,17 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=3487cd3843083db70ee30023f19344568ade9c9f";
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    configTomlPath.url = "path:./generated_config.toml";
   };
 
-  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, configTomlPath }:
+  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, ... } @ args:
     let
+      configTomlPath = args.configTomlPath;
       pkgs = import nixpkgs {
         system = "aarch64-linux";
         overlays = [ rustOverlay.overlays.default ];
       };
-      buildHelperSrc = pkgs.lib.cleanSource ./src/build_helper;
+      rustPlatform = pkgs.rustPlatform;
+
     in
     {
       devShells.aarch64-linux.default = pkgs.mkShell {
@@ -49,48 +50,46 @@
       };
 
       packages.aarch64-linux = {
-        default = pkgs.rustPlatform.buildRustPackage {
+        default = rustPlatform.buildRustPackage {
+          pname = "rust-bootstrap-default";
+          version = "0.1.0";
           src = pkgs.lib.cleanSource ./src;
           cargoLock.lockFile = ./src/Cargo.lock;
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
           postPatch = ''
-            mkdir -p .cargo
-            cp -r ${buildHelperSrc} build_helper
             cp ${configTomlPath} config.toml
           '';
-        };
 
-        bootstrap-main = pkgs.rustPlatform.buildRustPackage {
-          pname = "bootstrap-main";
-          version = "0.1.0";
+          bootstrap-main = rustPlatform.buildRustPackage {
+            pname = "bootstrap-main";
+            version = "0.1.0";
 
-          cargoLock.lockFile = ./src/Cargo.lock;
-          rustc = pkgs.rust-bin.stable."1.84.1".default;
-          doCheck = false;
-          cargoBuildFlags = [ "--bin" "bootstrap" ];
-          postPatch = ''
-            mkdir -p .cargo
-            cp -r ${buildHelperSrc} build_helper
-            cp ${configTomlPath} config.toml
-          '';
-        };
+            src = pkgs.lib.cleanSource ./src;
+            cargoLock.lockFile = ./src/Cargo.lock;
+            rustc = pkgs.rust-bin.stable."1.84.1".default;
+            doCheck = false;
+            cargoBuildFlags = [ "--bin" "bootstrap" ];
+            postPatch = ''
+              cp ${configTomlPath} config.toml
+            '';
+          };
 
-        nix-bootstrap = pkgs.rustPlatform.buildRustPackage {
-          pname = "nix-bootstrap";
-          version = "0.1.0";
+          nix-bootstrap = rustPlatform.buildRustPackage {
+            pname = "nix-bootstrap";
+            version = "0.1.0";
 
-          src = pkgs.lib.cleanSource ./src;
-          cargoLock.lockFile = ./src/Cargo.lock;
-          rustc = pkgs.rust-bin.stable."1.84.1".default;
-          doCheck = false;
-          cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
-          postPatch = ''
-            mkdir -p .cargo
-            cp -r ${buildHelperSrc} build_helper
-            cp ${configTomlPath} config.toml
-          '';
+            src = pkgs.lib.cleanSource ./src;
+            cargoLock.lockFile = ./src/Cargo.lock;
+            rustc = pkgs.rust-bin.stable."1.84.1".default;
+            doCheck = false;
+            cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
+            postPatch = ''
+              cp ${configTomlPath} config.toml
+            '';
+          };
         };
       };
     };
 }
+

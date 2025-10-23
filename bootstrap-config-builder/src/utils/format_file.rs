@@ -59,7 +59,7 @@ llvm-tools = {rust_llvm_tools}
 debuginfo-level = {rust_debuginfo_level}
 
 [build]
-stage = {stage}
+stage = "{stage}"
 target = "{target}"
 patch-binaries-for-nix = {patch_binaries_for_nix}
 vendor = {vendor}

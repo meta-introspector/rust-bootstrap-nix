@@ -8,9 +8,11 @@
     configuration-nix.url = "./configuration-nix";
     configuration-nix.inputs.nixpkgs.follows = "nixpkgs";
     standalonex.url = "./standalonex";
+
+
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex }:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex, configGenerator }:
     let
       lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };

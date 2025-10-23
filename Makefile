@@ -1,4 +1,4 @@
-.PHONY: all build fast-build run-config-builder-dry-run build-config-builder
+.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir
 
 all: build build-config-builder
 
@@ -30,6 +30,23 @@ generate-config: build-config-builder
 		--rust-bootstrap-nix-path $(RUST_BOOTSTRAP_NIX_PATH) \
 		--configuration-nix-path $(CONFIGURATION_NIX_PATH) \
 		--rust-src-flake-path $(RUST_SRC_FLAKE_PATH)
+
+generate-seed-config: build-config-builder
+	@echo "Generating seed config.toml using bootstrap-config-generator..."
+	cargo run --bin bootstrap-config-generator -- \
+		--output bootstrap-config-builder/generated_config.toml \
+		--project-root $(CURDIR) \
+		--rust-src-flake-path /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
+
+generate-flake-dir:
+	$(MAKE) -C flake-template-generator generate-flake
+
+generate-seed-config: build-config-builder
+	@echo "Generating seed config.toml using bootstrap-config-generator..."
+	cargo run --bin bootstrap-config-generator -- \
+		--output bootstrap-config-builder/generated_config.toml \
+		--project-root $(CURDIR) \
+		--rust-src-flake-path /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
 
 run-config-builder-dry-run:
 	@echo "Running bootstrap-config-builder in dry-run mode..."

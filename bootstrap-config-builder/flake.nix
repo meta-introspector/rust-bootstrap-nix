@@ -35,7 +35,7 @@
           --output $out/config.toml
       '';
     };
-  }
+}
 
 
 
