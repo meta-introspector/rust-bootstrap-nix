@@ -42,7 +42,7 @@ fn main() -> Result<()> {
 
     // 1. Validate the project root
     info!("Validating project root: {:?}", app_config.project_root);
-    let project_root = validate_project_root(&app_config.project_root)?;
+    let project_root = validate_project_root(app_config.project_root.as_ref().context("Project root is required")?)?;
     let flake_path_str = project_root.to_str()
         .context("Project root path contains non-UTF8 characters")?;
     info!("Project root validated: {}", flake_path_str);
@@ -63,17 +63,17 @@ fn main() -> Result<()> {
     // 3. Construct the config.toml content
     info!("Constructing config.toml content...");
     let config_content = construct_config_content(
-        &app_config.system,
+        app_config.system.as_deref().unwrap_or_default(),
         flake_path_str,
-        &app_config.nixpkgs_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
-        &app_config.rust_overlay_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
-        &app_config.rust_bootstrap_nix_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
-        &app_config.configuration_nix_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
-        &rust_src_flake_path_lossy,
-        &app_config.stage,
-        &app_config.target,
-        &app_config.rust_bootstrap_nix_flake_ref,
-        &app_config.rust_src_flake_ref,
+        app_config.nixpkgs_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.rust_overlay_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.rust_bootstrap_nix_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.configuration_nix_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.rust_src_flake_path.as_deref().map(|p| p.to_str().unwrap_or_default()).unwrap_or_default(),
+        app_config.stage.as_deref().unwrap_or_default(),
+        app_config.target.as_deref().unwrap_or_default(),
+        app_config.rust_bootstrap_nix_flake_ref.as_deref().unwrap_or_default(),
+        app_config.rust_src_flake_ref.as_deref().unwrap_or_default(),
     );
     debug!("Generated config content:\n{}", config_content);
 

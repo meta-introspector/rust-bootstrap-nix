@@ -5,9 +5,9 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
+    configuration-nix.url = "./configuration-nix";
     configuration-nix.inputs.nixpkgs.follows = "nixpkgs";
-    standalonex.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=standalonex";
+    standalonex.url = "./standalonex";
   };
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex }:

@@ -7,7 +7,7 @@
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay }:
+  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, configTomlPath }:
     let
       pkgs = import nixpkgs {
         system = "aarch64-linux";
@@ -54,15 +54,9 @@
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
           postPatch = ''
-                        mkdir -p .cargo
-                        cat > config.toml <<EOF
-            [paths]
-            tools = "${rustSrcFlake}/tools"
-
-            [build]
-            stage0_path = "${self}/src/stage0"
-            EOF
-                        cp -r ${buildHelperSrc} build_helper
+            mkdir -p .cargo
+            cp -r ${buildHelperSrc} build_helper
+            cp ${configTomlPath} config.toml
           '';
         };
 
@@ -75,15 +69,9 @@
           doCheck = false;
           cargoBuildFlags = [ "--bin" "bootstrap" ];
           postPatch = ''
-                        mkdir -p .cargo
-                        cat > config.toml <<EOF
-            [paths]
-            tools = "${rustSrcFlake}/tools"
-
-            [build]
-            stage0_path = "${self}/src/stage0"
-            EOF
-                        cp -r ${buildHelperSrc} build_helper
+            mkdir -p .cargo
+            cp -r ${buildHelperSrc} build_helper
+            cp ${configTomlPath} config.toml
           '';
         };
 
@@ -97,15 +85,9 @@
           doCheck = false;
           cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
           postPatch = ''
-                        mkdir -p .cargo
-                        cat > config.toml <<EOF
-            [paths]
-            tools = "${rustSrcFlake}/tools"
-
-            [build]
-            stage0_path = "${self}/src/stage0"
-            EOF
-                        cp -r ${buildHelperSrc} build_helper
+            mkdir -p .cargo
+            cp -r ${buildHelperSrc} build_helper
+            cp ${configTomlPath} config.toml
           '';
         };
       };

@@ -29,7 +29,7 @@
           cargoLock = {
             lockFile = ./Cargo.lock;
           };
-          buildInputs = [ rustToolchain ];
+          buildInputs = [ rustToolchain pkgs.clap ];
         };
 
         apps.default = flake-utils.lib.mkApp {

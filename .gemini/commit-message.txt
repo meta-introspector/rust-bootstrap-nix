@@ -1,7 +1,8 @@
-feat(config): Refactor bootstrap config generation
+docs: Split README.md into multiple smaller files
 
-This commit refactors the bootstrap configuration generation logic.
+This commit splits the large `README.md` file into multiple smaller, more
+manageable files in the `docs/` directory. This improves readability and
+navigation of the documentation.
 
-- The logic from `configuration-nix/src/main.rs` has been moved to a new, dedicated file `configuration-nix/src/config_generator.rs`.
-- The generation strategy is changed from reading environment variables to actively querying Nix for flake input paths using `nix eval`.
-- The `configuration-nix` flake is updated to support this new approach.
+The original `README.md` has been removed and its content distributed
+across the new `README_*.md` files.

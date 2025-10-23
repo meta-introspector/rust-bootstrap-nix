@@ -59,9 +59,18 @@ pub use core::config::Config;
 pub use core::config::flags::Flags;
 pub use crate::Subcommand;
 
-pub use utils::change_tracker::{
-    CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,
-};
+pub use utils::change_tracker::{CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,};
+
+macro_rules! forward! {
+    ( $( $fn:ident( $($param:ident: $ty:ty),* ) $( -> $ret:ty)? ),+ $(,)? ) => {
+        impl Build {
+            $( fn $fn(&self, $($param: $ty),* ) $( -> $ret)? {
+                self.config.$fn( $($param),* )
+            } )+
+        }
+    }
+}
+pub(crate) use forward;
 
 const LLVM_TOOLS: &[&str] = &[
     "llvm-cov",      // used to generate coverage report
@@ -1941,6 +1950,30 @@ to download LLVM rather than building it.
         self.config.ninja_in_file
     }
 
+    pub fn colored_stdout<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
+        self.colored_stream_inner(StandardStream::stdout, self.config.stdout_is_tty, f)
+    }
+
+    pub fn colored_stderr<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
+        self.colored_stream_inner(StandardStream::stderr, self.config.stderr_is_tty, f)
+    }
+
+    fn colored_stream_inner<R, F, C>(&self, constructor: C, is_tty: bool, f: F) -> R
+    where
+        C: Fn(ColorChoice) -> StandardStream,
+        F: FnOnce(&mut dyn WriteColor) -> R,
+    {
+        let choice = match self.config.color {
+            flags::Color::Always => ColorChoice::Always,
+            flags::Color::Never => ColorChoice::Never,
+            flags::Color::Auto if !is_tty => ColorChoice::Never,
+            flags::Color::Auto => ColorChoice::Auto,
+        };
+        let mut stream = constructor(choice);
+        let result = f(&mut stream);
+        stream.reset().unwrap();
+        result
+    }
     pub fn colored_stdout<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
         self.colored_stream_inner(StandardStream::stdout, self.config.stdout_is_tty, f)
     }
