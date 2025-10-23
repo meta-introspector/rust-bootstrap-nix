@@ -10,4 +10,5 @@ generate-flake:
 		--component solana-rust-1.83 \
 		--arch aarch64 \
 		--phase phase0 \
-		--step step1
+		--step step1 \
+		$(ARGS)
