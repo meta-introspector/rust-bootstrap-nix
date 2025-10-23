@@ -34,6 +34,10 @@ struct Args {
     /// Perform a dry run without executing Git commands
     #[arg(long, default_value_t = false)]
     dry_run: bool,
+
+    /// Show verbose output for Git operations
+    #[arg(long, default_value_t = false)]
+    verbose: bool,
 }
 
 #[derive(Debug, Deserialize, Default)]
