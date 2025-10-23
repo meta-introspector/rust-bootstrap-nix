@@ -13,7 +13,7 @@
         system = "aarch64-linux";
         overlays = [ rustOverlay.overlays.default ];
       };
-      rustcPath = "${pkgs.rust-bin.stable.\"1.89.0\".default}/bin/rustc"; # Using a specific rustc version
+      rustcPath = "${pkgs.rust-bin.stable."1.89.0".default}/bin/rustc"; # Using a specific rustc version
       cargoPath = "${pkgs.cargo}/bin/cargo"; # Using cargo from nixpkgs
       projectRoot = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix"; # Absolute path to the main project root
       rustSrcFlakePath = "/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"; # Absolute path to rust-src
@@ -36,6 +36,7 @@
       '';
     };
   }
+
 
 
 
