@@ -2,10 +2,13 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs;
 use log::{info, debug}; // Import log macros
+use toml;
+use crate::config::AppConfig;
 
 pub mod utils; // Declare the utils module as public
 mod preconditions; // Declare the preconditions module
 pub mod args; // Declare the args module
+pub mod config; // Declare the config module
 
 use crate::utils::validate_project_root::validate_project_root;
 use crate::utils::construct_config_content::construct_config_content;
@@ -15,9 +18,22 @@ fn main() -> Result<()> {
     env_logger::init(); // Initialize the logger
 
     let args = Args::parse();
+    debug!("Raw CLI Arguments: {:?}", args);
 
-    info!("Starting config generation for stage {} and target {}", args.stage, args.target);
-    debug!("Arguments: {:?}", args);
+    let mut app_config = if let Some(config_file_path) = &args.config_file {
+        info!("Loading configuration from file: {:?}", config_file_path);
+        let config_content = fs::read_to_string(config_file_path)
+            .context(format!("Failed to read config file: {:?}", config_file_path))?;
+        toml::from_str(&config_content)
+            .context(format!("Failed to parse config file: {:?}", config_file_path))?
+    } else {
+        config::AppConfig::default()
+    };
+
+    app_config.merge_with_args(&args);
+    info!("Final merged configuration: {:?}", app_config);
+
+    info!("Starting config generation for stage {:?} and target {:?}", app_config.stage, app_config.target);
 
     // Run precondition checks
     info!("Running precondition checks...");
@@ -25,49 +41,52 @@ fn main() -> Result<()> {
     info!("Nix command available.");
 
     // 1. Validate the project root
-    info!("Validating project root: {:?}", args.project_root);
-    let project_root = validate_project_root(&args.project_root)?;
+    info!("Validating project root: {:?}", app_config.project_root);
+    let project_root = validate_project_root(&app_config.project_root)?;
     let flake_path_str = project_root.to_str()
         .context("Project root path contains non-UTF8 characters")?;
     info!("Project root validated: {}", flake_path_str);
 
     // 2. Use provided flake input paths
+    let rust_src_flake_path_lossy = app_config.rust_src_flake_path
+        .as_ref()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_default();
 
-    debug!("rust_src_flake_path: {:?}", args.rust_src_flake_path);
+    debug!("rust_src_flake_path: {:?}", rust_src_flake_path_lossy);
 
     preconditions::check_rust_toolchain_sysroot(
-        &args.rust_src_flake_path.to_string_lossy(),
+        &rust_src_flake_path_lossy,
     )?;
     info!("Rust toolchain sysroot check passed.");
-
-
 
     // 3. Construct the config.toml content
     info!("Constructing config.toml content...");
     let config_content = construct_config_content(
-        &args.system,
+        &app_config.system,
         flake_path_str,
-        &args.nixpkgs_path.to_string_lossy(),
-        &args.rust_overlay_path.to_string_lossy(),
-        &args.rust_bootstrap_nix_path.to_string_lossy(),
-        &args.configuration_nix_path.to_string_lossy(),
-        &args.rust_src_flake_path.to_string_lossy(),
-        &args.stage,
-        &args.target,
-        &args.rust_bootstrap_nix_flake_ref,
-        &args.rust_src_flake_ref,
+        &app_config.nixpkgs_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+        &app_config.rust_overlay_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+        &app_config.rust_bootstrap_nix_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+        &app_config.configuration_nix_path.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+        &rust_src_flake_path_lossy,
+        &app_config.stage,
+        &app_config.target,
+        &app_config.rust_bootstrap_nix_flake_ref,
+        &app_config.rust_src_flake_ref,
     );
     debug!("Generated config content:\n{}", config_content);
 
     // 4. Handle output based on dry_run flag
-    if args.dry_run {
+    if app_config.dry_run.unwrap_or(false) {
         info!("Dry run enabled. Generated config will be printed to stdout.");
         println!("{}", config_content);
     } else {
-        info!("Writing generated config to file: {:?}", args.output);
-        fs::write(&args.output, config_content)
-            .context(format!("Failed to write config to file: {:?}", args.output))?;
-        info!("Config successfully written to {:?}", args.output);
+        let output_path = app_config.output.unwrap_or_else(|| "config.toml".into());
+        info!("Writing generated config to file: {:?}", output_path);
+        fs::write(&output_path, config_content)
+            .context(format!("Failed to write config to file: {:?}", output_path))?;
+        info!("Config successfully written to {:?}", output_path);
     }
 
     Ok(())
