@@ -14,6 +14,22 @@ struct Args {
     /// Output directory for the new flake
     #[arg(long)]
     output_dir: PathBuf,
+
+    /// Component for the branch name: e.g., solana-rust-1.83
+    #[arg(long)]
+    component: String,
+
+    /// Architecture for the branch name: e.g., aarch64
+    #[arg(long)]
+    arch: String,
+
+    /// Phase for the branch name: e.g., phase0
+    #[arg(long)]
+    phase: String,
+
+    /// Step for the branch name: e.g., step1
+    #[arg(long)]
+    step: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -28,6 +44,25 @@ struct Config {
     #[serde(default)]
     nix: NixConfig,
     // Add other top-level sections as needed
+}
+
+fn run_git_command(
+    current_dir: &Path,
+    args: &[&str],
+    error_message: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let output = Command::new("git")
+        .current_dir(current_dir)
+        .args(args)
+        .output()?;
+
+    if !output.status.success() {
+        eprintln!("Git command failed: {}", error_message);
+        eprintln!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+        return Err(error_message.into());
+    }
+    Ok(())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -119,6 +154,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("Nix build passed. Output in result link.");
     // --- End Nix Build ---
+
+    // --- Git Operations ---
+    println!("Performing Git operations...");
+    let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf();
+    let branch_name = format!("feature/{}/{}/{}/{}", args.component, args.arch, args.phase, args.step);
+
+    // Create and checkout new branch
+    run_git_command(&repo_root, &["checkout", "-b", &branch_name, "HEAD"], "Failed to create and checkout new branch")?;
+
+    // Add generated files
+    run_git_command(&repo_root, &["add", &args.output_dir.to_string_lossy()], "Failed to add generated files")?;
+
+    // Commit changes
+    let commit_message = format!("feat: Generated seed flake {}", branch_name);
+    run_git_command(&repo_root, &["commit", "-m", &commit_message], "Failed to commit changes")?;
+
+    // Push branch
+    run_git_command(&repo_root, &["push", "origin", &branch_name], "Failed to push branch")?;
+
+    println!("Successfully pushed branch: {}", branch_name);
+    // --- End Git Operations ---
 
     Ok(())
 }
