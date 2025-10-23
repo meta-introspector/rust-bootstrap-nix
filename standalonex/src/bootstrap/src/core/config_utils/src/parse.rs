@@ -11,6 +11,7 @@ use crate::build_config;
 use crate::install_config;
 use crate::llvm_assertions_config;
 use crate::rust_channel_git_hash_config;
+use crate::nix_config;
 
 use crate::local_flags::LocalFlags;
 use crate::local_toml_config::LocalTomlConfig;
@@ -37,6 +38,7 @@ pub fn parse(mut flags: LocalFlags) -> ParsedConfig {
     applicators.push(Box::new(install_config::InstallConfigApplicator));
     applicators.push(Box::new(llvm_assertions_config::LlvmAssertionsConfigApplicator));
     applicators.push(Box::new(rust_channel_git_hash_config::RustChannelGitHashConfigApplicator));
+    applicators.push(Box::new(nix_config::NixConfigApplicator));
 
     for applicator in applicators.iter() {
         applicator.apply_to_config(&mut config, &toml);

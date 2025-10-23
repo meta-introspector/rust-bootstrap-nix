@@ -17,6 +17,7 @@ pub mod install_config;
 pub mod config_applicator;
 pub mod llvm_assertions_config;
 pub mod rust_channel_git_hash_config;
+pub mod nix_config;
 pub mod local_build;
 pub mod local_ci_config;
 pub mod local_dist;
@@ -25,6 +26,7 @@ pub mod local_llvm;
 pub mod local_rust;
 pub mod local_target_config;
 pub mod local_toml_config;
+pub mod local_nix_config;
 pub mod parsed_config;
 pub mod target_selection;
 

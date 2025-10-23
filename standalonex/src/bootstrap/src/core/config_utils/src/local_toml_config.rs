@@ -6,6 +6,7 @@ use crate::local_rust::LocalRust;
 use crate::local_target_config::LocalTargetConfig;
 use crate::local_dist::LocalDist;
 use crate::install_config;
+use crate::local_nix_config::LocalNixConfig;
 
 #[derive(Debug, Default, Deserialize)]
 #[derive(Clone)]
@@ -17,5 +18,6 @@ pub struct LocalTomlConfig {
     pub target: Option<std::collections::HashMap<String, LocalTargetConfig>>,
     pub install: Option<install_config::Install>,
     pub dist: Option<LocalDist>,
+    pub nix: Option<LocalNixConfig>,
     // ... other fields will go here
 }

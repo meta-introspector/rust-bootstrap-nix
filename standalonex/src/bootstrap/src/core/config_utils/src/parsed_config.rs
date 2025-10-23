@@ -161,4 +161,13 @@ pub struct ParsedConfig {
     pub compiletest_diff_tool: Option<String>,
     pub stage: usize,
     pub cmd: Option<String>, // Will be converted to Subcommand enum later
+
+    // Nix-related fields
+    pub nixpkgs_path: Option<String>,
+    pub rust_overlay_path: Option<String>,
+    pub rust_bootstrap_nix_path: Option<String>,
+    pub configuration_nix_path: Option<String>,
+    pub rust_src_flake_path: Option<String>,
+    pub rust_bootstrap_nix_flake_ref: Option<String>,
+    pub rust_src_flake_ref: Option<String>,
 }
