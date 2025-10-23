@@ -8,36 +8,48 @@ This document outlines the immediate next steps and ongoing tasks for the `rust-
 *   **`bootstrap-config-builder` Refactoring:** The `bootstrap-config-builder/src/utils.rs` module has been refactored into a more organized structure with sub-modules.
 *   **Logging & Dry-Run:** Added comprehensive logging and a `--dry-run` option to the `bootstrap-config-builder` for better visibility and testing.
 *   **`nix-dir` Tool:** Created a new binary tool (`nix-dir`) to inspect Nix flakes and their attributes.
-*   **Error Resolution:** Successfully resolved several compilation and Nix evaluation errors encountered during development.
-*   **Configuration System Refactoring**: Started refactoring `bootstrap-config-builder` to support loading configuration from `config.toml` with command-line overrides.
-    *   Created `bootstrap-config-builder/src/config.rs` for `AppConfig` struct.
-    *   Modified `bootstrap-config-builder/src/args.rs` to make arguments optional and add `config_file` option.
-*   **Rust Workspace for `standalonex`**: Created `standalonex/src/Cargo.toml` to define a workspace and updated `standalonex/flake.nix` to correctly reference the workspace `Cargo.lock`.
+*   **Configuration System Refactoring (`bootstrap-config-builder`):**
+    *   Implemented `config.toml` loading and merging with command-line overrides.
+    *   Resolved build errors related to `toml`, `serde` dependencies, and argument parsing.
+*   **Rust Bootstrap Configuration Consumption (`standalonex/src/bootstrap`):**
+    *   Created `local_nix_config.rs` for `LocalNixConfig`.
+    *   Declared `local_nix_config` and `nix_config` modules.
+    *   Added `nix: Option<LocalNixConfig>` field to `LocalTomlConfig`.
+    *   Created `nix_config.rs` with `NixConfigApplicator`.
+    *   Integrated `NixConfigApplicator` into `parse.rs`.
+    *   Added Nix-related fields to `ParsedConfig`.
+*   **Documentation:**
+    *   Documented the Nix-Rust integration process in `docs/Nix_Rust_Integration_Process.md`.
+*   **`lib.rs` Refactoring (`standalonex/src/bootstrap/src/lib.rs`):**
+    *   Started refactoring `lib.rs` into smaller, more manageable files.
+    *   Created `compiler.rs`, `enums.rs`, `constants.rs`, `crate_struct.rs`, `dependency_type.rs`, `helpers.rs`, `build_struct.rs`, `build_impl_new.rs`, `build_impl_main.rs`, `build_impl_paths.rs`, `build_impl_tools.rs`, `build_impl_utils.rs`, `build_impl_submodules.rs`, `build_impl_config.rs`.
 
 ## Next Steps:
 
-### 1. Refine `nix-dir` Tool
+### 1. Complete `lib.rs` Refactoring
+
+*   Finish moving all content from `standalonex/src/bootstrap/src/lib.rs` to the newly created files.
+*   Update `standalonex/src/bootstrap/src/lib.rs` to correctly declare and re-export all modules.
+*   Ensure the project compiles successfully after refactoring.
+
+### 2. Integrate Nix Interaction into Rust Bootstrap
+
+*   **Read Nix Configuration:** Utilize the Nix-related paths and flake references from `ParsedConfig` within the Rust bootstrap logic.
+*   **Interact with Nix:** Implement logic to execute Nix commands (e.g., `nix eval`, `nix build`) from within Rust to resolve actual Nix store paths for `rustSrcFlake` and other inputs.
+*   **Integrate Resolved Paths:** Incorporate these resolved Nix store paths into the Rust build process to build the specified version of Rust through the 8-level bootstrap.
+
+### 3. Refine `nix-dir` Tool
 
 *   **Detailed Output:** Enhance the `nix-dir` tool to provide more detailed output for flake attributes, including types and descriptions.
 *   **Filtering & Searching:** Implement capabilities for filtering and searching flake attributes.
 *   **JSON Output:** Add a `--json` output option for programmatic use and easier integration with other tools.
 
-### 2. Improve `bootstrap-config-builder`
-
-*   **Implement `config.toml` loading and merging**: This will be the primary focus.
-    *   Modify `bootstrap-config-builder/src/main.rs` to parse arguments, load `config.toml`, merge configurations, and pass the final config.
-    *   Implement `read_config_file` helper function.
-*   **Dynamic Flake Resolution:** This will be handled by the new configuration system.
-*   **Handle Missing Inputs:** This will be handled by the new configuration system.
-*   **Remove `--impure` Flag:** This will be addressed as part of the overall Nix integration.
-*   **Clean Up Unused Imports:** This is an ongoing task.
-
-### 3. Integrate `bootstrap-config-builder` into the Build Process
+### 4. Integrate `bootstrap-config-builder` into the Build Process
 
 *   **Makefile Integration:** Create a robust Makefile target to run `bootstrap-config-builder` to generate `config.toml` as a prerequisite for the main build process.
 *   **`config.toml` Consumption:** Ensure the generated `config.toml` is correctly consumed and utilized by the Rust bootstrap process.
 
-### 4. Continue with Overall Project Goals
+### 5. Continue with Overall Project Goals
 
 *   **Define Packages/Applications:** Further define and refine packages and applications within the Nix flake.
 *   **Build & Test Commands:** Set up comprehensive build and test commands for the entire project.
