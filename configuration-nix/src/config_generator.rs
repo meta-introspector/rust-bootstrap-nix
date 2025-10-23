@@ -1,48 +1,8 @@
 // configuration-nix/src/config_generator.rs
 
-use std::{env, fs, path::PathBuf, process::Command};
+use crate::config_params::ConfigParams;
 
-pub fn generate_config_toml(stage_num: &str, target_triple: &str) {
-    // Discover own flake path
-    let current_exe = env::current_exe().expect("Failed to get current executable path");
-    let mut flake_path = current_exe.clone();
-    // Traverse up until flake.nix is found
-    loop {
-        if flake_path.join("flake.nix").exists() {
-            break;
-        }
-        if !flake_path.pop() {
-            panic!("flake.nix not found in any parent directory");
-        }
-    }
-    let flake_path_str = flake_path.to_str().expect("Invalid flake path");
-
-    // Query Nix for system
-    let system_output = Command::new("nix")
-        .args(&["eval", "--raw", "--extra-experimental-features", "nix-command flakes", "--expr", "builtins.currentSystem"])
-        .output()
-        .expect("Failed to execute nix eval for system");
-    let system = String::from_utf8(system_output.stdout).expect("Invalid UTF-8 from nix eval").trim().to_string();
-
-    // Query Nix for inputs (nixpkgs, rust-overlay, rustBootstrapNix, configurationNix, rustSrcFlake)
-    let get_flake_input = |input_name: &str| {
-        let expr = format!(
-            "(builtins.getFlake \"path:{}\").inputs.{}.outPath",
-            flake_path_str,
-            input_name
-        );
-        let output = Command::new("nix")
-            .args(&["eval", "--raw", "--extra-experimental-features", "nix-command flakes", "--expr", &expr])
-            .output()
-            .expect(&format!("Failed to execute nix eval for {}", input_name));
-        String::from_utf8(output.stdout).expect("Invalid UTF-8 from nix eval").trim().to_string()
-    };
-
-    let nixpkgs_path = get_flake_input("nixpkgs");
-    let rust_overlay_path = get_flake_input("rust-overlay");
-    let rust_bootstrap_nix_path = get_flake_input("rustBootstrapNix");
-    let configuration_nix_path = get_flake_input("configurationNix");
-    let rust_src_flake_path = get_flake_input("rustSrcFlake");
+pub fn generate_config_toml(params: &ConfigParams) {
 
     // Construct config.toml content
     let config_content = format!(
@@ -51,7 +11,6 @@ pub fn generate_config_toml(stage_num: &str, target_triple: &str) {
 [nix]
 nixpkgs_path = "{}"
 rust_overlay_path = "{}"
-rust_bootstrap_nix_path = "{}"
 configuration_nix_path = "{}"
 rust_src_flake_path = "{}"
 
@@ -59,13 +18,12 @@ rust_src_flake_path = "{}"
 stage = {}
 target = "{}"
 "###,
-        nixpkgs_path,
-        rust_overlay_path,
-        rust_bootstrap_nix_path,
-        configuration_nix_path,
-        rust_src_flake_path,
-        stage_num,
-        target_triple
+        params.nixpkgs_path.to_string_lossy(),
+        params.rust_overlay_path.to_string_lossy(),
+        params.configuration_nix_path.to_string_lossy(),
+        params.rust_src_flake_path.to_string_lossy(),
+        params.stage,
+        params.target
     );
 
     let config_file_path = "config.toml".to_string();

@@ -6,6 +6,7 @@
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
     configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
+    configuration-nix.inputs.nixpkgs.follows = "nixpkgs";
     standalonex.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=standalonex";
   };
 
@@ -255,5 +256,13 @@
       apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
 
       apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
+
+      nixpkgsOutPath = nixpkgs.outPath;
+      rustOverlayOutPath = rust-overlay.outPath;
+      rustBootstrapNixOutPath = self.outPath;
+      configurationNixOutPath = pkgs_aarch64.runCommand "configuration-nix-outpath" { } ''
+        echo ${configuration-nix.packages.${pkgs_aarch64.system}.default} > $out
+      '';
+      rustSrcFlakeOutPath = rustSrcFlake.outPath;
     };
 }

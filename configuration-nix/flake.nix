@@ -34,7 +34,15 @@
 
         apps.default = flake-utils.lib.mkApp {
           drv = pkgs.writeShellScriptBin "generate-config" ''
-            ${self.packages.${system}.default}/bin/configuration-nix
+            ${self.packages.${system}.default}/bin/configuration-nix \
+              --stage "$1" \
+              --target "$2" \
+              --nixpkgs-path "${nixpkgs.outPath}" \
+              --rust-overlay-path "${rust-overlay.outPath}" \
+              --configuration-nix-path "${self.outPath}" \
+              --rust-src-flake-path "${rustSrcFlake.outPath}" \
+              --rust-bootstrap-nix-flake-ref "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify" \
+              --rust-src-flake-ref "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
           '';
         };
 

@@ -3,17 +3,19 @@
     "configuration-nix": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "rust-overlay": "rust-overlay",
         "rustSrcFlake": "rustSrcFlake"
       },
       "locked": {
         "dir": "configuration-nix",
-        "lastModified": 1761175769,
-        "narHash": "sha256-6Wv49rzd36wyHWDb5vwWBj/VilhoAuWtFmchcG1A6VE=",
+        "lastModified": 1761176096,
+        "narHash": "sha256-UQR5zIMyTLEqO5t71INX6entIbx+NIeaJtiGL7Ytsms=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "e3da9ef188fcd7597ce83ceb378ff15d9e8fbca2",
+        "rev": "e2796859cdde4198aadae4accd4e5c8088150267",
         "type": "github"
       },
       "original": {
@@ -165,22 +167,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_12": {
-      "locked": {
-        "lastModified": 1757898380,
-        "narHash": "sha256-1Z0KAfbySsHu/IoZbBJLrPgs3IqQGup0T8J9S1ffAkE=",
-        "owner": "meta-introspector",
-        "repo": "nixpkgs",
-        "rev": "26833ad1dad83826ef7cc52e0009ca9b7097c79f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "meta-introspector",
-        "ref": "feature/CRQ-016-nixify",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1757898380,
@@ -313,7 +299,7 @@
       "inputs": {
         "configuration-nix": "configuration-nix",
         "flake-utils": "flake-utils_3",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_4",
         "rust-overlay": "rust-overlay_3",
         "rustSrcFlake": "rustSrcFlake_2",
         "standalonex": "standalonex"
@@ -321,7 +307,7 @@
     },
     "rust-overlay": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -340,7 +326,7 @@
     },
     "rust-overlay_2": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -359,7 +345,7 @@
     },
     "rust-overlay_3": {
       "inputs": {
-        "nixpkgs": "nixpkgs_6"
+        "nixpkgs": "nixpkgs_5"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -378,7 +364,7 @@
     },
     "rust-overlay_4": {
       "inputs": {
-        "nixpkgs": "nixpkgs_8"
+        "nixpkgs": "nixpkgs_7"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -397,7 +383,7 @@
     },
     "rust-overlay_5": {
       "inputs": {
-        "nixpkgs": "nixpkgs_12"
+        "nixpkgs": "nixpkgs_11"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -416,7 +402,7 @@
     },
     "rustOverlay": {
       "inputs": {
-        "nixpkgs": "nixpkgs_10"
+        "nixpkgs": "nixpkgs_9"
       },
       "locked": {
         "lastModified": 1760649444,
@@ -436,7 +422,7 @@
     "rustSrcFlake": {
       "inputs": {
         "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
@@ -457,7 +443,7 @@
     "rustSrcFlake_2": {
       "inputs": {
         "flake-utils": "flake-utils_4",
-        "nixpkgs": "nixpkgs_7",
+        "nixpkgs": "nixpkgs_6",
         "rust-overlay": "rust-overlay_4"
       },
       "locked": {
@@ -478,7 +464,7 @@
     "rustSrcFlake_3": {
       "inputs": {
         "flake-utils": "flake-utils_5",
-        "nixpkgs": "nixpkgs_11",
+        "nixpkgs": "nixpkgs_10",
         "rust-overlay": "rust-overlay_5"
       },
       "locked": {
@@ -498,17 +484,17 @@
     },
     "standalonex": {
       "inputs": {
-        "nixpkgs": "nixpkgs_9",
+        "nixpkgs": "nixpkgs_8",
         "rustOverlay": "rustOverlay",
         "rustSrcFlake": "rustSrcFlake_3"
       },
       "locked": {
         "dir": "standalonex",
-        "lastModified": 1761175787,
-        "narHash": "sha256-A1qvJ1zdZabnGtMJiqxrdUIqg9fZoZR6OtKxyt/wyro=",
+        "lastModified": 1761176096,
+        "narHash": "sha256-UQR5zIMyTLEqO5t71INX6entIbx+NIeaJtiGL7Ytsms=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "5cb9b823e3c9aeac3f756ea2b1dfe3c9d571313f",
+        "rev": "e2796859cdde4198aadae4accd4e5c8088150267",
         "type": "github"
       },
       "original": {
