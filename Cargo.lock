@@ -170,6 +170,9 @@ dependencies = [
 [[package]]
 name = "configuration-nix"
 version = "0.1.0"
+dependencies = [
+ "clap",
+]
 
 [[package]]
 name = "env_filter"

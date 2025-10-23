@@ -11,11 +11,11 @@
       },
       "locked": {
         "dir": "configuration-nix",
-        "lastModified": 1761177640,
-        "narHash": "sha256-DrfD/zj0x0E5+/hfR/QF0ry07X0fMwh0MDVTJQ97qlQ=",
+        "lastModified": 1761181643,
+        "narHash": "sha256-NDB0J24Wh90H8CuvEZkHR+ta3RJrX2FHFdoyrwBs1vw=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "77d2d3792fc384deb2e970cced2bf705bcd9ad5d",
+        "rev": "d8d3c204101d3ad84ec43471dd0c2e3232690e93",
         "type": "github"
       },
       "original": {
@@ -490,11 +490,11 @@
       },
       "locked": {
         "dir": "standalonex",
-        "lastModified": 1761177640,
-        "narHash": "sha256-DrfD/zj0x0E5+/hfR/QF0ry07X0fMwh0MDVTJQ97qlQ=",
+        "lastModified": 1761181643,
+        "narHash": "sha256-NDB0J24Wh90H8CuvEZkHR+ta3RJrX2FHFdoyrwBs1vw=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "77d2d3792fc384deb2e970cced2bf705bcd9ad5d",
+        "rev": "d8d3c204101d3ad84ec43471dd0c2e3232690e93",
         "type": "github"
       },
       "original": {
