@@ -30,6 +30,10 @@ struct Args {
     /// Step for the branch name: e.g., step1
     #[arg(long)]
     step: String,
+
+    /// Perform a dry run without executing Git commands
+    #[arg(long, default_value_t = false)]
+    dry_run: bool,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -52,7 +56,16 @@ fn run_git_command(
     current_dir: &Path,
     args: &[&str],
     error_message: &str,
+    dry_run: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Running git command in CWD: {:?}", current_dir);
+    let command_str = format!("git {}", args.join(" "));
+    if dry_run {
+        println!("Dry run: Would execute: {}", command_str);
+        return Ok(());
+    }
+    println!("Executing: {}", command_str);
+
     let output = Command::new("git")
         .current_dir(current_dir)
         .args(args)
@@ -152,21 +165,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         config.nix.base_branch
     };
-    run_git_command(&repo_root, &["checkout", &base_branch_name], "Failed to checkout base branch")?;
+    run_git_command(&repo_root, &["checkout", &base_branch_name], "Failed to checkout base branch", args.dry_run)?;
 
     // Create and checkout new branch
-    run_git_command(&repo_root, &["checkout", "-b", &branch_name], "Failed to create and checkout new branch")?;
+    run_git_command(&repo_root, &["checkout", "-b", &branch_name], "Failed to create and checkout new branch", args.dry_run)?;
 
     // Add generated files
-    run_git_command(&repo_root, &["add", &args.output_dir.to_string_lossy()], "Failed to add generated files")?;
+    run_git_command(&repo_root, &["add", &args.output_dir.to_string_lossy()], "Failed to add generated files", args.dry_run)?;
 
     // Commit changes
     let commit_message = format!("feat: Generated seed flake {}", branch_name);
-    run_git_command(&repo_root, &["commit", "-m", &commit_message], "Failed to commit changes")?;
+    run_git_command(&repo_root, &["commit", "-m", &commit_message], "Failed to commit changes", args.dry_run)?;
 
     // Push branch
-    run_git_command(&repo_root, &["push", "origin", &branch_name], "Failed to push branch")?;
-
+    run_git_command(&repo_root, &["push", "origin", &branch_name], "Failed to push branch", args.dry_run)?;
     println!("Successfully pushed branch: {}", branch_name);
     // --- End Git Operations ---
 
