@@ -54,7 +54,7 @@ pub struct Args {
     pub rust_src_flake_path: Option<PathBuf>,
 
     /// Perform a dry run, printing the generated config to stdout instead of writing to a file.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, action = clap::ArgAction::SetTrue)]
     pub dry_run: Option<bool>,
 
     /// Path to a config.toml file to load configuration from.
