@@ -6,7 +6,7 @@ pub struct RustChannelGitHashConfigApplicator;
 
 impl ConfigApplicator for RustChannelGitHashConfigApplicator {
     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig) {
-        let is_user_configured_rust_channel =
+        let _is_user_configured_rust_channel =
             if let Some(channel) = toml.rust.as_ref().and_then(|r| r.channel.clone()) {
                 config.channel = Some(channel);
                 true

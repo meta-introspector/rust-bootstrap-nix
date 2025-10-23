@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "bootstrap",
+    "stage0_parser_crate",
+]

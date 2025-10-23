@@ -9,6 +9,10 @@ This document outlines the immediate next steps and ongoing tasks for the `rust-
 *   **Logging & Dry-Run:** Added comprehensive logging and a `--dry-run` option to the `bootstrap-config-builder` for better visibility and testing.
 *   **`nix-dir` Tool:** Created a new binary tool (`nix-dir`) to inspect Nix flakes and their attributes.
 *   **Error Resolution:** Successfully resolved several compilation and Nix evaluation errors encountered during development.
+*   **Configuration System Refactoring**: Started refactoring `bootstrap-config-builder` to support loading configuration from `config.toml` with command-line overrides.
+    *   Created `bootstrap-config-builder/src/config.rs` for `AppConfig` struct.
+    *   Modified `bootstrap-config-builder/src/args.rs` to make arguments optional and add `config_file` option.
+*   **Rust Workspace for `standalonex`**: Created `standalonex/src/Cargo.toml` to define a workspace and updated `standalonex/flake.nix` to correctly reference the workspace `Cargo.lock`.
 
 ## Next Steps:
 
@@ -20,10 +24,13 @@ This document outlines the immediate next steps and ongoing tasks for the `rust-
 
 ### 2. Improve `bootstrap-config-builder`
 
-*   **Dynamic Flake Resolution:** Replace the temporarily hardcoded `rust-overlay` flake reference in `preconditions.rs` with a dynamic resolution mechanism (e.g., reading from `flake.lock` or accepting it as an argument).
-*   **Handle Missing Inputs:** Address the `rustBootstrapNix` and `configurationNix` inputs being reported as "not-found" (either ensure they are present in the flake or handle their absence gracefully).
-*   **Remove `--impure` Flag:** Eliminate the reliance on the `--impure` flag from `nix eval` calls by ensuring proper flake locking for local paths and inputs.
-*   **Clean Up Unused Imports:** Remove any remaining unused imports in `main.rs` and other Rust source files.
+*   **Implement `config.toml` loading and merging**: This will be the primary focus.
+    *   Modify `bootstrap-config-builder/src/main.rs` to parse arguments, load `config.toml`, merge configurations, and pass the final config.
+    *   Implement `read_config_file` helper function.
+*   **Dynamic Flake Resolution:** This will be handled by the new configuration system.
+*   **Handle Missing Inputs:** This will be handled by the new configuration system.
+*   **Remove `--impure` Flag:** This will be addressed as part of the overall Nix integration.
+*   **Clean Up Unused Imports:** This is an ongoing task.
 
 ### 3. Integrate `bootstrap-config-builder` into the Build Process
 

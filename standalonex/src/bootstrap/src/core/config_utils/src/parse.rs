@@ -45,7 +45,7 @@ pub fn parse(mut flags: LocalFlags) -> ParsedConfig {
     config
 }
 
-fn apply_test_config(config: &mut ParsedConfig, toml: &mut LocalTomlConfig) {
+fn apply_test_config(_config: &mut ParsedConfig, toml: &mut LocalTomlConfig) {
     if cfg!(test) {
         let build = toml.build.get_or_insert_with(Default::default);
         build.rustc = build.rustc.take().or(std::env::var_os("RUSTC").map(|p| p.into()));
