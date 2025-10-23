@@ -2,6 +2,7 @@ use clap::Parser;
 use std::fs;
 use std::path::{Path, PathBuf};
 use serde::Deserialize;
+use std::process::Command;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -83,6 +84,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::write(&output_config_toml_path, config_content)?;
 
     println!("Successfully generated flake in {:?}", args.output_dir);
+
+    // --- Statix Check ---
+    println!("Running statix check on generated flake...");
+    let statix_output = Command::new("nix-shell")
+        .arg("-p").arg("statix")
+        .arg("--run")
+        .arg(format!("statix check {}", output_flake_nix_path.display()))
+        .current_dir(&args.output_dir) // Run statix from the generated flake directory
+        .output()?;
+
+    if !statix_output.status.success() {
+        eprintln!("Statix check failed!");
+        eprintln!("Stdout: {}", String::from_utf8_lossy(&statix_output.stdout));
+        eprintln!("Stderr: {}", String::from_utf8_lossy(&statix_output.stderr));
+        return Err("Statix check failed".into());
+    }
+    println!("Statix check passed.");
+    // --- End Statix Check ---
+
+    // --- Nix Build ---
+    println!("Running Nix build on generated flake...");
+    let nix_build_output = Command::new("nix")
+        .arg("build")
+        .arg(".#default") // Use .#default when current_dir is the flake directory
+        .current_dir(&args.output_dir) // Run nix build from the generated flake directory
+        .output()?;
+
+    if !nix_build_output.status.success() {
+        eprintln!("Nix build failed!");
+        eprintln!("Stdout: {}", String::from_utf8_lossy(&nix_build_output.stdout));
+        eprintln!("Stderr: {}", String::from_utf8_lossy(&nix_build_output.stderr));
+        return Err("Nix build failed".into());
+    }
+    println!("Nix build passed. Output in result link.");
+    // --- End Nix Build ---
 
     Ok(())
 }
