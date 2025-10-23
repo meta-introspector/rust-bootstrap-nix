@@ -13,39 +13,105 @@ Automate the generation, Nix build, and Git management of new flakes, ensuring e
 
 ## Detailed Plan:
 
-### Phase 1: Generate and Commit the Initial Flake (using `flake-template-generator`)
+**Overall Goal:** Automate the generation, Nix build, and Git management of new flakes, ensuring versioning and traceability within a lattice-structured branching model for `solana-rust-1.84.1`.
 
-1.  **Run `flake-template-generator`:**
-    *   **Action:** Execute `make generate-flake-dir` from the project root.
-    *   **Purpose:** This will:
-        *   Build and run the `flake-template-generator`.
-        *   Generate `flake.nix` and `config.toml` into `flakes/generated-config-flakes/`.
-        *   Perform a Statix check on the generated flake.
-        *   Perform Git operations:
-            *   Checkout the configured base branch (e.g., `feature/CRQ-016-nixify`).
-            *   Create a new branch with the lattice naming convention (e.g., `feature/solana-rust-1.83/aarch64/phase0/step1`).
-            *   Add the generated files (`flakes/generated-config-flakes/config.toml` and `flakes/generated-config-flakes/flake.nix`).
-            *   Commit these files with a descriptive message.
-            *   Push the new branch to the remote repository.
+**Current State:**
+*   `flake-template-generator` has been refactored into modular components (`args.rs`, `config_parser.rs`, `flake_generator.rs`, `file_writer.rs`, `statix_checker.rs`).
+*   The `run_git_command` function and Git operations have been completely removed from `flake-template-generator`.
+*   A new Git utility function, `create_and_push_branch`, exists in `standalonex/src/bootstrap/src/core/generate_steps/git_modules/create_branch.rs`.
+*   The `flake-template-generator/Makefile` has been updated to `COMPONENT := solana-rust-1.84.1`.
+*   The current Git branch is `feature/CRQ-016-nixify`.
+
+**Detailed Plan:**
+
+**Phase 1: Prepare the Environment and Generate the Flake**
+
+1.  **Ensure Clean Git State (Verification):**
+    *   Run `git status` to confirm no uncommitted changes on `feature/CRQ-016-nixify`.
+    *   If there are uncommitted changes, either commit them or stash them.
+
+2.  **Generate the Flake Files for `solana-rust-1.84.1`:**
+    *   **Action:** Execute `make -C flake-template-generator generate-flake`.
+    *   **Expected Outcome:** This will generate `flake.nix` and `config.toml` in the directory `flakes/solana-rust-1.84.1/aarch64/phase0/step1/` (relative to the project root). The `flake.nix` will use `pkgs.writeText` and the `config.toml` will reflect the `solana-rust-1.84.1` component.
+    *   **Verification:** Check for the existence of the generated files and their content.
+
+**Phase 2: Git Management using `create_and_push_branch`**
+
+1.  **Create a Temporary Rust Binary to Call `create_and_push_branch`:**
+    *   **Action:** Create a new directory `temp_git_runner` at the project root.
+    *   **Action:** Create `temp_git_runner/Cargo.toml` with `standalonex` as a path dependency.
+        ```toml
+        [package]
+        name = "temp_git_runner"
+        version = "0.1.0"
+        edition = "2021"
+
+        [dependencies]
+        standalonex = { path = "../../standalonex" }
+        ```
+    *   **Action:** Create `temp_git_runner/src/main.rs` with the following content:
+        ```rust
+        use standalonex::bootstrap::src::core::generate_steps::git_modules::create_branch::create_and_push_branch;
+        use std::path::PathBuf;
+
+        fn main() -> Result<(), Box<dyn std::error::Error>> {
+            let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .to_path_buf(); // Adjust path to point to the main project root
+
+            let base_branch = "feature/CRQ-016-nixify".to_string();
+            let new_branch = "feature/solana-rust-1.84.1/aarch64/phase0/step1".to_string();
+            let generated_files_path = "flakes/solana-rust-1.84.1/aarch64/phase0/step1".to_string();
+            let commit_message = format!("feat: Generated seed flake {}", new_branch);
+
+            create_and_push_branch(
+                &repo_root,
+                &base_branch,
+                &new_branch,
+                &generated_files_path,
+                &commit_message,
+                false, // dry_run: set to true for testing, false for actual execution
+                false, // verbose
+            )?;
+
+            Ok(())
+        }
+        ```
+    *   **Verification:** Confirm the files are created correctly.
+
+2.  **Build and Run the Temporary Git Runner:**
+    *   **Action:** Execute `cargo run --manifest-path temp_git_runner/Cargo.toml`.
+    *   **Expected Outcome:** The `create_and_push_branch` function will:
+        *   Checkout `feature/CRQ-016-nixify`.
+        *   Check if `feature/solana-rust-1.84.1/aarch64/phase0/step1` exists.
+        *   If not, create and checkout `feature/solana-rust-1.84.1/aarch64/phase0/step1`.
+        *   Add the generated files from `flakes/solana-rust-1.84.1/aarch64/phase0/step1`.
+        *   Commit the changes with the specified message.
+        *   Push the new branch to `origin`.
     *   **Verification:**
-        *   Check the output for successful completion of all steps, especially the Git operations.
-        *   Run `git branch -a` to confirm the new lattice branch exists locally and remotely.
-        *   Run `git log --oneline` to verify the commit on the new branch.
+        *   Run `git status` to confirm the current branch is `feature/solana-rust-1.84.1/aarch64/phase0/step1` and there are no uncommitted changes.
+        *   Run `git log -1` to verify the commit message.
+        *   (Optional) Check the remote repository to confirm the new branch exists.
 
-### Phase 2: Build and Test the Generated Flake (using `standalonex`'s `nix_build` logic)
+3.  **Clean Up the Temporary Git Runner:**
+    *   **Action:** Remove the `temp_git_runner` directory: `rm -rf temp_git_runner`.
+    *   **Verification:** Confirm the directory is deleted.
 
-1.  **Checkout the newly created lattice branch:**
-    *   **Action:** `git checkout feature/solana-rust-1.83/aarch64/phase0/step1` (or the actual generated branch name).
-    *   **Purpose:** Switch to the branch containing the generated flake.
-2.  **Manually trigger Nix build of the generated flake:**
-    *   **Action:** Navigate to `flakes/generated-config-flakes/` and run `nix build .#default`.
-    *   **Purpose:** Verify that the generated flake is valid and builds correctly in isolation.
-    *   **Verification:** Check for successful Nix build output.
-3.  **Integrate `nix_build` into `standalonex`:**
-    *   **Action:** Modify the `standalonex` bootstrap process to call the `run_nix_build` function (from `standalonex/src/bootstrap/src/core/nix_steps/nix_build.rs`) with the path to the generated flake.
-    *   **Purpose:** Automate the Nix build of the generated flake as part of the `standalonex` workflow.
+**Phase 3: Nix Build of the Generated Flake**
 
-### Phase 3: Document Findings and Next Steps
+1.  **Build the Generated Flake:**
+    *   **Action:** Navigate to the generated flake directory: `cd flakes/solana-rust-1.84.1/aarch64/phase0/step1/`.
+    *   **Action:** Execute `nix build .#default`.
+    *   **Expected Outcome:** The Nix build should succeed, producing a `result` symlink to the built `config.toml`.
+    *   **Verification:** Check for the `result` symlink and its content.
 
-1.  **Document findings:** Record any issues, successes, or observations in relevant `README.md` files or CRQs.
-2.  **Define next steps:** Outline the subsequent phases of the Nixification process.
+**Phase 4: Integrate Nix Build into `standalonex` (Future Step - Not part of this detailed plan, but noted for context)**
+
+*   Modify the `standalonex` bootstrap process to call `run_nix_build` with the generated flake path.
+
+**Phase 5: Document Findings and Next Steps (Future Step - Not part of this detailed plan, but noted for context)**
+
+*   Record issues, successes, or observations; outline subsequent Nixification phases.
