@@ -1,13 +1,14 @@
 {
-  description = "A minimal flake for bootstrapping Rust";
+  description = "Step 1: Generate config.toml";
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+    rust-bootstrap-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, ... }@inputs:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, rust-bootstrap-nix, ... }@inputs:
     let
       system = "aarch64-linux";
       pkgs = import nixpkgs {
@@ -17,23 +18,17 @@
     in
     {
       packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
-        name = "rust-bootstrap";
-        src = ./.;
+        name = "generate-config";
+        src = rust-bootstrap-nix;
         buildInputs = [ pkgs.cargo pkgs.rustc pkgs.cacert pkgs.nix ];
         buildPhase = ''
           export CARGO_HOME=$(mktemp -d)
-          cargo run --bin bootstrap-config-generator -- --project-root . --rust-src-flake-path ${rustSrcFlake}
+          cargo run --bin bootstrap-config-generator -- --project-root . --rust-src-flake-path /nix/store/rhs81k02n3vg452abxl462g2i6xyadyf-source --version 1.84.1 --target aarch64-unknown-linux-gnu --stage 0
         '';
         installPhase = ''
-          mkdir -p $out/bin
+          mkdir -p $out
+          cp config.toml $out/config.toml
         '';
-      };
-
-      devShells.aarch64-linux.default = pkgs.mkShell {
-        packages = [
-          pkgs.rust-bin.stable."1.84.1".default
-          pkgs.cargo
-        ];
       };
     };
 }
