@@ -26,3 +26,4 @@ path = "src/bin/nix-dir.rs"
 
 [[bin]]
 name = "bootstrap-config-generator"
+path = "src/bin/bootstrap-config-generator.rs"
