@@ -1,8 +1,10 @@
-docs: Split README.md into multiple smaller files
+feat: Centralize git command helpers in bootstrap-config-builder
 
-This commit splits the large `README.md` file into multiple smaller, more
-manageable files in the `docs/` directory. This improves readability and
-navigation of the documentation.
+Created `bootstrap-config-builder/src/utils/git_command_helpers.rs` to
+centralize generic functions for executing git commands via `std::process::Command`.
+This includes `run_git_command` and `output_result`, adapted to use `anyhow::Result`
+for better error handling. The `bootstrap-config-builder/src/utils/mod.rs`
+was updated to include this new module.
 
-The original `README.md` has been removed and its content distributed
-across the new `README_*.md` files.
+This change aims to reduce potential code duplication and provide a single
+point of maintenance for shell-based git operations within the `bootstrap-config-builder` crate.

@@ -7,9 +7,8 @@
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, ... } @ args:
+  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, ... }:
     let
-      configTomlPath = args.configTomlPath;
       pkgs = import nixpkgs {
         system = "aarch64-linux";
         overlays = [ rustOverlay.overlays.default ];
@@ -57,9 +56,6 @@
           cargoLock.lockFile = ./src/Cargo.lock;
           rustc = pkgs.rust-bin.stable."1.84.1".default;
           doCheck = false;
-          postPatch = ''
-            cp ${configTomlPath} config.toml
-          '';
 
           bootstrap-main = rustPlatform.buildRustPackage {
             pname = "bootstrap-main";
@@ -70,9 +66,6 @@
             rustc = pkgs.rust-bin.stable."1.84.1".default;
             doCheck = false;
             cargoBuildFlags = [ "--bin" "bootstrap" ];
-            postPatch = ''
-              cp ${configTomlPath} config.toml
-            '';
           };
 
           nix-bootstrap = rustPlatform.buildRustPackage {
@@ -84,9 +77,6 @@
             rustc = pkgs.rust-bin.stable."1.84.1".default;
             doCheck = false;
             cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
-            postPatch = ''
-              cp ${configTomlPath} config.toml
-            '';
           };
         };
       };
