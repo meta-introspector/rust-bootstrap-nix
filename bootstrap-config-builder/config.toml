@@ -1,5 +1,6 @@
-[nix_packages]
-"hello" = "1.0"
-"git" = "latest"
-"openssl" = ""
-"rustc" = ""
+system = "aarch64-linux"
+rust-bootstrap-nix-flake-ref = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify"
+rust-src-flake-ref = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
+architecture = "aarch64-linux"
+stage = "stage0"
+step = "step1-configure"
