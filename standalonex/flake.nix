@@ -22,13 +22,12 @@
 
         packages = [
           pkgs.python3
-          pkgs.rust-bin.stable."1.84.1".default
-          pkgs.cargo
+          pkgs.rust-bin.nightly.latest.default
         ];
 
         shellHook = ''
           # Add the flake's source directory to PATH
-          export PATH=${self}/:$PATH # self here refers to the flake's source directory in the Nix store
+          export PATH=${self}/:$PATH:/nix/store/8zs48kgz8i529l2x8xgv0fhik4sr2b0j-rust-1.92.0-nightly-2025-10-16-aarch64-unknown-linux-gnu/bin/
           echo "x.py is available in your PATH."
 
           # Set environment variable for src/stage0 path
@@ -54,7 +53,8 @@
           version = "0.1.0";
           src = pkgs.lib.cleanSource ./src;
           cargoLock.lockFile = ./src/Cargo.lock;
-          rustc = pkgs.rust-bin.stable."1.84.1".default;
+          #rustc = pkgs.rust-bin.stable."1.84.1".default;
+          rustc = pkgs.rust-bin.nightly.latest.default;
           doCheck = false;
 
           bootstrap-main = rustPlatform.buildRustPackage {
@@ -63,7 +63,8 @@
 
             src = pkgs.lib.cleanSource ./src;
             cargoLock.lockFile = ./src/Cargo.lock;
-            rustc = pkgs.rust-bin.stable."1.84.1".default;
+            #rustc = pkgs.rust-bin.stable."1.84.1".default;
+            rustc = pkgs.rust-bin.nightly.latest.default;
             doCheck = false;
             cargoBuildFlags = [ "--bin" "bootstrap" ];
           };
@@ -74,7 +75,8 @@
 
             src = pkgs.lib.cleanSource ./src;
             cargoLock.lockFile = ./src/Cargo.lock;
-            rustc = pkgs.rust-bin.stable."1.84.1".default;
+            #rustc = pkgs.rust-bin.stable."1.84.1".default;
+            rustc = pkgs.rust-bin.nightly.latest.default;
             doCheck = false;
             cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
           };

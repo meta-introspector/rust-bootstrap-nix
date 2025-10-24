@@ -8,17 +8,13 @@ use syn::braced;
 
 struct ConfigInput {
     attrs: Vec<syn::Attribute>,
-    struct_token: Token![struct],
     ident: Ident,
-    brace_token: syn::token::Brace,
     fields: syn::punctuated::Punctuated<ConfigField, Token![,]>, // Changed from ItemStruct to ConfigField
 }
 
 struct ConfigField {
     ident: Ident,
-    colon_token: syn::token::Colon,
     ty: syn::Type,
-    eq_token: Option<syn::token::Eq>,
     key: Option<LitStr>,
 }
 

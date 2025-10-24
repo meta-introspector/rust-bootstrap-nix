@@ -6,8 +6,6 @@ use std::path::PathBuf;
 pub struct NixConfig {
     #[serde(default)]
     pub nixpkgs_path: String,
-    #[serde(default)]
-    pub base_branch: String,
     // Add other nix-related fields as needed
 }
 
