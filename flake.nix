@@ -29,5 +29,13 @@
           cp config.toml $out/config.toml
         '';
       };
+
+      devShells.aarch64-linux.default = pkgs.mkShell {
+        packages = with pkgs; [
+          (pkgs.rust-bin.nightly.latest.default)
+          pkg-config
+          openssl
+        ];
+      };
     };
 }

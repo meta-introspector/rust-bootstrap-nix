@@ -1,5 +1,5 @@
-use anyhow::{Context, Result};
-use git2::{Repository, Signature, Oid, Commit};
+use anyhow::{Result};
+use git2::{Repository, Signature, Oid};
 use log::info;
 
 pub fn create_orphan_branch(repo_path: &str, branch_name: &str) -> Result<()> {

@@ -7,3 +7,4 @@ pub mod validate_project_root;
 pub mod git;
 pub mod generate_step1_flake;
 pub mod git_command_helpers;
+pub mod nix_eval_utils;

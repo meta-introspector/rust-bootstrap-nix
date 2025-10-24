@@ -19,6 +19,17 @@
       rustSrcFlakePath = "/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"; # Absolute path to rust-src
     in
     {
+      devShells.aarch64-linux.default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.rustc
+          pkgs.cargo
+          pkgs.rust-analyzer
+          pkgs.openssl # Add openssl to buildInputs
+        ];
+        PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig"; # Set PKG_CONFIG_PATH
+        RUST_SRC_PATH = "${rustSrcFlake}/library";
+      };
+
       packages.aarch64-linux.generatedConfigToml = pkgs.runCommand "generated-config.toml"
         {
           nativeBuildInputs = [ pkgs.cargo pkgs.rustc ]; # Ensure cargo and rustc are available

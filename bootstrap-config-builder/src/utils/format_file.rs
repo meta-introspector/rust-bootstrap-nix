@@ -1,5 +1,5 @@
 // use anyhow::{Context, Result}; // Commented out
-use std::fs;
+//use std::fs;
 
 #[allow(clippy::too_many_arguments)]
 pub fn format_file(
