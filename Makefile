@@ -14,20 +14,10 @@ build-config-builder:
 
 generate-config: build-config-builder
 	@echo "Generating config.toml using bootstrap-config-builder..."
-	$(eval NIXPKGS_PATH := $(shell nix build .#nixpkgsOutPath --no-link --print-out-paths))
-	$(eval RUST_OVERLAY_PATH := $(shell nix build .#rustOverlayOutPath --no-link --print-out-paths))
-	$(eval RUST_BOOTSTRAP_NIX_PATH := $(shell nix build .#rustBootstrapNixOutPath --no-link --print-out-paths))
-	$(eval CONFIGURATION_NIX_PATH := $(shell nix build .#configurationNixOutPath --no-link --print-out-paths))
-	$(eval RUST_SRC_FLAKE_PATH := $(shell nix build .#rustSrcFlakeOutPath --no-link --print-out-paths))
 	@RUST_LOG=debug ./target/debug/bootstrap-config-generator \
 		--config-file bootstrap-config-builder/config.toml \
 		--project-root $(CURDIR) \
-		--output config.toml \
-		--nixpkgs-path $(NIXPKGS_PATH) \
-		--rust-overlay-path $(RUST_OVERLAY_PATH) \
-		--rust-bootstrap-nix-path $(RUST_BOOTSTRAP_NIX_PATH) \
-		--configuration-nix-path $(CONFIGURATION_NIX_PATH) \
-		--rust-src-flake-path $(RUST_SRC_FLAKE_PATH)
+		--output config.toml
 
 generate-seed-config: build-config-builder
 	@echo "Generating seed config.toml using bootstrap-config-generator..."
@@ -48,20 +38,10 @@ generate-seed-config: build-config-builder
 
 run-config-builder-dry-run:
 	@echo "Running bootstrap-config-builder in dry-run mode..."
-	$(eval NIXPKGS_PATH := $(shell nix build .#nixpkgsOutPath --no-link --print-out-paths))
-	$(eval RUST_OVERLAY_PATH := $(shell nix build .#rustOverlayOutPath --no-link --print-out-paths))
-	$(eval RUST_BOOTSTRAP_NIX_PATH := $(shell nix build .#rustBootstrapNixOutPath --no-link --print-out-paths))
-	$(eval CONFIGURATION_NIX_PATH := $(shell nix build .#configurationNixOutPath --no-link --print-out-paths))
-	$(eval RUST_SRC_FLAKE_PATH := $(shell nix build .#rustSrcFlakeOutPath --no-link --print-out-paths))
 	@RUST_LOG=debug ./target/debug/bootstrap-config-generator \
 		--config-file bootstrap-config-builder/config.toml \
 		--project-root $(CURDIR) \
 		--output generated_config.toml \
-		--nixpkgs-path $(NIXPKGS_PATH) \
-		--rust-overlay-path $(RUST_OVERLAY_PATH) \
-		--rust-bootstrap-nix-path $(RUST_BOOTSTRAP_NIX_PATH) \
-		--configuration-nix-path $(CONFIGURATION_NIX_PATH) \
-		--rust-src-flake-path $(RUST_SRC_FLAKE_PATH) \
 		--dry-run
 
 # --- Targets for generating rustc test flakes and configs ---
