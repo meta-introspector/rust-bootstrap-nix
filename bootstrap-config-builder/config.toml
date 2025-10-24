@@ -1,0 +1,5 @@
+[nix_packages]
+"hello" = "1.0"
+"git" = "latest"
+"openssl" = ""
+"rustc" = ""

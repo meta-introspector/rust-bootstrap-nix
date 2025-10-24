@@ -10,7 +10,7 @@ fast-build:
 
 build-config-builder:
 	@echo "Building bootstrap-config-builder..."
-	cargo build --package bootstrap-config-builder
+	nix develop --command bash -c "cargo build --package bootstrap-config-builder"
 
 generate-config: build-config-builder
 	@echo "Generating config.toml using bootstrap-config-builder..."
@@ -70,8 +70,10 @@ run-config-builder-dry-run:
 
 # --- Targets for generating rustc test flakes and configs ---
 
-RUSTC_VERSIONS = \
-	1.84.1:/nix/store/b29wwnvfjfzkf23l2d077nmw5cncaz5s-rustc-1.84.1-aarch64-unknown-linux-gnu/bin/rustc \
+SOLANA_RUSTC_PATH = /nix/store/b29wwnvfjfzkf23l2d077nmw5cncaz5s-rustc-1.84.1-aarch64-unknown-linux-gnu/bin/rustc
+
+# Build rustc versions (selected from available versions)
+RUSTC_BUILD_VERSIONS = \
 	1.89.0:/nix/store/icixkhs20b5r5zbj4m6a4vwdvv7pncig-rustc-1.89.0/bin/rustc \
 	1.90.0:/nix/store/wi7qg1yc7x2hbn4yaylzs1kxhdi90i1l-rust-1.90.0-aarch64-unknown-linux-gnu/bin/rustc \
 	1.92.0-nightly:/nix/store/8zs48kgz8i529l2x8xgv0fhik4sr2b0j-rust-1.92.0-nightly-2025-10-16-aarch64-unknown-linux-gnu/bin/rustc
@@ -84,34 +86,30 @@ RUST_SRC_FLAKE_PATH = /data/data/com.termux.nix/files/home/nix/vendor/rust/platf
 
 generate-rustc-test-flakes:
 	@echo "Generating rustc test flakes..."
-	@for entry in $(RUSTC_VERSIONS); do \
+	@for entry in $(RUSTC_BUILD_VERSIONS); do \
 		version=$$(echo $$entry | cut -d':' -f1); \
 		rustc_path=$$(echo $$entry | cut -d':' -f2); \
-		dir="flakes/rustc-test-$$version"; \
+		dir="flakes/$$version/aarch64-linux/stage0/step1-configure"; \
 		mkdir -p $$dir; \
-		echo "{\n  description = \"Test flake for rustc $$version\";\n\n  inputs = {\n    nixpkgs.url = \"github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify\";\n  };\n\n  outputs = { self, nixpkgs }:\n    let\n      pkgs = import nixpkgs {\n        system = \"aarch64-linux\";\n      };\n      rustcPath = \"$$rustc_path\";\n    in\n    {\n      devShells.aarch64-linux.default = pkgs.mkShell {\n        buildInputs = [\n          pkgs.cargo\n        ];\n        RUSTC = rustcPath;\n      };\n    };\n}" > $$dir/flake.nix; \
+		echo "{\n  description = \"Test flake for rustc $$version\";\n\n  inputs = {\n    nixpkgs.url = \"github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify\";\n  };\n\n  outputs = { self, nixpkgs }:\n    let\n      pkgs = import nixpkgs {\n        system = \"aarch64-linux\";\n      };\n      # This rustcPath is the *source* rustc used to build the next stage\n      rustcPath = \"$(SOLANA_RUSTC_PATH)\";\n    in\n    {\n      devShells.aarch64-linux.default = pkgs.mkShell {\n        buildInputs = [\n          pkgs.cargo\n        ];\n        RUSTC = rustcPath;\n      };\n    };\n}" > $$dir/flake.nix; \
 		echo "Generated $$dir/flake.nix for rustc $$version"; \
 	done
 
 generate-rustc-test-configs: build-config-builder
 	@echo "Generating rustc test configs..."
-	@for entry in $(RUSTC_VERSIONS); do \
+	@for entry in $(RUSTC_BUILD_VERSIONS); do \
 		version=$$(echo $$entry | cut -d':' -f1); \
 		rustc_path=$$(echo $$entry | cut -d':' -f2); \
-		output_file="flakes/rustc-test-$$version/generated_config_$$version.toml"; \
+		dir="flakes/$$version/aarch64-linux/stage0/step1-configure"; \
+		output_file="$$dir/generated_config_$$version.toml"; \
 		echo "Generating config for rustc $$version to $$output_file"; \
-		cargo run --bin bootstrap-config-generator -- \
-			--rustc-path "$$rustc_path" \
-			--cargo-path "$(CARGO_PATH)" \
-			--project-root "$(PROJECT_ROOT)" \
-			--rust-src-flake-path "$(RUST_SRC_FLAKE_PATH)" \
-			--output "$$output_file"; \
+		nix develop --command bash -c "cargo run --bin bootstrap-config-generator -- \\\n			--rustc-path \"$$rustc_path\" \\\n			--cargo-path \"$(CARGO_PATH)\" \\\n			--project-root \"$(PROJECT_ROOT)\" \\\n			--rust-src-flake-path \"$(RUST_SRC_FLAKE_PATH)\" \\\n			--output \"$$output_file\""; \
 		done
 
 clean-rustc-test-flakes:
 	@echo "Cleaning generated rustc test flakes and configs..."
-	@for entry in $(RUSTC_VERSIONS); do \
+	@for entry in $(RUSTC_BUILD_VERSIONS); do \
 		version=$$(echo $$entry | cut -d':' -f1); \
-		rm -rf "flakes/rustc-test-$$version"; \
-		echo "Cleaned flakes/rustc-test-$$version"; \
+		rm -rf "flakes/$$version"; \
+		echo "Cleaned flakes/$$version"; \
 		done

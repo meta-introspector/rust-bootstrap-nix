@@ -6,8 +6,10 @@ use log::{info, debug};
 use std::fs;
 use serde::Deserialize;
 use std::collections::HashMap;
+use bootstrap_config_builder::utils::get_all_rustc_paths_from_nix_store::get_all_rustc_paths_from_nix_store;
 //use crate::utils::nix_eval_utils; // Import the new module
-use bootstrap_config_builder::utils::nix_eval_utils::run_nix_eval;
+//use bootstrap_config_builder::utils::nix_eval_utils::run_nix_eval;
+use bootstrap_config_builder::utils::find_nix_package_store_path::find_nix_package_store_path;
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -30,6 +32,10 @@ struct Args {
     /// Path to the config.toml file to read for Nix package information.
     #[arg(long, default_value = "config.toml")]
     config_file: String,
+
+    /// List all rustc versions found in the Nix store.
+    #[arg(long, default_value_t = false)]
+    list_rustc_versions: bool,
 }
 
 fn main() -> Result<()> {
@@ -46,6 +52,20 @@ fn main() -> Result<()> {
 
     if let Some(c) = &config {
         debug!("Parsed config: {:?}", c);
+    }
+
+    if args.list_rustc_versions {
+        info!("Listing all rustc versions in Nix store.");
+        let rustc_versions = get_all_rustc_paths_from_nix_store()?;
+        if rustc_versions.is_empty() {
+            println!("No rustc versions found in the Nix store.");
+        } else {
+            println!("Found rustc versions:");
+            for (path, version) in rustc_versions {
+                println!("  - Version: {}, Path: {}", version, path);
+            }
+        }
+        return Ok(()); // Exit after listing versions
     }
 
     if let Some(flake_ref) = args.flake_ref {
@@ -116,51 +136,4 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_all_rustc_paths_from_nix_store() -> Result<Vec<String>> {
-    info!("Executing: ls /nix/store/*/bin/rustc");
-    let mut command = Command::new("sh");
-    command.args(&["-c", "ls /nix/store/*/bin/rustc"]);
 
-    let output = command.output()
-        .with_context(|| "Failed to execute ls /nix/store/*/bin/rustc")?;
-
-    if !output.status.success() {
-        debug!(
-            "ls /nix/store/*/bin/rustc failed:\n{}\nStderr: {}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        );
-        return Ok(Vec::new());
-    }
-
-    let stdout = String::from_utf8(output.stdout)?;
-    Ok(stdout.lines().map(|s| s.trim().to_string()).collect())
-}
-
-fn find_nix_package_store_path(package_name: &str, version: Option<&str>) -> Result<Option<String>> {
-    info!("Searching for Nix package: {}", package_name);
-    if let Some(v) = version {
-        info!("  Version: {}", v);
-    }
-
-    if package_name == "rustc" {
-        let rustc_paths = get_all_rustc_paths_from_nix_store()?;
-        if rustc_paths.is_empty() {
-            return Ok(None);
-        }
-        // For now, just return the first one found. We'll add version parsing later.
-        return Ok(Some(rustc_paths[0].clone()));
-    }
-
-    let expr = format!("with import <nixpkgs> {{}}; pkgs.{}.outPath", package_name);
-
-    let stdout = run_nix_eval(&expr);
-
-    match stdout {
-        Ok(path) => Ok(Some(path)),
-        Err(e) => {
-            debug!("Nix eval failed for package '{}': {}", package_name, e);
-            Ok(None)
-        }
-    }
-}

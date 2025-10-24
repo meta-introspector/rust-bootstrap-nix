@@ -140,4 +140,21 @@ pub struct Args {
     /// The change ID for tracking major changes.
     #[arg(long, value_name = "ID")]
     pub change_id: Option<String>,
+
+    /// The rustc version to build with (e.g., "1.89.0", "1.92.0-nightly").
+    /// This will drive the generation of the flake and config.
+    #[arg(long, value_name = "VERSION")]
+    pub build_rustc_version: Option<String>,
+
+    /// The path to the Solana rustc executable (source rustc).
+    #[arg(long, value_name = "PATH")]
+    pub solana_rustc_path: Option<PathBuf>,
+
+    /// The architecture for the build (e.g., "aarch64-linux").
+    #[arg(long, value_name = "ARCH")]
+    pub architecture: Option<String>,
+
+    /// The step in the bootstrap process (e.g., "step1-configure").
+    #[arg(long, value_name = "STEP")]
+    pub step: Option<String>,
 }

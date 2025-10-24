@@ -1,10 +1,10 @@
-feat: Centralize git command helpers in bootstrap-config-builder
+feat: Add Makefile targets for rustc test flakes and configs
 
-Created `bootstrap-config-builder/src/utils/git_command_helpers.rs` to
-centralize generic functions for executing git commands via `std::process::Command`.
-This includes `run_git_command` and `output_result`, adapted to use `anyhow::Result`
-for better error handling. The `bootstrap-config-builder/src/utils/mod.rs`
-was updated to include this new module.
+This commit introduces new targets to the main Makefile to automate the creation and management of Nix flakes and bootstrap configurations for different rustc versions.
 
-This change aims to reduce potential code duplication and provide a single
-point of maintenance for shell-based git operations within the `bootstrap-config-builder` crate.
+New targets include:
+- `generate-rustc-test-flakes`: Creates directories and `flake.nix` files for specified rustc versions.
+- `generate-rustc-test-configs`: Generates `generated_config.toml` files for each rustc version using `bootstrap-config-generator`.
+- `clean-rustc-test-flakes`: Removes the generated flake directories and config files.
+
+This streamlines the process of testing different rustc toolchains within the Nix environment.

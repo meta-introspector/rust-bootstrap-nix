@@ -36,6 +36,11 @@ pub struct AppConfig {
     pub llvm_download_ci_llvm: Option<bool>,
     pub llvm_ninja: Option<bool>,
     pub change_id: Option<String>,
+    // New fields for lattice generation
+    pub solana_rustc_path: Option<PathBuf>,
+    pub architecture: Option<String>,
+    pub step: Option<String>,
+    pub build_rustc_version: Option<String>, // This will be used to find the rustcPath for the build
 }
 
 impl AppConfig {
@@ -73,5 +78,10 @@ impl AppConfig {
         if let Some(llvm_download_ci_llvm) = args.llvm_download_ci_llvm { self.llvm_download_ci_llvm = Some(llvm_download_ci_llvm); }
         if let Some(llvm_ninja) = args.llvm_ninja { self.llvm_ninja = Some(llvm_ninja); }
         if let Some(change_id) = args.change_id.clone() { self.change_id = Some(change_id); }
+        // Merge new fields for lattice generation
+        if let Some(solana_rustc_path) = args.solana_rustc_path.clone() { self.solana_rustc_path = Some(solana_rustc_path); }
+        if let Some(architecture) = args.architecture.clone() { self.architecture = Some(architecture); }
+        if let Some(step) = args.step.clone() { self.step = Some(step); }
+        if let Some(build_rustc_version) = args.build_rustc_version.clone() { self.build_rustc_version = Some(build_rustc_version); }
     }
 }
