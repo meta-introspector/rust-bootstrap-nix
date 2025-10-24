@@ -5,21 +5,22 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    configuration-nix.url = "./configuration-nix";
+    configuration-nix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
     configuration-nix.inputs.nixpkgs.follows = "nixpkgs";
-    standalonex.url = "./standalonex";
+    standalonex.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=standalonex";
+    configGenerator.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=configuration-nix";
 
 
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex, configGenerator }:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, flake-utils, configuration-nix, standalonex }:
     let
       lib = nixpkgs.lib;
       pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
-      rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
+      rustToolchain_aarch64 = pkgs_aarch64.rustChannels.stable.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
 
       pkgs_x86_64 = import nixpkgs { system = "x86_64-linux"; overlays = [ rust-overlay.overlays.default ]; };
-      rustToolchain_x86_64 = pkgs_x86_64.rustChannels.nightly.rust.override { targets = [ "x86_64-unknown-linux-gnu" ]; };
+      rustToolchain_x86_64 = pkgs_x86_64.rustChannels.stable.rust.override { targets = [ "x86_64-unknown-linux-gnu" ]; };
 
       # Define the sccache-enabled rustc package
       # sccachedRustc = (system: pkgs: rustToolchain:
@@ -119,6 +120,24 @@
           stageNum = stageNum;
         }
       ));
+
+      # Generate config.toml for stage 0 (aarch64-linux)
+      generatedConfigToml = generateConfigTomlForStage {
+        system = "aarch64-linux";
+        pkgs = pkgs_aarch64;
+        rustToolchain = rustToolchain_aarch64;
+        configurationNix = configuration-nix;
+        stageNum = "0";
+      };
+
+      # Generate config.toml for stage 0 (x86_64-linux)
+      generatedConfigToml_x86_64 = generateConfigTomlForStage {
+        system = "x86_64-linux";
+        pkgs = pkgs_x86_64;
+        rustToolchain = rustToolchain_x86_64;
+        configurationNix = configuration-nix;
+        stageNum = "0";
+      };
     in
     {
       packages.aarch64-linux = configTomlStages_aarch64 // {
@@ -144,127 +163,132 @@
             ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
           '';
         };
-        default = self.inputs.standalonex.packages.${pkgs_aarch64.system}.default;
-      };
-
-      packages.x86_64-linux = configTomlStages_x86_64 // {
-        bootstrapConfigBuilder = pkgs_x86_64.stdenv.mkDerivation {
-          pname = "rust-bootstrap-config-builder";
-          version = "0.1.0";
-
-          # No source needed, as we are just arranging existing outputs
-          src = null;
-
-          # Depend on the configTomlStages derivations
-          configStage0 = configTomlStages_x86_64.configStage0;
-          configStage1 = configTomlStages_x86_64.configStage1;
-          configStage2 = configTomlStages_x86_64.configStage2;
-
-          installPhase = ''
-            mkdir -p $out/standalonex/src/bootstrap/stage0
-            mkdir -p $out/standalonex/src/bootstrap/stage1
-            mkdir -p $out/standalonex/src/bootstrap/stage2
-            
-            ln -s $configStage0 $out/standalonex/src/bootstrap/stage0/config.toml
-            ln -s $configStage1 $out/standalonex/src/bootstrap/stage1/config.toml
-            ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
-          '';
+        default = self.inputs.standalonex.packages.${pkgs_aarch64.system}.default {
+          configTomlPath = generatedConfigToml;
         };
-        default = self.inputs.standalonex.packages.${pkgs_x86_64.system}.default;
-      };
 
-      devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
-        name = "python-rust-fix-dev-shell";
+        packages.x86_64-linux = configTomlStages_x86_64 // {
+          bootstrapConfigBuilder = pkgs_x86_64.stdenv.mkDerivation {
+            pname = "rust-bootstrap-config-builder";
+            version = "0.1.0";
 
-        packages = [
-          rustToolchain_aarch64
-          pkgs_aarch64.python3
-          pkgs_aarch64.python3Packages.pip
-          pkgs_aarch64.git
-          pkgs_aarch64.curl
-          pkgs_aarch64.which # Add which to the devShell
-          pkgs_aarch64.statix # Add statix to the devShell
-          pkgs_aarch64.rust-analyzer # Add rust-analyzer to the devShell
-        ];
+            # No source needed, as we are just arranging existing outputs
+            src = null;
 
-        # Set HOME and CARGO_HOME for the devShell
-        shellHook = ''
-          export HOME="$TMPDIR"
-          export CARGO_HOME="$HOME/.cargo"
-          mkdir -p $CARGO_HOME
-        '';
+            # Depend on the configTomlStages derivations
+            configStage0 = configTomlStages_x86_64.configStage0;
+            configStage1 = configTomlStages_x86_64.configStage1;
+            configStage2 = configTomlStages_x86_64.configStage2;
 
-        nativeBuildInputs = [
-          pkgs_aarch64.binutils
-          pkgs_aarch64.cmake
-          pkgs_aarch64.ninja
-          pkgs_aarch64.pkg-config
-          pkgs_aarch64.nix
-        ];
+            installPhase = ''
+              mkdir -p $out/standalonex/src/bootstrap/stage0
+              mkdir -p $out/standalonex/src/bootstrap/stage1
+              mkdir -p $out/standalonex/src/bootstrap/stage2
+            
+              ln -s $configStage0 $out/standalonex/src/bootstrap/stage0/config.toml
+              ln -s $configStage1 $out/standalonex/src/bootstrap/stage1/config.toml
+              ln -s $configStage2 $out/standalonex/src/bootstrap/stage2/config.toml
+            '';
+          };
+          default = self.inputs.standalonex.packages.${pkgs_x86_64.system}.default {
+            configTomlPath = generatedConfigToml_x86_64;
+          };
+        };
 
-        buildInputs = [
-          pkgs_aarch64.openssl
-          pkgs_aarch64.glibc.out
-          pkgs_aarch64.glibc.static
-        ];
+        devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
+          name = "python-rust-fix-dev-shell";
 
-        RUSTC_ICE = "0";
-        LD_LIBRARY_PATH = "${pkgs_aarch64.lib.makeLibraryPath [
+          packages = [
+            rustToolchain_aarch64
+            pkgs_aarch64.python3
+            pkgs_aarch64.python3Packages.pip
+            pkgs_aarch64.git
+            pkgs_aarch64.curl
+            pkgs_aarch64.which # Add which to the devShell
+            pkgs_aarch64.statix # Add statix to the devShell
+            pkgs_aarch64.rust-analyzer # Add rust-analyzer to the devShell
+          ];
+
+          # Set HOME and CARGO_HOME for the devShell
+          shellHook = ''
+            export HOME="$TMPDIR"
+            export CARGO_HOME="$HOME/.cargo"
+            mkdir -p $CARGO_HOME
+          '';
+
+          nativeBuildInputs = [
+            pkgs_aarch64.binutils
+            pkgs_aarch64.cmake
+            pkgs_aarch64.ninja
+            pkgs_aarch64.pkg-config
+            pkgs_aarch64.nix
+          ];
+
+          buildInputs = [
+            pkgs_aarch64.openssl
+            pkgs_aarch64.glibc.out
+            pkgs_aarch64.glibc.static
+          ];
+
+          RUSTC_ICE = "0";
+          LD_LIBRARY_PATH = "${pkgs_aarch64.lib.makeLibraryPath [
           pkgs_aarch64.stdenv.cc.cc.lib
         ]}";
-      };
+        };
 
-      devShells.x86_64-linux.default = pkgs_x86_64.mkShell {
-        name = "python-rust-fix-dev-shell";
+        devShells.x86_64-linux.default = pkgs_x86_64.mkShell {
+          name = "python-rust-fix-dev-shell";
 
-        packages = [
-          rustToolchain_x86_64
-          pkgs_x86_64.python3
-          pkgs_x86_64.python3Packages.pip
-          pkgs_x86_64.git
-          pkgs_x86_64.curl
-          pkgs_x86_64.which # Add which to the devShell
-          pkgs_x86_64.statix # Add statix to the devShell
-          pkgs_x86_64.rust-analyzer # Add rust-analyzer to the devShell
-        ];
+          packages = [
+            rustToolchain_x86_64
+            pkgs_x86_64.python3
+            pkgs_x86_64.python3Packages.pip
+            pkgs_x86_64.git
+            pkgs_x86_64.curl
+            pkgs_x86_64.which # Add which to the devShell
+            pkgs_x86_64.statix # Add statix to the devShell
+            pkgs_x86_64.rust-analyzer # Add rust-analyzer to the devShell
+          ];
 
-        # Set HOME and CARGO_HOME for the devShell
-        shellHook = ''
-          export HOME="$TMPDIR"
-          export CARGO_HOME="$HOME/.cargo"
-          mkdir -p $CARGO_HOME
-        '';
+          # Set HOME and CARGO_HOME for the devShell
+          shellHook = ''
+            export HOME="$TMPDIR"
+            export CARGO_HOME="$HOME/.cargo"
+            mkdir -p $CARGO_HOME
+          '';
 
-        nativeBuildInputs = [
-          pkgs_x86_64.binutils
-          pkgs_x86_64.cmake
-          pkgs_x86_64.ninja
-          pkgs_x86_64.pkg-config
-          pkgs_x86_64.nix
-        ];
+          nativeBuildInputs = [
+            pkgs_x86_64.binutils
+            pkgs_x86_64.cmake
+            pkgs_x86_64.ninja
+            pkgs_x86_64.pkg-config
+            pkgs_x86_64.nix
+          ];
 
-        buildInputs = [
-          pkgs_x86_64.openssl
-          pkgs_x86_64.glibc.out
-          pkgs_x86_64.glibc.static
-        ];
+          buildInputs = [
+            pkgs_x86_64.openssl
+            pkgs_x86_64.glibc.out
+            pkgs_x86_64.glibc.static
+          ];
 
-        RUSTC_ICE = "0";
-        LD_LIBRARY_PATH = "${pkgs_x86_64.lib.makeLibraryPath [
+          RUSTC_ICE = "0";
+          LD_LIBRARY_PATH = "${pkgs_x86_64.lib.makeLibraryPath [
           pkgs_x86_64.stdenv.cc.cc.lib
         ]}";
+        };
+
+        apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
+
+        apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
+
+        nixpkgsOutPath = nixpkgs.outPath;
+        rustOverlayOutPath = rust-overlay.outPath;
+        rustBootstrapNixOutPath = self.outPath;
+        configurationNixOutPath = pkgs_aarch64.runCommand "configuration-nix-outpath" { } ''
+          echo ${configuration-nix.packages.${pkgs_aarch64.system}.default} > $out
+        '';
+        rustSrcFlakeOutPath = rustSrcFlake.outPath;
       };
-
-      apps.aarch64-linux.generateConfig = configuration-nix.apps.aarch64-linux.default;
-
-      apps.x86_64-linux.generateConfig = configuration-nix.apps.x86_64-linux.default;
-
-      nixpkgsOutPath = nixpkgs.outPath;
-      rustOverlayOutPath = rust-overlay.outPath;
-      rustBootstrapNixOutPath = self.outPath;
-      configurationNixOutPath = pkgs_aarch64.runCommand "configuration-nix-outpath" { } ''
-        echo ${configuration-nix.packages.${pkgs_aarch64.system}.default} > $out
-      '';
-      rustSrcFlakeOutPath = rustSrcFlake.outPath;
     };
 }
+

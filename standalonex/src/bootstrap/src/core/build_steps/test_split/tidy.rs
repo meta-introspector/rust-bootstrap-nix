@@ -44,8 +44,7 @@ impl Step for Tidy {
             if builder.initial_rustfmt().is_none() {
                 let inferred_rustfmt_dir = builder.initial_rustc.parent().unwrap();
                 eprintln!(
-                    \
-ERROR: no `rustfmt` binary found in {PATH}\nINFO: `rust.channel` is currently set to \"{CHAN}\"\nHELP: if you are testing a beta branch, set `rust.channel` to \"beta\" in the `config.toml` file\nHELP: to skip test's attempt to check tidiness, pass `--skip src/tools/tidy` to `x.py test`,
+                    r#"ERROR: no `rustfmt` binary found in {PATH}\nINFO: `rust.channel` is currently set to "{CHAN}"\nHELP: if you are testing a beta branch, set `rust.channel` to "beta" in the `config.toml` file\nHELP: to skip test's attempt to check tidiness, pass `--skip src/tools/tidy` to `x.py test`,"#,
                     PATH = inferred_rustfmt_dir.display(),
                     CHAN = builder.config.channel,
                 );

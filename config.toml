@@ -1,1 +1,20 @@
-[rust]\nrustc = "/dummy/rustc"\ncargo = "/dummy/cargo"\n\n[build]\nrustc = "/dummy/rustc"\ncargo = "/dummy/cargo"\n\n[env]\nHOME = "/tmp/home"\nCARGO_HOME = "/tmp/cargo-home"\n
+[rust]
+rustc = "/dummy/rustc"
+cargo = "/dummy/cargo"
+
+[build]
+rustc = "/dummy/rustc"
+cargo = "/dummy/cargo"
+
+[env]
+HOME = "/tmp/home"
+CARGO_HOME = "/tmp/cargo-home"
+
+[git]
+base_branch = "feature/CRQ-016-nixify"
+new_flake_branch_prefix = "feature"
+component = "solana-rust-1.84.1"
+arch = "aarch64"
+phase = "phase0"
+step = "step1"
+output_dir_prefix = "flakes"

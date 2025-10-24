@@ -2,27 +2,27 @@
   description = "Test flake for local rust-bootstrap-nix mirror";
 
   inputs = {
-    nixpkgs.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify"; # Original ref: feature/CRQ-016-nixify
-    rustOverlay.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify"; # Original ref: feature/CRQ-016-nixify
-    rustSrc.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
-    naersk.url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/naersk?ref=feature/CRQ-016-nixify";
+    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
+    rustSrc.url = "github:meta-introspector/rust?ref=d772ccdfd1905e93362ba045f66dad7e2ccd469b";
+    naersk.url = "github:meta-introspector/naersk?ref=feature/CRQ-016-nixify";
 
     # Local mirror references
     rustBootstrapNix = {
-      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rust-overlay.follows = "rustOverlay";
       inputs.rustSrcFlake.follows = "rustSrc";
     };
 
     rustBootstrapNixConfig = {
-      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/config";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/config";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rustBootstrapNix.follows = "rustBootstrapNix";
     };
 
     rustBootstrapNixXpyJsonOutputFlake = {
-      url = "git+file:///data/data/com.termux.nix/files/home/git/meta-introspector/rust-bootstrap-nix?ref=feature/bootstrap-001&dir=flakes/xpy-json-output-flake";
+      url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=flakes/xpy-json-output-flake";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rustSrc.follows = "rustSrc";
     };
