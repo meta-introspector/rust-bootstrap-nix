@@ -39,10 +39,10 @@ This section details recent developments in configuring the Rust bootstrap proce
 To generate a `config.toml` with specific `rustc` and `cargo` paths, and a local Rust source path, navigate to the `bootstrap-config-builder` directory and run:
 
 ```bash
-cargo run --bin bootstrap-config-generator -- \
+car go run --bin bootstrap-config-generator -- \
     --rustc-path /nix/store/yxh9cs2lshqgk6h0kp256yms3w8qwmsz-rustc-wrapper-1.89.0/bin/rustc \
     --cargo-path /nix/store/ahyjafkgyn6zji9qlvv92z8gxmcmaky4-cargo-1.89.0/bin/cargo \
-    --project-root /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-bootstrap-nix \
+    --project-root /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix \
     --rust-src-flake-path /data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src \
     --output generated_config.toml
 ```
@@ -52,3 +52,38 @@ This command will create a `generated_config.toml` file in the `bootstrap-config
 **Next Steps:**
 
 The generated `config.toml` now needs to be integrated into the actual Rust bootstrap process. This involves understanding how the main `rust-bootstrap-nix` project consumes its `config.toml` and adapting it to use the newly generated configuration.
+
+### `test-openssl-sys` Crate Creation and Nixification
+
+This section details the creation of a standalone Rust test crate (`test-openssl-sys`) that uses the `openssl-sys` library, and its successful integration and build within the Nix flake system.
+
+**Goal:** To create a minimal Rust project demonstrating `openssl-sys` usage, configured to build reliably with Nix flakes, addressing common dependency resolution challenges in a Nix environment.
+
+**Key Challenges and Solutions:**
+
+1.  **`Cargo.lock` Management in a Workspace:**
+    *   **Problem:** When `test-openssl-sys` was initially added to the main project's Cargo workspace, running `cargo generate-lockfile` from within its directory would update the workspace's `Cargo.lock` at the root, not create a local one.
+    *   **Solution:** Temporarily removed `test-openssl-sys` from the workspace, added an empty `[workspace]` table to its `Cargo.toml` to make it a standalone package for `cargo generate-lockfile`, then re-added it to the main workspace. This allowed `test-openssl-sys` to manage its own `Cargo.lock`.
+
+2.  **Nix Flake Input Resolution for Common Dependencies:**
+    *   **Problem:** Initial attempts to import `nix/rust-deps/common-rust-deps.nix` into `test-openssl-sys/flake.nix` resulted in "access to absolute path ... is forbidden in pure eval mode" errors. This was due to incorrect referencing of the parent project's source.
+    *   **Solution:** Defined a `commonDepsFlake` input in `test-openssl-sys/flake.nix` that points directly to the `nix/rust-deps` directory *as a flake* within the `rust-bootstrap-nix` repository (`github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=nix/rust-deps`). The `commonRustDeps` was then imported as `commonDepsFlake.common-rust-deps`.
+
+3.  **`openssl-sys` Library Discovery in Nix Build Environment:**
+    *   **Problem:** The `openssl-sys` crate consistently failed to find OpenSSL libraries during `nix build`, reporting `pkg-config` not found or incorrect library paths, even when `PKG_CONFIG_PATH` and `pkgs.pkg-config` were seemingly correctly configured. This was due to `pkgs.openssl` resolving to the `bin` package instead of the main `openssl` package containing shared libraries, and `openssl-sys` misinterpreting environment variables.
+    *   **Solution:** Explicitly set `OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";` and `OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";` in `test-openssl-sys/flake.nix`. This precisely guided `openssl-sys` to the correct OpenSSL shared libraries and header files.
+
+**How to Use `test-openssl-sys`:**
+
+The `test-openssl-sys` crate has been successfully built. The executable is located at `result/bin/test-openssl-sys` after a successful `nix build`.
+
+To run the built executable:
+```bash
+./result/bin/test-openssl-sys
+```
+This command will execute the Rust program, which should print the OpenSSL version, confirming successful linking against the OpenSSL libraries provided by Nix.
+
+To build the `test-openssl-sys` flake:
+```bash
+nix build /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/test-openssl-sys
+```
