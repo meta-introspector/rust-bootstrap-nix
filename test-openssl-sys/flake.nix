@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    commonDepsFlake.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=nix/rust-deps";
+    commonDepsFlake.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/1.84.1-aarch64-config-generation-reference-config&dir=nix/rust-deps";
   };
 
   outputs = { self, nixpkgs, rust-overlay, commonDepsFlake, ... }@inputs:

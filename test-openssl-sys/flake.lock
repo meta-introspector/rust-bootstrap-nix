@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "commonDepsFlake": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "dir": "nix/rust-deps",
+        "lastModified": 1761410178,
+        "narHash": "sha256-1wfxrixI+xbnDxEY4z4EzAqXE9qzDQ6QWfd0qf7+WrY=",
+        "owner": "meta-introspector",
+        "repo": "rust-bootstrap-nix",
+        "rev": "6da9406aa6f57ed9398c732ae8ffe2dedf833794",
+        "type": "github"
+      },
+      "original": {
+        "dir": "nix/rust-deps",
+        "owner": "meta-introspector",
+        "ref": "feature/1.84.1-aarch64-config-generation-reference-config",
+        "repo": "rust-bootstrap-nix",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1757898380,
@@ -32,15 +53,32 @@
         "type": "github"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1757898380,
+        "narHash": "sha256-1Z0KAfbySsHu/IoZbBJLrPgs3IqQGup0T8J9S1ffAkE=",
+        "owner": "meta-introspector",
+        "repo": "nixpkgs",
+        "rev": "26833ad1dad83826ef7cc52e0009ca9b7097c79f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
+        "commonDepsFlake": "commonDepsFlake",
+        "nixpkgs": "nixpkgs_2",
         "rust-overlay": "rust-overlay"
       }
     },
     "rust-overlay": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1760649444,
