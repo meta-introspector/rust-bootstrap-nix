@@ -56,32 +56,31 @@
           #rustc = pkgs.rust-bin.stable."1.84.1".default;
           rustc = pkgs.rust-bin.nightly.latest.default;
           doCheck = false;
+        };
 
-          bootstrap-main = rustPlatform.buildRustPackage {
-            pname = "bootstrap-main";
-            version = "0.1.0";
+        bootstrap-main = rustPlatform.buildRustPackage {
+          pname = "bootstrap-main";
+          version = "0.1.0";
 
-            src = pkgs.lib.cleanSource ./src;
-            cargoLock.lockFile = ./src/Cargo.lock;
-            #rustc = pkgs.rust-bin.stable."1.84.1".default;
-            rustc = pkgs.rust-bin.nightly.latest.default;
-            doCheck = false;
-            cargoBuildFlags = [ "--bin" "bootstrap" ];
-          };
+          src = pkgs.lib.cleanSource ./src;
+          cargoLock.lockFile = ./src/Cargo.lock;
+          #rustc = pkgs.rust-bin.stable."1.84.1".default;
+          rustc = pkgs.rust-bin.nightly.latest.default;
+          doCheck = false;
+          cargoBuildFlags = [ "--bin" "bootstrap" ];
+        };
 
-          nix-bootstrap = rustPlatform.buildRustPackage {
-            pname = "nix-bootstrap";
-            version = "0.1.0";
+        nix-bootstrap = rustPlatform.buildRustPackage {
+          pname = "nix-bootstrap";
+          version = "0.1.0";
 
-            src = pkgs.lib.cleanSource ./src;
-            cargoLock.lockFile = ./src/Cargo.lock;
-            #rustc = pkgs.rust-bin.stable."1.84.1".default;
-            rustc = pkgs.rust-bin.nightly.latest.default;
-            doCheck = false;
-            cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
-          };
+          src = pkgs.lib.cleanSource ./src;
+          cargoLock.lockFile = ./src/Cargo.lock;
+          #rustc = pkgs.rust-bin.stable."1.84.1".default;
+          rustc = pkgs.rust-bin.nightly.latest.default;
+          doCheck = false;
+          cargoBuildFlags = [ "--bin" "nix_bootstrap" ];
         };
       };
     };
 }
-
