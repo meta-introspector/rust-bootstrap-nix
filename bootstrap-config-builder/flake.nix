@@ -7,12 +7,13 @@
     rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay }:
+  outputs = { self, nixpkgs, rustSrcFlake, rustOverlay, lib }:
     let
       pkgs = import nixpkgs {
         system = "aarch64-linux";
         overlays = [ rustOverlay.overlays.default ];
       };
+      commonRustDeps = import ../nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
       rustcPath = "${pkgs.rust-bin.stable."1.89.0".default}/bin/rustc"; # Using a specific rustc version
       cargoPath = "${pkgs.cargo}/bin/cargo"; # Using cargo from nixpkgs
       projectRoot = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix"; # Absolute path to the main project root
@@ -24,9 +25,8 @@
           pkgs.rustc
           pkgs.cargo
           pkgs.rust-analyzer
-          pkgs.openssl # Add openssl to buildInputs
-        ];
-        PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig"; # Set PKG_CONFIG_PATH
+        ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
         RUST_SRC_PATH = "${rustSrcFlake}/library";
       };
 
