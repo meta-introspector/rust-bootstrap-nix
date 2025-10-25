@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify&dir=nix/rust-deps"; # Add rust-bootstrap-nix as an input with dir
+    rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/1.84.1-aarch64-config-generation-reference-config&dir=nix/rust-deps"; # Update ref to current branch
   };
 
   outputs = { self, nixpkgs, rustBootstrapNix }:
