@@ -21,11 +21,13 @@
     {
       devShells.aarch64-linux.default = pkgs.mkShell {
         buildInputs = [
-          pkgs.cargo
-          pkgs.rustc # Added pkgs.rustc
+          pkgs.rust-bin.stable."1.89.0".default # Provide the entire toolchain
         ] ++ commonRustDeps.commonBuildInputs; # Added commonRustDeps
         RUSTC = rustcPath;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath; # Added PKG_CONFIG_PATH
+        shellHook = ''
+          export PATH=$PATH:${pkgs.rust-bin.stable."1.89.0".default}/bin
+        '';
       };
 
       packages.aarch64-linux.default = pkgs.runCommand "stage0-step1-configure-usage" { }
