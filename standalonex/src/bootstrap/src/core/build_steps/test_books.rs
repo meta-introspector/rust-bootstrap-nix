@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 test_book!(
     Nomicon, "src/doc/nomicon", "nomicon", default=false, submodules=["src/doc/nomicon"];
     Reference, "src/doc/reference", "reference", default=false, submodules=["src/doc/reference"];

@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 
         let _guard = builder.msg_sysroot_tool(Kind::Test, compiler.stage, "clippy", host, host);
 

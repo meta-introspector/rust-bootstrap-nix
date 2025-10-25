@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! C-compiler probing and detection.
 //!
 //! This module will fill out the `cc` and `cxx` maps of `Build` by looking for

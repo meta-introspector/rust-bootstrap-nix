@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! bootstrap, the Rust build system
 //!
 //! This is the entry point for the build system used to compile the `rustc`

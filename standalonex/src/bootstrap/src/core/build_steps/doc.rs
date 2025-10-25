@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Documentation generation for bootstrap.
 //!
 //! This module implements generation for all bits and pieces of documentation

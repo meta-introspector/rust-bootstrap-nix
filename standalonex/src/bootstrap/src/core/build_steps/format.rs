@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Runs rustfmt on the repository.
 
 use std::collections::VecDeque;

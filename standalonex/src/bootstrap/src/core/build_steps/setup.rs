@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! First time setup of a dev environment
 //!
 //! These are build-and-run steps for `./x.py setup`, which allows quickly setting up the directory

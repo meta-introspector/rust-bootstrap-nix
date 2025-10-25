@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 HELP: if you are testing a beta branch, set `rust.channel` to \"beta\" in the `config.toml` file
 HELP: to skip test's attempt to check tidiness, pass `--skip src/tools/tidy` to `x.py test`",
                     PATH = inferred_rustfmt_dir.display(),

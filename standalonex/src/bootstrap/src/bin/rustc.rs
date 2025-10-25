@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Shim which is passed to Cargo as "rustc" when running the bootstrap.
 //!
 //! This shim will take care of some various tasks that our build process

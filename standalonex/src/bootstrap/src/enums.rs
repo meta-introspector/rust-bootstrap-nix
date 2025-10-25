@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 use crate::Mode;
 
 pub enum DocTests {

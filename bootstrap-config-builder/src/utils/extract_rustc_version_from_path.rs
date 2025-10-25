@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub fn extract_rustc_version_from_path(path: &str) -> String {
     // Example path: /nix/store/0x7s63gjcvybs6fgdq9p6z5l8svcxaav-nix-on-droid-path/bin/rustc
     // We want to extract "nix-on-droid-path" or similar version info.

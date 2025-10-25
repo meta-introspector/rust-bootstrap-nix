@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Various utility functions used throughout bootstrap.
 //!
 //! Simple things like testing the various filesystem operations here and there,

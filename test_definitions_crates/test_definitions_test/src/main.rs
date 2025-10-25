@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 use test_definitions_macro::test_definitions;
 
 // Dummy types to allow the macro to compile in this test crate

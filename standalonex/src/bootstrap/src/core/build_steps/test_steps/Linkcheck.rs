@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
             "linkchecker self tests",
             compiler,
             bootstrap_host,

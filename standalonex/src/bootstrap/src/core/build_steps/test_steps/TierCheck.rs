@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub struct LintDocs {
     pub common: common_test_fields::CommonTestFields,
 }

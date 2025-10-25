@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Build configuration for Rust's release channels.
 //!
 //! Implements the stable/beta/nightly channel distinctions by setting various

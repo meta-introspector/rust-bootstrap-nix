@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! This module serves two purposes:
 //!     1. It is part of the `utils` module and used in other parts of bootstrap.
 //!     2. It is embedded inside bootstrap shims to avoid a dependency on the bootstrap library.

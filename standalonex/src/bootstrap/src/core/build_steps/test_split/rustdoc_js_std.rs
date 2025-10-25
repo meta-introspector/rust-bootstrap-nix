@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RustdocJSStd {
     pub common: common_test_fields::CommonTestFields,

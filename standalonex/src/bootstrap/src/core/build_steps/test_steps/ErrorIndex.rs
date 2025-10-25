@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
         // The tests themselves need to link to std, so make sure it is
         // available.
         builder.ensure(compile::Std::new(compiler, compiler.host));

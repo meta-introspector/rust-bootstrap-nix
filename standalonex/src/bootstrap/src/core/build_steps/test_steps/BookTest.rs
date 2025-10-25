@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
         let path = builder.src.join(&self.path);
         // Books often have feature-gated example text.
         rustbook_cmd.env("RUSTC_BOOTSTRAP", "1");

@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 /// Given a `cargo test` subcommand, add the appropriate flags and run it.
 ///
 /// Returns whether the test succeeded.

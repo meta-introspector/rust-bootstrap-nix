@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 fn path_for_cargo(builder: &Builder<'_>, compiler: Compiler) -> OsString {
     // Configure PATH to find the right rustc. NB. we have to use PATH
     // and not RUSTC because the Cargo test suite has tests that will

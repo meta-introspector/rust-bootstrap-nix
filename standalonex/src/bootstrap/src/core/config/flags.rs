@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Command-line interface of the bootstrap build system.
 //!
 //! This module implements the command-line parsing of the build system which

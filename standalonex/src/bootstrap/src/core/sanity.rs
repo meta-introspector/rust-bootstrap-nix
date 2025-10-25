@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Sanity checking performed by bootstrap before actually executing anything.
 //!
 //! This module contains the implementation of ensuring that the build

@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 /// Given a `cargo test` subcommand, pass it the appropriate test flags given a `builder`.
 fn prepare_cargo_test(
     cargo: impl Into<BootstrapCommand>,

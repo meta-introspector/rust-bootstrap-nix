@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 
         let dir = builder.src.join(workspace_path);
         // needed by rust-analyzer to find its own text fixtures, cf.

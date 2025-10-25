@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub fn generate_flake_nix_content(
     nixpkgs_url: &str,
     system_arch: &str,

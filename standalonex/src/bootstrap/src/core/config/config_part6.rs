@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub struct OptimizeVisitor;
 
 impl serde::de::Visitor<'_> for OptimizeVisitor {

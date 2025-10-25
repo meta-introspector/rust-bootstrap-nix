@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! [Toolstate] checks to keep tools building
 //!
 //! Reachable via `./x.py test` but mostly relevant for CI, since it isn't run locally by default.

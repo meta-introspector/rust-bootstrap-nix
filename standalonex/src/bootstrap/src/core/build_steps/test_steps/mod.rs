@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub mod CrateBootstrap;
 pub mod Linkcheck;
 pub mod HtmlCheck;

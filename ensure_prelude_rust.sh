@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PRELUDE_LINE="use crate::prelude::*";
 PRELUDE_INSERT="${PRELUDE_LINE}\n\n";

@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! This module is responsible for collecting metrics profiling information for the current build
 //! and dumping it to disk as JSON, to aid investigations on build and CI performance.
 //!

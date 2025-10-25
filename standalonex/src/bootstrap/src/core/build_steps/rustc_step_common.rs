@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 use crate::builder::ShouldRun;
 
 pub fn rustc_should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {

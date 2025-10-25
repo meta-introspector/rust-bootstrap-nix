@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Compilation of native dependencies like GCC.
 //!
 //! Native projects like GCC unfortunately aren't suited just yet for

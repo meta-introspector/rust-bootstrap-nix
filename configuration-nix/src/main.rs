@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 use clap::Parser;
 
 mod config_generator;

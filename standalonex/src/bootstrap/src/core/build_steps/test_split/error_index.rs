@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ErrorIndex {
     pub common: common_test_fields::CommonTestFields,

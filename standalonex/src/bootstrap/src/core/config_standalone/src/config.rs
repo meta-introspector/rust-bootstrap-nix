@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Serialized configuration of a build.
 //!
 //! This module implements parsing `config.toml` configuration files to tweak

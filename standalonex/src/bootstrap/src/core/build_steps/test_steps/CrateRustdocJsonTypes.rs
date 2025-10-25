@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
             &["rustdoc-json-types".to_string()],
             "rustdoc-json-types",
             "rustdoc-json-types",

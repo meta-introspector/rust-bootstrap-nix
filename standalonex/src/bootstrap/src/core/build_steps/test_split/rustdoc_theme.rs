@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RustdocTheme {
     pub common: common_test_fields::CommonTestFields,

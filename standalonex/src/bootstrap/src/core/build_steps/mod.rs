@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 pub mod check;
 pub mod clean;
 pub mod clippy;

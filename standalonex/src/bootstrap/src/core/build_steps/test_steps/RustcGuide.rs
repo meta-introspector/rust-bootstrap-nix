@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
         let crates = run.make_run_crates(Alias::Compiler);
 
         builder.ensure(CrateLibrustc { compiler, target: run.target, crates });

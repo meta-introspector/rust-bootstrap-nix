@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! In some cases, parts of bootstrap need to change part of a target spec just for one or a few
 //! steps. Adding these targets to rustc proper would "leak" this implementation detail of
 //! bootstrap, and would make it more complex to apply additional changes if the need arises.

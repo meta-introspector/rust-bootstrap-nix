@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
         builder.ensure(crate::core::build_steps::doc::Std::new(
             self.common.stage,
             self.common.target,

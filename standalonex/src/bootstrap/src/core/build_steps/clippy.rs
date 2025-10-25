@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Implementation of running clippy on the compiler, standard library and various tools.
 
 //use super::compile::{librustc_stamp, libstd_stamp, run_cargo, rustc_cargo, std_cargo};

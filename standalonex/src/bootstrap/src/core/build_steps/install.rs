@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
 //! Implementation of the install aspects of the compiler.
 //!
 //! This module is responsible for installing the standard library,

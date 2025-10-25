@@ -1,3 +1,6 @@
+use crate::prelude::*
+
+
         let stage_id = if suite == "ui-fulldeps" && compiler.stage == 1 {
             // At stage 0 (stage - 1) we are using the beta compiler. Using `self.target` can lead finding
             // an incorrect compiler path on cross-targets, as the stage 0 beta compiler is always equal
