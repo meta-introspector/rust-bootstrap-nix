@@ -15,7 +15,7 @@
         overlays = [ rust-overlay.overlays.default ];
       };
       lib = nixpkgs.lib;
-      commonRustDeps = commonDepsFlake.common-rust-deps { inherit pkgs lib; };
+      commonRustDeps = commonDepsFlake.common-rust-deps;
     in
     {
       packages.${system}.default = pkgs.rustPlatform.buildRustPackage {
@@ -23,7 +23,20 @@
         version = "0.1.0";
         src = ./.;
         cargoLock.lockFile = ./Cargo.lock;
-        buildInputs = commonRustDeps.commonBuildInputs;
+        buildInputs = [ pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        preBuild = ''
+          export PATH=${pkgs.pkg-config}/bin:$PATH
+          set -x
+          echo "PATH: $PATH"
+          pkg-config --version || echo "pkg-config not found in PATH"
+          ls -laR ${commonRustDeps.pkgConfigPath} || true
+          ls -laR ${pkgs.openssl.dev}/lib/pkgconfig || true
+          ls -laR ${pkgs.openssl}/lib || true
+          ls -laR ${pkgs.openssl.dev}/include || true
+        '';
       };
 
       devShells.${system}.default = pkgs.mkShell {
