@@ -21,16 +21,14 @@ struct ConfigField {
 impl Parse for ConfigInput {
     fn parse(input: ParseStream) -> Result<Self> {
         let attrs = input.call(syn::Attribute::parse_outer)?;
-        let struct_token = input.parse()?;
+        input.parse::<Token![struct]>()?;
         let ident = input.parse()?;
         let content;
-        let brace_token = braced!(content in input);
+        let _brace_token = braced!(content in input);
         let fields = content.parse_terminated(ConfigField::parse, Token![,])?;
         Ok(ConfigInput {
             attrs,
-            struct_token,
             ident,
-            brace_token,
             fields,
         })
     }
@@ -39,19 +37,17 @@ impl Parse for ConfigInput {
 impl Parse for ConfigField {
     fn parse(input: ParseStream) -> Result<Self> {
         let ident = input.parse()?;
-        let colon_token = input.parse()?;
+        input.parse::<Token![:]>()?;
         let ty = input.parse()?;
-        let eq_token = input.parse().ok();
-        let key = if eq_token.is_some() {
+        let key = if input.peek(Token![=]) {
+            input.parse::<Token![=]>()?;
             Some(input.parse()?)
         } else {
             None
         };
         Ok(ConfigField {
             ident,
-            colon_token,
             ty,
-            eq_token,
             key,
         })
     }
