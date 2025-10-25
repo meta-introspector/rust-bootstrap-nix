@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! Command-line interface of the bootstrap build system.

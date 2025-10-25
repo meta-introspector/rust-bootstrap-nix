@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! This module facilitates the tracking system for major changes made to the bootstrap,

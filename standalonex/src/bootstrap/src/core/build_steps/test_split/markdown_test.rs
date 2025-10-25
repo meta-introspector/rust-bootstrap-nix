@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 fn markdown_test(builder: &Builder<'_>, compiler: Compiler, markdown: &Path) -> bool {

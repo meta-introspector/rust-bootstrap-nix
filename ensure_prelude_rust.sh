@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 
 PRELUDE_LINE="use crate::prelude::*";
-PRELUDE_INSERT="${PRELUDE_LINE}\n\n";
 
-# Get a list of Rust files that do not contain the prelude line
-FILES_TO_MODIFY=$(grep -r -L "${PRELUDE_LINE}" --include "*.rs" .)
+# Find all Rust files that contain the prelude line but are missing a semicolon
+FILES_TO_FIX=$(grep -r -l "${PRELUDE_LINE}" --include "*.rs" . | xargs grep -L "${PRELUDE_LINE};" --include "*.rs")
 
-# Iterate through each file and prepend the prelude line
-for file in $FILES_TO_MODIFY; do
-    echo "Adding prelude to $file"
-    # Use sed to insert the prelude line at the beginning of the file
-    # The '1i' command inserts text before the first line
-    sed -i "1i${PRELUDE_INSERT}" "$file"
+# Iterate through each file and add a semicolon to the prelude line
+for file in $FILES_TO_FIX; do
+    echo "Adding semicolon to prelude in $file"
+    # Use sed to append a semicolon to lines ending with "use crate::prelude::*"
+    sed -i '/use crate::prelude::\*$/s/$/;/' "$file"
 done
 
-echo "Prelude insertion complete."
-
+echo "Prelude semicolon fix complete."

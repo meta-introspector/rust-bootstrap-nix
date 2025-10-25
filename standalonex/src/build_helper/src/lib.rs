@@ -1,7 +1,7 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
-//! Types and functions shared across tools in this workspace.
+/// Types and functions shared across tools in this workspace.
 
 pub mod ci;
 pub mod drop_bomb;
@@ -32,3 +32,5 @@ pub const RUSTC_PGO_CRATES: &[&str] = &[
     "diesel-1.4.8",
     "bitmaps-3.1.0",
 ];
+
+pub mod prelude;

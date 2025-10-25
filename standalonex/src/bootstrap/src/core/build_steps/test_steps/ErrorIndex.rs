@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
         // The tests themselves need to link to std, so make sure it is

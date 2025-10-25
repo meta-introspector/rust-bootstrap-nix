@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! Serialized configuration of a build.

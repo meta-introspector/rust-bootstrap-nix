@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! Shim which is passed to Cargo as "rustdoc" when running the bootstrap.

@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! This module renders the JSON output of libtest into a human-readable form, trying to be as

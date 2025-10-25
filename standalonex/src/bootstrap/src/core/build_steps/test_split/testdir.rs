@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 fn testdir(builder: &Builder<'_>, host: TargetSelection) -> PathBuf {

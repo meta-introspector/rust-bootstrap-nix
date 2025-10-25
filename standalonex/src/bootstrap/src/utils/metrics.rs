@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! This module is responsible for collecting metrics profiling information for the current build

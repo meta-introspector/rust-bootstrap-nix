@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 use bootstrap_config_utils::parsed_config::ParsedConfig;

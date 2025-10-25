@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! In some cases, parts of bootstrap need to change part of a target spec just for one or a few

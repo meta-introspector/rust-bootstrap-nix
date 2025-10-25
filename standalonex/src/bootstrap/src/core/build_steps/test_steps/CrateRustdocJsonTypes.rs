@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
             &["rustdoc-json-types".to_string()],

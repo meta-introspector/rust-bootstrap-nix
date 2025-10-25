@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! Implementation of running clippy on the compiler, standard library and various tools.

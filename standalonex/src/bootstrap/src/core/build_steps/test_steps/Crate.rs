@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
                 eprintln!("ERROR: `x.py miri` requires stage 1 or higher");

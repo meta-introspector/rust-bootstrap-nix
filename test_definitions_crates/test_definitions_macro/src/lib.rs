@@ -1,8 +1,10 @@
 
-use proc_macro::TokenStream;
-use quote::quote;
+//use proc_macro::TokenStream;
+///use quote::quote;
 use syn::{parse_macro_input, Ident, LitBool, LitStr};
+//use syn::parse_macro_input;
 
+extern crate syn;
 struct TestDefinitionArgs {
     name: Ident,
     path: LitStr,
@@ -56,7 +58,7 @@ impl syn::parse::Parse for TestDefinitionArgs {
 }
 
 #[proc_macro]
-pub fn test_definitions(input: TokenStream) -> TokenStream {
+pub fn test_definitions(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args = parse_macro_input!(input as TestDefinitionArgs);
 
     let name = &args.name;
@@ -67,7 +69,7 @@ pub fn test_definitions(input: TokenStream) -> TokenStream {
     let host = &args.host;
     let compare_mode = &args.compare_mode;
 
-    let expanded = quote! {
+    let expanded = quote::quote! {
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct #name {
             pub compiler: Compiler,

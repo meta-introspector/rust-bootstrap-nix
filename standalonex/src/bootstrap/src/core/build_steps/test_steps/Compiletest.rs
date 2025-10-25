@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
         let stage_id = if suite == "ui-fulldeps" && compiler.stage == 1 {

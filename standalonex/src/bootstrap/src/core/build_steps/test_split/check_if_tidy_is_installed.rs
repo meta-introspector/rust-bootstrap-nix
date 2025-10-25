@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 fn check_if_tidy_is_installed(builder: &Builder<'_>) -> bool {

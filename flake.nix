@@ -5,14 +5,15 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, ... }@inputs:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, cargo2nix, ... }@inputs:
     let
       system = "aarch64-linux";
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ rust-overlay.overlays.default ];
+        overlays = [ rust-overlay.overlays.default cargo2nix.overlays.default ];
       };
       lib = nixpkgs.lib; # Define lib here
       commonRustDeps = import ./nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
@@ -41,6 +42,9 @@
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
         OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
         OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        CARGO_NET_OFFLINE = false;
+        cargoBuildFlags = [ "--target" "aarch64-unknown-linux-gnu" ];
+        CARGO_BUILD_FLAGS = "--target aarch64-unknown-linux-gnu";
         checkPhase = ''
           echo "pkgs.openssl.dev path: ${pkgs.openssl.dev}"
           export PKG_CONFIG_PATH=${commonRustDeps.pkgConfigPath}
@@ -50,15 +54,19 @@
         '';
       };
 
-      devShells.aarch64-linux.default = pkgs.mkShell {
-        packages = with pkgs; [
-          (pkgs.rust-bin.nightly.latest.default)
-          nixpkgs-fmt
-        ] ++ commonRustDeps.commonBuildInputs;
+      packages.aarch64-linux.bootstrap = pkgs.rustPlatform.buildRustPackage {
+        pname = "bootstrap";
+        version = "0.0.0";
+        src = self;
+        cargoLock.lockFile = ./standalonex/src/bootstrap/Cargo.lock;
+        cargoRoot = "standalonex/src/bootstrap";
+        buildInputs = [ pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
-        shellHook = ''
-          export PATH=$PATH:${pkgs.rust-bin.nightly.latest.default}/bin
-        '';
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        CARGO_NET_OFFLINE = false;
+        cargoBuildFlags = [ "--target" "aarch64-unknown-linux-gnu" ];
+        CARGO_BUILD_FLAGS = "--target aarch64-unknown-linux-gnu";
       };
     };
 }

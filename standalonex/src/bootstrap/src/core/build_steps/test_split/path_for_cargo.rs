@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 fn path_for_cargo(builder: &Builder<'_>, compiler: Compiler) -> OsString {

@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 HELP: if you are testing a beta branch, set `rust.channel` to \"beta\" in the `config.toml` file

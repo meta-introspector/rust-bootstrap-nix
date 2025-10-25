@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 //! Sanity checking performed by bootstrap before actually executing anything.

@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
         let path = builder.src.join(&self.path);

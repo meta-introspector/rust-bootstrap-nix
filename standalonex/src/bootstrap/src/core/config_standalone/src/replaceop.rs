@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 /// Describes how to handle conflicts in merging two [`TomlConfig`]

@@ -1,11 +1,11 @@
 use crate::prelude::*;
 
-//! This module implements "drop bombs" intended for use by command wrappers to ensure that the
-//! constructed commands are *eventually* executed. This is exactly like `rustc_errors::Diag` where
-//! we force every `Diag` to be consumed or we emit a bug, but we panic instead.
-//!
-//! This is adapted from <https://docs.rs/drop_bomb/latest/drop_bomb/> and simplified for our
-//! purposes.
+/// This module implements "drop bombs" intended for use by command wrappers to ensure that the
+/// constructed commands are *eventually* executed. This is exactly like `rustc_errors::Diag` where
+/// we force every `Diag` to be consumed or we emit a bug, but we panic instead.
+///
+/// This is adapted from <https://docs.rs/drop_bomb/latest/drop_bomb/> and simplified for our
+/// purposes.
 
 use std::ffi::{OsStr, OsString};
 use std::panic;

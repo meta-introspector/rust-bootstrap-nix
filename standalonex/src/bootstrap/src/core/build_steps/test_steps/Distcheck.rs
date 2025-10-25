@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
             .arg(builder.ensure(dist::Src).tarball())

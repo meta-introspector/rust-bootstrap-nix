@@ -1,4 +1,4 @@
-use crate::prelude::*
+use crate::prelude::*;
 
 
 fn get_browser_ui_test_version(builder: &Builder<'_>, npm: &Path) -> Option<String> {
