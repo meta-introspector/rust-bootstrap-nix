@@ -12,7 +12,7 @@
         system = "aarch64-linux";
       };
       lib = nixpkgs.lib; # Define lib here
-      commonRustDeps = import rustBootstrapNix.common-rust-deps { inherit pkgs lib; }; # Update import path
+      commonRustDeps = rustBootstrapNix.common-rust-deps; # Update import path
       # This rustcPath is the *source* rustc used to build the next stage
       rustcPath = "${pkgs.rust-bin.stable."1.89.0".default}/bin/rustc";
     in

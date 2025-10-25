@@ -7,13 +7,14 @@
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, lib, ... }@inputs:
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, ... }@inputs:
     let
       system = "aarch64-linux";
       pkgs = import nixpkgs {
         inherit system;
         overlays = [ rust-overlay.overlays.default ];
       };
+      lib = nixpkgs.lib; # Define lib here
       commonRustDeps = import ./nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
     in
     {
