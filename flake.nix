@@ -50,6 +50,7 @@
       devShells.aarch64-linux.default = pkgs.mkShell {
         packages = with pkgs; [
           (pkgs.rust-bin.nightly.latest.default)
+          nixpkgs-fmt
         ] ++ commonRustDeps.commonBuildInputs;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
         shellHook = ''
