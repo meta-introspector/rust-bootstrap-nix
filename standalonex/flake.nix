@@ -51,7 +51,7 @@
         default = rustPlatform.buildRustPackage {
           pname = "rust-bootstrap-default";
           version = "0.1.0";
-          src = pkgs.lib.cleanSource ./src;
+          src = ./src;
           cargoLock.lockFile = ./src/Cargo.lock;
           #rustc = pkgs.rust-bin.stable."1.84.1".default;
           rustc = pkgs.rust-bin.nightly.latest.default;
@@ -62,7 +62,7 @@
           pname = "bootstrap-main";
           version = "0.1.0";
 
-          src = pkgs.lib.cleanSource ./src;
+          src = ./src;
           cargoLock.lockFile = ./src/Cargo.lock;
           #rustc = pkgs.rust-bin.stable."1.84.1".default;
           rustc = pkgs.rust-bin.nightly.latest.default;
@@ -74,7 +74,7 @@
           pname = "nix-bootstrap";
           version = "0.1.0";
 
-          src = pkgs.lib.cleanSource ./src;
+          src = ./src;
           cargoLock.lockFile = ./src/Cargo.lock;
           #rustc = pkgs.rust-bin.stable."1.84.1".default;
           rustc = pkgs.rust-bin.nightly.latest.default;
@@ -84,3 +84,4 @@
       };
     };
 }
+
