@@ -4,12 +4,14 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rustBootstrapNix.url = "github:meta-introspector/rust-bootstrap-nix?ref=feature/1.84.1-aarch64-config-generation-reference-config&dir=nix/rust-deps"; # Update ref to current branch
+    rustOverlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify"; # Add rust-overlay input
   };
 
-  outputs = { self, nixpkgs, rustBootstrapNix }:
+  outputs = { self, nixpkgs, rustBootstrapNix, rustOverlay }:
     let
       pkgs = import nixpkgs {
         system = "aarch64-linux";
+        overlays = [ rustOverlay.overlays.default ]; # Apply rust-overlay
       };
       lib = nixpkgs.lib; # Define lib here
       commonRustDeps = rustBootstrapNix.common-rust-deps; # Update import path
