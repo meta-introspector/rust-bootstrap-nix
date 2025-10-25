@@ -38,17 +38,17 @@ use utils::helpers::hex_encode;
 use crate::core::builder;
 use crate::core::builder::{Builder, Kind};
 
-pub use crate::core::config::*;
-use crate::core::config::dry_run::DryRun;
-use crate::core::config::lld_mode::LldMode;
-use crate::core::config::llvm_lib_unwind::LlvmLibunwind;
-use crate::core::config::target_selection::Target;
-use crate::core::config::target_selection::TargetSelection;
-use crate::core::config::flags;
-use crate::utils::exec::{BehaviorOnFailure, BootstrapCommand, CommandOutput, OutputMode, command};
-use crate::utils::helpers::{
-    self, dir_is_empty, exe, libdir, mtime, output, set_file_times, symlink_dir,
-};
+//pub use crate::core::config::*;
+pub use crate::core::config::dry_run::DryRun;
+pub use crate::core::config::lld_mode::LldMode;
+pub use crate::core::config::llvm_lib_unwind::LlvmLibunwind;
+pub use crate::core::config::target_selection::Target;
+pub use crate::core::config::target_selection::TargetSelection;
+pub use crate::core::config::flags;
+pub use crate::utils::exec::{BehaviorOnFailure, BootstrapCommand, CommandOutput, OutputMode, command};
+//pub use crate::utils::helpers::{
+//    self, dir_is_empty, exe, libdir, mtime, output, set_file_times, symlink_dir,
+//};
 
 mod core;
 mod utils;
@@ -57,7 +57,7 @@ pub mod prelude;
 pub use core::builder::PathSet;
 pub use core::config::Config;
 pub use core::config::flags::Flags;
-pub use crate::Subcommand;
+//pub use crate::Subcommand;
 
 pub use utils::change_tracker::{CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,};
 

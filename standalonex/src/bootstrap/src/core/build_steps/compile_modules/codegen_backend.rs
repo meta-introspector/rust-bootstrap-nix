@@ -38,7 +38,7 @@ fn is_codegen_cfg_needed(path: &TaskPath, run: &RunConfig<'_>) -> bool {
             && needs_codegen_backend_config
         {
             run.builder.info(
-                                include_str!("string_constants.txt"),
+                      include_str!("string_constants.txt"),
             );
             return true;
         }
@@ -83,9 +83,7 @@ impl Step for CodegenBackend {
         builder.ensure(Rustc::new(compiler, target));
 
         if builder.config.keep_stage.contains(&compiler.stage) {
-            builder.info(
-                                include_str!("codegen_backend_warning_2.txt"),
-            );
+            builder.info(  "WARNING: Using a potentially old codegen backend.             This may not behave well."            );
             // Codegen backends are linked separately from this step today, so we don't do
             // anything here.
             return;

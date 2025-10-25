@@ -2,17 +2,19 @@
 
 use std::path::PathBuf;
 
-use crate::core::build_steps::compile::{
-    add_to_sysroot, run_cargo, rustc_cargo, rustc_cargo_env, std_cargo, std_crates_for_run_make,
-};
+//use crate::core::build_steps::compile::{
+//    add_to_sysroot, run_cargo, rustc_cargo, rustc_cargo_env, std_cargo, std_crates_for_run_make,
+//};
 use crate::core::build_steps::tool::{SourceType, prepare_tool_cargo};
 use crate::core::builder::{
     self, Alias, Builder, Kind, RunConfig, ShouldRun, Step, crate_description,
 };
 use crate::core::config::TargetSelection;
-use crate::{Compiler, Mode, Subcommand, Kind};
-use crate::core::types::{CheckConfig, Rustc, RustcConfig};
-use crate::core::build_steps::rustc_step_common::rustc_should_run;
+use crate::{Compiler, Mode, Subcommand,
+	    //Kind
+};
+//use crate::core::types::{CheckConfig, Rustc, RustcConfig};
+//use crate::core::build_steps::rustc_step_common::rustc_should_run;
 
 
 

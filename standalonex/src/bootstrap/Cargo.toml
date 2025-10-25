@@ -75,10 +75,12 @@ config_macros = { path = "src/core/config_crates/config_macros" }
 bootstrap-config-utils = { path = "src/core/config_utils" }
 bootstrap-test-utils = { path = "src/core/build_steps/test_utils" }
 build_helper = { path = "../build_helper" }
-stage0_parser_crate = { path = "../../stage0_parser_crate" }
-common_test_fields = { path = "src/core/build_steps/test_split/common_test_fields" }
+stage0_parser_crate = { path = "../stage0_parser_crate" }
+
 # Dependencies needed by the build-metrics feature
 sysinfo = { version = "0.31.2", default-features = false, optional = true, features = ["system"] }
+anyhow = "1.0.100"
+test_definitions_macro = { path = "../../../test_definitions_crates/test_definitions_macro" }
 
 [target.'cfg(windows)'.dependencies.junction]
 version = "1.0.0"

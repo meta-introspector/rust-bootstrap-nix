@@ -14,7 +14,7 @@ use crate::rust_channel_git_hash_config;
 use crate::nix_config;
 
 use crate::local_flags::LocalFlags;
-use crate::local_toml_config::LocalTomlConfig;
+//use crate::local_toml_config::LocalTomlConfig;
 use crate::get_toml;
 
 pub fn parse(mut flags: LocalFlags) -> ParsedConfig {

@@ -61,11 +61,11 @@
       },
       "locked": {
         "dir": "nix/rust-deps",
-        "lastModified": 1761355899,
-        "narHash": "sha256-LWhX7iTZTh4NZ/S3qdAYIJC5njunbjMzYZjTywTLkPE=",
+        "lastModified": 1761362343,
+        "narHash": "sha256-bL0L+8qzbaywJ80OHr21CVfGdQ4XkCB3DSyHs+tmkqw=",
         "owner": "meta-introspector",
         "repo": "rust-bootstrap-nix",
-        "rev": "dfdaa3f6e81b698c8b908266785acea82fc92a1e",
+        "rev": "3743e8599668047e957f4a3389b4aed6ed9ac1d5",
         "type": "github"
       },
       "original": {

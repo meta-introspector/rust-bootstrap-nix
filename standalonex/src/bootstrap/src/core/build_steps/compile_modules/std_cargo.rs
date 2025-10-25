@@ -42,8 +42,7 @@ pub fn std_cargo(builder: &Builder<'_>, target: TargetSelection, stage: u32, car
         // https://github.com/rust-lang/compiler-builtins/blob/31ee4544dbe47903ce771270d6e3bea8654e9e50/build.rs#L575-L579
         builder.require_submodule(
             "src/llvm-project",
-            Some(
-                                include_str!("std_cargo_warning_1.txt"),            ),
+            Some("Error" ),
         );
         let compiler_builtins_root = builder.src.join("src/llvm-project/compiler-rt");
         assert!(compiler_builtins_root.exists());

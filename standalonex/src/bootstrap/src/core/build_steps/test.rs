@@ -29,207 +29,25 @@ use crate::utils::helpers::{
 };
 use crate::utils::render_tests::{add_flags_and_try_run_tests, try_run_tests};
 use crate::{CLang, DocTests, GitRepo, Mode, envify};
+use test_definitions_macro::test_definitions;
+#[macro_use]
+mod test_macros;
 
 
 
-macro_rules! default_test {
-    ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
-        test!($name { path: $path, mode: $mode, suite: $suite, default: true, host: false });
-    };
-}
 
-macro_rules! default_test_with_compare_mode {
-    ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr,
-                   compare_mode: $compare_mode:expr }) => {
-        test_with_compare_mode!($name {
-            path: $path,
-            mode: $mode,
-            suite: $suite,
-            default: true,
-            host: false,
-            compare_mode: $compare_mode
-        });
-    };
-}
 
-macro_rules! host_test {
-    ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
-        test!($name { path: $path, mode: $mode, suite: $suite, default: true, host: true });
-    };
-}
 
-macro_rules! test {
-    ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr, default: $default:expr,
-                   host: $host:expr }) => {
-        crate::test_definitions!($name {
-            path: $path,
-            mode: $mode,
-            suite: $suite,
-            default: $default,
-            host: $host,
-            compare_mode: None
-        });
-    };
-}
 
-macro_rules! test_with_compare_mode {
-    ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr, default: $default:expr,
-                   host: $host:expr, compare_mode: $compare_mode:expr }) => {
-        crate::test_definitions!($name {
-            path: $path,
-            mode: $mode,
-            suite: $suite,
-            default: $default,
-            host: $host,
-            compare_mode: Some($compare_mode)
-        });
-    };
-}
 
-macro_rules! test_definitions {
-    ($name:ident {
-        path: $path:expr,
-        mode: $mode:expr,
-        suite: $suite:expr,
-        default: $default:expr,
-        host: $host:expr,
-        compare_mode: $compare_mode:expr
-    }) => {
-        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-        pub struct $name {
-            pub compiler: Compiler,
-            pub target: TargetSelection,
-        }
 
-        impl Step for $name {
-            type Output = ();
-            const DEFAULT: bool = $default;
-            const ONLY_HOSTS: bool = $host;
 
-            fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
-                run.suite_path($path)
-            }
 
-            fn make_run(run: RunConfig<'_>) {
-                let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
 
-                run.builder.ensure($name { compiler, target: run.target });
-            }
 
-            fn run(self, builder: &Builder<'_>) {
-                builder.ensure(crate::compiletest::Compiletest {
-                    compiler: self.compiler,
-                    target: self.target,
-                    mode: $mode,
-                    suite: $suite,
-                    path: $path,
-                    compare_mode: $compare_mode,
-                })
-            }
-        }
-    };
-}
 
-/// Declares an alias for running the [`Coverage`] tests in only one mode.
-/// Adapted from [`test_definitions`].
-macro_rules! coverage_test_alias {
-    ($name:ident {
-        alias_and_mode: $alias_and_mode:expr, // &'static str
-        default: $default:expr, // bool
-        only_hosts: $only_hosts:expr $(,)? // bool
-    }) => {
-        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-        pub struct $name {
-            pub compiler: Compiler,
-            pub target: TargetSelection,
-        }
 
-        impl $name {
-            const MODE: &'static str = $alias_and_mode;
-        }
-
-        impl Step for $name {
-            type Output = ();
-            const DEFAULT: bool = $default;
-            const ONLY_HOSTS: bool = $only_hosts;
-
-            fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
-                // Register the mode name as a command-line alias.
-                // This enables `x test coverage-map` and `x test coverage-run`.
-                run.alias($alias_and_mode)
-            }
-
-            fn make_run(run: RunConfig<'_>) {
-                let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
-
-                run.builder.ensure($name { compiler, target: run.target });
-            }
-
-            fn run(self, builder: &Builder<'_>) {
-                crate::coverage::Coverage::run_coverage_tests(builder, self.compiler, self.target, Self::MODE);
-            }
-        }
-    };
-}
-
-macro_rules! test_book {
-    ($(
-        $name:ident, $path:expr, $book_name:expr,
-        default=$default:expr
-        $(,submodules = $submodules:expr)?
-        ;
-    )+) => {
-        $(
-            #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-            pub struct $name {
-                compiler: Compiler,
-            }
-
-            impl Step for $name {
-                type Output = ();
-                const DEFAULT: bool = $default;
-                const ONLY_HOSTS: bool = true;
-
-                fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
-                    run.path($path)
-                }
-
-                fn make_run(run: RunConfig<'_>) {
-                    run.builder.ensure($name {
-                        compiler: run.builder.compiler(run.builder.top_stage, run.target),
-                    });
-                }
-
-                fn run(self, builder: &Builder<'_>) {
-                    $(
-                        for submodule in $submodules {
-                            builder.require_submodule(submodule, None);
-                        }
-                    )*
-                    builder.ensure(crate::book_test::BookTest {
-                        compiler: self.compiler,
-                        path: PathBuf::from($path),
-                        name: $book_name,
-                        is_ext_doc: !$default,
-                    });
-                }
-            }
-        )+
-    }
-}
-
-test_book!(
-    Nomicon, "src/doc/nomicon", "nomicon", default=false, submodules=["src/doc/nomicon"];
-    Reference, "src/doc/reference", "reference", default=false, submodules=["src/doc/reference"];
-    RustdocBook, "src/doc/rustdoc", "rustdoc", default=true;
-    RustcBook, "src/doc/rustc", "rustc", default=true;
-    RustByExample, "src/doc/rust-by-example", "rust-by-example", default=false, submodules=["src/doc/rust-by-example"];
-    EmbeddedBook, "src/doc/embedded-book", "embedded-book", default=false, submodules=["src/doc/embedded-book"];
-    TheBook, "src/doc/book", "book", default=false, submodules=["src/doc/book"];
-    UnstableBook, "src/doc/unstable-book", "unstable-book", default=true;
-    EditionGuide, "src/doc/edition-guide", "edition-guide", default=false, submodules=["src/doc/edition-guide"];
-);
-
+mod test_books;
 default_test!(Ui { path: "tests/ui", mode: "ui", suite: "ui" });
 
 default_test!(Crashes { path: "tests/crashes", mode: "crashes", suite: "crashes" });

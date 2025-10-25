@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
-pub mod subcommand_groups;
-use subcommand_groups::{QaTool, BuildTool, DistTool, MiscTool};
+//pub mod subcommand_groups;
+//use subcommand_groups::{QaTool, BuildTool, DistTool, MiscTool};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Subcommand {

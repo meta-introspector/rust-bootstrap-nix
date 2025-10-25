@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub fn run_nix_build(flake_dir: &Path) -> Result<(), Box<dyn std::error.Error>> {
+//Box<dyn std::error.Error>
+pub fn run_nix_build(flake_dir: &Path) -> Result<()> {
     println!("Running Nix build on generated flake...");
     let nix_build_output = Command::new("nix")
         .arg("build")
