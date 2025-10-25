@@ -25,5 +25,8 @@
         RUSTC = rustcPath;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath; # Added PKG_CONFIG_PATH
       };
+
+      packages.aarch64-linux.default = pkgs.runCommand "stage0-step1-configure-usage" { }
+        "echo 'This flake provides a devShell for configuring stage 0 step 1. Use nix develop.' > $out";
     };
 }
