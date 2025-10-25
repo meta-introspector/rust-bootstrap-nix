@@ -37,7 +37,10 @@
         version = "0.1.0";
         src = self;
         cargoLock.lockFile = ./Cargo.lock;
-        buildInputs = commonRustDeps.commonBuildInputs;
+        buildInputs = [ pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
         checkPhase = ''
           echo "pkgs.openssl.dev path: ${pkgs.openssl.dev}"
           export PKG_CONFIG_PATH=${commonRustDeps.pkgConfigPath}

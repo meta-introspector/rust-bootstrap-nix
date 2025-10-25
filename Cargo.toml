@@ -1,5 +1,5 @@
 [workspace]
-resolver = "3"
+resolver = "2"
 members = [
     "standalonex/src/bootstrap/src/core/config_utils",
     "standalonex/src/bootstrap/src/core/config_processor",
