@@ -27,7 +27,7 @@ use crate::utils::exec::command;
 use crate::utils::helpers::{
     self, HashStamp, exe, get_clang_cl_resource_dir, t, unhashed_basename, up_to_date,
 };
-use crate::{CLang, GitRepo, Kind, generate_smart_stamp_hash};
+use crate::{Language, GitInfo, Kind, generate_smart_stamp_hash};
 
 #[derive(Clone)]
 pub struct LlvmResult {

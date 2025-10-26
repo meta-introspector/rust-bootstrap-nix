@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use serde::{Deserialize, Serialize};
 /// Structure of the `config.toml` file that configuration is read from.
 ///
 /// This structure uses `Decodable` to automatically decode a TOML configuration

@@ -6,7 +6,6 @@ members = [
     "standalonex/src/stage0_parser_crate",
     "configuration-nix",
     "bootstrap-config-builder",
-    "standalonex/src/bootstrap/src/core/config_crates/config_tests",
     "flake-template-generator",
     "test_definitions_crates/test_definitions_lib",
     "test_definitions_crates/test_definitions_macro",
@@ -14,7 +13,8 @@ members = [
     "standalonex/src/build_helper",
     "standalonex/src/bootstrap",
     "standalonex/src/bootstrap/src/core/build_steps/test_utils",
-    "standalonex/src/bootstrap/src/core/config_crates/config_core",
-    "standalonex/src/bootstrap/src/core/config_crates/config_macros",
     "test-openssl-sys",
+    "standalonex/src/bootstrap-config-types",
+    "standalonex/src/config_macros",
+    "standalonex/src/config_core",
 ]

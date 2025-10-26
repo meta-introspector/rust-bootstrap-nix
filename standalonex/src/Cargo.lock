@@ -43,6 +43,7 @@ name = "bootstrap"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "bootstrap-config-types",
  "bootstrap-config-utils",
  "bootstrap-test-utils",
  "build_helper",
@@ -75,6 +76,15 @@ dependencies = [
  "walkdir",
  "windows 0.52.0",
  "xz2",
+]
+
+[[package]]
+name = "bootstrap-config-types"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_derive",
+ "toml",
 ]
 
 [[package]]

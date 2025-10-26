@@ -68,7 +68,7 @@ fn copy_self_contained_objects(
         }
     } else if target.is_windows_gnu() {
         for obj in ["crt2.o", "dllcrt2.o"].iter() {
-            let src = compiler_file(builder, &builder.cc(target), target, CLang::C, obj);
+            let src = compiler_file(builder, &builder.cc(target), target, Language::C, obj);
             let target = libdir_self_contained.join(obj);
             builder.copy_link(&src, &target);
             target_deps.push((target, DependencyType::TargetSelfContained));

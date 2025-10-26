@@ -13,7 +13,7 @@ use clap::{CommandFactory, Parser, ValueEnum};
 use crate::core::build_steps::setup::Profile;
 use crate::core::builder::{Builder, Kind};
 use crate::core::config::{Config, TargetSelectionList, target_selection_list};
-use crate::{Build, DocTests};
+use crate::{BuildConfig, DocTests};
 pub use crate::core::config::subcommand::get_completion;
 
 

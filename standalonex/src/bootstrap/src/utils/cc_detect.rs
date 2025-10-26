@@ -30,7 +30,7 @@ use std::{env, iter};
 
 use crate::core::config::TargetSelection;
 use crate::utils::exec::{BootstrapCommand, command};
-use crate::{Build, CLang, GitRepo};
+use crate::{BuildConfig};
 
 // The `cc` crate doesn't provide a way to obtain a path to the detected archiver,
 // so use some simplified logic here. First we respect the environment variable `AR`, then
@@ -139,7 +139,7 @@ pub fn find_target(build: &Build, target: TargetSelection) {
     };
 
     build.cc.borrow_mut().insert(target, compiler.clone());
-    let cflags = build.cflags(target, GitRepo::Rustc, CLang::C);
+    let cflags = build.cflags(target, GitRepo::Rustc, Language::C);
 
     // If we use llvm-libunwind, we will need a C++ compiler as well for all targets
     // We'll need one anyways if the target triple is also a host triple
@@ -165,7 +165,7 @@ pub fn find_target(build: &Build, target: TargetSelection) {
     build.verbose(|| println!("CC_{} = {:?}", target.triple, build.cc(target)));
     build.verbose(|| println!("CFLAGS_{} = {cflags:?}", target.triple));
     if let Ok(cxx) = build.cxx(target) {
-        let cxxflags = build.cflags(target, GitRepo::Rustc, CLang::Cxx);
+        let cxxflags = build.cflags(target, GitRepo::Rustc, Language::CPlusPlus);
         build.verbose(|| println!("CXX_{} = {cxx:?}", target.triple));
         build.verbose(|| println!("CXXFLAGS_{} = {cxxflags:?}", target.triple));
     }
@@ -296,7 +296,7 @@ pub(crate) fn ndk_compiler(compiler: Language, triple: &str, ndk: &Path) -> Path
 
 /// The target programming language for a native compiler.
 #[derive(PartialEq)]
-pub(crate) enum Language {
+pub enum Language {
     /// The compiler is targeting C.
     C,
     /// The compiler is targeting C++.

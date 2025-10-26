@@ -12,8 +12,7 @@ use serde::Deserializer;
 /// 2) MSVC
 /// - Self-contained: `-Clinker=<path to rust-lld>`
 /// - External: `-Clinker=lld`
-use crate::prelude::*;
-use serde::de::Error;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub enum LldMode {

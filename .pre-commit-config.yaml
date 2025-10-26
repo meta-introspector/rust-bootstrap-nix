@@ -28,28 +28,6 @@
           ],
           "types_or": [],
           "verbose": false
-        },
-        {
-          "always_run": false,
-          "args": [],
-          "entry": "/nix/store/grb48jw3fbszgxvhjqm7n5ckhmgk6inw-typos-1.35.6/bin/typos --config /nix/store/wvhry1k8b04i0hi7ir489kh08sd8ll5i-typos-config.toml --force-exclude",
-          "exclude": "^$",
-          "exclude_types": [],
-          "fail_fast": false,
-          "files": "",
-          "id": "typos",
-          "language": "system",
-          "name": "typos",
-          "pass_filenames": true,
-          "require_serial": false,
-          "stages": [
-            "pre-commit"
-          ],
-          "types": [
-            "text"
-          ],
-          "types_or": [],
-          "verbose": false
         }
       ],
       "repo": "local"

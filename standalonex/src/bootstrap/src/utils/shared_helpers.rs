@@ -7,7 +7,7 @@ use crate::prelude::*;
 ///        Therefore, this module should never use any other bootstrap module. This reduces binary
 ///        size and improves compilation time by minimizing linking time.
 
-#![allow(dead_code)]
+#[allow(dead_code)]
 
 use std::env;
 use std::ffi::OsString;

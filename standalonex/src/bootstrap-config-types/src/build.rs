@@ -5,7 +5,7 @@ use config_macros::define_config;
 define_config! {
     /// TOML representation of various global build decisions.
     #[derive(Default)]
-    struct Build {
+    struct BuildConfig {
         build: Option<String> = "build",
         src: Option<PathBuf> = "src",
         host: Option<Vec<String>> = "host",

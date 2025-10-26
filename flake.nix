@@ -68,5 +68,11 @@
         cargoBuildFlags = [ "--target" "aarch64-unknown-linux-gnu" ];
         CARGO_BUILD_FLAGS = "--target aarch64-unknown-linux-gnu";
       };
+
+      packages.aarch64-linux.generateCargoNix = pkgs.callPackage
+        (inputs.cargo2nix.outputs.lib.importCargoLock {
+          lockFile = self.outPath + "/Cargo.lock"; # Use the workspace root's Cargo.lock
+        })
+        { };
     };
 }

@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 #[serde(untagged)]

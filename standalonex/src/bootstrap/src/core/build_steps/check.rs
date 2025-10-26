@@ -135,7 +135,7 @@ impl Step for Std<CheckStdConfig> {
 
 
 
-impl Rustc<CheckConfig> {
+impl Rustc<CheckRustcConfig> {
     pub fn new(target: TargetSelection, builder: &Builder<'_>) -> Self {
         Self::new_with_build_kind(target, builder, None)
     }

@@ -3,12 +3,12 @@ use crate::prelude::*;
 
 /// Attempt to magically identify good tests to run
 
-#![cfg_attr(feature = "build-metrics", allow(unused))]
-
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Parser;
+
+#[cfg_attr(feature = "build-metrics", allow(unused))]
 
 use crate::core::build_steps::tool::Tool;
 use crate::core::builder::Builder;

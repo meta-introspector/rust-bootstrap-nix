@@ -2,7 +2,8 @@ use std::path::{Path, PathBuf};
 use std::env;
 use std::process::Command;
 use std::sync::OnceLock;
-use crate::Build;
+use std::fs;
+use crate::BuildConfig;
 use crate::Compiler;
 use crate::Mode;
 use crate::TargetSelection;
@@ -10,6 +11,7 @@ use crate::core::config::Target;
 use crate::utils::helpers::{exe, t, output, libdir};
 use crate::builder::BootstrapCommand;
 
+impl Build { // Wrap functions in an impl block for the Build struct
     fn local_path(&self, build: &Build) -> PathBuf {
         self.path.strip_prefix(&build.config.src).unwrap().into()
     }
@@ -205,3 +207,10 @@ use crate::builder::BootstrapCommand;
     /// Returns the sysroot of the snapshot compiler.
     fn rustc_snapshot_sysroot(&self) -> &Path {
         static SYSROOT_CACHE: OnceLock<PathBuf> = OnceLock::new();
+        SYSROOT_CACHE.get_or_init(|| {
+            let mut rustc = Command::new(&self.initial_rustc);
+            rustc.args(["--print", "sysroot"]);
+            output(&mut rustc).trim().into()
+        })
+    }
+}

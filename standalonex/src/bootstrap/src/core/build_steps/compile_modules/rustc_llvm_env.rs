@@ -56,7 +56,7 @@ fn rustc_llvm_env(builder: &Builder<'_>, cargo: &mut Cargo, target: TargetSelect
             builder,
             &builder.cxx(target).unwrap(),
             target,
-            CLang::Cxx,
+            Language::CPlusPlus,
             "libstdc++.a",
         );
         cargo.env("LLVM_STATIC_STDCPP", file);

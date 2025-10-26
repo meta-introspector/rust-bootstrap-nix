@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::core::types::LintConfig;
 
 
 /// Implementation of running clippy on the compiler, standard library and various tools.

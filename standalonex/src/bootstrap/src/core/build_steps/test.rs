@@ -28,26 +28,8 @@ use crate::utils::helpers::{
     linker_args, linker_flags, t, target_supports_cranelift_backend, up_to_date,
 };
 use crate::utils::render_tests::{add_flags_and_try_run_tests, try_run_tests};
-use crate::{CLang, DocTests, GitRepo, Mode, envify};
+use crate::{Language, DocTests, GitInfo, Mode, envify};
 use test_definitions_macro::test_definitions;
-#[macro_use]
-mod test_macros;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-mod test_books;
 default_test!(Ui { path: "tests/ui", mode: "ui", suite: "ui" });
 
 default_test!(Crashes { path: "tests/crashes", mode: "crashes", suite: "crashes" });

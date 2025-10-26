@@ -14,7 +14,7 @@ use std::path::Path;
 
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step, crate_description};
 use crate::utils::helpers::t;
-use crate::{Build, Compiler, Kind, Mode, Subcommand};
+use crate::{BuildConfig, Compiler, Kind, Mode, Subcommand};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CleanAll {}

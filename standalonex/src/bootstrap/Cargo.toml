@@ -39,6 +39,7 @@ path = "src/bin/nix_bootstrap.rs"
 test = false
 
 [dependencies]
+bootstrap-config-types = { path = "../bootstrap-config-types" }
 ignore = "=0.4.23"
 globset = "=0.4.16"
 # Most of the time updating these dependencies requires modifications to the
@@ -70,8 +71,8 @@ toml = "0.5"
 walkdir = "2.4"
 xz2 = "0.1"
 
-config_core = { path = "src/core/config_crates/config_core" }
-config_macros = { path = "src/core/config_crates/config_macros" }
+config_core = { path = "../config_core" }
+config_macros = { path = "../config_macros" }
 bootstrap-config-utils = { path = "src/core/config_utils" }
 bootstrap-test-utils = { path = "src/core/build_steps/test_utils" }
 build_helper = { path = "../build_helper" }

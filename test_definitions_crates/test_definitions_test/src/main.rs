@@ -1,5 +1,4 @@
 mod prelude;
-use crate::prelude::*;
 
 extern crate test_definitions_macro;
 use test_definitions_macro::test_definitions;

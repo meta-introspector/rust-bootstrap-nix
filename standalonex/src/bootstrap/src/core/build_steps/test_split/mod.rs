@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 
+pub mod common_test_fields;
 pub mod book_test;
 pub mod bootstrap;
 pub mod cargo_miri;

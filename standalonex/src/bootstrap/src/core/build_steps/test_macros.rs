@@ -2,12 +2,14 @@ use crate::prelude::*;
 
 
 #[macro_export]
+#[macro_export]
 macro_rules! default_test {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
         test!($name { path: $path, mode: $mode, suite: $suite, default: true, host: false });
     };
 }
 
+#[macro_export]
 #[macro_export]
 macro_rules! default_test_with_compare_mode {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr,
@@ -23,6 +25,7 @@ macro_rules! default_test_with_compare_mode {
     };
 }
 
+#[macro_export]
 #[macro_export]
 macro_rules! host_test {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
@@ -63,6 +66,7 @@ macro_rules! test_with_compare_mode {
 #[macro_export]
 /// Declares an alias for running the [`Coverage`] tests in only one mode.
 /// Adapted from [`test_definitions`].
+#[macro_export]
 macro_rules! coverage_test_alias {
     ($name:ident {
         alias_and_mode: $alias_and_mode:expr, // &'static str

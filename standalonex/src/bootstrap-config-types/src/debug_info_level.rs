@@ -1,6 +1,6 @@
-use crate::prelude::*;
+use serde::{Deserialize, Serialize};
 use serde::Deserializer;
-use crate::core::config::string_or_int::StringOrInt;
+use crate::string_or_int::StringOrInt;
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq)]
 pub enum DebuginfoLevel {

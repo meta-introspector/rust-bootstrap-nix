@@ -12,7 +12,7 @@ use crate::utils::helpers::{
     self, LldThreads, add_link_lib_path, check_cfg_arg, linker_args, linker_flags,
 };
 use crate::{
-    BootstrapCommand, CLang, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitRepo, Mode,
+    BootstrapCommand, Language, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitInfo, Mode,
     TargetSelection, command, prepare_behaviour_dump_dir, t,
 };
 

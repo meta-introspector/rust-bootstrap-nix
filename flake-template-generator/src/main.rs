@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 use std::fs;
 mod prelude;
-use prelude::*;
 mod args;
 mod config_parser;
 mod flake_generator;
