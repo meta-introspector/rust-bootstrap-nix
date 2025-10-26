@@ -1,11 +1,5 @@
+use crate::prelude::*;
 pub mod prelude;
-
-
-
-use bootstrap_config_utils::parsed_config::ParsedConfig;
-use bootstrap_config_utils::dry_run::DryRun; // Import DryRun
-
-// Placeholder for the actual bootstrap::Config struct
 pub struct BootstrapConfig {
     pub dry_run: bool,
     pub out_dir: std::path::PathBuf,
@@ -29,7 +23,6 @@ pub struct BootstrapConfig {
     pub llvm_offload: bool,
     pub llvm_plugins: bool,
 }
-
 impl Default for BootstrapConfig {
     fn default() -> Self {
         BootstrapConfig {
@@ -57,7 +50,6 @@ impl Default for BootstrapConfig {
         }
     }
 }
-
 pub fn process_config(parsed_config: ParsedConfig) -> BootstrapConfig {
     BootstrapConfig {
         dry_run: parsed_config.dry_run != DryRun::Disabled,
@@ -83,14 +75,12 @@ pub fn process_config(parsed_config: ParsedConfig) -> BootstrapConfig {
         llvm_plugins: parsed_config.llvm_plugins,
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use bootstrap_config_utils::parsed_config::ParsedConfig;
     use bootstrap_config_utils::dry_run::DryRun;
     use std::path::PathBuf;
-
     #[test]
     fn test_process_config() {
         let mut parsed_config = ParsedConfig::default();
@@ -100,9 +90,7 @@ mod tests {
         parsed_config.jobs = Some(8);
         parsed_config.llvm_tests = true;
         parsed_config.llvm_enzyme_flag = Some(true);
-
         let bootstrap_config = process_config(parsed_config);
-
         assert_eq!(bootstrap_config.dry_run, true);
         assert_eq!(bootstrap_config.out_dir, PathBuf::from("/tmp/test_output"));
         assert_eq!(bootstrap_config.channel, Some("nightly".to_string()));
@@ -111,4 +99,3 @@ mod tests {
         assert_eq!(bootstrap_config.llvm_enzyme_flag, Some(true));
     }
 }
-

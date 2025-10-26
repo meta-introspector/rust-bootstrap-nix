@@ -1,9 +1,4 @@
-
-
-
-use clap::Parser;
-use anyhow::Result;
-
+use crate::prelude::*;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -16,15 +11,12 @@ struct Args {
     #[clap(long)]
     step: String,
 }
-
 fn main() -> Result<()> {
     let args = Args::parse();
-
     println!("Parsed arguments:");
     println!("  Rust Version: {}", args.rust_version);
     println!("  Architecture: {}", args.arch);
     println!("  Phase: {}", args.phase);
     println!("  Step: {}", args.step);
-
     Ok(())
 }

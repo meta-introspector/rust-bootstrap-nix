@@ -1,6 +1,4 @@
 use crate::prelude::*;
-
-
 /// Describes how to handle conflicts in merging two [`TomlConfig`]
 #[derive(Copy, Clone, Debug)]
 pub enum ReplaceOpt {

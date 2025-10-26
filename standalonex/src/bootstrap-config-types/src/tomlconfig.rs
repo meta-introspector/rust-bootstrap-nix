@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use crate::prelude::*;
 /// Structure of the `config.toml` file that configuration is read from.
 ///
 /// This structure uses `Decodable` to automatically decode a TOML configuration
@@ -12,7 +12,6 @@ pub(crate) struct Nix {
     configuration_nix_path: Option<PathBuf>,
     rust_src_flake_path: Option<PathBuf>,
 }
-
 #[derive(Deserialize, Default)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub(crate) struct TomlConfig {
@@ -29,4 +28,3 @@ pub(crate) struct TomlConfig {
     profile: Option<String>,
     stage0_path: Option<PathBuf>,
 }
-

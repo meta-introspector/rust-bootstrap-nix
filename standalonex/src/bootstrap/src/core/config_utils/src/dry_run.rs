@@ -1,6 +1,4 @@
-
-use crate::parsed_config::ParsedConfig;
-
+use crate::prelude::*;
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[derive(Default)]
 pub enum DryRun {
@@ -9,7 +7,6 @@ pub enum DryRun {
     SelfCheck,
     UserSelected,
 }
-
 pub fn dry_run(config: &ParsedConfig) -> bool {
     match config.dry_run {
         DryRun::Disabled => false,

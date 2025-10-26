@@ -1,8 +1,4 @@
-
-
-
-use super::format_file; // Import from sibling module
-
+use crate::prelude::*;
 #[allow(clippy::too_many_arguments)]
 pub fn construct_config_content(
     system: &str,
@@ -68,6 +64,6 @@ pub fn construct_config_content(
         dist_upload_addr,
         llvm_download_ci_llvm,
         llvm_ninja,
-        change_id
+        change_id,
     )
 }

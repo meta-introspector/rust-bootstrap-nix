@@ -1,12 +1,4 @@
-
-// This will be the lib.rs for the new bootstrap-config-utils crate
-use std::path::PathBuf;
-use crate::target_selection::TargetSelection;
-use crate::dry_run::DryRun;
-use crate::local_ci_config::LocalCiConfig;
-
-
-
+use crate::prelude::*;
 #[derive(Debug, Default)]
 pub struct ParsedConfig {
     pub channel_file: Option<PathBuf>,
@@ -15,7 +7,6 @@ pub struct ParsedConfig {
     pub llvm_project_dir: Option<PathBuf>,
     pub gcc_dir: Option<PathBuf>,
     pub config: Option<PathBuf>,
-    // ... other fields ...
     pub change_id: Option<String>,
     pub jobs: Option<usize>,
     pub build_triple: Option<String>,
@@ -48,7 +39,6 @@ pub struct ParsedConfig {
     pub src: PathBuf,
     pub ci: Option<LocalCiConfig>,
     pub targets: Vec<String>,
-
     pub nodejs: Option<std::path::PathBuf>,
     pub npm: Option<std::path::PathBuf>,
     pub gdb: Option<std::path::PathBuf>,
@@ -88,7 +78,7 @@ pub struct ParsedConfig {
     pub verbose_tests_flag: Option<bool>,
     pub llvm_assertions: Option<bool>,
     pub llvm_enzyme_flag: Option<bool>,
-    pub rust_optimize: Option<String>, // Will be converted to RustOptimize enum later
+    pub rust_optimize: Option<String>,
     pub omit_git_hash: bool,
     pub rust_new_symbol_mangling: Option<bool>,
     pub rust_frame_pointers: Option<bool>,
@@ -97,7 +87,7 @@ pub struct ParsedConfig {
     pub test_compare_mode: Option<String>,
     pub description: Option<String>,
     pub incremental: bool,
-    pub lld_mode: Option<String>, // Will be converted to LldMode enum later
+    pub lld_mode: Option<String>,
     pub llvm_bitcode_linker_enabled: Option<bool>,
     pub rust_randomize_layout: bool,
     pub llvm_tools_enabled: bool,
@@ -116,7 +106,7 @@ pub struct ParsedConfig {
     pub rust_codegen_units_std: Option<usize>,
     pub rust_profile_use: Option<bool>,
     pub rust_profile_generate: Option<bool>,
-    pub rust_lto: Option<String>, // Will be converted to RustcLto enum later
+    pub rust_lto: Option<String>,
     pub rust_validate_mir_opts: Option<String>,
     pub reproducible_artifacts: bool,
     pub download_rustc_commit: Option<String>,
@@ -146,7 +136,7 @@ pub struct ParsedConfig {
     pub dist_compression_formats: Option<Vec<String>>,
     pub dist_compression_profile: Option<String>,
     pub dist_vendor: bool,
-    pub initial_rustfmt: Option<String>, // Will be converted to RustfmtState enum later
+    pub initial_rustfmt: Option<String>,
     pub lld_enabled: bool,
     pub rust_std_features: std::collections::BTreeSet<String>,
     pub rustc_debug_assertions: bool,
@@ -154,16 +144,14 @@ pub struct ParsedConfig {
     pub rust_overflow_checks: bool,
     pub rust_overflow_checks_std: bool,
     pub rust_debug_logging: bool,
-    pub rust_debuginfo_level_rustc: Option<String>, // Will be converted to DebuginfoLevel enum later
-    pub rust_debuginfo_level_std: Option<String>, // Will be converted to DebuginfoLevel enum later
-    pub rust_debuginfo_level_tools: Option<String>, // Will be converted to DebuginfoLevel enum later
-    pub rust_debuginfo_level_tests: Option<String>, // Will be converted to DebuginfoLevel enum later
+    pub rust_debuginfo_level_rustc: Option<String>,
+    pub rust_debuginfo_level_std: Option<String>,
+    pub rust_debuginfo_level_tools: Option<String>,
+    pub rust_debuginfo_level_tests: Option<String>,
     pub optimized_compiler_builtins: bool,
     pub compiletest_diff_tool: Option<String>,
     pub stage: usize,
-    pub cmd: Option<String>, // Will be converted to Subcommand enum later
-
-    // Nix-related fields
+    pub cmd: Option<String>,
     pub nixpkgs_path: Option<String>,
     pub rust_overlay_path: Option<String>,
     pub rust_bootstrap_nix_path: Option<String>,

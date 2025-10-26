@@ -25,33 +25,6 @@ fn main() {
         return;
     }
 
-use crate::prelude::*;
-
-
-//! bootstrap, the Rust build system
-//!
-//! This is the entry point for the build system used to compile the `rustc`
-//! compiler. Lots of documentation can be found in the `README.md` file in the
-//! parent directory, and otherwise documentation can be found throughout the `build`
-//! directory in each respective module.
-
-use std::fs::{self, OpenOptions};
-use std::io::{self, BufRead, BufReader, IsTerminal, Write};
-use std::str::FromStr;
-use std::{env, process};
-
-use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
-use bootstrap_config_utils::parse;
-use bootstrap_config_utils::dry_run;
-use build_helper::ci::CiEnv;
-
-fn main() {
-    let args = env::args().skip(1).collect::<Vec<_>>();
-
-    if Flags::try_parse_verbose_help(&args) {
-        return;
-    }
-
     let flags = Flags::parse(&args);
     let mut config = parse::parse(flags);
 
@@ -77,14 +50,14 @@ fn main() {
                 let lock_path = new_config.out.join("lock");
                 let pid = fs::read_to_string(&lock_path);
 
-                build_lock = fd_lock::RwLock::new(t!(fs::OpenOptions::new()
+                build_lock = fd_lock::RwLock::new(/*t!*/(fs::OpenOptions::new()
                     .write(true)
                     .truncate(true)
                     .create(true)
                     .open(&lock_path)));
                 _build_lock_guard = match build_lock.try_write() {
                     Ok(mut lock) => {
-                        t!(lock.write(process::id().to_string().as_ref()));
+                        /*t!*/(lock.write(process::id().to_string().as_ref()));
                         lock
                     }
                     err => {
@@ -94,8 +67,8 @@ fn main() {
                         } else {
                             println!("WARNING: build directory locked, waiting for lock");
                         }
-                        let mut lock = t!(build_lock.write());
-                        t!(lock.write(process::id().to_string().as_ref()));
+                        let mut lock = /*t!*/(build_lock.write());
+                        /*t!*/(lock.write(process::id().to_string().as_ref()));
                         lock
                     }
                 };
@@ -156,60 +129,7 @@ fn check_version(config: &Config) -> Option<String> {
         ));
 
         if io::stdout().is_terminal() && !dry_run::dry_run(&config) {
-            t!(fs::write(warned_id_path, latest_change_id.to_string()));
-        }
-    } else {
-        msg.push_str("WARNING: The `change-id` is missing in the `config.toml`. This means that you will not be able to track the major changes made to the bootstrap configurations.\n");
-        msg.push_str("NOTE: to silence this warning, ");
-        msg.push_str(&format!("add `change-id = {latest_change_id}` at the top of `config.toml`"));
-    };
-
-    Some(msg)
-}
-
-
-fn check_version(config: &Config) -> Option<String> {
-    let mut msg = String::new();
-
-    let latest_change_id = CONFIG_CHANGE_HISTORY.last().unwrap().change_id;
-    let warned_id_path = config.out.join("bootstrap").join(".last-warned-change-id");
-
-    if let Some(mut id) = config.change_id {
-        if id == latest_change_id {
-            return None;
-        }
-
-        // Always try to use `change-id` from .last-warned-change-id first. If it doesn't exist,
-        // then use the one from the config.toml. This way we never show the same warnings
-        // more than once.
-        if let Ok(t) = fs::read_to_string(&warned_id_path) {
-            let last_warned_id = usize::from_str(&t)
-                .unwrap_or_else(|_| panic!("{} is corrupted.", warned_id_path.display()));
-
-            // We only use the last_warned_id if it exists in `CONFIG_CHANGE_HISTORY`.
-            // Otherwise, we may retrieve all the changes if it's not the highest value.
-            // For better understanding, refer to `change_tracker::find_recent_config_change_ids`.
-            if CONFIG_CHANGE_HISTORY.iter().any(|config| config.change_id == last_warned_id) {
-                id = last_warned_id;
-            }
-        };
-
-        let changes = find_recent_config_change_ids(id);
-
-        if changes.is_empty() {
-            return None;
-        }
-
-        msg.push_str("There have been changes to x.py since you last updated:\n");
-        msg.push_str(&human_readable_changes(&changes));
-
-        msg.push_str("NOTE: to silence this warning, ");
-        msg.push_str(&format!(
-            "update `config.toml` to use `change-id = {latest_change_id}` instead"
-        ));
-
-        if io::stdout().is_terminal() && !dry_run::dry_run(&config) {
-            t!(fs::write(warned_id_path, latest_change_id.to_string()));
+            // t!(fs::write(warned_id_path, latest_change_id.to_string()));
         }
     } else {
         msg.push_str("WARNING: The `change-id` is missing in the `config.toml`. This means that you will not be able to track the major changes made to the bootstrap configurations.\n");

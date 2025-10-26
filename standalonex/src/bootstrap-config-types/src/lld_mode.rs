@@ -1,19 +1,4 @@
 use crate::prelude::*;
-use serde::Deserializer;
-
-/// LLD in bootstrap works like this:
-/// - Self-contained lld: use `rust-lld` from the compiler's sysroot
-/// - External: use an external `lld` binary
-///
-/// It is configured depending on the target:
-/// 1) Everything except MSVC
-/// - Self-contained: `-Clinker-flavor=gnu-lld-cc -Clink-self-contained=+linker`
-/// - External: `-Clinker-flavor=gnu-lld-cc`
-/// 2) MSVC
-/// - Self-contained: `-Clinker=<path to rust-lld>`
-/// - External: `-Clinker=lld`
-use serde::{Deserialize, Serialize};
-
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub enum LldMode {
     /// Do not use LLD
@@ -26,7 +11,6 @@ pub enum LldMode {
     /// to be in $PATH.
     External,
 }
-
 impl LldMode {
     pub fn is_used(&self) -> bool {
         match self {
@@ -35,30 +19,24 @@ impl LldMode {
         }
     }
 }
-
-
 impl<'de> Deserialize<'de> for LldMode {
-fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         struct LldModeVisitor;
-
         impl serde::de::Visitor<'_> for LldModeVisitor {
             type Value = LldMode;
-
-fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("one of true, 'self-contained' or 'external'")
             }
-
-fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+            fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
             where
                 E: serde::de::Error,
             {
                 Ok(if v { LldMode::External } else { LldMode::Unused })
             }
-
-fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
             where
                 E: serde::de::Error,
             {
@@ -69,7 +47,6 @@ fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
                 }
             }
         }
-
         deserializer.deserialize_any(LldModeVisitor)
     }
 }

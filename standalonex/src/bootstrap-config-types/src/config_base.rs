@@ -1,8 +1,4 @@
 use crate::prelude::*;
-use std::process::Command;
-use std::env;
-use anyhow::{Context, Result};
-
 /// Global configuration for the entire build and/or bootstrap.
 ///
 /// This structure is parsed from `config.toml`, and some of the fields are inferred from `git` or build-time parameters.
@@ -46,10 +42,8 @@ pub struct Config {
     pub android_ndk: Option<PathBuf>,
     /// Whether to use the `c` feature of the `compiler_builtins` crate.
     pub optimized_compiler_builtins: bool,
-
     pub stdout_is_tty: bool,
     pub stderr_is_tty: bool,
-
     pub on_fail: Option<String>,
     pub stage: u32,
     pub keep_stage: Vec<u32>,
@@ -72,17 +66,13 @@ pub struct Config {
     /// Arguments appearing after `--` to be forwarded to tools,
     /// e.g. `--fix-broken` or test arguments.
     pub free_args: Vec<String>,
-
     /// `None` if we shouldn't download CI compiler artifacts, or the commit to download if we should.
     #[cfg(not(test))]
     download_rustc_commit: Option<String>,
     #[cfg(test)]
     pub download_rustc_commit: Option<String>,
-
     pub deny_warnings: bool,
     pub backtrace_on_ice: bool,
-
-    // llvm codegen options
     pub llvm_assertions: bool,
     pub llvm_tests: bool,
     pub llvm_enzyme: bool,
@@ -111,25 +101,19 @@ pub struct Config {
     pub llvm_from_ci: bool,
     pub llvm_build_config: HashMap<String, String>,
     pub llvm_enable_projects: Option<String>,
-
     pub lld_mode: LldMode,
     pub lld_enabled: bool,
     pub llvm_tools_enabled: bool,
     pub llvm_bitcode_linker_enabled: bool,
-
     pub llvm_cflags: Option<String>,
     pub llvm_cxxflags: Option<String>,
     pub llvm_ldflags: Option<String>,
     pub llvm_use_libcxx: bool,
-
-    // rust codegen options
     pub rust_optimize: RustOptimize,
     pub rust_codegen_units: Option<u32>,
     pub rust_codegen_units_std: Option<u32>,
-
     pub rustc_debug_assertions: bool,
     pub std_debug_assertions: bool,
-
     pub rust_overflow_checks: bool,
     pub rust_overflow_checks_std: bool,
     pub rust_debug_logging: bool,
@@ -159,9 +143,7 @@ pub struct Config {
     pub llvm_profile_generate: bool,
     pub llvm_libunwind_default: Option<LlvmLibunwind>,
     pub enable_bolt_settings: bool,
-
     pub reproducible_artifacts: Vec<String>,
-
     pub build: TargetSelection,
     pub hosts: Vec<TargetSelection>,
     pub targets: Vec<TargetSelection>,
@@ -169,19 +151,13 @@ pub struct Config {
     pub jemalloc: bool,
     pub control_flow_guard: bool,
     pub ehcont_guard: bool,
-
-    // dist misc
     pub dist_sign_folder: Option<PathBuf>,
     pub dist_upload_addr: Option<String>,
     pub dist_compression_formats: Option<Vec<String>>,
     pub dist_compression_profile: String,
     pub dist_include_mingw_linker: bool,
     pub dist_vendor: bool,
-
-    // libstd features
-    pub backtrace: bool, // support for RUST_BACKTRACE
-
-    // misc
+    pub backtrace: bool,
     pub low_priority: bool,
     pub channel: String,
     pub description: Option<String>,
@@ -189,8 +165,6 @@ pub struct Config {
     pub save_toolstates: Option<PathBuf>,
     pub print_step_timings: bool,
     pub print_step_rusage: bool,
-
-    // Fallback musl-root for all targets
     pub musl_root: Option<PathBuf>,
     pub prefix: Option<PathBuf>,
     pub sysconfdir: Option<PathBuf>,
@@ -210,7 +184,6 @@ pub struct Config {
     pub configure_args: Vec<String>,
     pub out: PathBuf,
     pub rust_info: channel::GitInfo,
-
     pub cargo_info: channel::GitInfo,
     pub rust_analyzer_info: channel::GitInfo,
     pub clippy_info: channel::GitInfo,
@@ -219,23 +192,17 @@ pub struct Config {
     pub enzyme_info: channel::GitInfo,
     pub in_tree_llvm_info: channel::GitInfo,
     pub in_tree_gcc_info: channel::GitInfo,
-
-    // These are either the stage0 downloaded binaries or the locally installed ones.
     pub initial_cargo: PathBuf,
     pub initial_rustc: PathBuf,
     pub initial_cargo_clippy: Option<PathBuf>,
-
     #[cfg(not(test))]
     initial_rustfmt: RefCell<RustfmtState>,
     #[cfg(test)]
     pub initial_rustfmt: RefCell<RustfmtState>,
-
     pub ci: CiConfig,
-
     /// The paths to work with. For example: with `./x check foo bar` we get
     /// `paths=["foo", "bar"]`.
     pub paths: Vec<PathBuf>,
-
     /// Command for visual diff display, e.g. `diff-tool --color=always`.
     pub compiletest_diff_tool: Option<String>,
 }

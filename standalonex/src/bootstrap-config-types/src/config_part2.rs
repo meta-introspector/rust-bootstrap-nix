@@ -7,46 +7,30 @@ pub fn check_incompatible_options_for_ci_rustc(
 ) -> Result<(), String> {
     macro_rules! err {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current {
-                if Some(current) != $expected.as_ref() {
-                    return Err(format!(
-                        "ERROR: Setting `rust.{}` is incompatible with `rust.download-rustc`. \
+            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
+            return
+            Err(format!("ERROR: Setting `rust.{}` is incompatible with `rust.download-rustc`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-                        stringify!($expected).replace("_", "-"),
-                        $current,
-                        if $expected.is_some() { "None/" } else { "" },
-                        $expected,
-                    ));
-                };
-            };
+            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
+            "None/" } else { "" }, $expected,)); }; };
         };
     }
-
     macro_rules! warn {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current {
-                if Some(current) != $expected.as_ref() {
-                    println!(
-                        "WARNING: `rust.{}` has no effect with `rust.download-rustc`. \
+            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
+            println!("WARNING: `rust.{}` has no effect with `rust.download-rustc`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-                        stringify!($expected).replace("_", "-"),
-                        $current,
-                        if $expected.is_some() { "None/" } else { "" },
-                        $expected,
-                    );
-                };
-            };
+            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
+            "None/" } else { "" }, $expected,); }; };
         };
     }
-
-    let (Some(current_rust_config), Some(ci_rust_config)) =
-        (current_config_toml.rust, ci_config_toml.rust)
-    else {
+    let (Some(current_rust_config), Some(ci_rust_config)) = (
+        current_config_toml.rust,
+        ci_config_toml.rust,
+    ) else {
         return Ok(());
     };
-
     let Rust {
-        // Following options are the CI rustc incompatible ones.
         optimize,
         randomize_layout,
         debug_logging,
@@ -64,8 +48,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         incremental,
         default_linker,
         std_features,
-
-        // Rest of the options can simply be ignored.
         debug: _,
         codegen_units: _,
         codegen_units_std: _,
@@ -104,14 +86,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         validate_mir_opts: _,
         frame_pointers: _,
     } = ci_rust_config;
-
-    // There are two kinds of checks for CI rustc incompatible options:
-    //    1. Checking an option that may change the compiler behaviour/output.
-    //    2. Checking an option that have no effect on the compiler behaviour/output.
-    //
-    // If the option belongs to the first category, we call `err` macro for a hard error;
-    // otherwise, we just print a warning with `warn` macro.
-
     err!(current_rust_config.optimize, optimize);
     err!(current_rust_config.randomize_layout, randomize_layout);
     err!(current_rust_config.debug_logging, debug_logging);
@@ -126,23 +100,22 @@ pub fn check_incompatible_options_for_ci_rustc(
     err!(current_rust_config.stack_protector, stack_protector);
     err!(current_rust_config.lto, lto);
     err!(current_rust_config.std_features, std_features);
-
     warn!(current_rust_config.channel, channel);
     warn!(current_rust_config.description, description);
     warn!(current_rust_config.incremental, incremental);
-
     Ok(())
 }
-
 pub fn set<T>(field: &mut T, val: Option<T>) {
     if let Some(v) = val {
         *field = v;
     }
 }
-
 pub fn threads_from_config(v: u32) -> u32 {
     match v {
-        0 => std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get) as u32,
+        0 => {
+            std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get)
+                as u32
+        }
         n => n,
     }
 }

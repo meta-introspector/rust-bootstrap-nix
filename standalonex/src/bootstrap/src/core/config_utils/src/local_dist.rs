@@ -1,7 +1,4 @@
-
-use serde_derive::Deserialize;
-use std::path::PathBuf;
-
+use crate::prelude::*;
 #[derive(Debug, Default, Deserialize)]
 #[derive(Clone)]
 pub struct LocalDist {
