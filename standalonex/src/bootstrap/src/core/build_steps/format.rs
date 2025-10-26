@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 
-//! Runs rustfmt on the repository.
+/// Runs rustfmt on the repository.
 
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};

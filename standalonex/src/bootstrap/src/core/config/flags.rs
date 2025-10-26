@@ -1,10 +1,10 @@
 use crate::prelude::*;
 
 
-//! Command-line interface of the bootstrap build system.
-//!
-//! This module implements the command-line parsing of the build system which
-//! has various flags to configure how it's run.
+/// Command-line interface of the bootstrap build system.
+///
+/// This module implements the command-line parsing of the build system which
+/// has various flags to configure how it's run.
 
 use std::path::{Path, PathBuf};
 

@@ -1,10 +1,10 @@
 use crate::prelude::*;
 
 
-//! Various utility functions used throughout bootstrap.
-//!
-//! Simple things like testing the various filesystem operations here and there,
-//! not a lot of interesting happenings here unfortunately.
+/// Various utility functions used throughout bootstrap.
+///
+/// Simple things like testing the various filesystem operations here and there,
+/// not a lot of interesting happenings here unfortunately.
 
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
