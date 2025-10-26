@@ -1,0 +1,137 @@
+use std::{env, fs, io, path::{Path, PathBuf}};
+use walkdir::WalkDir;
+use syn::{self, Item, Ident, spanned::Spanned};
+use quote::quote;
+
+fn to_snake_case(ident: &Ident) -> String {
+    let mut s = String::new();
+    for (i, char) in ident.to_string().chars().enumerate() {
+        if char.is_uppercase() && i != 0 {
+            s.push('_');
+        }
+        s.push(char.to_ascii_lowercase());
+    }
+    s
+}
+
+fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 3 {
+        eprintln!("Usage: {} <input_directory> <output_directory>", args[0]);
+        return Ok(());
+    }
+
+    let input_dir = PathBuf::from(&args[1]);
+    let output_dir = PathBuf::from(&args[2]);
+
+    if !input_dir.is_dir() {
+        eprintln!("Error: Input directory does not exist or is not a directory.");
+        return Ok(());
+    }
+
+    fs::create_dir_all(&output_dir)?;
+
+    for entry in WalkDir::new(&input_dir) {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_file() && path.extension().map_or(false, |ext| ext == "rs") {
+            println!("Processing file: {}", path.display());
+            let content = fs::read_to_string(path)?;
+            match syn::parse_file(&content) {
+                Ok(file) => {
+                    println!("Successfully parsed: {}", path.display());
+
+                    let relative_path = path.strip_prefix(&input_dir).unwrap();
+                    let output_file_dir = output_dir.join(relative_path.parent().unwrap_or(Path::new("")));
+                    fs::create_dir_all(&output_file_dir)?;
+
+                    let mut original_file_content = String::new();
+
+                    for item in file.items {
+                        let (ident, item_code) = match item {
+                            Item::Fn(item_fn) => (item_fn.sig.ident.clone(), quote! { #item_fn }),
+                            Item::Struct(item_struct) => (item_struct.ident.clone(), quote! { #item_struct }),
+                            Item::Enum(item_enum) => (item_enum.ident.clone(), quote! { #item_enum }),
+                            Item::Trait(item_trait) => (item_trait.ident.clone(), quote! { #item_trait }),
+                            Item::Mod(item_mod) => {
+                                let original_item_mod = item_mod.clone(); // Clone item_mod here
+                                if original_item_mod.content.is_some() {
+                                    // Inline module, needs to be split into a new file
+                                    let mod_ident = original_item_mod.ident.clone(); // Use cloned item_mod
+                                    let mod_name_snake = to_snake_case(&mod_ident);
+                                    let new_mod_file_path = output_file_dir.join(format!("{}.rs", mod_name_snake));
+                                    let new_mod_content = quote! { #original_item_mod }; // Use cloned item_mod
+                                    fs::write(&new_mod_file_path, new_mod_content.to_string())?;
+                                    original_file_content.push_str(&format!("pub mod {};\n", mod_name_snake));
+                                    continue;
+                                } else {
+                                    // External module, just keep the declaration
+                                    (original_item_mod.ident.clone(), quote! { #original_item_mod })
+                                }
+                            },
+                            Item::Impl(item_impl) => {
+                                // Determine the type being implemented
+                                let target_ident = match &*item_impl.self_ty {
+                                    syn::Type::Path(type_path) => {
+                                        type_path.path.segments.last().map(|segment| segment.ident.clone()).unwrap_or_else(|| Ident::new("unknown", item_impl.span()))
+                                    },
+                                    _ => Ident::new("unknown", item_impl.span()), // Handle other types as needed
+                                };
+
+                                let snake_case_name = to_snake_case(&target_ident);
+                                let target_file_name = format!("{}.rs", snake_case_name);
+                                let target_file_path = output_file_dir.join(&target_file_name);
+
+                                println!("  Moving impl block for {} to {}", target_ident, target_file_path.display());
+
+                                let impl_code = quote! { #item_impl };
+
+                                // Read existing content, append new impl, write back
+                                let mut existing_content = fs::read_to_string(&target_file_path).unwrap_or_default();
+                                existing_content.push_str(&format!("\n{}\n", impl_code.to_string()));
+                                fs::write(&target_file_path, existing_content)?;
+
+                                continue;
+                            }
+                            Item::Use(item_use) => {
+                                // Skip use statements for now, as they will be replaced by prelude::*
+                                continue;
+                            }
+                            _ => {
+                                // For other items, just append to the original file for now
+                                original_file_content.push_str(&format!("{}\n", quote! { #item }));
+                                continue;
+                            }
+                        };
+
+                        let snake_case_name = to_snake_case(&ident);
+                        let new_file_name = format!("{}.rs", snake_case_name);
+                        let new_file_path = output_file_dir.join(&new_file_name);
+
+                        println!("  Splitting {} into {}", ident, new_file_path.display());
+
+                        let mut new_file_content = String::new();
+                        new_file_content.push_str("use prelude::*;\n"); // Add prelude import
+                        new_file_content.push_str(&item_code.to_string());
+
+                        fs::write(&new_file_path, new_file_content)?;
+
+                        // Replace original declaration with a pub use statement
+                        original_file_content.push_str(&format!("pub use {}::{};\n", snake_case_name, ident));
+                    }
+
+                    // Write the modified original file content to the output directory
+                    let original_output_path = output_dir.join(relative_path);
+                    fs::write(&original_output_path, original_file_content)?;
+                },
+                Err(e) => {
+                    eprintln!("Error parsing {}: {}", path.display(), e);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
