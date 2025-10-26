@@ -1,5 +1,12 @@
-pub mod prelude;
-use crate::prelude::*;
+//pub mod prelude;
+//use crate::prelude::*;
+//use syn::Token;
+use proc_macro :: TokenStream ;
+use quote :: quote ;
+use syn :: braced ;
+use syn :: parse :: { Parse , ParseStream , Result } ;
+use syn :: { parse_macro_input , Ident , LitStr , Token } ;
+
 extern crate proc_macro;
 struct ConfigInput {
     attrs: Vec<syn::Attribute>,

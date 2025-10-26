@@ -1,15 +1,12 @@
-use anyhow::{Context, Result};
+//Context
+use anyhow::{ Result};
 use clap::Parser;
-use serde::Deserialize;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use syn::Item;
-use walkdir::WalkDir;
-use quote::quote;
-use serde_json;
-use toml; // Add this import
+use prelude_collector::collect_prelude_info; // Import the function
+//use prelude_collector::CollectedPreludeInfo; // Import the struct
 
 /// Command-line arguments for the prelude generator.
 #[derive(Parser, Debug)]
@@ -26,67 +23,8 @@ struct Args {
     exclude_crates: Vec<String>,
 }
 
-#[derive(Deserialize, Debug)]
-struct Metadata {
-    packages: Vec<Package>,
-    workspace_root: PathBuf,
-}
-
-#[derive(Deserialize, Debug)]
-struct Package {
-    name: String,
-    manifest_path: PathBuf,
-}
-
-#[derive(Deserialize, Debug)]
-struct CargoToml {
-    #[serde(default)]
-    lib: Option<LibSection>,
-}
-
-#[derive(Deserialize, Debug)]
-struct LibSection {
-    #[serde(rename = "proc-macro", default)]
-    proc_macro: bool,
-}
-
-fn is_proc_macro_crate(crate_root: &Path) -> Result<bool> {
-    let cargo_toml_path = crate_root.join("Cargo.toml");
-    if !cargo_toml_path.exists() {
-        return Ok(false);
-    }
-    let content = fs::read_to_string(&cargo_toml_path)
-        .context(format!("Failed to read Cargo.toml for {}", crate_root.display()))?;
-    let cargo_toml: CargoToml = toml::from_str(&content)
-        .context(format!("Failed to parse Cargo.toml for {}", crate_root.display()))?;
-
-    Ok(cargo_toml.lib.map_or(false, |lib| lib.proc_macro))
-}
-
 fn main() -> Result<()> {
     let args = Args::parse();
-
-    // Run `cargo metadata`
-    let output = Command::new("cargo")
-        .arg("metadata")
-        .arg("--no-deps")
-        .arg("--format-version=1")
-        .current_dir(&args.path)
-        .output()?;
-
-    if !output.status.success() {
-        anyhow::bail!(
-            "cargo metadata failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    let metadata: Metadata = serde_json::from_slice(&output.stdout)?;
-
-    println!(
-        "Starting prelude generation in workspace: {}",
-        metadata.workspace_root.display()
-    );
 
     let mut excluded_crates: HashSet<String> = args.exclude_crates.into_iter().collect();
     // Always exclude prelude-generator and rust-decl-splitter from processing itself
@@ -94,100 +32,52 @@ fn main() -> Result<()> {
     excluded_crates.insert("rust-decl-splitter".to_string());
     // Add dependency-analyzer to excluded crates
     excluded_crates.insert("dependency-analyzer".to_string());
+    // Add prelude-collector to excluded crates
+    excluded_crates.insert("prelude-collector".to_string());
 
-    for package in metadata.packages {
-        if excluded_crates.contains(&package.name) {
-            println!(
-                "Skipping explicitly excluded crate: {} ({})",
-                package.name,
-                package.manifest_path.display()
-            );
-            continue;
-        }
 
-        let crate_root = package.manifest_path.parent().unwrap();
-        if is_proc_macro_crate(crate_root)? {
-            println!(
-                "Skipping procedural macro crate: {} ({})",
-                package.name,
-                crate_root.display()
-            );
-            continue;
-        }
+    let collected_info = collect_prelude_info(&args.path, &excluded_crates)?; // Use the collector
 
+    for info in collected_info {
         println!(
-            "\nProcessing crate: {} ({})",
-            package.name,
-            crate_root.display()
+            "\nProcessing collected info for crate: {} ({})",
+            info.crate_name,
+            info.crate_root.display()
         );
-        process_crate(crate_root, args.dry_run)?;
+
+        let src_dir = info.crate_root.join("src");
+
+        // Generate the prelude file
+        generate_prelude(&src_dir, &info.prelude_content, args.dry_run)?;
+
+        // Modify files to use the prelude
+        for path in &info.modified_files {
+            modify_file(path, args.dry_run)?;
+        }
+        
+        // Modify crate root to include the prelude
+        if info.crate_root_modified {
+            modify_crate_root(&src_dir, args.dry_run)?;
+        }
     }
+
     println!("\nPrelude generation complete.");
     Ok(())
 }
-/// Processes a single crate, generating its prelude and modifying its source files.
-fn process_crate(crate_root: &Path, dry_run: bool) -> Result<()> {
-    let src_dir = crate_root.join("src");
-    if !src_dir.is_dir() {
-        println!("  -> No src directory found, skipping.");
-        return Ok(());
-    }
-    let mut use_statements = HashSet::new();
-    let mut rust_files = Vec::new();
-    for entry in WalkDir::new(&src_dir)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| {
-            let path = e.path();
-            path.extension().map_or(false, |ext| ext == "rs")
-                && path.file_name().map_or(false, |name| name != "prelude.rs")
-        })
-    {
-        let path = entry.path();
-        rust_files.push(path.to_path_buf());
-        let content = fs::read_to_string(path)?;
-        println!("--> Parsing file: {}", path.display());
-        let ast = syn::parse_file(&content)
-            .with_context(|| format!("Failed to parse {}", path.display()))?;
-        for item in &ast.items {
-            if let Item::Use(use_item) = item {
-                let use_string = quote::quote!(# use_item).to_string();
-                use_statements.insert(use_string);
-            }
-        }
-    }
-    if use_statements.is_empty() {
-        println!("  -> No use statements found, skipping.");
-        return Ok(());
-    }
-    generate_prelude(&src_dir, &use_statements, dry_run)?;
-    for path in &rust_files {
-        modify_file(path, dry_run)?;
-    }
-    modify_crate_root(&src_dir, dry_run)?;
-    Ok(())
-}
+
 /// Generates the `prelude.rs` file for a crate.
 fn generate_prelude(
     src_dir: &Path,
-    use_statements: &HashSet<String>,
+    prelude_content: &str,
     dry_run: bool,
 ) -> Result<()> {
     let prelude_path = src_dir.join("prelude.rs");
-    let mut prelude_content = String::from(
-        "// This file is auto-generated by prelude-generator. Do not edit.\n\n",
-    );
-    let mut sorted_uses: Vec<_> = use_statements.iter().collect();
-    sorted_uses.sort();
-    for use_stmt in sorted_uses {
-        let pub_use = format!("pub {}", use_stmt);
-        prelude_content.push_str(&pub_use);
-        prelude_content.push_str("\n");
-    }
+
     if dry_run {
         println!(
-            "[DRY RUN] Would generate prelude file: {}\n---\n{}---", prelude_path
-            .display(), prelude_content
+            "[DRY RUN] Would generate prelude file: {}\n---\n{}---",
+            prelude_path.display(),
+            prelude_content
         );
     } else {
         println!("  -> Generating prelude file: {}", prelude_path.display());
@@ -195,12 +85,14 @@ fn generate_prelude(
     }
     Ok(())
 }
+
 /// Modifies a source file to remove its `use` statements and add `use crate::prelude::*;`.
 fn modify_file(path: &Path, dry_run: bool) -> Result<()> {
     let content = fs::read_to_string(path)?;
     let ast = syn::parse_file(&content)?;
     let mut new_items = Vec::new();
     let mut has_use_statements = false;
+
     for item in &ast.items {
         if let Item::Use(_) = item {
             has_use_statements = true;
@@ -208,17 +100,21 @@ fn modify_file(path: &Path, dry_run: bool) -> Result<()> {
             new_items.push(item.clone());
         }
     }
+
     if has_use_statements {
         let prelude_use: Item = syn::parse_quote! {
-            use crate ::prelude::*;
+            use crate::prelude::*;
         };
         new_items.insert(0, prelude_use);
+
         let mut new_ast = ast.clone();
         new_ast.items = new_items;
         let new_content = prettyplease::unparse(&new_ast);
+
         if dry_run {
             println!(
-                "[DRY RUN] Would modify file: {}\n---\n{}---", path.display(),
+                "[DRY RUN] Would modify file: {}\n---\n{}---",
+                path.display(),
                 new_content
             );
         } else {
@@ -228,20 +124,24 @@ fn modify_file(path: &Path, dry_run: bool) -> Result<()> {
     }
     Ok(())
 }
+
 /// Modifies the crate root (`lib.rs` or `main.rs`) to ensure it contains `pub mod prelude;`.
 fn modify_crate_root(src_dir: &Path, dry_run: bool) -> Result<()> {
     let lib_rs = src_dir.join("lib.rs");
     let main_rs = src_dir.join("main.rs");
+
     let crate_root_path = if lib_rs.exists() {
         lib_rs
     } else if main_rs.exists() {
         main_rs
     } else {
-        return Ok(())
+        return Ok(());
     };
+
     let content = fs::read_to_string(&crate_root_path)?;
     let ast = syn::parse_file(&content)?;
     let mut has_prelude_mod = false;
+
     for item in &ast.items {
         if let Item::Mod(mod_item) = item {
             if mod_item.ident == "prelude" {
@@ -250,6 +150,7 @@ fn modify_crate_root(src_dir: &Path, dry_run: bool) -> Result<()> {
             }
         }
     }
+
     if !has_prelude_mod {
         let mut new_ast = ast.clone();
         let prelude_mod: Item = syn::parse_quote! {
@@ -257,10 +158,11 @@ fn modify_crate_root(src_dir: &Path, dry_run: bool) -> Result<()> {
         };
         new_ast.items.insert(0, prelude_mod);
         let new_content = prettyplease::unparse(&new_ast);
+
         if dry_run {
             println!(
-                "[DRY RUN] Would add 'pub mod prelude;' to: {}", crate_root_path
-                .display()
+                "[DRY RUN] Would add 'pub mod prelude;' to: {}",
+                crate_root_path.display()
             );
         } else {
             println!("  -> Adding 'pub mod prelude;' to: {}", crate_root_path.display());

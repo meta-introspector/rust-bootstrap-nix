@@ -1,6 +1,9 @@
 use crate::prelude::*;
+use std::ffi::OsString;
+use std::ffi::OsStr;
 #[cfg(test)]
 mod tests;
+
 #[derive(Debug)]
 pub struct DropBomb {
     command: OsString,

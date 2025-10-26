@@ -126,7 +126,7 @@ fn main() -> io::Result<()> {
                                 fs::write(&target_file_path, existing_content)?;
                                 continue;
                             }
-                            Item::Use(item_use) => {
+                            Item::Use(_item_use) => {
                                 continue;
                             }
                             _ => {

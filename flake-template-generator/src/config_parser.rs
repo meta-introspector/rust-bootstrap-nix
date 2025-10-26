@@ -1,5 +1,8 @@
 use crate::prelude::*;
-extern crate serde;
+//extern crate serde;
+use serde::Deserialize;
+use serde::Serialize;
+//pub use serde :: { Deserialize , Serialize } ;
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct NixConfig {
     #[serde(default)]

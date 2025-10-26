@@ -115,7 +115,6 @@ dependencies = [
  "sysinfo",
  "tar",
  "termcolor",
- "test_definitions_macro",
  "toml 0.5.11",
  "walkdir",
  "windows 0.52.0",
@@ -915,17 +914,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "prelude-collector"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "toml 0.8.23",
+ "walkdir",
+]
+
+[[package]]
 name = "prelude-generator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "dunce",
+ "prelude-collector",
  "prettyplease",
  "quote",
  "serde",
  "serde_json",
  "syn",
+ "toml 0.8.23",
  "walkdir",
 ]
 
@@ -1237,29 +1251,6 @@ name = "test-openssl-sys"
 version = "0.1.0"
 dependencies = [
  "openssl-sys",
-]
-
-[[package]]
-name = "test-project"
-version = "0.1.0"
-
-[[package]]
-name = "test_definitions_lib"
-version = "0.1.0"
-
-[[package]]
-name = "test_definitions_macro"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
-name = "test_definitions_test"
-version = "0.1.0"
-dependencies = [
- "test_definitions_macro",
 ]
 
 [[package]]

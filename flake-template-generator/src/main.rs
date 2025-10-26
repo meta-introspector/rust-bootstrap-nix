@@ -1,11 +1,17 @@
 use crate::prelude::*;
 pub mod prelude;
-mod prelude;
+use crate::config_parser::parse_config;
+use crate::file_writer::write_flake_and_config;
+use crate::statix_checker::run_statix_check;
+//mod prelude;
 mod args;
 mod config_parser;
 mod flake_generator;
 mod file_writer;
 mod statix_checker;
+pub use args :: Args ;
+pub use serde :: { Deserialize , Serialize } ;
+use crate::flake_generator::generate_flake_nix_content;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
