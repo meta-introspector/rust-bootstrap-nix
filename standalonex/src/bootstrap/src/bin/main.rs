@@ -1,22 +1,23 @@
-use crate::prelude::*;
-
-
-//! bootstrap, the Rust build system
-//!
-//! This is the entry point for the build system used to compile the `rustc`
-//! compiler. Lots of documentation can be found in the `README.md` file in the
-//! parent directory, and otherwise documentation can be found throughout the `build`
-//! directory in each respective module.
+//use crate::prelude::*;
+use std::path::{Component, Path, PathBuf};
+use std::sync::RwLock;
+//pub use crate::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes};
+// bootstrap, the Rust build system
+//
+// This is the entry point for the build system used to compile the `rustc`
+// compiler. Lots of documentation can be found in the `README.md` file in the
+// parent directory, and otherwise documentation can be found throughout the `build`
+// directory in each respective module.
 
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, BufReader, IsTerminal, Write};
 use std::str::FromStr;
 use std::{env, process};
 
-use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
-use bootstrap_config_utils::parse;
-use bootstrap_config_utils::dry_run;
-use build_helper::ci::CiEnv;
+//use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
+//use bootstrap_config_utils::parse;
+//use bootstrap_config_utils::dry_run;
+//use build_helper::ci::CiEnv;
 
 fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
@@ -50,7 +51,7 @@ fn main() {
                 let lock_path = new_config.out.join("lock");
                 let pid = fs::read_to_string(&lock_path);
 
-                build_lock = fd_lock::RwLock::new(/*t!*/(fs::OpenOptions::new()
+                build_lock = RwLock::new(/*t!*/(fs::OpenOptions::new()
                     .write(true)
                     .truncate(true)
                     .create(true)
