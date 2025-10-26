@@ -672,6 +672,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indoc"
+version = "1.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfa799dd5ed20a7e349f3b4639aa80d74549c81716d9ec4f994c9b5815598306"
+
+[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -918,10 +924,13 @@ name = "prelude-collector"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "indoc",
  "quote",
  "serde",
  "serde_json",
+ "sha2",
  "syn",
+ "tempfile",
  "toml 0.8.23",
  "walkdir",
 ]
