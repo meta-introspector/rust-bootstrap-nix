@@ -1,3 +1,4 @@
+pub mod prelude;
 
 extern crate proc_macro;
 

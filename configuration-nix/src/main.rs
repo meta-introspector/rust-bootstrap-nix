@@ -1,3 +1,4 @@
+pub mod prelude;
 
 
 use clap::Parser;

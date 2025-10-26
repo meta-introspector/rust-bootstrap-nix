@@ -1,3 +1,4 @@
+pub mod prelude;
 use std::path::PathBuf;
 use std::fs;
 mod prelude;

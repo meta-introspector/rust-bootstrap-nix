@@ -1,3 +1,4 @@
+pub mod prelude;
 mod prelude; // Declare prelude module
 pub use prelude::*; // Re-export prelude contents
 

@@ -16,5 +16,5 @@ members = [
     "test-openssl-sys",
     "standalonex/src/bootstrap-config-types",
     "standalonex/src/config_macros",
-    "standalonex/src/config_core",
+    "standalonex/src/config_core", "prelude-generator", "rust-decl-splitter",
 ]

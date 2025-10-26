@@ -1,3 +1,4 @@
+pub mod prelude;
 mod prelude;
 
 extern crate test_definitions_macro;
