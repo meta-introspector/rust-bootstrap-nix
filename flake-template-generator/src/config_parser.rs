@@ -1,18 +1,18 @@
-use crate::prelude::*;
 
 
-use serde::Deserialize;
+extern crate serde;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct NixConfig {
     #[serde(default)]
     pub nixpkgs_path: String,
     // Add other nix-related fields as needed
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     #[serde(default)]
     pub nix: NixConfig,

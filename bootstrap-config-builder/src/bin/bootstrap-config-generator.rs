@@ -1,6 +1,3 @@
-use crate::prelude::*;
-
-
 use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs;
@@ -8,8 +5,6 @@ use log::{info, debug}; // Import log macros
 use toml;
 use bootstrap_config_builder::config::AppConfig;
 use std::path::{PathBuf}; // Added for path manipulation
-//use std::io::Write; // Added for file writing
-//use std::fs; // Added for file system operations
 
 use bootstrap_config_builder::preconditions;
 use bootstrap_config_builder::utils::validate_project_root::validate_project_root;

@@ -1,17 +1,15 @@
-use crate::prelude::*;
-
-
 use std::path::PathBuf;
 use std::fs;
-
+mod prelude;
+use prelude::*;
 mod args;
 mod config_parser;
 mod flake_generator;
 mod file_writer;
 mod statix_checker;
 
-use args::Args;
 use clap::Parser;
+use args::Args;
 use config_parser::parse_config;
 use flake_generator::generate_flake_nix_content;
 use file_writer::write_flake_and_config;

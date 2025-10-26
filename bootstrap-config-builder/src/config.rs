@@ -1,10 +1,7 @@
-use crate::prelude::*;
-
-
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct AppConfig {
     pub stage: Option<String>,
     pub target: Option<String>,
