@@ -1,16 +1,22 @@
-//! A tool to automatically generate preludes for Rust crates.
-//!
-//! This tool scans all crates in a workspace, extracts all `use` statements,
-//! generates a `prelude.rs` file for each crate, and replaces the original
-//! `use` statements with a single `use crate::prelude::*;`.
-pub mod prelude;
-use crate::prelude::*;
+use anyhow::{Context, Result};
+use clap::Parser;
+use serde::Deserialize;
+use std::collections::HashSet;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use syn::Item;
+use walkdir::WalkDir;
+use quote::quote;
+use serde_json;
+use toml; // Add this import
+
 /// Command-line arguments for the prelude generator.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Run in dry-run mode, printing changes without modifying files.
-    #[arg(long)]
+    #[arg(long, default_value_t = true)]
     dry_run: bool,
     /// The path to the workspace root.
     #[arg(default_value = ".")]
@@ -19,44 +25,101 @@ struct Args {
     #[arg(long, value_delimiter = ',')]
     exclude_crates: Vec<String>,
 }
+
 #[derive(Deserialize, Debug)]
 struct Metadata {
     packages: Vec<Package>,
     workspace_root: PathBuf,
 }
+
 #[derive(Deserialize, Debug)]
 struct Package {
     name: String,
     manifest_path: PathBuf,
 }
+
+#[derive(Deserialize, Debug)]
+struct CargoToml {
+    #[serde(default)]
+    lib: Option<LibSection>,
+}
+
+#[derive(Deserialize, Debug)]
+struct LibSection {
+    #[serde(rename = "proc-macro", default)]
+    proc_macro: bool,
+}
+
+fn is_proc_macro_crate(crate_root: &Path) -> Result<bool> {
+    let cargo_toml_path = crate_root.join("Cargo.toml");
+    if !cargo_toml_path.exists() {
+        return Ok(false);
+    }
+    let content = fs::read_to_string(&cargo_toml_path)
+        .context(format!("Failed to read Cargo.toml for {}", crate_root.display()))?;
+    let cargo_toml: CargoToml = toml::from_str(&content)
+        .context(format!("Failed to parse Cargo.toml for {}", crate_root.display()))?;
+
+    Ok(cargo_toml.lib.map_or(false, |lib| lib.proc_macro))
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    // Run `cargo metadata`
     let output = Command::new("cargo")
         .arg("metadata")
         .arg("--no-deps")
         .arg("--format-version=1")
         .current_dir(&args.path)
         .output()?;
+
     if !output.status.success() {
         anyhow::bail!(
-            "cargo metadata failed: {}", String::from_utf8_lossy(& output.stderr)
+            "cargo metadata failed: {}",
+            String::from_utf8_lossy(&output.stderr)
         );
     }
+
     let metadata: Metadata = serde_json::from_slice(&output.stdout)?;
+
     println!(
-        "Starting prelude generation in workspace: {}", metadata.workspace_root.display()
+        "Starting prelude generation in workspace: {}",
+        metadata.workspace_root.display()
     );
-    let excluded_crates: HashSet<String> = args.exclude_crates.into_iter().collect();
+
+    let mut excluded_crates: HashSet<String> = args.exclude_crates.into_iter().collect();
+    // Always exclude prelude-generator and rust-decl-splitter from processing itself
+    excluded_crates.insert("prelude-generator".to_string());
+    excluded_crates.insert("rust-decl-splitter".to_string());
+    // Add dependency-analyzer to excluded crates
+    excluded_crates.insert("dependency-analyzer".to_string());
+
     for package in metadata.packages {
         if excluded_crates.contains(&package.name) {
             println!(
-                "Skipping excluded crate: {} ({})", package.name, package.manifest_path
-                .display()
+                "Skipping explicitly excluded crate: {} ({})",
+                package.name,
+                package.manifest_path.display()
             );
             continue;
         }
+
         let crate_root = package.manifest_path.parent().unwrap();
-        println!("\nProcessing crate: {} ({})", package.name, crate_root.display());
+        if is_proc_macro_crate(crate_root)? {
+            println!(
+                "Skipping procedural macro crate: {} ({})",
+                package.name,
+                crate_root.display()
+            );
+            continue;
+        }
+
+        println!(
+            "\nProcessing crate: {} ({})",
+            package.name,
+            crate_root.display()
+        );
         process_crate(crate_root, args.dry_run)?;
     }
     println!("\nPrelude generation complete.");
