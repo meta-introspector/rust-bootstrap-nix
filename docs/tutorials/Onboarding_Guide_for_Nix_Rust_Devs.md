@@ -4,7 +4,7 @@ Welcome to the `rust-bootstrap-nix` project! This guide will help you get starte
 
 ## 1. Project Overview & Goals
 
-This project aims to provide a robust and reproducible development and build environment for Rust, leveraging Nix flakes. Our long-term architectural goal is to transform the Rust codebase into a "canonical form" represented as a "lattice of functions," enhancing modularity and enabling self-modifying capabilities. You can find more details on this vision in `lattice.md`.
+This project aims to provide a robust and reproducible development and build environment for Rust, leveraging Nix flakes. Nix flakes are self-contained, reproducible development environments that define all dependencies and configurations. Our long-term architectural goal is to transform the Rust codebase into a "canonical form" represented as a "lattice of functions," enhancing modularity and enabling self-modifying capabilities. You can find more details on this vision in `lattice.md`.
 
 Key features include:
 *   **Reproducible Development Environments:** Consistent Python and Rust development shells via Nix flakes.
@@ -12,7 +12,7 @@ Key features include:
 *   **`x.py` Build System Support:** Tools for working with the `x.py` build orchestration script.
 *   **JSON Output Processing:** Analyzing build metadata.
 
-## 2. Setting Up Your Development Environment (Nixification Workflow)
+## 2. Setting Up Your Development Environment with Nix Flakes
 
 Our project uses Nix flakes to ensure a consistent and isolated development environment. If you don't have Nix installed, please follow the official Nix installation guide.
 
@@ -43,7 +43,7 @@ python3 --version
 
 ### Building the Project
 
-The primary way to build the Rust project is through the `x.py` build orchestration script. From within the `nix develop` shell, you can run:
+The primary way to build the Rust project is through the `x.py` build orchestration script, which is a custom script designed for our project's specific build process. From within the `nix develop` shell, you can run:
 
 ```bash
 python x.py build
@@ -75,6 +75,10 @@ Specific test commands will depend on the module you are working on. Generally, 
 ## 5. Contributing to the Project
 
 We welcome contributions! Please refer to our Change Request (CRQ) and Standard Operating Procedure (SOP) documents in `docs/crqs/` and `docs/sops/` for guidelines on how to propose changes, report bugs, and contribute code. Always ensure your changes adhere to our coding standards and pass all Nix and Rust checks.
+
+### Code Quality and Shell Scripts
+
+For shell scripts, we enforce strict code quality standards using `Shellcheck`. Before submitting any changes involving shell scripts, please ensure they pass `Shellcheck` analysis. Refer to `docs/memos/Shellcheck_Always_After_Changes.md` for detailed instructions on how to use `Shellcheck` and integrate it into your development workflow.
 
 ## 6. Further Reading
 

@@ -78,6 +78,7 @@ The system leverages Nix flakes to define a hermetic build environment. The root
 
 ## Architectural Goal: Lattice of Functions
 
+
 Beyond the immediate build and development environment, a core architectural goal of this project is to transform the Rust codebase into a "canonical form" represented as a "lattice of functions." This involves rewriting the code to adhere to specific constraints, such as a topologically sorted dependency graph and limiting each module to at most one external crate dependency. This approach aims to enhance modularity, maintainability, and enable self-modifying capabilities.
 
 Key components facilitating this transformation include:
@@ -88,7 +89,12 @@ Key components facilitating this transformation include:
 
 For a more detailed explanation of this architectural vision and its principles, please refer to `lattice.md`.
 
+## Code Quality and Best Practices
+
+To ensure high code quality and maintainability, especially for shell scripts, we adhere to specific best practices. For detailed guidelines on using `Shellcheck` and integrating it into your workflow, please refer to `docs/memos/Shellcheck_Always_After_Changes.md`.
+
 ## Configuration Documentation
+
 
 # Configuration Documentation
 
