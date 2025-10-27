@@ -29,3 +29,31 @@ The primary goal is to rewrite the existing Rust codebase into a "canonical form
 5.  **Re-composition:** Assemble the transformed components into the final, topologically sorted, lattice-structured codebase.
 
 This goal represents a significant step towards a highly modular, analyzable, and potentially self-optimizing Rust codebase.
+
+## Key Components in the Lattice Transformation:
+
+### `rust-system-composer` (`rust-system-composer/src/main.rs`)
+
+This crate acts as the orchestrator for the entire lattice transformation process. Its primary responsibilities include:
+
+*   **Pipeline Management:** Executes a sequence of tools, starting with `prelude-generator` and then `rust-decl-splitter`.
+*   **Argument Handling:** Passes necessary configuration (e.g., `workspace-root`, `input-dir`, `output-dir`) to the underlying tools.
+*   **Error Handling:** Provides centralized error reporting and ensures the pipeline halts if any sub-tool fails.
+
+### `rust-decl-splitter` (`rust-decl-splitter/src/main.rs`)
+
+This tool is fundamental to the "Decomposition" step of the lattice transformation. Its core function is to break down monolithic Rust source files into individual files, each containing a single declaration (function, struct, enum, trait, or `impl` block). This fine-grained decomposition is crucial for:
+
+*   **Granularity:** Creating the individual "nodes" of the "lattice of functions."
+*   **Modularity:** Enabling independent analysis and transformation of each declaration.
+*   **Re-composition:** Providing the building blocks for re-assembling the codebase in a canonical, topologically sorted manner.
+
+### `prelude-generator` (`prelude-generator/src/main.rs`)
+
+This crate is responsible for generating prelude files, which are essential for the "Self-Reading" aspect of the transformation. It leverages `prelude-collector` to:
+
+*   **Macro Expansion:** Expands all macros in the source code, providing a complete and unambiguous AST for analysis.
+*   **AST Generation:** Parses the expanded code into an Abstract Syntax Tree, which is the foundation for understanding code structure and dependencies.
+*   **Environment Awareness:** Gathers `rustc` and environment information to ensure accurate code analysis.
+
+By providing a comprehensive and expanded view of the code, `prelude-generator` enables subsequent tools to perform accurate dependency analysis and apply transformation rules effectively.
