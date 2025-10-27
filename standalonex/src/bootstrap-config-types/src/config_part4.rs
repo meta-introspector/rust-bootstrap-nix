@@ -1361,7 +1361,7 @@ impl Config {
         download_rustc: Option<StringOrBool>,
         llvm_assertions: bool,
     ) -> Option<String> {
-        if !is_download_ci_available(&self.build.triple, llvm_assertions) {
+        if !crate::is_download_ci_available(&self.build.triple, llvm_assertions) {
             return None;
         }
         let if_unchanged = match download_rustc {
@@ -1373,7 +1373,7 @@ impl Config {
                     println!(
                         "ERROR: `download-rustc=if-unchanged` is only compatible with Git managed sources."
                     );
-                    crate::exit!(1);
+                    exit!(1);
                 }
                 true
             }
@@ -1402,7 +1402,7 @@ impl Config {
                     println!(
                         "HELP: or fetch enough history to include one upstream commit"
                     );
-                    crate::exit!(1);
+                    exit!(1);
                 }
             }
         } else {
@@ -1412,7 +1412,7 @@ impl Config {
         };
         if CiEnv::is_ci()
             && {
-                let head_sha = output(
+                let head_sha = crate::output(
                     helpers::git(Some(&self.src))
                         .arg("rev-parse")
                         .arg("HEAD")
@@ -1441,7 +1441,7 @@ impl Config {
                 println!(
                     "ERROR: 'if-unchanged' is only compatible with Git managed sources."
                 );
-                crate::exit!(1);
+                exit!(1);
             }
             #[cfg(not(feature = "bootstrap-self-test"))]
             self.update_submodule("src/llvm-project");
@@ -1486,11 +1486,11 @@ impl Config {
             println!("help: maybe your repository history is too shallow?");
             println!("help: consider disabling `{option_name}`");
             println!("help: or fetch enough history to include one upstream commit");
-            crate::exit!(1);
+            exit!(1);
         }
         let mut git = helpers::git(Some(&self.src));
         git.args(["diff-index", "--quiet", &commit, "--"]).args(modified_paths);
-        let has_changes = !t!(git.as_command_mut().status()).success();
+        let has_changes = t!(git.as_command_mut().status()).success();
         if has_changes {
             if if_unchanged {
                 if self.is_verbose() {

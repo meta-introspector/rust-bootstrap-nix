@@ -473,7 +473,7 @@ pub fn get_completion<G: clap_complete::Generator>(
         std::fs::read_to_string(path)
             .unwrap_or_else(|_| {
                 eprintln!("couldn't read {}", path.display());
-                crate::exit!(1)
+                exit!(1)
             })
     };
     let mut buf = Vec::new();
