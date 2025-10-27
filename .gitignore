@@ -17,3 +17,10 @@ target/
 /.pre-commit-config.local.yamlnix-build-scripts/.#Makefile
 /.env
 /.env.sh
+
+# Emacs temporary files
+*~
+#*#
+.#*
+*.elc
+*.fasl
