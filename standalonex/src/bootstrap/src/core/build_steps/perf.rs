@@ -4,7 +4,7 @@ use crate::prelude::*;
 //use crate::core::build_steps::compile::{Std, Sysroot};
 use crate::core::build_steps::tool::{RustcPerf, Tool};
 use crate::core::builder::Builder;
-use crate::core::config::DebuginfoLevel;
+//use crate::core::config::DebuginfoLevel;
 
 /// Performs profiling using `rustc-perf` on a built version of the compiler.
 pub fn perf(builder: &Builder<'_>) {

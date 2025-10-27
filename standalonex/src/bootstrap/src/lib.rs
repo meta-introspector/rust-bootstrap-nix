@@ -21,7 +21,7 @@ use utils::channel::GitInfo;
 use utils::helpers::hex_encode;
 
 
-pub use crate::core::builder;
+pub use crate::core::builder::*;
 use crate::core::builder::{Builder, Kind};
 
 pub use bootstrap_config_types::*; // Added this line
@@ -56,6 +56,6 @@ pub use crate::utils::cc_detect::Language;
 pub use crate::utils::envify;
 pub use crate::utils::generate_smart_stamp_hash;
 pub use crate::utils::prepare_behaviour_dump_dir;
-pub use crate::Subcommand;
+//pub use crate::Subcommand;
 
 pub use utils::change_tracker::{CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,};

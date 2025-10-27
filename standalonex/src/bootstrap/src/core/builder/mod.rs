@@ -21,7 +21,7 @@ use crate::core::build_steps::{
     check, clean, clippy, compile, dist, doc, gcc, install, llvm, run, setup, test, tool, vendor,
 };
 
-use crate::core::config::{DryRun, TargetSelection};
+//use crate::core::config::{DryRun, TargetSelection};
 use crate::utils::cache::Cache;
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{self, LldThreads, add_dylib_path, exe, libdir, linker_args, t};

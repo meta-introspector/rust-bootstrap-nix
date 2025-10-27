@@ -20,7 +20,7 @@ use crate::core::build_steps::tool::{self, SourceType, Tool, prepare_tool_cargo}
 use crate::core::builder::{
     self, Alias, Builder, Compiler, Kind, RunConfig, ShouldRun, Step, crate_description,
 };
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 use crate::utils::helpers::{symlink_dir, t, up_to_date};
 
 macro_rules! submodule_helper {

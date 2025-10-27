@@ -16,10 +16,10 @@ use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 use std::{env, fs};
 
-use crate::BuildConfig;
-#[cfg(not(feature = "bootstrap-self-test"))]
-use crate::builder::Builder;
-use crate::builder::Kind;
+//use crate::BuildConfig;
+//#[cfg(not(feature = "bootstrap-self-test"))]
+//use crate::builder::Builder;
+//use crate::builder::Kind;
 #[cfg(not(feature = "bootstrap-self-test"))]
 use crate::core::build_steps::tool;
 use crate::core::config::Target;

@@ -16,9 +16,9 @@ use std::{env, fs, io, str};
 use build_helper::util::fail;
 use object::read::archive::ArchiveFile;
 
-use crate::LldMode;
+//use crate::LldMode;
 use crate::core::builder::Builder;
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 pub use crate::utils::shared_helpers::{dylib_path, dylib_path_var};
 
 #[cfg(test)]

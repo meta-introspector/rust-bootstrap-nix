@@ -9,7 +9,7 @@ use std::process::{Command, CommandArgs, CommandEnvs, ExitStatus, Output, Stdio}
 use build_helper::ci::CiEnv;
 use build_helper::drop_bomb::DropBomb;
 
-use crate::BuildConfig;
+//use crate::BuildConfig;
 
 /// What should be done when the command fails.
 #[derive(Debug, Copy, Clone)]

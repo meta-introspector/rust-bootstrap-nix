@@ -4,8 +4,8 @@ use crate::prelude::*;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use crate::builder::Builder;
-use crate::{Subcommand, TargetSelection, Kind, Compiler};
+//use crate::builder::Builder;
+//use crate::{Subcommand, TargetSelection, Kind, Compiler};
 
 pub trait RustcTaskConfig: Sized + Debug + Clone + PartialEq + Eq + Hash {
     fn default_config(builder: &Builder<'_>) -> Self;

@@ -28,9 +28,9 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::{env, iter};
 
-use crate::core::config::TargetSelection;
+//use crate::core::config::TargetSelection;
 use crate::utils::exec::{BootstrapCommand, command};
-use crate::{BuildConfig};
+//use crate::{BuildConfig};
 
 // The `cc` crate doesn't provide a way to obtain a path to the detected archiver,
 // so use some simplified logic here. First we respect the environment variable `AR`, then

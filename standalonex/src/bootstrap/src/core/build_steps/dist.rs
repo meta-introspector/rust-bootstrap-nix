@@ -25,7 +25,7 @@ use crate::core::build_steps::tool::{self, Tool};
 use crate::core::build_steps::vendor::default_paths_to_vendor;
 use crate::core::build_steps::{compile, llvm};
 use crate::core::builder::{Builder, Kind, RunConfig, ShouldRun, Step};
-use crate::core::config::TargetSelection;
+//use crate::core::config::TargetSelection;
 use crate::utils::channel::{self, Info};
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{

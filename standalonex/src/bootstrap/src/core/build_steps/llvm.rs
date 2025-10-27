@@ -22,7 +22,7 @@ use build_helper::ci::CiEnv;
 use build_helper::git::get_closest_merge_commit;
 
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 use crate::utils::exec::command;
 use crate::utils::helpers::{
     self, HashStamp, exe, get_clang_cl_resource_dir, t, unhashed_basename, up_to_date,

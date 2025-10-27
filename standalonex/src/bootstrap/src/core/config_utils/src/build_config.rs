@@ -1,6 +1,9 @@
-use crate::prelude::*;
+use crate::config_applicator::ConfigApplicator;
+use crate::parsed_config::ParsedConfig;
 pub struct BuildConfigApplicator;
+use crate::local_toml_config::LocalTomlConfig;
 impl ConfigApplicator for BuildConfigApplicator {
+    
     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig) {
         let build_config = toml.build.clone().unwrap_or_default();
         config.jobs = config.jobs.or(build_config.jobs).or(Some(0));

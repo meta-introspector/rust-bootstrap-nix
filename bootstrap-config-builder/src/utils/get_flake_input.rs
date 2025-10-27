@@ -1,4 +1,5 @@
 use crate::prelude::*;
+
 pub fn get_flake_input(flake_path_str: &str, input_name: &str) -> Result<String> {
     let path_template = "path:{}";
     let path_expr = "(builtins.getFlake {}).inputs.{}.outPath";

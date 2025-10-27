@@ -1,4 +1,5 @@
 use crate::prelude::*;
+//use crate::utils::format_file::format_file;
 #[allow(clippy::too_many_arguments)]
 pub fn construct_config_content(
     system: &str,
@@ -33,7 +34,7 @@ pub fn construct_config_content(
     llvm_ninja: bool,
     change_id: &str,
 ) -> String {
-    format_file::format_file(
+    format_file(
         system,
         flake_path_str,
         nixpkgs_path,

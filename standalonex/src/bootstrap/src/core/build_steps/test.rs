@@ -19,9 +19,9 @@ use crate::core::build_steps::{compile, dist, llvm};
 use crate::core::builder::{
     self, Alias, Builder, Compiler, Kind, RunConfig, ShouldRun, Step, crate_description,
 };
-use crate::core::config::TargetSelection;
-use crate::core::config::flags::get_completion;
-use crate::Subcommand;
+//use crate::core::config::TargetSelection;
+//use crate::core::config::flags::get_completion;
+//use crate::Subcommand;
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{
     self, LldThreads, add_link_lib_path, add_rustdoc_cargo_linker_args, dylib_path, dylib_path_var,
@@ -29,7 +29,7 @@ use crate::utils::helpers::{
 };
 use crate::utils::render_tests::{add_flags_and_try_run_tests, try_run_tests};
 use crate::{Language, DocTests, GitInfo, Mode, envify};
-use test_definitions_macro::test_definitions;
+//use test_definitions_macro::test_definitions;
 default_test!(Ui { path: "tests/ui", mode: "ui", suite: "ui" });
 
 default_test!(Crashes { path: "tests/crashes", mode: "crashes", suite: "crashes" });

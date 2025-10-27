@@ -11,8 +11,8 @@ use crate::core::build_steps::dist::distdir;
 use crate::core::build_steps::test;
 use crate::core::build_steps::tool::{self, SourceType, Tool};
 use crate::core::builder::{Builder, Kind, RunConfig, ShouldRun, Step};
-use crate::core::config::TargetSelection;
-use crate::core::config::flags::get_completion;
+//use crate::core::config::TargetSelection;
+//use crate::core::config::flags::get_completion;
 use crate::utils::exec::command;
 
 #[derive(Debug, PartialOrd, Ord, Clone, Hash, PartialEq, Eq)]

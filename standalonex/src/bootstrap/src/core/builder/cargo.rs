@@ -6,15 +6,15 @@ use std::path::{Path, PathBuf};
 use super::{Builder, Kind};
 use crate::core::build_steps::tool::SourceType;
 use crate::core::build_steps::{compile, test};
-use crate::core::config::SplitDebuginfo;
-use crate::core::config::flags::Color;
+//use crate::core::config::SplitDebuginfo;
+//use crate::core::config::flags::Color;
 use crate::utils::helpers::{
     self, LldThreads, add_link_lib_path, check_cfg_arg, linker_args, linker_flags,
 };
-use crate::{
-    BootstrapCommand, Language, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitInfo, Mode,
-    TargetSelection, command, prepare_behaviour_dump_dir, t,
-};
+//use crate::{
+//    BootstrapCommand, Language, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitInfo, Mode,
+//    TargetSelection, command, prepare_behaviour_dump_dir, t,
+//};
 
 /// Represents flag values in `String` form with whitespace delimiter to pass it to the compiler
 /// later.

@@ -15,7 +15,7 @@ use xz2::bufread::XzDecoder;
 use crate::core::config::BUILDER_CONFIG_FILENAME;
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{check_run, exe, hex_encode, move_file, program_out_of_date};
-use crate::{Config, t};
+//use crate::{Config, t};
 
 static SHOULD_FIX_BINS_AND_DYLIBS: OnceLock<bool> = OnceLock::new();
 
@@ -726,7 +726,7 @@ download-rustc = false
         use build_helper::exit;
 
         use crate::core::build_steps::llvm::detect_llvm_sha;
-        use crate::core::config::check_incompatible_options_for_ci_llvm;
+//        use crate::core::config::check_incompatible_options_for_ci_llvm;
 
         if !self.llvm_from_ci {
             return;
