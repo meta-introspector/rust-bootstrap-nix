@@ -76,6 +76,18 @@ The repository is structured around several key components:
 
 The system leverages Nix flakes to define a hermetic build environment. The root `flake.nix` sets up a development shell with Python, Rust, and `sccache`. The `x.py` script (located in `standalonex/`) acts as the primary interface for building the Rust project. During the build, `x.py` (specifically through its `bootstrap` module) can generate JSON output containing detailed information about the compilation steps. Other flakes then consume and process this JSON data, enabling advanced analysis and automation of the Rust build process.
 
+## Architectural Goal: Lattice of Functions
+
+Beyond the immediate build and development environment, a core architectural goal of this project is to transform the Rust codebase into a "canonical form" represented as a "lattice of functions." This involves rewriting the code to adhere to specific constraints, such as a topologically sorted dependency graph and limiting each module to at most one external crate dependency. This approach aims to enhance modularity, maintainability, and enable self-modifying capabilities.
+
+Key components facilitating this transformation include:
+
+*   **`rust-system-composer`**: Orchestrates the entire lattice transformation pipeline.
+*   **`rust-decl-splitter`**: Decomposes Rust source files into individual declarations (functions, structs, enums, etc.), forming the granular nodes of the lattice.
+*   **`prelude-generator`**: Generates prelude files by expanding macros and creating an Abstract Syntax Tree (AST), providing a comprehensive view of the code for analysis.
+
+For a more detailed explanation of this architectural vision and its principles, please refer to `lattice.md`.
+
 ## Configuration Documentation
 
 # Configuration Documentation

@@ -70,7 +70,7 @@
       };
 
       packages.aarch64-linux.generateCargoNix = pkgs.callPackage
-        (inputs.cargo2nix.outputs.lib.importCargoLock {
+        (inputs.cargo2nix.lib.importCargoLock {
           lockFile = self.outPath + "/Cargo.lock"; # Use the workspace root's Cargo.lock
         })
         { };

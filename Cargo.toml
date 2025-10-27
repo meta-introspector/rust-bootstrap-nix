@@ -1,17 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "standalonex/src/bootstrap/src/core/config_utils",
-    "standalonex/src/bootstrap/src/core/config_processor",
-    "standalonex/src/stage0_parser_crate",
     "configuration-nix",
     "bootstrap-config-builder",
     "flake-template-generator",
-    "standalonex/src/build_helper",
-    "standalonex/src/bootstrap",
-    "standalonex/src/bootstrap/src/core/build_steps/test_utils",
-    "test-openssl-sys",
-    "standalonex/src/bootstrap-config-types",
-    "standalonex/src/config_macros",
-    "standalonex/src/config_core", "prelude-generator", "rust-decl-splitter", "rust-system-composer",
+    "prelude-generator",
+    "rust-decl-splitter",
+    "rust-system-composer",
 ]
