@@ -24,3 +24,6 @@ target/
 .#*
 *.elc
 *.fasl
+/prelude-generator/.prelude_cache/
+/prelude-generator/prelude_processing_results.json
+/.prelude_cache/

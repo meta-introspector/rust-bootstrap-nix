@@ -26,7 +26,7 @@ The primary goal is to rewrite the existing Rust codebase into a "canonical form
 2.  **Dependency Mapping:** Analyze these components to map out their internal and external dependencies, forming the basis of the "lattice."
 3.  **Topological Ordering:** Apply topological sorting to establish a clear processing order based on dependencies.
 4.  **Canonicalization and Refactoring:** Iteratively transform each component according to the "one external crate per module" rule and other canonical form guidelines (e.g., naming conventions, standardized interfaces).
-5.  **Re-composition:** Assemble the transformed components into the final, topologically sorted, lattice-structured codebase.
+5.  **Re-composition:** Assemble the transformed components into the final, topologically sorted, lattice-structured codebase, generating `Cargo.toml`, `flake.nix`, and `lib.rs` for each self-contained unit within the `generated/` directory.
 
 This goal represents a significant step towards a highly modular, analyzable, and potentially self-optimizing Rust codebase.
 

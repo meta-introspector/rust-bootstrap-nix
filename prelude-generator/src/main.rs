@@ -50,7 +50,7 @@ fn generate_report(results: &[FileProcessingResult]) -> Result<()> {
     let skipped_files = results.iter().filter(|r| matches!(r.status, FileProcessingStatus::Skipped { .. })).count();
     let failed_files = results.iter().filter(|r| matches!(r.status, FileProcessingStatus::Failed { .. })).count();
 
-    report_content.push_str(&format!("## Summary\n"));
+    report_content.push_str("## Summary\n");
     report_content.push_str(&format!("- Total files processed: {}\n", total_files));
     report_content.push_str(&format!("- Successfully processed: {}\n", successful_files));
     report_content.push_str(&format!("- Skipped: {}\n", skipped_files));

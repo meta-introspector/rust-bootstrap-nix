@@ -48,6 +48,16 @@ To use this new system, you can either:
 1.  **Generate `generated_config.toml` manually:** Run the `bootstrap-config-builder` with the desired `--rustc-path`, `--cargo-path`, and `--rust-src-flake-path` arguments. This gives you fine-grained control over the exact versions of the tools and dependencies used in the build.
 2.  **Let the bootstrap process handle it:** If `generated_config.toml` is not present, the bootstrap process will automatically resolve the Nix paths for you. This is a convenient way to get up and running quickly, but it provides less control over the exact versions used.
 
+## Generated Code Structure
+
+The `generated/` directory serves as the output location for automatically generated code components. For each logical library or module identified during the lattice transformation process, the following files will be generated within this directory:
+
+*   `Cargo.toml`: The manifest file for the Rust package, defining its dependencies, features, and other metadata.
+*   `flake.nix`: A Nix flake definition for the generated library, ensuring its reproducible build and integration into the Nix ecosystem.
+*   `lib.rs`: The primary source file for the Rust library, containing the actual Rust code.
+
+This structured generation ensures that each component of the "lattice of functions" is self-contained, reproducible via Nix, and easily integrated into the overall project.
+
 ## Lattice of Nix Flakes
 
 This dynamic, Nix-based configuration system is the foundation for creating a "lattice of Nix flakes." This allows us to precisely control and track every component of the Rust bootstrap process, from compiler stages to individual Cargo runs, all within the Nix ecosystem. This is a powerful tool for reproducible builds and toolchain experimentation, and it's a key step towards achieving the 8-fold recursion system for eBPF Rust bootstrapping.
