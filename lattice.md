@@ -94,3 +94,45 @@ This system allows the pipeline to be re-run at any time. It will automatically 
 To handle large codebases, the pipeline supports batch processing. The `--batch-size` command-line argument allows you to specify the number of files or statements to process in each run. The pipeline will keep track of the processed items and will automatically process the next batch on the subsequent run.
 
 This combination of staged processing, detailed reporting, and batching makes the `use` statement processing pipeline a powerful and flexible tool for analyzing and transforming Rust code.
+
+### Category-Theory-Based Pipeline
+
+To further enhance the modularity and extensibility of the `use` statement processing pipeline, it has been refactored to use concepts from category theory. The pipeline is now modeled as a series of **functors** that map between different **categories** of code representation.
+
+#### Categories of Code Representation
+
+The pipeline defines the following categories, where each category represents a different stage of code processing:
+
+*   `Category<RawFile>`: The objects are raw Rust files, represented as a tuple of `(file_path, content)`.
+*   `Category<ParsedFile>`: The objects are parsed Abstract Syntax Trees (`syn::File`).
+*   `Category<UseStatements>`: The objects are lists of `use` statements (strings).
+*   `Category<ClassifiedUseStatements>`: The objects are the `UseStatement` structs, which contain the `use` statement and an optional error.
+
+#### Functors
+
+Each step in the pipeline is implemented as a functor that maps between these categories:
+
+*   **`ParseFunctor`**: `Category<RawFile> -> Category<ParsedFile>`
+    *   This functor takes a `RawFile` and produces a `ParsedFile`. It handles the logic of trying a direct `syn` parse and falling back to macro expansion if necessary.
+*   **`ExtractUsesFunctor`**: `Category<ParsedFile> -> Category<UseStatements>`
+    *   This functor takes a `ParsedFile` and extracts all the `use` statements.
+*   **`ClassifyUsesFunctor`**: `Category<UseStatements> -> Category<ClassifiedUseStatements>`
+    *   This functor takes a list of `use` statements and classifies them as either `ParsesDirectly` or `SynError`.
+*   **`PreprocessFunctor`**: `Category<ClassifiedUseStatements> -> Category<ClassifiedUseStatements>`
+    *   This functor takes the `ClassifiedUseStatements`, finds the `SynError`s, and tries to compile them with `rustc`, updating their classification.
+
+#### Pipeline Composition
+
+The entire pipeline can be expressed as a composition of these functors. For example, to parse a file, extract its `use` statements, and classify them, you would compose the functors like this:
+
+```rust
+let parse_functor = ParseFunctor;
+let extract_uses_functor = ExtractUsesFunctor;
+let classify_uses_functor = ClassifyUsesFunctor;
+
+let parsed_file = parse_functor.map(raw_file)?;
+let use_statements = extract_uses_functor.map(parsed_file)?;
+let classified_uses = classify_uses_functor.map(use_statements)?;
+```
+
+This approach makes the pipeline much more modular, extensible, and easier to reason about. Each functor is a self-contained unit of logic that can be tested independently, and new stages can be added to the pipeline by simply creating new functors and composing them.

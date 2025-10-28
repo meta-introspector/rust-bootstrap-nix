@@ -7,6 +7,8 @@ pub mod processor;
 pub mod test_extractor;
 pub mod pipeline;
 pub mod use_extractor;
+pub mod category_pipeline;
+pub mod code_generator;
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;

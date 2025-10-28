@@ -1,11 +1,32 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use prelude_generator::{pipeline, Args, process_crates, collect_all_test_cases, generate_test_report_json, generate_test_verification_script_and_report, TestInfo};
+use prelude_generator::{category_pipeline, pipeline, use_extractor, Args, process_crates, collect_all_test_cases, generate_test_report_json, generate_test_verification_script_and_report, TestInfo};
+use crate::category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, ParseFunctor, PipelineFunctor, RawFile};
 use std::fs;
-mod use_extractor;
 
-fn main() -> Result<()> {
+fn run_category_pipeline(file_path: &str) -> anyhow::Result<()> {
+    let content = fs::read_to_string(file_path)?;
+    let raw_file = RawFile(file_path.to_string(), content);
+
+    let parse_functor = ParseFunctor;
+    let extract_uses_functor = ExtractUsesFunctor;
+    let classify_uses_functor = ClassifyUsesFunctor;
+
+    let parsed_file = parse_functor.map(raw_file)?;
+    let use_statements = extract_uses_functor.map(parsed_file)?;
+    let classified_uses = classify_uses_functor.map(use_statements)?;
+
+    println!("{:#?}", classified_uses);
+
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
+
+    if let Some(file_path) = &args.file {
+        return run_category_pipeline(file_path);
+    }
 
     if args.generate_test_report {
         println!("Collecting all unique test cases for JSON report...");

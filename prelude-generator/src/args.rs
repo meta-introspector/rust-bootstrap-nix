@@ -75,6 +75,10 @@ pub struct Args {
     #[clap(long)]
     pub batch_limit: Option<usize>,
 
+    /// Process a single file
+    #[clap(long)]
+    pub file: Option<String>,
+
 
     /// Stop after processing N statements
     #[clap(long, value_parser, default_value_t = 0)]

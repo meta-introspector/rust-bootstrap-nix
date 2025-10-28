@@ -1,0 +1,12 @@
+processed_files = ["./standalonex/src/build_helper/src/ci.rs"]
+batches_run = 0
+
+[[stage_results]]
+stage_name = "classify"
+output_file = "./generated/stage_1_classify_output.toml"
+duration_secs = 0.000000052
+
+[stage_results.summary]
+total_processed = 0
+successful = 0
+failed = 0
