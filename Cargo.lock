@@ -503,6 +503,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
 name = "libc"
 version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -571,6 +577,19 @@ name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
+
+[[package]]
+name = "metrics-reporter"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "tempfile",
+ "walkdir",
+]
 
 [[package]]
 name = "once_cell"
@@ -662,6 +681,7 @@ dependencies = [
  "clap",
  "dunce",
  "indoc",
+ "lazy_static",
  "prelude-collector",
  "prettyplease",
  "quote",
@@ -745,8 +765,11 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 name = "rust-decl-splitter"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "proc-macro2",
  "quote",
+ "serde",
+ "serde_json",
  "syn",
  "walkdir",
 ]

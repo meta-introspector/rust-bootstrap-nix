@@ -9,6 +9,7 @@ pub mod pipeline;
 pub mod use_extractor;
 pub mod category_pipeline;
 pub mod code_generator;
+pub mod measurement;
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;

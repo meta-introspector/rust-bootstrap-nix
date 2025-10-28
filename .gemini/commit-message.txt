@@ -1,10 +1,9 @@
-feat: Add Makefile targets for rustc test flakes and configs
+feat: Refactor prelude-generator to use a category-theory-based pipeline
 
-This commit introduces new targets to the main Makefile to automate the creation and management of Nix flakes and bootstrap configurations for different rustc versions.
+This commit refactors the `prelude-generator` to use a category-theory-based pipeline for processing `use` statements. The new pipeline is more modular, extensible, and easier to reason about.
 
-New targets include:
-- `generate-rustc-test-flakes`: Creates directories and `flake.nix` files for specified rustc versions.
-- `generate-rustc-test-configs`: Generates `generated_config.toml` files for each rustc version using `bootstrap-config-generator`.
-- `clean-rustc-test-flakes`: Removes the generated flake directories and config files.
+The pipeline is modeled as a series of functors that map between different categories of code representation. Each functor is a self-contained unit of logic that can be tested independently, and new stages can be added to the pipeline by simply creating new functors and composing them.
 
-This streamlines the process of testing different rustc toolchains within the Nix environment.
+This change also fixes a bug where the `toml` crate was unable to serialize the `PathBuf` type, which was causing the pipeline to fail.
+
+Finally, this commit adds documentation for the new pipeline to `lattice.md`.

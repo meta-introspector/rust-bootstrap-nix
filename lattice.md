@@ -27,6 +27,7 @@ The primary goal is to rewrite the existing Rust codebase into a "canonical form
 3.  **Topological Ordering:** Apply topological sorting to establish a clear processing order based on dependencies.
 4.  **Canonicalization and Refactoring:** Iteratively transform each component according to the "one external crate per module" rule and other canonical form guidelines (e.g., naming conventions, standardized interfaces).
 5.  **Re-composition:** Assemble the transformed components into the final, topologically sorted, lattice-structured codebase, generating `Cargo.toml`, `flake.nix`, and `lib.rs` for each self-contained unit within the `generated/` directory.
+6.  **Introspection and AI Analysis:** Apply the "Introspective Rollup Workflow" to key functions and components to gather performance metrics and generate AI-driven summaries and suggestions.
 
 This goal represents a significant step towards a highly modular, analyzable, and potentially self-optimizing Rust codebase.
 
@@ -136,3 +137,21 @@ let classified_uses = classify_uses_functor.map(use_statements)?;
 ```
 
 This approach makes the pipeline much more modular, extensible, and easier to reason about. Each functor is a self-contained unit of logic that can be tested independently, and new stages can be added to the pipeline by simply creating new functors and composing them.
+
+## Introspective Rollup Workflow
+
+To enable AI-driven analysis and optimization, each significant function or component within the lattice transformation pipeline will undergo an "Introspective Rollup" process. This involves:
+
+1.  **Instrumentation:** Relevant functions are instrumented with performance measurement calls (`record_function_entry`, `record_function_exit`) using a shared `measurement` module.
+2.  **Execution and Data Collection:** The instrumented code is executed (e.g., via `metrics-reporter` for individual functions or as part of the larger pipeline). During execution, performance metrics (call count, duration) are collected.
+3.  **Report Generation:** A `rollup_report.md` file is generated for each instrumented unit. This report consolidates:
+    *   The original (or wrapped) source code of the function/component.
+    *   The collected performance metrics in JSON format.
+    *   Relevant metadata (e.g., function name, file path).
+4.  **AI Analysis:** An AI (such as the Gemini LLM) consumes the `rollup_report.md` to:
+    *   Summarize the function's purpose and behavior.
+    *   Analyze its performance characteristics based on the metrics.
+    *   Suggest potential optimizations, refactorings, or improvements.
+    *   Identify patterns or anomalies in code execution.
+
+This iterative process allows for continuous feedback and refinement of the codebase, driving towards a self-optimizing and self-documenting system.

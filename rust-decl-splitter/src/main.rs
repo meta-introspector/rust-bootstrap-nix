@@ -1,5 +1,9 @@
 pub mod prelude;
+mod measurement;
 use crate::prelude::*;
+use measurement::{record_function_entry, record_function_exit};
+use syn::parse_quote;
+use serde_json;
 fn to_snake_case(ident: &Ident) -> String {
     let mut s = String::new();
     for (i, char) in ident.to_string().chars().enumerate() {
@@ -39,11 +43,21 @@ fn main() -> io::Result<()> {
                     let mut original_file_content = String::new();
                     for item in file.items {
                         let (ident, item_code) = match item {
-                            Item::Fn(item_fn) => {
+                            Item::Fn(mut item_fn) => {
+                                let original_block = item_fn.block;
+                                let fn_ident = item_fn.sig.ident.clone();
+                                item_fn.block = parse_quote! {
+                                    {
+                                        measurement::record_function_entry(stringify!(#fn_ident));
+                                        let __result = #original_block;
+                                        measurement::record_function_exit(stringify!(#fn_ident));
+                                        __result
+                                    }
+                                };
                                 (
-                                    item_fn.sig.ident.clone(),
+                                    fn_ident,
                                     quote! {
-                                        # item_fn
+                                        #item_fn
                                     },
                                 )
                             }
@@ -141,10 +155,24 @@ fn main() -> io::Result<()> {
                         println!(
                             "  Splitting {} into {}", ident, new_file_path.display()
                         );
+                        let new_file_name = format!("{}.rs", snake_case_name);
+                        let new_file_path = output_file_dir.join(&new_file_name);
+
+                        let function_output_dir = output_file_dir.join(&snake_case_name); // Directory for this function
+                        fs::create_dir_all(&function_output_dir)?;
+
+                        let rollup_data_dir = function_output_dir.join("rollup_data"); // rollup_data inside function dir
+                        fs::create_dir_all(&rollup_data_dir)?;
+
+                        let wrapped_code_path = rollup_data_dir.join("wrapped_code.rs");
+
                         let mut new_file_content = String::new();
                         new_file_content.push_str("use prelude::*;\n");
                         new_file_content.push_str(&item_code.to_string());
-                        fs::write(&new_file_path, new_file_content)?;
+                        fs::write(&wrapped_code_path, new_file_content)?; // Save as wrapped_code.rs
+
+                        // The original file now just re-exports from the function's directory
+                        fs::write(&new_file_path, format!("pub use {}::{};\n", snake_case_name, ident))?;
                         original_file_content
                             .push_str(
                                 &format!("pub use {}::{};\n", snake_case_name, ident),

@@ -5,7 +5,32 @@ use std::path::Path;
 use crate::code_generator;
 use std::fs;
 
-// Categories
+use std::fmt::Debug;
+use crate::measurement;
+use self::{ParsedFile, ValidatedFile};
+
+// InspectFunctor
+pub struct InspectFunctor<'a, T: Debug> {
+    label: &'a str,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<'a, T: Debug> InspectFunctor<'a, T> {
+    pub fn new(label: &'a str) -> Self {
+        InspectFunctor {
+            label,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, T: Debug + Clone> PipelineFunctor<T, T> for InspectFunctor<'a, T> {
+    fn map(&self, input: T) -> Result<T> {
+        println!("--- Inspecting: {} ---", self.label);
+        println!("{:#?}", input);
+        Ok(input)
+    }
+}
 #[derive(Debug)]
 pub struct RawFile(pub String, pub String);
 pub struct ParsedFile(pub syn::File);
@@ -24,8 +49,9 @@ pub struct ParseFunctor;
 
 impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
     fn map(&self, input: RawFile) -> Result<ParsedFile> {
+        measurement::record_function_entry("ParseFunctor::map");
         let RawFile(file_path, content) = input;
-        match syn::parse_file(&content) {
+        let __result = match syn::parse_file(&content) {
             Ok(ast) => Ok(ParsedFile(ast)),
             Err(_) => {
                 let rustc_info = use_extractor::get_rustc_info()?;
@@ -38,7 +64,9 @@ impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
                 )?;
                 Ok(ParsedFile(ast))
             }
-        }
+        };
+        measurement::record_function_exit("ParseFunctor::map");
+        __result
     }
 }
 
@@ -47,6 +75,7 @@ pub struct ExtractUsesFunctor;
 
 impl PipelineFunctor<ParsedFile, UseStatements> for ExtractUsesFunctor {
     fn map(&self, input: ParsedFile) -> Result<UseStatements> {
+        measurement::record_function_entry("ExtractUsesFunctor::map");
         let ParsedFile(ast) = input;
         let mut use_statements = Vec::new();
         for item in ast.items {
@@ -54,7 +83,9 @@ impl PipelineFunctor<ParsedFile, UseStatements> for ExtractUsesFunctor {
                 use_statements.push(code_generator::use_item_to_string(&use_item));
             }
         }
-        Ok(UseStatements(use_statements))
+        let __result = Ok(UseStatements(use_statements));
+        measurement::record_function_exit("ExtractUsesFunctor::map");
+        __result
     }
 }
 
@@ -63,6 +94,7 @@ pub struct ClassifyUsesFunctor;
 
 impl PipelineFunctor<UseStatements, ClassifiedUseStatements> for ClassifyUsesFunctor {
     fn map(&self, input: UseStatements) -> Result<ClassifiedUseStatements> {
+        measurement::record_function_entry("ClassifyUsesFunctor::map");
         let UseStatements(use_statements) = input;
         let mut classified_uses = Vec::new();
         for use_statement in use_statements {
@@ -77,7 +109,9 @@ impl PipelineFunctor<UseStatements, ClassifiedUseStatements> for ClassifyUsesFun
                 }),
             }
         }
-        Ok(ClassifiedUseStatements(classified_uses))
+        let __result = Ok(ClassifiedUseStatements(classified_uses));
+        measurement::record_function_exit("ClassifyUsesFunctor::map");
+        __result
     }
 }
 
@@ -86,6 +120,7 @@ pub struct PreprocessFunctor;
 
 impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for PreprocessFunctor {
     fn map(&self, input: ClassifiedUseStatements) -> Result<ClassifiedUseStatements> {
+        measurement::record_function_entry("PreprocessFunctor::map");
         let ClassifiedUseStatements(classified_uses) = input;
         let mut new_classified_uses = Vec::new();
         for use_statement in classified_uses {
@@ -114,6 +149,27 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
                 new_classified_uses.push(use_statement);
             }
         }
-        Ok(ClassifiedUseStatements(new_classified_uses))
+        let __result = Ok(ClassifiedUseStatements(new_classified_uses));
+        measurement::record_function_exit("PreprocessFunctor::map");
+        __result
+    }
+}
+
+#[derive(Debug)]
+pub struct ValidatedFile(pub String); // Placeholder for validation result
+
+// HuggingFaceValidatorFunctor
+pub struct HuggingFaceValidatorFunctor;
+
+impl PipelineFunctor<self::ParsedFile, self::ValidatedFile> for HuggingFaceValidatorFunctor {
+    fn map(&self, input: self::ParsedFile) -> Result<self::ValidatedFile> {
+        measurement::record_function_entry("HuggingFaceValidatorFunctor::map");
+        let self::ParsedFile(ast) = input;
+        // Placeholder for calling hugging-face-dataset-validator-rust
+        println!("Performing Hugging Face validation on parsed file.");
+        let validation_result = format!("Validation successful for AST: {:?}", ast);
+        let __result = Ok(self::ValidatedFile(validation_result));
+        measurement::record_function_exit("HuggingFaceValidatorFunctor::map");
+        __result
     }
 }
