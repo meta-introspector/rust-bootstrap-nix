@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use prelude_generator::{Args, process_crates, collect_all_test_cases, generate_test_report_json, generate_test_verification_script_and_report, TestInfo};
+use prelude_generator::{pipeline, Args, process_crates, collect_all_test_cases, generate_test_report_json, generate_test_verification_script_and_report, TestInfo};
 use std::fs;
 mod use_extractor;
 
@@ -31,12 +31,22 @@ fn main() -> Result<()> {
         generate_test_verification_script_and_report(output_dir, test_infos)
             .context("Failed to generate test verification script and report")?;
     } else if args.extract_use_statements {
-        println!("Extracting unique use statements and generating test files...");
-        let use_statements = use_extractor::extract_unique_use_statements(&args.path)?;
-        let output_dir = args.use_statements_output_dir.as_ref().context("--use-statements-output-dir is required when --extract-use-statements is true")?;
-
-        use_extractor::generate_use_statement_test_files(output_dir, use_statements)
-            .context("Failed to generate use statement test files")?;
+        println!("This feature has been removed.");
+    } else if args.collect_and_process_use_statements {
+        println!("Collecting and processing use statements...");
+        use_extractor::collect_and_process_use_statements(
+            &args.path,
+            args.stop_after,
+            args.step_timeout,
+            args.verbose,
+            args.dry_run,
+        )?;
+    } else if args.generate_aggregated_test_file {
+        println!("Generating aggregated use statement test file...");
+        use_extractor::generate_aggregated_use_test_file(&args.path)?;
+    } else if args.run_pipeline {
+        println!("Running use statement processing pipeline...");
+        pipeline::run_pipeline(&args.stage, args.batch_size, args.batch_limit, args.verbose)?;
     } else {
         process_crates(&args)?;
     }

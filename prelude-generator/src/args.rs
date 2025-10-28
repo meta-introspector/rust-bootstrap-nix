@@ -50,6 +50,43 @@ pub struct Args {
     /// Path to the directory where generated use statement test files will be placed. Required if `extract_use_statements` is true.
     #[arg(long)]
     pub use_statements_output_dir: Option<PathBuf>,
+
+    /// Collect and process use statements
+    #[clap(long, default_value_t = false)]
+    pub collect_and_process_use_statements: bool,
+
+    /// Generate a single test file with all unique use statements
+    #[clap(long, default_value_t = false)]
+    pub generate_aggregated_test_file: bool,
+
+    /// Run the use statement processing pipeline
+    #[clap(long, default_value_t = false)]
+    pub run_pipeline: bool,
+
+    /// Specify the stage of the pipeline to run
+    #[clap(long)]
+    pub stage: Option<String>,
+
+    /// Process files in batches of this size
+    #[clap(long)]
+    pub batch_size: Option<usize>,
+
+    /// The maximum number of batches to run
+    #[clap(long)]
+    pub batch_limit: Option<usize>,
+
+
+    /// Stop after processing N statements
+    #[clap(long, value_parser, default_value_t = 0)]
+    pub stop_after: usize,
+
+    /// Timeout in seconds for each processing step
+    #[clap(long, value_parser, default_value_t = 0)]
+    pub step_timeout: u64,
+
+    /// Enable verbose output
+    #[clap(short, long, action = clap::ArgAction::Count)]
+    pub verbose: u8,
 }
 
 #[cfg(test)]

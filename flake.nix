@@ -22,7 +22,9 @@
       packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
         name = "generate-config";
         src = self;
-        buildInputs = [ pkgs.cargo pkgs.rustc pkgs.cacert pkgs.nix ] ++ commonRustDeps.commonBuildInputs;
+        buildInputs = [ pkgs.cargo pkgs.rustc pkgs.cacert pkgs.nix pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
         buildPhase = ''
           export CARGO_HOME=$(mktemp -d)
           cargo run --bin bootstrap-config-generator -- --project-root . --rust-src-flake-path /nix/store/rhs81k02n3vg452abxl462g2i6xyadyf-source --version 1.84.1 --target aarch64-unknown-linux-gnu --stage 0

@@ -1,27 +1,36 @@
 use anyhow::{Context, Result};
 use std::fs;
-use std::path::{Path, PathBuf};
-use syn::{Item, ItemUse};
-use walkdir::WalkDir;
-use std::collections::HashSet;
-use prettyplease;
-use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::process::Command;
-use syn::UseTree; // Add UseTree
+use syn::UseTree;
 use tempfile;
 use sha2::{Sha256, Digest};
 use indoc::indoc;
-use toml;
 
 // Struct to hold rustc version and host triple
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct RustcInfo {
-    version: String,
-    host: String,
+pub struct RustcInfo {
+    pub version: String,
+    pub host: String,
 }
 
-// Helper to get rustc version and host triple
-fn get_rustc_info() -> Result<RustcInfo> {
+pub fn collect_and_process_use_statements(
+    _repo_root: &Path,
+    _stop_after: usize,
+    _step_timeout: u64,
+    _verbose: u8,
+    _dry_run: bool,
+) -> Result<()> {
+    // This function is now a placeholder as the logic has been moved to the pipeline.
+    Ok(())
+}
+
+pub fn generate_aggregated_use_test_file(_repo_root: &Path) -> Result<()> {
+    // This function is now a placeholder as the logic has been moved to the pipeline.
+    Ok(())
+}
+
+pub fn get_rustc_info() -> Result<RustcInfo> {
     let output = Command::new("rustc")
         .arg("--version")
         .arg("--verbose")
@@ -50,7 +59,59 @@ fn get_rustc_info() -> Result<RustcInfo> {
     Ok(RustcInfo { version, host })
 }
 
-fn expand_macros_and_parse(file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<syn::File> {
+pub fn flatten_use_tree(
+    base_path: &mut Vec<String>,
+    use_tree: &UseTree,
+    flat_uses: &mut Vec<crate::pipeline::UseStatement>,
+) {
+    match use_tree {
+        UseTree::Path(path) => {
+            base_path.push(path.ident.to_string());
+            flatten_use_tree(base_path, &path.tree, flat_uses);
+            base_path.pop();
+        }
+        UseTree::Name(name) => {
+            let mut full_path = base_path.join("::");
+            if !full_path.is_empty() {
+                full_path.push_str("::");
+            }
+            full_path.push_str(&name.ident.to_string());
+            flat_uses.push(crate::pipeline::UseStatement {
+                statement: format!("use {};", full_path),
+                error: None,
+            });
+        }
+        UseTree::Rename(rename) => {
+            let mut full_path = base_path.join("::");
+            if !full_path.is_empty() {
+                full_path.push_str("::");
+            }
+            full_path.push_str(&rename.ident.to_string());
+            flat_uses.push(crate::pipeline::UseStatement {
+                statement: format!("use {} as {};", full_path, rename.rename.to_string()),
+                error: None,
+            });
+        }
+        UseTree::Glob(_glob) => {
+            let mut full_path = base_path.join("::");
+            if !full_path.is_empty() {
+                full_path.push_str("::");
+            }
+            full_path.push_str("* ");
+            flat_uses.push(crate::pipeline::UseStatement {
+                statement: format!("use {};", full_path),
+                error: None,
+            });
+        }
+        UseTree::Group(group) => {
+            for tree in group.items.iter() {
+                flatten_use_tree(base_path, tree, flat_uses);
+            }
+        }
+    }
+}
+
+pub fn expand_macros_and_parse(file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<syn::File> {
     // Calculate content hash
     let mut hasher = Sha256::new();
     hasher.update(content.as_bytes());
@@ -81,16 +142,15 @@ fn expand_macros_and_parse(file_path: &Path, content: &str, rustc_info: &RustcIn
 
     // Create Cargo.toml for the temporary crate
     let cargo_toml_content = indoc! {
-        r#"#,
-        "[package]
-        name = \"temp_crate\"
-        version = \"0.1.0\"
-        edition = \"2021\"
+        r#"[package]
+        name = "temp_crate"
+        version = "0.1.0"
+        edition = "2021"
 
         [dependencies]
-        serde = {{ version = \"1.0\", features = [\"derive\"] }}
-        serde_json = \"1.0\"
-        anyhow = \"1.0\"
+        serde = { version = "1.0", features = ["derive"] }
+        serde_json = "1.0"
+        anyhow = "1.0"
         # Add other common dependencies that might contain macros
         "#
     };
@@ -152,145 +212,4 @@ fn expand_macros_and_parse(file_path: &Path, content: &str, rustc_info: &RustcIn
 
     println!("        -> Parsing expanded code for: {}", file_path.display());
     syn::parse_file(&relevant_expanded_code).with_context(|| format!("Failed to parse expanded code for {}", file_path.display()))
-}
-
-#[derive(Deserialize, Debug)]
-struct Metadata {
-    packages: Vec<Package>,
-    #[allow(dead_code)]
-    workspace_root: PathBuf,
-}
-
-#[derive(Deserialize, Debug)]
-struct Package {
-    name: String,
-    manifest_path: PathBuf,
-}
-
-#[derive(Deserialize, Debug)]
-struct CargoToml {
-    #[serde(default)]
-    lib: Option<LibSection>,
-}
-
-#[derive(Deserialize, Debug)]
-struct LibSection {
-    #[serde(rename = "proc-macro", default)]
-    proc_macro: bool,
-}
-
-fn is_proc_macro_crate(crate_root: &Path) -> Result<bool> {
-    let cargo_toml_path = crate_root.join("Cargo.toml");
-    if !cargo_toml_path.exists() {
-        return Ok(false);
-    }
-    let content = fs::read_to_string(&cargo_toml_path)
-        .context(format!("Failed to read Cargo.toml for {}", crate_root.display()))?;
-    let cargo_toml: CargoToml = toml::from_str(&content)
-        .context(format!("Failed to parse Cargo.toml for {}", crate_root.display()))?;
-
-    Ok(cargo_toml.lib.map_or(false, |lib| lib.proc_macro))
-}
-
-// Helper function to flatten UseTree into individual use paths
-fn flatten_use_tree(
-    base_path: &mut Vec<String>,
-    use_tree: &UseTree,
-    flat_uses: &mut HashSet<String>,
-) {
-    match use_tree {
-        UseTree::Path(path) => {
-            base_path.push(path.ident.to_string());
-            flatten_use_tree(base_path, &path.tree, flat_uses);
-            base_path.pop();
-        }
-        UseTree::Name(name) => {
-            let mut full_path = base_path.join("::");
-            if !full_path.is_empty() {
-                full_path.push_str("::");
-            }
-            full_path.push_str(&name.ident.to_string());
-            flat_uses.insert(format!("use {};", full_path));
-        }
-        UseTree::Rename(rename) => {
-            let mut full_path = base_path.join("::");
-            if !full_path.is_empty() {
-                full_path.push_str("::");
-            }
-            full_path.push_str(&rename.ident.to_string());
-            flat_uses.insert(format!("use {} as {};", full_path, rename.rename.to_string()));
-        }
-        UseTree::Glob(_glob) => {
-            let mut full_path = base_path.join("::");
-            if !full_path.is_empty() {
-                full_path.push_str("::");
-            }
-            full_path.push_str("* ");
-            flat_uses.insert(format!("use {};", full_path));
-        }
-        UseTree::Group(group) => {
-            for tree in group.items.iter() {
-                flatten_use_tree(base_path, tree, flat_uses);
-            }
-        }
-    }
-}
-
-/// Extracts unique 'use' statements from Rust files within a given repository root.
-pub fn extract_unique_use_statements(repo_root: &Path) -> Result<HashSet<String>> {
-    let mut unique_use_statements = HashSet::new();
-
-    let rustc_info = get_rustc_info()?;
-    let cache_dir = repo_root.join(".prelude_cache"); // Use repo_root for cache dir
-    fs::create_dir_all(&cache_dir).context("Failed to create prelude cache directory")?;
-
-    for entry in WalkDir::new(repo_root)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
-    {
-        let file_path = entry.path();
-        let content = match fs::read_to_string(file_path) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("Warning: Failed to read file {}: {}", file_path.display(), e);
-                continue;
-            }
-        };
-
-        let ast = match expand_macros_and_parse(file_path, &content, &rustc_info, &cache_dir) {
-            Ok(a) => a,
-            Err(e) => {
-                eprintln!("Warning: Failed to parse Rust file (after macro expansion) {}: {}", file_path.display(), e);
-                continue;
-            }
-        };
-
-        for item in ast.items {
-            if let Item::Use(use_item) = item {
-                let mut base_path = Vec::new();
-                flatten_use_tree(&mut base_path, &use_item.tree, &mut unique_use_statements);
-            }
-        }
-    }
-    Ok(unique_use_statements)
-}
-
-/// Generates test files for each unique 'use' statement.
-pub fn generate_use_statement_test_files(
-    output_dir: &Path,
-    use_statements: HashSet<String>,
-) -> Result<()> {
-    fs::create_dir_all(output_dir)
-        .with_context(|| format!("Failed to create output directory {}", output_dir.display()))?;
-
-    for (i, use_statement) in use_statements.iter().enumerate() {
-        let file_name = format!("use_test_{}.rs", i);
-        let file_path = output_dir.join(file_name);
-        fs::write(&file_path, use_statement.as_bytes())
-            .with_context(|| format!("Failed to write use statement test file to {}", file_path.display()))?;
-    }
-
-    println!("Generated {} use statement test files in {}", use_statements.len(), output_dir.display());
-    Ok(())
 }

@@ -7,4 +7,5 @@ members = [
     "prelude-generator",
     "rust-decl-splitter",
     "rust-system-composer",
+    "vendor/rarrow",
 ]

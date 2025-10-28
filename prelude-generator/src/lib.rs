@@ -5,7 +5,8 @@ pub mod modify_file;
 pub mod modify_crate_root;
 pub mod processor;
 pub mod test_extractor;
-
+pub mod pipeline;
+pub mod use_extractor;
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;

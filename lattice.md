@@ -57,3 +57,40 @@ This crate is responsible for generating prelude files, which are essential for 
 *   **Environment Awareness:** Gathers `rustc` and environment information to ensure accurate code analysis.
 
 By providing a comprehensive and expanded view of the code, `prelude-generator` enables subsequent tools to perform accurate dependency analysis and apply transformation rules effectively.
+
+## Use Statement Processing Pipeline
+
+To further enhance the analysis and transformation capabilities of the system, a sophisticated, multi-stage pipeline for processing `use` statements has been implemented within the `prelude-generator`. This pipeline is designed to be robust, debuggable, and re-runnable, drawing inspiration from Makefile-like systems.
+
+### Pipeline Stages
+
+The pipeline is divided into the following stages:
+
+1.  **Stage 1: Classify**
+    *   **Input:** All Rust files in the project.
+    *   **Process:** Extracts all unique `use` statements and attempts to parse them using `syn`.
+    *   **Output:** A `stage_1_classify_output.toml` file containing a list of all `use` statements, classified as either:
+        *   `ParsesDirectly`: The statement was successfully parsed by `syn`.
+        *   `SynError`: The statement failed to parse with `syn`.
+
+2.  **Stage 2: Preprocess**
+    *   **Input:** The `stage_1_classify_output.toml` file.
+    *   **Process:** For each `SynError` statement, this stage attempts to compile it in a temporary crate using `rustc`.
+    *   **Output:** A `stage_2_preprocess_output.toml` file containing the results, with statements classified as either:
+        *   `ParsesWithPreprocessing`: The statement compiled successfully with `rustc`.
+        *   `FailsToCompile`: The statement failed to compile with `rustc`.
+
+### Makefile-like System and Reporting
+
+The pipeline's state and the results of each stage are managed through a series of TOML files, creating a Makefile-like system:
+
+*   **`pipeline_state.toml`:** This file acts as the main state file for the pipeline. It contains a summary of each stage that has been run and a list of all the files that have been processed.
+*   **Stage Output Files:** Each stage generates a TOML file (e.g., `stage_1_classify_output.toml`) that contains the detailed results of that stage's processing. This allows for easy inspection and debugging of each stage's output.
+
+This system allows the pipeline to be re-run at any time. It will automatically pick up where it left off, only processing the stages and files that have not yet been processed.
+
+### Batch Processing
+
+To handle large codebases, the pipeline supports batch processing. The `--batch-size` command-line argument allows you to specify the number of files or statements to process in each run. The pipeline will keep track of the processed items and will automatically process the next batch on the subsequent run.
+
+This combination of staged processing, detailed reporting, and batching makes the `use` statement processing pipeline a powerful and flexible tool for analyzing and transforming Rust code.
