@@ -1,9 +1,11 @@
-feat: Refactor prelude-generator to use a category-theory-based pipeline
+feat: Implement category-theory pipeline and introspective rollup workflow
 
-This commit refactors the `prelude-generator` to use a category-theory-based pipeline for processing `use` statements. The new pipeline is more modular, extensible, and easier to reason about.
+This commit introduces a significant refactoring of the `prelude-generator` to utilize a category-theory-based pipeline for processing `use` statements. This new pipeline enhances modularity, extensibility, and reasoning by modeling stages as functors mapping between different categories of code representation.
 
-The pipeline is modeled as a series of functors that map between different categories of code representation. Each functor is a self-contained unit of logic that can be tested independently, and new stages can be added to the pipeline by simply creating new functors and composing them.
+Additionally, this commit lays the groundwork for an "Introspective Rollup Workflow" to enable AI-driven analysis and optimization. Key changes include:
+- Instrumentation of `rust-decl-splitter` to inject performance measurement calls into function bodies.
+- Introduction of the `metrics-reporter` crate to execute instrumented code and generate `rollup_report.md` files with performance metrics and code analysis.
+- Integration of a new `HuggingFaceValidatorFunctor` into the `prelude-generator` pipeline for validation.
+- Updates to `lattice.md` and new documentation in `braindump.md` and `rollup.md` detailing these architectural changes and workflows.
 
-This change also fixes a bug where the `toml` crate was unable to serialize the `PathBuf` type, which was causing the pipeline to fail.
-
-Finally, this commit adds documentation for the new pipeline to `lattice.md`.
+This refactoring also includes a fix for a `toml` serialization bug in `prelude-generator` related to `PathBuf` types.

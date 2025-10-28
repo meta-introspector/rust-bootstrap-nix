@@ -19,6 +19,11 @@ tempfile = "3.8"
 sha2 = "0.10"
 indoc = "1.0"
 lazy_static = "1.4.0"
-hugging-face-dataset-validator-rust = { path = "../vendor/rust/hugging-face-dataset-validator-rust" }
+libgit2-sys = "*"
+#
+#git2 = "^0.18.3"
+git2 = "*"
+
+hf-dataset-validator = {	     path = "../vendor/rust/hugging-face-dataset-validator-rust/"	     }
 
 [dev-dependencies]

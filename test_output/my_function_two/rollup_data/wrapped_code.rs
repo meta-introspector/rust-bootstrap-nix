@@ -1,0 +1,2 @@
+use prelude::*;
+pub fn my_function_two () -> usize { measurement :: record_function_entry (stringify ! (my_function_two)) ; let __result = { "hello" . len () } ; measurement :: record_function_exit (stringify ! (my_function_two)) ; __result }

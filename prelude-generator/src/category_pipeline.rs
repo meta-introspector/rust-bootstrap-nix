@@ -1,13 +1,17 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use crate::pipeline::UseStatement;
 use crate::use_extractor;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use crate::code_generator;
 use std::fs;
 
 use std::fmt::Debug;
 use crate::measurement;
-use self::{ParsedFile, ValidatedFile};
+use self::{ParsedFile};
+
+use hf_dataset_validator::rust_analyzer_extractor::{RustAnalyzerExtractor, ProcessingPhase};
+use tempfile::{tempdir, NamedTempFile};
+use std::process::Command;
 
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {
@@ -53,7 +57,7 @@ impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
         let RawFile(file_path, content) = input;
         let __result = match syn::parse_file(&content) {
             Ok(ast) => Ok(ParsedFile(ast)),
-            Err(_) => {
+            Err(_) =>{
                 let rustc_info = use_extractor::get_rustc_info()?;
                 let cache_dir = Path::new(".").join(".prelude_cache");
                 let ast = use_extractor::expand_macros_and_parse(
@@ -156,19 +160,54 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
 }
 
 #[derive(Debug)]
-pub struct ValidatedFile(pub String); // Placeholder for validation result
+pub struct ValidatedFile(pub PathBuf); // Now stores the path to the generated dataset
 
 // HuggingFaceValidatorFunctor
 pub struct HuggingFaceValidatorFunctor;
 
-impl PipelineFunctor<self::ParsedFile, self::ValidatedFile> for HuggingFaceValidatorFunctor {
-    fn map(&self, input: self::ParsedFile) -> Result<self::ValidatedFile> {
+impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor {
+    fn map(&self, input: ParsedFile) -> Result<ValidatedFile> {
         measurement::record_function_entry("HuggingFaceValidatorFunctor::map");
-        let self::ParsedFile(ast) = input;
-        // Placeholder for calling hugging-face-dataset-validator-rust
-        println!("Performing Hugging Face validation on parsed file.");
-        let validation_result = format!("Validation successful for AST: {:?}", ast);
-        let __result = Ok(self::ValidatedFile(validation_result));
+        let ParsedFile(ast) = input;
+
+        // Convert AST back to Rust source code
+        let source_code = prettyplease::unparse(&ast);
+
+        // Create a temporary file for the Rust source code
+        let mut temp_source_file = NamedTempFile::new()
+            .context("Failed to create temporary source file")?;
+        fs::write(temp_source_file.path(), source_code.as_bytes())
+            .context("Failed to write source code to temporary file")?;
+        let temp_source_file_path = temp_source_file.path().to_path_buf();
+
+        // Create a temporary directory for the output of hf-dataset-validator
+        let temp_output_dir = tempdir()
+            .context("Failed to create temporary output directory")?;
+        let output_path = temp_output_dir.path().to_path_buf();
+
+        // Construct the command to execute hf-validator
+        let status = Command::new("hf-validator")
+            .arg("analyze-rust-to-ir")
+            .arg(temp_source_file_path.as_os_str())
+            .arg(output_path.as_os_str())
+            .status()
+            .context("Failed to execute hf-validator command")?;
+
+        if !status.success() {
+            return Err(anyhow::anyhow!("hf-validator command failed with status: {}", status));
+        }
+
+        println!("  -> Hugging Face Validation Result: Dataset generated at {:#?}", output_path);
+
+        // The temporary source file will be automatically deleted when temp_source_file goes out of scope
+        // The temporary output directory will be automatically deleted when temp_output_dir goes out of scope
+        // We need to prevent the temporary output directory from being deleted if we want to return its path.
+        // So, we'll leak the temp_output_dir for now, or copy its contents.
+        // For this implementation, we'll just return the path and assume the caller will handle cleanup if needed.
+        // In a real scenario, the output would likely be moved to a persistent location.
+        std::mem::forget(temp_output_dir); // Prevent deletion of the temporary directory
+
+        let __result = Ok(ValidatedFile(output_path));
         measurement::record_function_exit("HuggingFaceValidatorFunctor::map");
         __result
     }

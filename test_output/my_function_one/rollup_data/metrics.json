@@ -1,0 +1,6 @@
+{
+  "my_function_one": {
+    "duration_micros": 1,
+    "call_count": 1
+  }
+}

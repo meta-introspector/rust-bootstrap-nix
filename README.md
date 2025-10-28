@@ -87,7 +87,11 @@ Key components facilitating this transformation include:
 *   **`rust-decl-splitter`**: Decomposes Rust source files into individual declarations (functions, structs, enums, etc.), forming the granular nodes of the lattice.
 *   **`prelude-generator`**: Generates prelude files by expanding macros and creating an Abstract Syntax Tree (AST), providing a comprehensive view of the code for analysis.
 
-For a more detailed explanation of this architectural vision and its principles, please refer to `lattice.md`.
+### Introspective Rollup Workflow
+
+To enable AI-driven analysis and optimization, each significant function or component within the lattice transformation pipeline undergoes an "Introspective Rollup" process. This involves instrumenting relevant functions with performance measurement calls, executing the instrumented code to collect metrics, and generating a `rollup_report.md` for each unit. An AI then consumes this report to summarize the function's purpose, analyze its performance, and suggest potential optimizations or refactorings.
+
+For a more detailed explanation of this architectural vision and its principles, including the Introspective Rollup Workflow, please refer to `lattice.md` and `rollup.md`.
 
 ## Code Quality and Best Practices
 
