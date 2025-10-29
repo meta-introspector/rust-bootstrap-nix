@@ -115,6 +115,13 @@ To enable AI-driven analysis and optimization, each significant function or comp
 
 For a more detailed explanation of this architectural vision and its principles, including the Introspective Rollup Workflow, please refer to [`lattice.md`](./lattice.md), [`rollup.md`](./rollup.md), and [`functional.md`](./functional.md).
 
+## Bootstrap and Development Plan
+
+For a detailed overview of the project's bootstrap goals and the development plan, please refer to the following documents:
+
+*   [`bootstrap.md`](./bootstrap.md): Outlines the high-level goal of creating a self-hosting `prelude-generator`.
+*   [`plan.md`](./plan.md): Provides a detailed code review and development plan for the `prelude-generator`.
+
 ## Code Quality and Best Practices
 
 To ensure high code quality and maintainability, especially for shell scripts, we adhere to specific best practices. For detailed guidelines on using `Shellcheck` and integrating it into your workflow, please refer to `docs/memos/Shellcheck_Always_After_Changes.md`.
