@@ -85,7 +85,7 @@ Key components facilitating this transformation include:
 
 *   **`rust-system-composer`**: Orchestrates the entire lattice transformation pipeline.
 *   **`rust-decl-splitter`**: Decomposes Rust source files into individual declarations (functions, structs, enums, etc.), forming the granular nodes of the lattice.
-*   **`prelude-generator`**: Generates prelude files by expanding macros and creating an Abstract Syntax Tree (AST), providing a comprehensive view of the code for analysis.
+*   **`prelude-generator`**: A Rust crate responsible for processing Rust source files, extracting and classifying use statements, and reconstructing ASTs from Hugging Face datasets. Recently, significant type errors related to `PipelineFunctor` implementation and `async` function calls were resolved, ensuring its successful compilation and integration into the pipeline.
 
 ### Introspective Rollup Workflow
 

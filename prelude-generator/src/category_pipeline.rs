@@ -3,12 +3,39 @@ use crate::pipeline::UseStatement;
 use crate::use_extractor;
 use std::path::{Path, PathBuf};
 use crate::code_generator;
-use tokio::io::AsyncWriteExt;
+//use tokio::io::AsyncWriteExt;
 use std::fmt::Debug;
 use crate::measurement;
 use indoc::indoc;
 
 use tempfile::tempdir;
+
+#[derive(Debug)]
+pub struct ReconstructedAst;
+
+// AstReconstructionFunctor
+pub struct AstReconstructionFunctor;
+
+impl PipelineFunctor<ValidatedFile, ReconstructedAst> for AstReconstructionFunctor {
+    fn map(&self, writer: &mut (impl tokio::io::AsyncWriteExt + Unpin + Send), input: ValidatedFile) -> impl std::future::Future<Output = Result<ReconstructedAst>> {
+        async move {
+            measurement::record_function_entry("AstReconstructionFunctor::map");
+            let ValidatedFile(dataset_path) = input;
+
+            writer.write_all(format!("--- Stage 5: AST Reconstruction from Hugging Face Dataset ---\n").as_bytes()).await?;
+            writer.write_all(format!("  -> Dataset path: {:#?}\n", dataset_path).as_bytes()).await?;
+
+            crate::hf_dataset_reader::reconstruct_ast_from_hf_dataset(&dataset_path).await
+                .context("Failed to reconstruct AST from Hugging Face dataset")?;
+
+            writer.write_all(format!("  -> AST Reconstruction completed successfully.\n").as_bytes()).await?;
+
+            let __result = Ok(ReconstructedAst);
+            measurement::record_function_exit("AstReconstructionFunctor::map");
+            __result
+        }
+    }
+}
 
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {
@@ -186,6 +213,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
 
             // Generate a canonical directory name based on the original_file_path
             let sanitized_file_path = original_file_path.to_string_lossy().replace("/", "_").replace(".", "_");
+            writer.write_all(format!("  -> Sanitized file path for hf-validator project: {}\n", sanitized_file_path).as_bytes()).await?;
             let hf_validator_project_dir = PathBuf::from(format!("generated/hf_validator_projects/{}", sanitized_file_path));
             tokio::fs::create_dir_all(&hf_validator_project_dir).await?;
 
@@ -206,14 +234,10 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
                 path = "main.rs"
 
                 [dependencies]
-                indoc = "1.0"
                 anyhow = "1.0"
                 tokio = { version = "1", features = ["full"] }
-                syn = { version = "2.0", features = ["full"] }
-                quote = "1.0"
-                prettyplease = "0.2"
-                tempfile = "3.8"
-                sha2 = "0.10"
+
+                [workspace]
                 "#
             };
             tokio::fs::write(hf_validator_project_dir.join("Cargo.toml"), cargo_toml_content).await?;
@@ -228,25 +252,40 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
                 return Err(anyhow::anyhow!("git init failed: {}", String::from_utf8_lossy(&output.stderr)));
             }
 
+            // Configure dummy Git user and email
             let output = tokio::process::Command::new("git")
-                .arg("add")
-                .arg(".")
+                .arg("config")
+                .arg("user.email")
+                .arg("test@example.com")
                 .current_dir(&hf_validator_project_dir)
                 .output().await
-                .context("Failed to add files to git")?;
+                .context("Failed to configure git user email")?;
             if !output.status.success() {
-                return Err(anyhow::anyhow!("git add failed: {}", String::from_utf8_lossy(&output.stderr)));
+                return Err(anyhow::anyhow!("git config user.email failed: {}\nStderr: {}", String::from_utf8_lossy(&output.status.code().unwrap_or(-1).to_string().as_bytes()), String::from_utf8_lossy(&output.stderr)));
             }
 
             let output = tokio::process::Command::new("git")
-                .arg("commit")
-                .arg("-m")
-                .arg("Initial commit")
+                .arg("config")
+                .arg("user.name")
+                .arg("Test User")
                 .current_dir(&hf_validator_project_dir)
                 .output().await
-                .context("Failed to make initial git commit")?;
+                .context("Failed to configure git user name")?;
             if !output.status.success() {
-                return Err(anyhow::anyhow!("git commit failed: {}", String::from_utf8_lossy(&output.stderr)));
+                return Err(anyhow::anyhow!("git config user.name failed: {}\nStderr: {}", String::from_utf8_lossy(&output.status.code().unwrap_or(-1).to_string().as_bytes()), String::from_utf8_lossy(&output.stderr)));
+            }
+
+            // Create an initial empty commit to satisfy hf-validator's git requirements
+            let output = tokio::process::Command::new("git")
+                .arg("commit")
+                .arg("--allow-empty")
+                .arg("-m")
+                .arg("Initial empty commit")
+                .current_dir(&hf_validator_project_dir)
+                .output().await
+                .context("Failed to make initial empty git commit")?;
+            if !output.status.success() {
+                return Err(anyhow::anyhow!("git commit --allow-empty failed: {}\nStderr: {}", String::from_utf8_lossy(&output.status.code().unwrap_or(-1).to_string().as_bytes()), String::from_utf8_lossy(&output.stderr)));
             }
 
             // Create a temporary directory for the output of hf-dataset-validator

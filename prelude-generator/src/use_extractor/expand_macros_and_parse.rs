@@ -3,7 +3,7 @@ use std::path::Path;
 use sha2::{Sha256, Digest};
 use indoc::indoc;
 use crate::use_extractor::rustc_info::RustcInfo;
-use tokio::io::AsyncWriteExt;
+//use tokio::io::AsyncWriteExt;
 use tokio::fs;
 
 pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<syn::File> {

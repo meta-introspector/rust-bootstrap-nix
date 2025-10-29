@@ -28,4 +28,7 @@ git2 = "*"
 
 hf-dataset-validator = {	     path = "../vendor/rust/hugging-face-dataset-validator-rust/"	     }
 
+arrow = { version = "57.0.0" }
+parquet = { version = "57.0.0" }
+
 [dev-dependencies]

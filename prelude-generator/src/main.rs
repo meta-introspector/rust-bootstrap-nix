@@ -3,9 +3,12 @@ use tokio::io::AsyncWriteExt;
 use clap::Parser;
 use prelude_generator::Args;
 use prelude_generator::category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, ParseFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor};
+use prelude_generator::category_pipeline::{AstReconstructionFunctor};
 use std::fs;
 use prelude_generator::measurement;
 use std::path::Path;
+
+mod hf_dataset_reader;
 
 async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, _args: &Args) -> anyhow::Result<()> {
     let content = fs::read_to_string(file_path).context("Failed to read file content")?;
@@ -32,6 +35,10 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(write
     let validated_file = hf_validator_functor.map(writer, parsed_file.clone()).await.context("Hugging Face Validation failed")?; // Use parsed_file as input
     writer.write_all(format!("  -> Hugging Face Validation Result: {:#?}\n", validated_file).as_bytes()).await?;
 
+    writer.write_all(format!("--- Stage 5: AST Reconstruction from Hugging Face Dataset ---\n").as_bytes()).await?;
+    let ast_reconstruction_functor = AstReconstructionFunctor;
+    let _reconstructed_ast = PipelineFunctor::map(&ast_reconstruction_functor, writer, validated_file).await.context("AST Reconstruction failed")?;
+    writer.write_all(format!("  -> AST Reconstruction completed successfully.\n").as_bytes()).await?;
     // Print collected metrics
     let collected_metrics = measurement::get_collected_metrics();
     let json_metrics = serde_json::to_string_pretty(&collected_metrics).context("Failed to serialize metrics to JSON")?;
