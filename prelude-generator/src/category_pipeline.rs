@@ -200,9 +200,11 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
 pub struct ValidatedFile(pub PathBuf); // Now stores the path to the generated dataset
 
 // HuggingFaceValidatorFunctor
-pub struct HuggingFaceValidatorFunctor;
+pub struct HuggingFaceValidatorFunctor<'a> {
+    pub args: &'a crate::Args,
+}
 
-impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor {
+impl<'a> PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor<'a> {
     fn map(&self, writer: &mut (impl tokio::io::AsyncWriteExt + Unpin + Send), input: ParsedFile) -> impl std::future::Future<Output = Result<ValidatedFile>> {
         async move {
             measurement::record_function_entry("HuggingFaceValidatorFunctor::map");
@@ -294,7 +296,11 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             let output_path = temp_output_dir.path().to_path_buf();
 
             // Construct the command to execute hf-validator
-            let status = tokio::process::Command::new("hf-validator")
+            let hf_validator_executable = self.args.hf_validator_path.as_ref()
+                .map(|p| p.to_path_buf())
+                .unwrap_or_else(|| PathBuf::from("hf-validator"));
+
+            let status = tokio::process::Command::new(&hf_validator_executable)
                 .arg("analyze-rust-to-ir")
                 .arg(hf_validator_project_dir.as_os_str())
                 .arg(output_path.as_os_str())

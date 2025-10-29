@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    hf-dataset-validator.url = "../../vendor/rust/hugging-face-dataset-validator-rust";
+    hf-dataset-validator.url = "../vendor/rust/hugging-face-dataset-validator-rust";
   };
 
   outputs = { self, nixpkgs, rust-overlay, hf-dataset-validator, ... }@inputs:

@@ -1,11 +1,3 @@
-feat: Implement category-theory pipeline and introspective rollup workflow
+docs: Add canonical naming system requirements to README.md
 
-This commit introduces a significant refactoring of the `prelude-generator` to utilize a category-theory-based pipeline for processing `use` statements. This new pipeline enhances modularity, extensibility, and reasoning by modeling stages as functors mapping between different categories of code representation.
-
-Additionally, this commit lays the groundwork for an "Introspective Rollup Workflow" to enable AI-driven analysis and optimization. Key changes include:
-- Instrumentation of `rust-decl-splitter` to inject performance measurement calls into function bodies.
-- Introduction of the `metrics-reporter` crate to execute instrumented code and generate `rollup_report.md` files with performance metrics and code analysis.
-- Integration of a new `HuggingFaceValidatorFunctor` into the `prelude-generator` pipeline for validation.
-- Updates to `lattice.md` and new documentation in `braindump.md` and `rollup.md` detailing these architectural changes and workflows.
-
-This refactoring also includes a fix for a `toml` serialization bug in `prelude-generator` related to `PathBuf` types.
+This commit adds a new section to `README.md` under "Architectural Goal: Lattice of Functions" outlining the need for a canonical naming system. This system will standardize the identification and referencing of various components, including compiler, architecture, target Rust version, bootstrap phase, step, vendor Git repository, Cargo name, filename, nesting level, declaration type, and declaration name. This is crucial for reproducibility, traceability, automation, and human readability within the project's architecture.

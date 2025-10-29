@@ -10,7 +10,7 @@ use std::path::Path;
 
 mod hf_dataset_reader;
 
-async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, _args: &Args) -> anyhow::Result<()> {
+async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, args: &Args) -> anyhow::Result<()> {
     let content = fs::read_to_string(file_path).context("Failed to read file content")?;
     let raw_file = RawFile(file_path.to_string_lossy().to_string(), content);
 
@@ -30,8 +30,9 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(write
     writer.write_all(format!("  -> Classified use statements:\n").as_bytes()).await?;
     writer.write_all(format!("{:#?}\n", classified_uses).as_bytes()).await?;
 
-    writer.write_all(format!("--- Stage 4: Hugging Face Validation ---\n").as_bytes()).await?;
-    let hf_validator_functor = HuggingFaceValidatorFunctor;
+    writer.write_all(format!("--- Stage 4: Hugging Face Validation ---
+").as_bytes()).await?;
+    let hf_validator_functor = HuggingFaceValidatorFunctor { args };
     let validated_file = hf_validator_functor.map(writer, parsed_file.clone()).await.context("Hugging Face Validation failed")?; // Use parsed_file as input
     writer.write_all(format!("  -> Hugging Face Validation Result: {:#?}\n", validated_file).as_bytes()).await?;
 

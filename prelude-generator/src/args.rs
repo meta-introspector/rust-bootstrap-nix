@@ -91,6 +91,10 @@ pub struct Args {
     /// Enable verbose output
     #[clap(short, long, action = clap::ArgAction::Count)]
     pub verbose: u8,
+
+    /// Path to the hf-validator executable.
+    #[arg(long)]
+    pub hf_validator_path: Option<PathBuf>,
 }
 
 #[cfg(test)]
