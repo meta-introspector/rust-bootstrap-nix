@@ -4,7 +4,6 @@ use std::{
     process::{Command, Stdio},
 };
 use tempfile::tempdir;
-use walkdir::WalkDir;
 use syn;
 use quote::ToTokens;
 
@@ -48,7 +47,7 @@ fn main() -> io::Result<()> {
     let measurement_rs_path = PathBuf::from("/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-decl-splitter/src/measurement.rs");
     fs::copy(&measurement_rs_path, temp_src_path.join("measurement.rs"))?;
 
-    let function_name = wrapped_code_path
+    let _function_name = wrapped_code_path
         .parent() // Get the parent directory (rollup_data)
         .unwrap()
         .parent() // Get the parent directory (my_function_one)

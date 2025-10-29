@@ -1,3 +1,4 @@
+/*
 use std::time::Instant;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -54,3 +55,4 @@ pub fn record_function_exit(function_name: &str) {
 pub fn get_collected_metrics() -> HashMap<String, FunctionMetrics> {
     METRICS.lock().unwrap().clone()
 }
+*/

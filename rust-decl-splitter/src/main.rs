@@ -1,9 +1,7 @@
 pub mod prelude;
 mod measurement;
 use crate::prelude::*;
-use measurement::{record_function_entry, record_function_exit};
 use syn::parse_quote;
-use serde_json;
 fn to_snake_case(ident: &Ident) -> String {
     let mut s = String::new();
     for (i, char) in ident.to_string().chars().enumerate() {

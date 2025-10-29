@@ -1,7 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::{Context};
 use clap::Parser;
 use prelude_generator::{category_pipeline, pipeline, use_extractor, Args, process_crates, collect_all_test_cases, generate_test_report_json, generate_test_verification_script_and_report, TestInfo};
-use crate::category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, ParseFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor, ValidatedFile};
+use crate::category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, ParseFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor};
 use std::fs;
 use prelude_generator::measurement;
 
@@ -16,7 +16,7 @@ fn run_category_pipeline(file_path: &str) -> anyhow::Result<()> {
 
     println!("--- Stage 2: Extracting Use Statements ---");
     let extract_uses_functor = ExtractUsesFunctor;
-    let use_statements = extract_uses_functor.map(parsed_file)?;
+    let use_statements = extract_uses_functor.map(parsed_file.clone())?;
     println!("  -> Extracted {} use statements.", use_statements.0.len());
 
     println!("--- Stage 3: Classifying Use Statements ---");
@@ -27,7 +27,7 @@ fn run_category_pipeline(file_path: &str) -> anyhow::Result<()> {
 
     println!("--- Stage 4: Hugging Face Validation ---"); // New stage
     let hf_validator_functor = HuggingFaceValidatorFunctor;
-    let validated_file = hf_validator_functor.map(parsed_file)?; // Use parsed_file as input
+    let validated_file = hf_validator_functor.map(parsed_file.clone())?; // Use parsed_file as input
     println!("  -> Hugging Face Validation Result: {:#?}", validated_file);
 
     // Print collected metrics

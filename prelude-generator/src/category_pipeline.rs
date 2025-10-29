@@ -9,7 +9,6 @@ use std::fmt::Debug;
 use crate::measurement;
 
 
-use hf_dataset_validator::rust_analyzer_extractor::{RustAnalyzerExtractor, ProcessingPhase};
 use tempfile::{tempdir, NamedTempFile};
 use std::process::Command;
 
@@ -37,6 +36,7 @@ impl<'a, T: Debug + Clone> PipelineFunctor<T, T> for InspectFunctor<'a, T> {
 }
 #[derive(Debug)]
 pub struct RawFile(pub String, pub String);
+#[derive(Clone)]
 pub struct ParsedFile(pub syn::File);
 #[derive(Debug)]
 pub struct UseStatements(pub Vec<String>);
@@ -174,7 +174,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
         let source_code = prettyplease::unparse(&ast);
 
         // Create a temporary file for the Rust source code
-        let mut temp_source_file = NamedTempFile::new()
+        let temp_source_file = NamedTempFile::new()
             .context("Failed to create temporary source file")?;
         fs::write(temp_source_file.path(), source_code.as_bytes())
             .context("Failed to write source code to temporary file")?;
