@@ -3,14 +3,12 @@ use crate::pipeline::UseStatement;
 use crate::use_extractor;
 use std::path::{Path, PathBuf};
 use crate::code_generator;
-use tokio::fs;
 use tokio::io::AsyncWriteExt;
 use std::fmt::Debug;
 use crate::measurement;
 use indoc::indoc;
 
-use tempfile::{tempdir, NamedTempFile};
-use tokio::process;
+use tempfile::tempdir;
 
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {

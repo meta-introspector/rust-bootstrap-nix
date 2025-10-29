@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use anyhow::Result;
 use crate::use_extractor::{get_rustc_info, flatten_use_tree, expand_macros_and_parse};
 use tokio::io::AsyncWriteExt;
-use tokio::fs;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PipelineState {
     pub stage_results: Vec<StageResult>,
