@@ -7,7 +7,7 @@ use std::fs;
 
 use std::fmt::Debug;
 use crate::measurement;
-use self::{ParsedFile};
+
 
 use hf_dataset_validator::rust_analyzer_extractor::{RustAnalyzerExtractor, ProcessingPhase};
 use tempfile::{tempdir, NamedTempFile};
