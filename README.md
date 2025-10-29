@@ -113,11 +113,15 @@ Key components facilitating this transformation include:
 
 To enable AI-driven analysis and optimization, each significant function or component within the lattice transformation pipeline undergoes an "Introspective Rollup" process. This involves instrumenting relevant functions with performance measurement calls, executing the instrumented code to collect metrics, and generating a `rollup_report.md` for each unit. An AI then consumes this report to summarize the function's purpose, analyze its performance, and suggest potential optimizations or refactorings.
 
-For a more detailed explanation of this architectural vision and its principles, including the Introspective Rollup Workflow, please refer to `lattice.md` and `rollup.md`.
+For a more detailed explanation of this architectural vision and its principles, including the Introspective Rollup Workflow, please refer to [`lattice.md`](./lattice.md), [`rollup.md`](./rollup.md), and [`functional.md`](./functional.md).
 
 ## Code Quality and Best Practices
 
 To ensure high code quality and maintainability, especially for shell scripts, we adhere to specific best practices. For detailed guidelines on using `Shellcheck` and integrating it into your workflow, please refer to `docs/memos/Shellcheck_Always_After_Changes.md`.
+
+## Recent QA Status
+
+For the latest quality assurance report and status of recent commits, please refer to [`qa_report.md`](./qa_report.md).
 
 ## Configuration Documentation
 

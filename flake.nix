@@ -76,5 +76,19 @@
           lockFile = self.outPath + "/Cargo.lock"; # Use the workspace root's Cargo.lock
         })
         { };
+
+      devShells.aarch64-linux.default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.rustc
+          pkgs.cargo
+          pkgs.rust-analyzer
+          pkgs.openssl
+          pkgs.pkg-config
+        ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        RUST_SRC_PATH = "${rustSrcFlake}/library";
+      };
     };
 }

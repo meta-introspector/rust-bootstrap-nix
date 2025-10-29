@@ -17,7 +17,7 @@
       };
       lib = nixpkgs.lib;
       commonRustDeps = import ../nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
-      rustcPath = "${pkgs.rust-bin.stable."1.89.0".rustc}/bin/rustc";
+      rustcPath = "${pkgs.rust-bin.stable.1.89.0.rustc}/bin/rustc";
       cargoPath = "${pkgs.cargo}/bin/cargo";
       projectRoot = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix";
       rustSrcFlakePath = "/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src";

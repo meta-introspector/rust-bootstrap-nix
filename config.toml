@@ -13,8 +13,8 @@ rust_bootstrap_nix_flake_ref = "github:meta-introspector/rust-bootstrap-nix?ref=
 rust_src_flake_ref = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
 
 [rust]
-rustc = ""
-cargo = ""
+rustc = "/nix/store/yxh9cs2lshqgk6h0kp256yms3w8qwmsz-rustc-wrapper-1.89.0/bin/rustc"
+cargo = "/nix/store/ahyjafkgyn6zji9qlvv92z8gxmcmaky4-cargo-1.89.0/bin/cargo"
 channel = "stable"
 download-rustc = false
 parallel-compiler = false
@@ -52,3 +52,17 @@ ninja = false
 
 [change-id]
 id = ""
+
+[project_binaries]
+paths = [
+    "target/release/bootstrap-config-generator",
+    "target/release/configuration-nix",
+    "target/release/flake-step-manager",
+    "target/release/flake-template-generator",
+    "target/release/hf-validator",
+    "target/release/metrics-reporter",
+    "target/release/nix-dir",
+    "target/release/prelude-generator",
+    "target/release/rust-decl-splitter",
+    "target/release/rust-system-composer",
+]
