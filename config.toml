@@ -53,16 +53,14 @@ ninja = false
 [change-id]
 id = ""
 
-[project_binaries]
-paths = [
-    "target/release/bootstrap-config-generator",
-    "target/release/configuration-nix",
-    "target/release/flake-step-manager",
-    "target/release/flake-template-generator",
-    "target/release/hf-validator",
-    "target/release/metrics-reporter",
-    "target/release/nix-dir",
-    "target/release/prelude-generator",
-    "target/release/rust-decl-splitter",
-    "target/release/rust-system-composer",
-]
+[bins]
+bootstrap_config_generator = "target/release/bootstrap-config-generator"
+configuration_nix = "target/release/configuration-nix"
+flake_step_manager = "target/release/flake-step-manager"
+flake_template_generator = "target/release/flake-template-generator"
+hf_validator = "target/release/hf-validator"
+metrics_reporter = "target/release/metrics-reporter"
+nix_dir = "target/release/nix-dir"
+prelude_generator = "target/release/prelude-generator"
+rust_decl_splitter = "target/release/rust-decl-splitter"
+rust_system_composer = "target/release/rust-system-composer"

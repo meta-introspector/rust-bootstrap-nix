@@ -95,6 +95,10 @@ pub struct Args {
     /// Path to the hf-validator executable.
     #[arg(long)]
     pub hf_validator_path: Option<PathBuf>,
+
+    /// Path to the main configuration file (config.toml).
+    #[arg(long)]
+    pub config_file_path: Option<PathBuf>,
 }
 
 #[cfg(test)]

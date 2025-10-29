@@ -202,6 +202,7 @@ pub struct ValidatedFile(pub PathBuf); // Now stores the path to the generated d
 // HuggingFaceValidatorFunctor
 pub struct HuggingFaceValidatorFunctor<'a> {
     pub args: &'a crate::Args,
+    pub hf_validator_path: Option<PathBuf>,
 }
 
 impl<'a> PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor<'a> {
@@ -296,8 +297,7 @@ impl<'a> PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunc
             let output_path = temp_output_dir.path().to_path_buf();
 
             // Construct the command to execute hf-validator
-            let hf_validator_executable = self.args.hf_validator_path.as_ref()
-                .map(|p| p.to_path_buf())
+            let hf_validator_executable = self.hf_validator_path.clone()
                 .unwrap_or_else(|| PathBuf::from("hf-validator"));
 
             let status = tokio::process::Command::new(&hf_validator_executable)

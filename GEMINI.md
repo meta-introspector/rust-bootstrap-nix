@@ -85,5 +85,24 @@ This command will execute the Rust program, which should print the OpenSSL versi
 
 To build the `test-openssl-sys` flake:
 ```bash
-nix build /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/test-openssl-sys
+*   **New SOP Creation:** Created `docs/sops/SOP_Digital_Mycology_Experiment_Workflow.md` to define the workflow for LLM-based science experiments.
+    *   Documented `docs/Nix_and_Precommit_Setup.md` detailing the project's Nix and pre-commit configurations, including Git submodule management.
+    *   Created `docs/sops/SOP_Nix_Github_Meta_Introspector_Policy.md` documenting the policy for Nix flake inputs from `github:meta-introspector` and branch-only references.
+    *   Created `docs/Precommit_Nix_Submodule_Overview.md` providing a table of pre-commit hooks, Nix packages, and Git submodule information.
+    *   Created `docs/Precommit_Nix_Submodule_Summary.md` providing a focused summary table of pre-commit hooks, their associated submodules, branch/revision, and Nixification status.
+
+### Prelude Generator Configuration and Binary Path Integration
+
+*   **`config.toml` Updates:**
+    *   The root `config.toml` was updated to include Nix store paths for `rustc` and `cargo`.
+    *   The `[project_binaries]` section was refactored into a `[bins]` section, where project-specific binaries are now listed by name with their relative paths (e.g., `hf_validator = "target/release/hf-validator"`).
+*   **`prelude-generator` Integration:**
+    *   `prelude-generator/src/args.rs`: A new command-line argument `--config-file-path` was added to allow specifying the `config.toml` location.
+    *   `prelude-generator/src/config_parser.rs`: A new module was created to define the `Config` struct (reflecting the `[bins]` section) and implement logic for reading and parsing `config.toml`.
+    *   `prelude-generator/src/main.rs`: Modified to read the `config.toml` (if provided) and pass the parsed configuration to the `run_category_pipeline` function.
+    *   `prelude-generator/src/category_pipeline.rs`: The `HuggingFaceValidatorFunctor` was updated to accept and utilize the `hf_validator_path` directly from the parsed `config.toml`, enabling `prelude-generator` to locate and execute the `hf-validator` binary.
+*   **Local Build Environment Setup:**
+    *   The root `flake.nix` was enhanced with a `devShell` that provides necessary OpenSSL environment variables (`OPENSSL_LIB_DIR`, `OPENSSL_INCLUDE_DIR`) to facilitate successful local Rust builds (`cargo build --workspace --release`). This resolved previous build failures related to `openssl-sys`.
+
+## Next Steps:
 ```

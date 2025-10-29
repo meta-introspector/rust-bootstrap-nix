@@ -9,8 +9,9 @@ use prelude_generator::measurement;
 use std::path::Path;
 
 mod hf_dataset_reader;
+mod config_parser;
 
-async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, args: &Args) -> anyhow::Result<()> {
+async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, args: &Args, config: &Option<config_parser::Config>) -> anyhow::Result<()> {
     let content = fs::read_to_string(file_path).context("Failed to read file content")?;
     let raw_file = RawFile(file_path.to_string_lossy().to_string(), content);
 
@@ -32,7 +33,10 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(write
 
     writer.write_all(format!("--- Stage 4: Hugging Face Validation ---
 ").as_bytes()).await?;
-    let hf_validator_functor = HuggingFaceValidatorFunctor { args };
+    let hf_validator_path = config.as_ref().and_then(|c| {
+        c.bins.paths.get("hf_validator").map(|p| p.to_path_buf())
+    });
+    let hf_validator_functor = HuggingFaceValidatorFunctor { args, hf_validator_path };
     let validated_file = hf_validator_functor.map(writer, parsed_file.clone()).await.context("Hugging Face Validation failed")?; // Use parsed_file as input
     writer.write_all(format!("  -> Hugging Face Validation Result: {:#?}\n", validated_file).as_bytes()).await?;
 
@@ -50,6 +54,17 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(write
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    let config = if let Some(config_path) = &args.config_file_path {
+        Some(config_parser::read_config(config_path)?)
+    } else {
+        None
+    };
+
+    // For debugging: print the parsed config if available
+    if let Some(ref cfg) = config {
+        eprintln!("Parsed config: {:#?}", cfg);
+    }
+
     let file_to_process = if let Some(file_name) = args.file.as_ref() {
         Path::new(file_name)
     } else {
@@ -60,7 +75,7 @@ fn main() -> anyhow::Result<()> {
         .enable_all()
         .build()? // This line is causing the error
         .block_on(async {
-            let result = run_category_pipeline(&mut tokio::io::stdout(), file_to_process, &args).await;
+            let result = run_category_pipeline(&mut tokio::io::stdout(), file_to_process, &args, &config).await;
 
             if let Err(ref e) = result {
                 tokio::io::stderr().write_all(format!("Pipeline failed: {:?}\n", e).as_bytes()).await?;
