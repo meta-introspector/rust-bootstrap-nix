@@ -78,8 +78,30 @@ The system leverages Nix flakes to define a hermetic build environment. The root
 
 ## Architectural Goal: Lattice of Functions
 
-
 Beyond the immediate build and development environment, a core architectural goal of this project is to transform the Rust codebase into a "canonical form" represented as a "lattice of functions." This involves rewriting the code to adhere to specific constraints, such as a topologically sorted dependency graph and limiting each module to at most one external crate dependency. This approach aims to enhance modularity, maintainability, and enable self-modifying capabilities.
+
+### Canonical Naming System
+
+To ensure consistency, clarity, and facilitate automated analysis and manipulation of the Rust codebase within the "lattice of functions" architecture, a canonical naming system is essential. This system will provide a standardized way to identify and reference various components throughout the build and analysis pipeline. The following elements require canonical naming:
+
+*   **Compiler:** The specific Rust compiler version and configuration used.
+*   **Architecture (Arch):** The target hardware architecture (e.g., `aarch64-linux`, `x86_64-linux`).
+*   **Target Rust Version:** The Rust version targeted by the compilation.
+*   **Bootstrap Phase:** The current stage of the Rust bootstrap process.
+*   **Step:** A specific action or sub-process within a bootstrap phase.
+*   **Vendor Git Repository:** The identifier for an external Git repository used as a dependency.
+*   **Cargo Name:** The name of a Rust crate as defined in its `Cargo.toml`.
+*   **Filename:** The name of the source file.
+*   **Nesting Level:** The depth of a declaration within the code structure.
+*   **Declaration Type (Decl Type):** The type of a Rust declaration (e.g., `fn`, `struct`, `enum`, `mod`).
+*   **Declaration Name (Decl Name):** The name of a specific Rust declaration.
+
+This canonical naming system will be crucial for:
+
+*   **Reproducibility:** Ensuring that every component can be uniquely identified and reproduced.
+*   **Traceability:** Allowing easy tracing of dependencies and origins.
+*   **Automation:** Enabling scripts and tools to reliably parse, analyze, and generate code.
+*   **Human Readability:** Providing a clear and consistent way for developers to understand the codebase.
 
 Key components facilitating this transformation include:
 
