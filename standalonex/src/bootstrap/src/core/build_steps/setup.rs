@@ -124,11 +124,10 @@ impl Step for Profile {
 
         let path = &run.builder.config.config.clone().unwrap_or(PathBuf::from("config.toml"));
         if path.exists() {
-            eprintln!();
-            eprintln!(
+            run.builder.logger.error(&format_args!(
                 "ERROR: you asked for a new config file, but one already exists at `{}`",
                 t!(path.canonicalize()).display()
-            );
+            ));
 
             match prompt_user(
                 "Do you wish to override the existing configuration (which will allow the setup process to continue)?: [y/N]",
@@ -137,7 +136,7 @@ impl Step for Profile {
                     t!(fs::remove_file(path));
                 }
                 _ => {
-                    println!("Exiting.");
+                    run.builder.logger.info(&format_args!("Exiting."));
                     crate::exit!(1);
                 }
             }
@@ -149,7 +148,7 @@ impl Step for Profile {
         // will guide user to provide one.
         let profile = if run.paths.len() > 1 {
             // HACK: `builder` runs this step with all paths if no path was passed.
-            t!(interactive_path())
+            t!(interactive_path(run.builder))
         } else {
             run.paths
                 .first()
@@ -168,11 +167,11 @@ impl Step for Profile {
     }
 
     fn run(self, builder: &Builder<'_>) {
-        setup(&builder.build.config, self);
+        setup(builder, self);
     }
 }
 
-pub fn setup(config: &Config, profile: Profile) {
+pub fn setup(builder: &Builder<'_>, profile: Profile) {
     let suggestions: &[&str] = match profile {
         Profile::Compiler | Profile::None => &["check", "build", "test"],
         Profile::Tools => &[
@@ -187,32 +186,32 @@ pub fn setup(config: &Config, profile: Profile) {
         Profile::Dist => &["dist", "build"],
     };
 
-    println!();
+    builder.logger.info(&format_args!(""));
 
-    println!("To get started, try one of the following commands:");
+    builder.logger.info(&format_args!("To get started, try one of the following commands:"));
     for cmd in suggestions {
-        println!("- `x.py {cmd}`");
+        builder.logger.info(&format_args!("- `x.py {cmd}`"));
     }
 
     if profile != Profile::Dist {
-        println!(
+        builder.logger.info(&format_args!(
             "For more suggestions, see https://rustc-dev-guide.rust-lang.org/building/suggested.html"
-        );
+        ));
     }
 
     if profile == Profile::Tools {
-        eprintln!();
-        eprintln!(
+        builder.logger.warn(&format_args!(""));
+        builder.logger.warn(&format_args!(
             "NOTE: the `tools` profile sets up the `stage2` toolchain (use \
             `rustup toolchain link 'name' build/host/stage2` to use rustc)"
-        )
+        ));
     }
 
-    let path = &config.config.clone().unwrap_or(PathBuf::from("config.toml"));
-    setup_config_toml(path, profile, config);
+    let path = &builder.config.config.clone().unwrap_or(PathBuf::from("config.toml"));
+    setup_config_toml(builder, path, profile);
 }
 
-fn setup_config_toml(path: &PathBuf, profile: Profile, config: &Config) {
+fn setup_config_toml(builder: &Builder<'_>, path: &PathBuf, profile: Profile) {
     if profile == Profile::None {
         return;
     }
@@ -226,8 +225,8 @@ fn setup_config_toml(path: &PathBuf, profile: Profile, config: &Config) {
 
     t!(fs::write(path, settings));
 
-    let include_path = profile.include_path(&config.src);
-    println!("`x.py` will now use the configuration at {}", include_path.display());
+    let include_path = profile.include_path(&builder.config.src);
+    builder.logger.info(&format_args!("`x.py` will now use the configuration at {}", include_path.display()));
 }
 
 /// Creates a toolchain link for stage1 using `rustup`
@@ -259,7 +258,7 @@ impl Step for Link {
         }
 
         if !rustup_installed(builder) {
-            println!("WARNING: `rustup` is not installed; Skipping `stage1` toolchain linking.");
+            builder.logger.warn(&format_args!("WARNING: `rustup` is not installed; Skipping `stage1` toolchain linking."));
             return;
         }
 
@@ -292,23 +291,23 @@ fn attempt_toolchain_link(builder: &Builder<'_>, stage_path: &str) {
     }
 
     if !ensure_stage1_toolchain_placeholder_exists(stage_path) {
-        eprintln!(
+        builder.logger.error(&format_args!(
             "Failed to create a template for stage 1 toolchain or confirm that it already exists"
-        );
+        ));
         return;
     }
 
     if try_link_toolchain(builder, stage_path) {
-        println!(
+        builder.logger.info(&format_args!(
             "Added `stage1` rustup toolchain; try `cargo +stage1 build` on a separate rust project to run a newly-built toolchain"
-        );
+        ));
     } else {
-        eprintln!("`rustup` failed to link stage 1 build to `stage1` toolchain");
-        eprintln!(
+        builder.logger.error(&format_args!("`rustup` failed to link stage 1 build to `stage1` toolchain"));
+        builder.logger.error(&format_args!(
             "To manually link stage 1 build to `stage1` toolchain, run:\n
             `rustup toolchain link stage1 {}`",
             &stage_path
-        );
+        ));
     }
 }
 
@@ -324,16 +323,16 @@ fn toolchain_is_linked(builder: &Builder<'_>) -> bool {
                 return false;
             }
             // The toolchain has already been linked.
-            println!(
+            builder.logger.info(&format_args!(
                 "`stage1` toolchain already linked; not attempting to link `stage1` toolchain"
-            );
+            ));
         }
         None => {
             // In this case, we don't know if the `stage1` toolchain has been linked;
             // but `rustup` failed, so let's not go any further.
-            println!(
+            builder.logger.info(&format_args!(
                 "`rustup` failed to list current toolchains; not attempting to link `stage1` toolchain"
-            );
+            ));
         }
     }
     true
@@ -374,7 +373,7 @@ fn ensure_stage1_toolchain_placeholder_exists(stage_path: &str) -> bool {
 }
 
 // Used to get the path for `Subcommand::Setup`
-pub fn interactive_path() -> io::Result<Profile> {
+pub fn interactive_path(builder: &Builder<'_>) -> io::Result<Profile> {
     fn abbrev_all() -> impl Iterator<Item = ((String, String), Profile)> {
         ('a'..)
             .zip(1..)
@@ -392,9 +391,9 @@ pub fn interactive_path() -> io::Result<Profile> {
         input.parse()
     }
 
-    println!("Welcome to the Rust project! What do you want to do with x.py?");
+    builder.logger.info(&format_args!("Welcome to the Rust project! What do you want to do with x.py?"));
     for ((letter, _), profile) in abbrev_all() {
-        println!("{}) {}: {}", letter, profile, profile.purpose());
+        builder.logger.info(&format_args!("{}) {}: {}", letter, profile, profile.purpose()));
     }
     let template = loop {
         print!(
@@ -405,14 +404,14 @@ pub fn interactive_path() -> io::Result<Profile> {
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
         if input.is_empty() {
-            eprintln!("EOF on stdin, when expecting answer to question.  Giving up.");
+            builder.logger.error(&format_args!("EOF on stdin, when expecting answer to question.  Giving up."));
             crate::exit!(1);
         }
         break match parse_with_abbrev(&input) {
             Ok(profile) => profile,
             Err(err) => {
-                eprintln!("ERROR: {err}");
-                eprintln!("NOTE: press Ctrl+C to exit");
+                builder.logger.error(&format_args!("ERROR: {err}"));
+                builder.logger.error(&format_args!("NOTE: press Ctrl+C to exit"));
                 continue;
             }
         };
@@ -478,8 +477,8 @@ impl Step for Hook {
 }
 
 // install a git hook to automatically run tidy, if they want
-fn install_git_hook_maybe(builder: &Builder<'_>, config: &Config) -> io::Result<()> {
-    let git = helpers::git(Some(&config.src))
+fn install_git_hook_maybe(builder: &Builder<'_>) -> io::Result<()> {
+    let git = helpers::git(Some(&builder.config.src))
         .args(["rev-parse", "--git-common-dir"])
         .run_capture(builder)
         .stdout();
@@ -491,32 +490,29 @@ fn install_git_hook_maybe(builder: &Builder<'_>, config: &Config) -> io::Result<
         return Ok(());
     }
 
-    println!(
-        "\nRust's CI will automatically fail if it doesn't pass `tidy`, the internal tool for ensuring code quality.
-If you'd like, x.py can install a git hook for you that will automatically run `test tidy` before
-pushing your code to ensure your code is up to par. If you decide later that this behavior is
-undesirable, simply delete the `pre-push` file from .git/hooks."
-    );
+    builder.logger.info(&format_args!(
+        "\nRust's CI will automatically fail if it doesn't pass `tidy`, the internal tool for ensuring code quality.\nIf you'd like, x.py can install a git hook for you that will automatically run `test tidy` before\npushing your code to ensure your code is up to par. If you decide later that this behavior is\nundesirable, simply delete the `pre-push` file from .git/hooks."
+    ));
 
     if prompt_user("Would you like to install the git hook?: [y/N]")? != Some(PromptResult::Yes) {
-        println!("Ok, skipping installation!");
+        builder.logger.info(&format_args!("Ok, skipping installation!"));
         return Ok(());
     }
     if !hooks_dir.exists() {
         // We need to (try to) create the hooks directory first.
         let _ = fs::create_dir(hooks_dir);
     }
-    let src = config.src.join("src").join("etc").join("pre-push.sh");
+    let src = builder.config.src.join("src").join("etc").join("pre-push.sh");
     match fs::hard_link(src, &dst) {
         Err(e) => {
-            eprintln!(
+            builder.logger.error(&format_args!(
                 "ERROR: could not create hook {}: do you already have the git hook installed?\n{}",
                 dst.display(),
                 e
-            );
+            ));
             return Err(e);
         }
-        Ok(_) => println!("Linked `src/etc/pre-push.sh` to `.git/hooks/pre-push`"),
+        Ok(_) => builder.logger.info(&format_args!("Linked `src/etc/pre-push.sh` to `.git/hooks/pre-push`")),
     };
     Ok(())
 }
@@ -531,7 +527,7 @@ enum EditorKind {
 }
 
 impl EditorKind {
-    fn prompt_user() -> io::Result<Option<EditorKind>> {
+    fn prompt_user(builder: &Builder<'_>) -> io::Result<Option<EditorKind>> {
         let prompt_str = "Available editors:
 1. vscode
 2. vim
@@ -553,8 +549,8 @@ Select which editor you would like to set up [default: None]: ";
                 "4" | "helix" => return Ok(Some(EditorKind::Helix)),
                 "" => return Ok(None),
                 _ => {
-                    eprintln!("ERROR: unrecognized option '{}'", input.trim());
-                    eprintln!("NOTE: press Ctrl+C to exit");
+                    builder.logger.error(&format_args!("ERROR: unrecognized option '{}'", input.trim()));
+                    builder.logger.error(&format_args!("NOTE: press Ctrl+C to exit"));
                 }
             };
         }
@@ -651,25 +647,25 @@ impl Step for Editor {
         if config.dry_run {
             return;
         }
-        match EditorKind::prompt_user() {
+        match EditorKind::prompt_user(builder) {
             Ok(editor_kind) => {
                 if let Some(editor_kind) = editor_kind {
-                    while !t!(create_editor_settings_maybe(config, editor_kind.clone())) {}
+                    while !t!(create_editor_settings_maybe(builder, editor_kind.clone())) {}
                 } else {
-                    println!("Ok, skipping editor setup!");
+                    builder.logger.info(&format_args!("Ok, skipping editor setup!"));
                 }
             }
-            Err(e) => eprintln!("Could not determine the editor: {e}"),
+            Err(e) => builder.logger.error(&format_args!("Could not determine the editor: {e}")),
         }
     }
 }
 
 /// Create the recommended editor LSP config file for rustc development, or just print it
 /// If this method should be re-called, it returns `false`.
-fn create_editor_settings_maybe(config: &Config, editor: EditorKind) -> io::Result<bool> {
+fn create_editor_settings_maybe(builder: &Builder<'_>, editor: EditorKind) -> io::Result<bool> {
     let hashes = editor.hashes();
     let (current_hash, historical_hashes) = hashes.split_last().unwrap();
-    let settings_path = editor.settings_path(config);
+    let settings_path = editor.settings_path(builder.config);
     let settings_short_path = editor.settings_short_path();
     let settings_filename = settings_short_path.to_str().unwrap();
     // If None, no settings file exists
@@ -689,17 +685,17 @@ fn create_editor_settings_maybe(config: &Config, editor: EditorKind) -> io::Resu
             mismatched_settings = Some(false);
         }
     }
-    println!(
+    builder.logger.info(&format_args!(
         "\nx.py can automatically install the recommended `{settings_filename}` file for rustc development"
-    );
+    ));
 
     match mismatched_settings {
         Some(true) => {
-            eprintln!("WARNING: existing `{settings_filename}` is out of date, x.py will update it")
+            builder.logger.warn(&format_args!("WARNING: existing `{settings_filename}` is out of date, x.py will update it"))
         }
-        Some(false) => eprintln!(
+        Some(false) => builder.logger.warn(&format_args!(
             "WARNING: existing `{settings_filename}` has been modified by user, x.py will back it up and replace it"
-        ),
+        )),
         _ => (),
     }
     let should_create = match prompt_user(&format!(
@@ -708,12 +704,12 @@ fn create_editor_settings_maybe(config: &Config, editor: EditorKind) -> io::Resu
         Some(PromptResult::Yes) => true,
         Some(PromptResult::Print) => false,
         _ => {
-            println!("Ok, skipping settings!");
+            builder.logger.info(&format_args!("Ok, skipping settings!"));
             return Ok(true);
         }
     };
     if should_create {
-        let settings_folder_path = config.src.join(editor.settings_folder());
+        let settings_folder_path = builder.config.src.join(editor.settings_folder());
         if !settings_folder_path.exists() {
             fs::create_dir(settings_folder_path)?;
         }
@@ -724,20 +720,20 @@ fn create_editor_settings_maybe(config: &Config, editor: EditorKind) -> io::Resu
             Some(false) => {
                 // exists and is not current version or outdated, so back it up
                 let backup = settings_path.clone().with_extension(editor.backup_extension());
-                eprintln!(
+                builder.logger.warn(&format_args!(
                     "WARNING: copying `{}` to `{}`",
                     settings_path.file_name().unwrap().to_str().unwrap(),
                     backup.file_name().unwrap().to_str().unwrap(),
-                );
+                ));
                 fs::copy(&settings_path, &backup)?;
                 "Updated"
             }
             _ => "Created",
         };
         fs::write(&settings_path, editor.settings_template())?;
-        println!("{verb} `{}`", settings_filename);
+        builder.logger.info(&format_args!("{verb} `{}`", settings_filename));
     } else {
-        println!("\n{}", editor.settings_template());
+        builder.logger.info(&format_args!("\n{}", editor.settings_template()));
     }
     Ok(should_create)
 }

@@ -1,0 +1,7 @@
+## Best Practices from `CatDB` (core_category.rs, core_finSet.rs, Cargo.toml)
+
+*   **Leveraging Concurrency for Performance:** Strategic use of `rayon` for parallel processing and `dashmap` for concurrent hash maps/sets indicates a focus on optimizing performance for data-intensive operations.
+*   **Functional Approach to Data Transformation:** The `functorize` trait and its implementations for different morphism types (`Vec<PrimitiveType>`, `bool`) promote a functional style for transforming and filtering data, which can lead to more concise and testable code.
+*   **Mathematical Rigor in Data Modeling:** Building a "TABLE" system based on ETCS set theory and explicitly integrating category theory concepts (`functor between fibered TABLE categories`, `pullback morphisms`) demonstrates a deep, mathematically grounded approach to data modeling.
+*   **Concrete Realization of Abstract Concepts:** Implementing `FinSet` (Finite Sets) as a concrete category provides a practical realization of abstract category theory concepts for `TABLE` computations.
+*   **Operator Overloading for Domain-Specific Operations:** Using `ops::Shl` (left shift operator) for `FinSet_1` composition makes the code more expressive and idiomatic for domain-specific operations.

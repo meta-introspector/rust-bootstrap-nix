@@ -14,6 +14,8 @@ use std::{env, fs};
 
 use clap::ValueEnum;
 
+use crate::core::logger::Logger;
+
 pub use self::cargo::Cargo;
 pub use crate::Compiler;
 //pub use crate::Subcommand;
@@ -59,6 +61,9 @@ pub struct Builder<'a> {
     /// to do. For example: with `./x check foo bar` we get `paths=["foo",
     /// "bar"]`.
     pub paths: Vec<PathBuf>,
+
+    /// The logger for the builder.
+    pub logger: Logger,
 }
 
 impl Deref for Builder<'_> {
@@ -1065,6 +1070,7 @@ impl<'a> Builder<'a> {
             stack: RefCell::new(Vec::new()),
             time_spent_on_dependencies: Cell::new(Duration::new(0, 0)),
             paths,
+            logger: Logger::new(build.config.verbose),
         }
     }
 

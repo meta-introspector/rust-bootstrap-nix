@@ -1,0 +1,6 @@
+## Best Practices from `category-theory-rs` (errors.rs, functor.rs)
+
+*   **Centralized and Domain-Specific Error Handling:** Using a single `enum` (`Errors`) to encapsulate all custom errors, with clear, domain-specific names (e.g., `MorphismAlreadyExists`, `InvalidFunctor`). This improves error clarity and maintainability.
+*   **Error Conversion for External Dependencies:** Implementing `From` trait for external error types (e.g., `From<surrealdb::Error> for Errors`) allows seamless integration and conversion of third-party errors into the project's custom error type.
+*   **Hierarchical Abstraction with Traits:** Defining a `Functor` as also implementing `ArrowTrait` demonstrates a clear hierarchical relationship between concepts, where more specific concepts build upon more general ones.
+*   **Treating Abstract Concepts as Concrete Types:** The `Functor` itself implementing `CategoryTrait` is a powerful abstraction, allowing functors to be treated as categories, enabling higher-order categorical constructions.

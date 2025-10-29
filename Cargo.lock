@@ -1670,6 +1670,7 @@ name = "prelude-generator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "dunce",
  "git2",
@@ -1685,6 +1686,7 @@ dependencies = [
  "sha2",
  "syn",
  "tempfile",
+ "tokio",
  "toml",
  "walkdir",
 ]
