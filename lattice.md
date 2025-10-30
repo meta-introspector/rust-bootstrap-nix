@@ -107,7 +107,7 @@ The pipeline defines the following categories, where each category represents a 
 *   `Category<RawFile>`: The objects are raw Rust files, represented as a tuple of `(file_path, content)`.
 *   `Category<ParsedFile>`: The objects are parsed Abstract Syntax Trees (`syn::File`).
 *   `Category<UseStatements>`: The objects are lists of `use` statements (strings).
-*   `Category<ClassifiedUseStatements>`: The objects are the `UseStatement` structs, which contain the `use` statement and an optional error.
+*   `Category<ClassifiedUseStatements>`: The objects are the `UseStatement` structs, which now leverage a trait-based composition to hold detailed information about each `use` statement through optional fields like `git_details`, `nix_details`, `rust_details`, etc. These details are represented by specific traits (e.g., `GitInfo`, `NixInfo`) defined in the `pipeline-traits` crate.
 
 #### Functors
 
@@ -118,9 +118,9 @@ Each step in the pipeline is implemented as a functor that maps between these ca
 *   **`ExtractUsesFunctor`**: `Category<ParsedFile> -> Category<UseStatements>`
     *   This functor takes a `ParsedFile` and extracts all the `use` statements.
 *   **`ClassifyUsesFunctor`**: `Category<UseStatements> -> Category<ClassifiedUseStatements>`
-    *   This functor takes a list of `use` statements and classifies them as either `ParsesDirectly` or `SynError`.
+    *   This functor takes a list of `use` statements and classifies them, populating the initial trait-based detail fields within the `UseStatement` struct based on parsing success or failure.
 *   **`PreprocessFunctor`**: `Category<ClassifiedUseStatements> -> Category<ClassifiedUseStatements>`
-    *   This functor takes the `ClassifiedUseStatements`, finds the `SynError`s, and tries to compile them with `rustc`, updating their classification.
+    *   This functor takes the `ClassifiedUseStatements`, refines the classification for statements that initially failed to parse, and further enriches the trait-based detail fields within the `UseStatement` struct by attempting compilation with `rustc`.
 
 #### Pipeline Composition
 
@@ -138,20 +138,4 @@ let classified_uses = classify_uses_functor.map(use_statements)?;
 
 This approach makes the pipeline much more modular, extensible, and easier to reason about. Each functor is a self-contained unit of logic that can be tested independently, and new stages can be added to the pipeline by simply creating new functors and composing them.
 
-## Introspective Rollup Workflow
-
-To enable AI-driven analysis and optimization, each significant function or component within the lattice transformation pipeline will undergo an "Introspective Rollup" process. This involves:
-
-1.  **Instrumentation:** Relevant functions are instrumented with performance measurement calls (`record_function_entry`, `record_function_exit`) using a shared `measurement` module.
-2.  **Execution and Data Collection:** The instrumented code is executed (e.g., via `metrics-reporter` for individual functions or as part of the larger pipeline). During execution, performance metrics (call count, duration) are collected.
-3.  **Report Generation:** A `rollup_report.md` file is generated for each instrumented unit. This report consolidates:
-    *   The original (or wrapped) source code of the function/component.
-    *   The collected performance metrics in JSON format.
-    *   Relevant metadata (e.g., function name, file path).
-4.  **AI Analysis:** An AI (such as the Gemini LLM) consumes the `rollup_report.md` to:
-    *   Summarize the function's purpose and behavior.
-    *   Analyze its performance characteristics based on the metrics.
-    *   Suggest potential optimizations, refactorings, or improvements.
-    *   Identify patterns or anomalies in code execution.
-
-This iterative process allows for continuous feedback and refinement of the codebase, driving towards a self-optimizing and self-documenting system.
+The enhancement of the `UseStatement` struct with trait-based detail fields directly contributes to the "Lattice of Functions" goal. By categorizing and enriching the information associated with each `use` statement, we are effectively defining more granular "points" or "nodes" on the lattice. These detailed `UseStatement` nodes provide a richer understanding of the code's dependencies, allowing for more precise analysis, transformation, and ultimately, a more accurate and actionable representation of the codebase's underlying structure. This fine-grained data about each dependency type (Git, Nix, Rust, etc.) allows the system to build a more comprehensive and interconnected lattice, where each connection is not just a simple dependency, but a dependency with rich, contextual metadata.
