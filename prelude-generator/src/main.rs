@@ -69,10 +69,29 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
 fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     let args = Args::parse();
 
-    let config = if let Some(config_path) = &args.config_file_path {
-        Some(config_parser::read_config(config_path)?)
+    // Determine the project root. If args.path is ".", resolve it to the actual current directory.
+    // Then, find the parent directory that contains the Cargo.toml for the workspace.
+    // For now, we'll assume args.path is the project root if it's explicitly set,
+    // otherwise, we'll try to find the workspace root from the current executable's directory.
+    let project_root = if args.path == PathBuf::from(".") {
+        // If path is ".", it means the current directory of the prelude-generator executable.
+        // The actual project root is its parent.
+        std::env::current_dir()?.parent().unwrap().to_path_buf()
     } else {
-        None
+        args.path.clone()
+    };
+
+
+    let config = if let Some(config_path) = &args.config_file_path {
+        Some(config_parser::read_config(config_path, &project_root)?)
+    } else {
+        // If config_file_path is not provided, try to read from the default location
+        let default_config_path = project_root.join("config.toml");
+        if default_config_path.exists() {
+            Some(config_parser::read_config(&default_config_path, &project_root)?)
+        } else {
+            None
+        }
     };
     Ok((args, config))
 }
@@ -84,6 +103,11 @@ async fn main() -> anyhow::Result<()> {
     // For debugging: print the parsed config if available
     if let Some(ref cfg) = config {
         eprintln!("Parsed config: {:#?}", cfg);
+    }
+
+    if args.verify_config {
+        eprintln!("Configuration verification complete. Exiting.");
+        return Ok(());
     }
 
 async fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
@@ -99,14 +123,9 @@ async fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
 
     let (content, file_path_str) = read_input_file(&args).await?;
 
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()? 
-        .block_on(async {
-            let mut stdout = tokio::io::stdout();
-            let result = run_category_pipeline(&mut stdout, &content, &file_path_str, &args, &config).await;
-            handle_pipeline_result(result).await
-        })
+    let mut stdout = tokio::io::stdout();
+    let result = run_category_pipeline(&mut stdout, &content, &file_path_str, &args, &config).await;
+    handle_pipeline_result(result).await
 }
 
 async fn handle_pipeline_result(result: anyhow::Result<()>) -> anyhow::Result<()> {

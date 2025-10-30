@@ -99,6 +99,10 @@ pub struct Args {
     /// Path to the main configuration file (config.toml).
     #[arg(long)]
     pub config_file_path: Option<PathBuf>,
+
+    /// Verify the parsed configuration and exit.
+    #[arg(long, default_value_t = false)]
+    pub verify_config: bool,
 }
 
 #[cfg(test)]
