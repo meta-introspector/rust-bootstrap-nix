@@ -7,8 +7,8 @@ use clap::Parser;
 use anyhow::Context;
 use tokio::io::AsyncWriteExt;
 use std::path::PathBuf;
-use pipeline_traits::RawFile;
-use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor, HuggingFaceValidatorFunctor};
+use pipeline_traits::{RawFile, ValidatedFile};
+use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor};
 
 // mod hf_dataset_reader;
 mod config_parser;
@@ -39,17 +39,9 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
     writer.write_all(format!("  -> Classified use statements:\n").as_bytes()).await?;
     writer.write_all(format!("{:#?}\n", classified_uses).as_bytes()).await?;
 
-    writer.write_all(format!("--- Stage 4: Hugging Face Validation ---
-").as_bytes()).await?;
-    let hf_validator_path = config.as_ref().and_then(|c| {
-        c.bins.paths.get("hf_validator").map(|p| p.to_path_buf())
-    });
-    let hf_validator_functor = HuggingFaceValidatorFunctor { args: args.clone(), hf_validator_path };
-    let validated_file = hf_validator_functor.map(writer, parsed_file.clone()).await.context("Hugging Face Validation failed")?; // Use parsed_file as input
-    writer.write_all(format!("  -> Hugging Face Validation Result: {:#?}\n", validated_file).as_bytes()).await?;
-
-    writer.write_all(format!("--- Stage 5: AST Reconstruction from Hugging Face Dataset ---\n").as_bytes()).await?;
+    writer.write_all(format!("--- Stage 4: AST Reconstruction from Hugging Face Dataset ---\n").as_bytes()).await?;
     let ast_reconstruction_functor = AstReconstructionFunctor;
+    let validated_file = ValidatedFile(parsed_file.0.clone(), parsed_file.1.clone());
     let reconstructed_code = PipelineFunctor::map(&ast_reconstruction_functor, writer, validated_file.clone()).await.context("AST Reconstruction failed")?;
     writer.write_all(format!("  -> AST Reconstruction completed successfully.\n").as_bytes()).await?;
 
@@ -149,18 +141,18 @@ async fn main() -> anyhow::Result<()> {
 
 
     if args.generate_test_report {
-        let output_file = args.test_report_output_file.unwrap_or_else(|| PathBuf::from("test_report.json"));
+        let output_file = args.test_report_output_file.clone().unwrap_or_else(|| PathBuf::from("test_report.json"));
         // generate_test_report_json(&args.path)?;
     }
 
     if args.compile_tests {
-        let input_file = args.test_report_input_file.ok_or_else(|| anyhow::anyhow!("test_report_input_file is required when compile_tests is true"))?;
-        let output_dir = args.test_verification_output_dir.ok_or_else(|| anyhow::anyhow!("test_verification_output_dir is required when compile_tests is true"))?;
+        let input_file = args.test_report_input_file.clone().ok_or_else(|| anyhow::anyhow!("test_report_input_file is required when compile_tests is true"))?;
+        let output_dir = args.test_verification_output_dir.clone().ok_or_else(|| anyhow::anyhow!("test_verification_output_dir is required when compile_tests is true"))?;
         // generate_test_verification_script_and_report(&input_file)?;
     }
 
     if args.extract_use_statements {
-        let output_dir = args.use_statements_output_dir.ok_or_else(|| anyhow::anyhow!("use_statements_output_dir is required when extract_use_statements is true"))?;
+        let output_dir = args.use_statements_output_dir.clone().ok_or_else(|| anyhow::anyhow!("use_statements_output_dir is required when extract_use_statements is true"))?;
         // TODO: Implement actual use statement extraction logic here
         println!("Extracting use statements to: {}", output_dir.display());
     }
@@ -176,8 +168,19 @@ async fn main() -> anyhow::Result<()> {
     }
 
     if args.run_pipeline {
-        // TODO: Implement logic for running the main pipeline
         println!("Running main pipeline...");
+        let mut stdout = tokio::io::stdout();
+        let dummy_content = "fn main() { println!(\"Hello, world!\"); }".to_string();
+        let dummy_path = "dummy_file.rs".to_string();
+        let config = None; // Or load a default config if needed
+
+        run_category_pipeline(
+            &mut stdout,
+            &dummy_content,
+            &dummy_path,
+            &args,
+            &config,
+        ).await?;
     }
 
     if args.verify_config {

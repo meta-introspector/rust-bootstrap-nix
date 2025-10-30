@@ -11,6 +11,7 @@ pub mod prelude_category_pipeline;
 pub mod code_generator;
 pub mod measurement;
 pub mod parser;
+pub mod level0_decls_visitor;
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;
