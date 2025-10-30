@@ -2,13 +2,9 @@ use anyhow::{Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
 use crate::measurement;
-use crate::pipeline::UseStatement;
-use crate::prelude_category_pipeline::{PipelineFunctor, ClassifiedUseStatements};
-
-use tempfile::tempdir;
+use pipeline_traits::{PipelineFunctor, ClassifiedUseStatements, UseStatement};
 
 // PreprocessFunctor
 pub struct PreprocessFunctor;
@@ -38,15 +34,39 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
                         new_classified_uses.push(UseStatement {
                             statement: use_statement.statement,
                             error: None,
+                            git_details: None,
+                            nix_details: None,
+                            rust_details: None,
+                            cargo_details: None,
+                            syn_details: None,
+                            llvm_details: None,
+                            linux_details: None,
                         });
                     } else {
                         new_classified_uses.push(UseStatement {
                             statement: use_statement.statement,
                             error: Some(String::from_utf8_lossy(&output.stderr).to_string()),
+                            git_details: None,
+                            nix_details: None,
+                            rust_details: None,
+                            cargo_details: None,
+                            syn_details: None,
+                            llvm_details: None,
+                            linux_details: None,
                         });
                     }
                 } else {
-                    new_classified_uses.push(use_statement);
+                    new_classified_uses.push(UseStatement {
+                        statement: use_statement.statement,
+                        error: use_statement.error,
+                        git_details: use_statement.git_details,
+                        nix_details: use_statement.nix_details,
+                        rust_details: use_statement.rust_details,
+                        cargo_details: use_statement.cargo_details,
+                        syn_details: use_statement.syn_details,
+                        llvm_details: use_statement.llvm_details,
+                        linux_details: use_statement.linux_details,
+                    });
                 }
             }
             let __result = Ok(ClassifiedUseStatements(new_classified_uses));

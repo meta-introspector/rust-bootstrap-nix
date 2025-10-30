@@ -2,7 +2,6 @@ use anyhow::{Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, ValidatedFile};

@@ -2,11 +2,10 @@ use anyhow::{Context, Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
 use crate::measurement;
 use crate::code_generator;
-use crate::prelude_category_pipeline::{PipelineFunctor, ParsedFile, UseStatements};
+use pipeline_traits::{PipelineFunctor, ParsedFile, UseStatements};
 
 use syn;
 

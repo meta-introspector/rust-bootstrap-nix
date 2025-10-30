@@ -2,12 +2,9 @@ use anyhow::{Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
 use crate::measurement;
-use crate::pipeline::UseStatement;
-use crate::prelude_category_pipeline::{PipelineFunctor, UseStatements, ClassifiedUseStatements};
-
+use pipeline_traits::{PipelineFunctor, UseStatements, ClassifiedUseStatements, UseStatement};
 use syn;
 
 // ClassifyUsesFunctor
@@ -28,10 +25,24 @@ impl PipelineFunctor<UseStatements, ClassifiedUseStatements> for ClassifyUsesFun
                     Ok(_) => classified_uses.push(UseStatement {
                         statement: use_statement,
                         error: None,
+                        git_details: None,
+                        nix_details: None,
+                        rust_details: None,
+                        cargo_details: None,
+                        syn_details: None,
+                        llvm_details: None,
+                        linux_details: None,
                     }),
                     Err(e) => classified_uses.push(UseStatement {
                         statement: use_statement,
                         error: Some(e.to_string()),
+                        git_details: None,
+                        nix_details: None,
+                        rust_details: None,
+                        cargo_details: None,
+                        syn_details: None,
+                        llvm_details: None,
+                        linux_details: None,
                     }),
                 }
             }

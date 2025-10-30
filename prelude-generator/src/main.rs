@@ -1,14 +1,15 @@
-//use crate::prelude_category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor, AstReconstructionFunctor};
 use prelude_generator::parser::ParseFunctor;
 use prelude_generator::args::Args;
-use crate::config_parser::Config; // Fixed import
+use crate::config_parser::Config;
 use prelude_generator::measurement;
 use clap::Parser;
-use anyhow::{Context};
+use anyhow::Context;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
-//use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use pipeline_traits::{PipelineFunctor, RawFile};
+use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor, HuggingFaceValidatorFunctor};
+
 mod hf_dataset_reader;
 mod config_parser;
 mod parser;
@@ -43,7 +44,7 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
     let hf_validator_path = config.as_ref().and_then(|c| {
         c.bins.paths.get("hf_validator").map(|p| p.to_path_buf())
     });
-    let hf_validator_functor = HuggingFaceValidatorFunctor { args, hf_validator_path };
+    let hf_validator_functor = HuggingFaceValidatorFunctor { args: args.clone(), hf_validator_path };
     let validated_file = hf_validator_functor.map(writer, parsed_file.clone()).await.context("Hugging Face Validation failed")?; // Use parsed_file as input
     writer.write_all(format!("  -> Hugging Face Validation Result: {:#?}\n", validated_file).as_bytes()).await?;
 
@@ -76,7 +77,8 @@ fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     Ok((args, config))
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let (args, config) = parse_arguments_and_config()?;
 
     // For debugging: print the parsed config if available
@@ -84,18 +86,18 @@ fn main() -> anyhow::Result<()> {
         eprintln!("Parsed config: {:#?}", cfg);
     }
 
-fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
+async fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
     let file_to_process = if let Some(file_name) = args.file.as_ref() {
         Path::new(file_name)
     } else {
         return Err(anyhow::anyhow!("No file specified to process. Use --file argument."));
     };
 
-    let content = fs::read_to_string(file_to_process).context("Failed to read file content")?;
+    let content = fs::read_to_string(file_to_process).await.context("Failed to read file content")?;
     Ok((content, file_to_process.to_string_lossy().to_string()))
 }
 
-    let (content, file_path_str) = read_input_file(&args)?;
+    let (content, file_path_str) = read_input_file(&args).await?;
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

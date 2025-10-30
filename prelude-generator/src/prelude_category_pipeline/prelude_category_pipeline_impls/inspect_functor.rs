@@ -3,9 +3,8 @@ use std::fmt::Debug;
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
-use crate::prelude_category_pipeline::PipelineFunctor;
+use pipeline_traits::PipelineFunctor;
 
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {

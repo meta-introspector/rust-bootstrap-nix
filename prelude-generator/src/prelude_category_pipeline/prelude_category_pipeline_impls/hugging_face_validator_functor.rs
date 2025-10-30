@@ -1,14 +1,14 @@
 use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
-use tokio::io::AsyncWriteExt;
 
 use crate::measurement;
-use crate::prelude_category_pipeline::{PipelineFunctor, ParsedFile, ValidatedFile};
+use pipeline_traits::{PipelineFunctor, ParsedFile, ValidatedFile};
 use indoc::indoc;
 use tempfile::tempdir;
+use super::utils::copy_dir_all;
 
 // HuggingFaceValidatorFunctor
 pub struct HuggingFaceValidatorFunctor {

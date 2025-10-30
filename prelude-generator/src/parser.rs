@@ -7,14 +7,10 @@ use crate::measurement;
 use syn; // Add this import
 use prettyplease; // Add this import
 
-//use crate::prelude_category_pipeline::{PipelineFunctor, RawFile, ParsedFile};
+use pipeline_traits::{PipelineFunctor, RawFile, ParsedFile};
 
 // ParseFunctor
 pub struct ParseFunctor;
-//use crate::prelude_category_pipeline::RawFile;
-//use prelude_generator::prelude_category_pipeline::RawFile;
-//use crate::prelude_category_pipeline::ParsedFile;
-//use crate::prelude_category_pipeline::PipelineFunctor;
 impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
     fn map<'writer>(
         &'writer self,
