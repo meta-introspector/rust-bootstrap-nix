@@ -110,6 +110,10 @@ pub struct Args {
     /// The path to the Rust project or file to analyze AST for. Only used if `analyze_ast` is true.
     #[arg(long)]
     pub ast_analysis_path: Option<PathBuf>,
+
+    /// Extract all Level 0 declarations (constants) from all modules and write to a global module.
+    #[arg(long, default_value_t = false)]
+    pub extract_global_level0_decls: bool,
 }
 
 #[cfg(test)]

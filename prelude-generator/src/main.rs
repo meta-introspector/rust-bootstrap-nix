@@ -9,6 +9,12 @@ use tokio::io::AsyncWriteExt;
 use std::path::PathBuf;
 use pipeline_traits::{RawFile, ValidatedFile};
 use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor};
+use prelude_generator::{Level0DeclsVisitor, generate_constants_module};
+use prelude_generator::level0_decls_visitor::generate_structs_module;
+use syn::visit::Visit;
+use syn;
+use std::fs;
+use std::path::Path;
 
 // mod hf_dataset_reader;
 mod config_parser;
@@ -117,28 +123,13 @@ fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
+    let (args, config) = parse_arguments_and_config()?;
 
     if args.analyze_ast {
         let path = args.ast_analysis_path.ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;
         println!("Analyzing AST for project: {}", path.display());
-        // let mut pipeline = Pipeline::new();
-        // pipeline.add_functor(ParseFunctor);
-        // pipeline.add_functor(AstTraversalFunctor);
-
-        // let results: Vec<AstStatistics> = pipeline.run_on_project(&path).await?;
-
-        // for (i, stats) in results.iter().enumerate() {
-        //     println!("--- AST Statistics for file {} ---", i + 1);
-        //     println!("Node Type Counts: {:?}", stats.node_type_counts);
-        //     println!("Function Definitions: {:?}", stats.function_definitions);
-        //     println!("Variable Declarations: {:?}", stats.variable_declarations);
-        //     println!("Import Statements: {:?}", stats.import_statements);
-        // }
         return Ok(()); // Exit after AST analysis if requested
     }
-
-
 
     if args.generate_test_report {
         let output_file = args.test_report_output_file.clone().unwrap_or_else(|| PathBuf::from("test_report.json"));
@@ -172,7 +163,6 @@ async fn main() -> anyhow::Result<()> {
         let mut stdout = tokio::io::stdout();
         let dummy_content = "fn main() { println!(\"Hello, world!\"); }".to_string();
         let dummy_path = "dummy_file.rs".to_string();
-        let config = None; // Or load a default config if needed
 
         run_category_pipeline(
             &mut stdout,
@@ -188,8 +178,91 @@ async fn main() -> anyhow::Result<()> {
         println!("Verifying configuration...");
     }
 
+    if args.extract_global_level0_decls {
+        println!("Extracting global Level 0 declarations...");
+        let mut all_constants: Vec<syn::ItemConst> = Vec::new();
+        let mut all_layer0_structs: Vec<syn::ItemStruct> = Vec::new();
+        let mut total_files_processed = 0;
+        let mut total_fns = 0;
+        let mut total_structs = 0;
+        let mut total_enums = 0;
+        let mut total_statics = 0;
+        let mut total_other_items = 0;
+        let mut total_layer0_structs = 0;
+
+        let project_root = if args.path == PathBuf::from(".") {
+            std::env::current_dir()?.parent().unwrap().to_path_buf()
+        } else {
+            args.path.clone()
+        };
+        let src_dir = project_root.join("prelude-generator/src");
+
+        for entry in std::fs::read_dir(&src_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_file() && path.extension().map_or(false, |ext| ext == "rs") {
+                total_files_processed += 1;
+                println!("  Processing file: {}", path.display());
+                let content = std::fs::read_to_string(&path)?;
+                let file = syn::parse_file(&content)?;
+
+                let mut visitor = Level0DeclsVisitor::new();
+                visitor.visit_file(&file);
+                let current_layer0_structs_len = visitor.layer0_structs.len();
+                all_constants.extend(visitor.constants);
+                all_layer0_structs.extend(visitor.layer0_structs);
+
+                total_fns += visitor.fn_count;
+                total_structs += visitor.struct_count;
+                total_enums += visitor.enum_count;
+                total_statics += visitor.static_count;
+                total_other_items += visitor.other_item_count;
+                total_layer0_structs += current_layer0_structs_len;
+            }
+        }
+
+        println!("\n--- Level 0 Declaration Extraction Report ---");
+        println!("Total files processed: {}", total_files_processed);
+        println!("Total constants extracted: {}", all_constants.len());
+        println!("Total functions found: {}", total_fns);
+        println!("Total structs found: {}", total_structs);
+        println!("Total Layer 0 structs extracted: {}", all_layer0_structs.len());
+        println!("Total enums found: {}", total_enums);
+        println!("Total statics found: {}", total_statics);
+        println!("Total other items found: {}", total_other_items);
+        println!("---------------------------------------------");
+
+        let generated_code_constants = generate_constants_module(&all_constants);
+        let output_file_path_constants = project_root.join("prelude-generator/src/global_level0_decls.rs");
+
+        tokio::fs::write(&output_file_path_constants, generated_code_constants.as_bytes()).await
+            .context(format!("Failed to write global_level0_decls.rs to {:?}", output_file_path_constants))?;
+        println!("  -> Generated global_level0_decls.rs written to {:?}", output_file_path_constants);
+
+        // Validate the generated code
+        println!("--- Validating Generated global_level0_decls.rs ---");
+        validate_rust_code(&output_file_path_constants).await
+            .context(format!("Generated global_level0_decls.rs validation failed for {:?}", output_file_path_constants))?;
+        println!("  -> Generated global_level0_decls.rs validated successfully.\n");
+
+        // Generate and write Layer 0 structs module
+        let generated_code_structs = generate_structs_module(&all_layer0_structs);
+        let output_file_path_structs = project_root.join("prelude-generator/src/global_level0_structs.rs");
+
+        tokio::fs::write(&output_file_path_structs, generated_code_structs.as_bytes()).await
+            .context(format!("Failed to write global_level0_structs.rs to {:?}", output_file_path_structs))?;
+        println!("  -> Generated global_level0_structs.rs written to {:?}", output_file_path_structs);
+
+        // Validate the generated code
+        println!("--- Validating Generated global_level0_structs.rs ---");
+        validate_rust_code(&output_file_path_structs).await
+            .context(format!("Generated global_level0_structs.rs validation failed for {:?}", output_file_path_structs))?;
+        println!("  -> Generated global_level0_structs.rs validated successfully.\n");
+    }
+
     // If no specific command was executed, print help or a default message
-    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config {
+    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls {
         println!("No specific command executed. Use --help for options.");
     }
 
