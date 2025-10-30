@@ -9,6 +9,8 @@ This document serves as an index to various best practices and integration ideas
 *   [Best Practices from `CatDB`](./functional_catdb_best_practices.md)
 *   [Best Practices from `category_theory` (the other one)](./functional_other_category_theory_best_practices.md)
 *   [Best Practices from `echo`](./functional_echo_best_practices.md)
+*   [Functional Numerical Constants Storage](./functional_numerical_constants_storage.md)
+*   [Functional String Constants Storage](./functional_string_constants_storage.md)
 
 ## Integration Ideas:
 

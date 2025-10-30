@@ -1,20 +1,12 @@
-use pipeline_traits::PipelineFunctor;
-use prelude_generator::parser::ParseFunctor;
-use prelude_generator::args::Args;
-use crate::config_parser::Config;
-use prelude_generator::measurement;
-use clap::Parser;
-use anyhow::Context;
-use tokio::io::AsyncWriteExt;
-use std::path::PathBuf;
-use pipeline_traits::{RawFile, ValidatedFile};
-use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor};
-use prelude_generator::{Level0DeclsVisitor, generate_constants_module};
-use prelude_generator::level0_decls_visitor::generate_structs_module;
+use prelude_generator::{Level0DeclsVisitor, BagOfWordsVisitor};
+use quote::quote;
 use syn::visit::Visit;
 use syn;
+use std::collections::HashMap;
+use walkdir::WalkDir;
 use std::fs;
-use std::path::Path;
+use std::io::Write;
+use crate::constant_storage;
 
 // mod hf_dataset_reader;
 mod config_parser;
@@ -24,8 +16,8 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
     writer: &mut W,
     file_content: &str,
     file_path_str: &str,
-    args: &Args,
-    config: &Option<config_parser::Config>,
+    _args: &Args,
+    _config: &Option<config_parser::Config>,
 ) -> anyhow::Result<()> {
     let raw_file = RawFile(file_path_str.to_string(), file_content.to_string());
 
@@ -67,6 +59,25 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
     let collected_metrics = measurement::get_collected_metrics();
     let json_metrics = serde_json::to_string_pretty(&collected_metrics).context("Failed to serialize metrics to JSON")?;
     writer.write_all(format!("--- METRICS_START ---\n{}\n--- METRICS_END ---\n", json_metrics).as_bytes()).await?;
+
+    Ok(())
+}
+
+async fn format_rust_code(file_path: &PathBuf) -> anyhow::Result<()> {
+    use tokio::process::Command;
+
+    let output = Command::new("rustfmt")
+        .arg(file_path)
+        .arg("--edition=2021") // Specify the Rust edition
+        .arg("--emit=files") // Emit changes directly to the file
+        .output()
+        .await
+        .context("Failed to execute rustfmt")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Rustfmt failed for file {:?}:\n{}", file_path, stderr);
+    }
 
     Ok(())
 }
@@ -120,6 +131,165 @@ fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     };
     Ok((args, config))
 }
+
+fn get_required_uses(decl_name: &str) -> String {
+    match decl_name {
+        "Args" => "use clap::{Parser, Args, Command};\nuse std::path::PathBuf;\n".to_string(),
+        "TestInfo" => "use serde::{Serialize, Deserialize};\nuse std::path::PathBuf;\n".to_string(),
+        "BinsConfig" => "use serde::Deserialize;\nuse std::collections::HashMap;\nuse std::path::PathBuf;\n".to_string(),
+        "PipelineState" | "StageSummary" | "UseStatement" => "use serde::{Serialize, Deserialize};\n".to_string(),
+        "Level0DeclsVisitor" => "use syn::{ItemConst, ItemStruct};\nuse syn::visit::Visit;\n".to_string(),
+        _ => "".to_string(),
+    }
+}
+
+fn get_required_uses_for_item_const(_constant: &syn::ItemConst) -> String {
+    // For Level 0 constants, typically no special uses are needed unless they use complex types.
+    // For now, return empty string.
+    "".to_string()
+}
+
+fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String {
+    let mut uses = Vec::new();
+
+    // Check for clap attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Parser")
+            } else { false }
+        } else { false }
+    }) {
+        uses.push("use clap::{Parser, Args, Command};\n");
+        uses.push("use std::path::PathBuf;\n"); // Args often uses PathBuf
+    }
+
+    // Check for serde attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Serialize") || meta_list.tokens.to_string().contains("Deserialize")
+            } else { false }
+        } else { false }
+    }) {
+        uses.push("use serde::{Serialize, Deserialize};\n");
+    }
+
+    // Check for HashMap (used in BinsConfig)
+    if structure.ident.to_string() == "BinsConfig" {
+        uses.push("use std::collections::HashMap;\n");
+        uses.push("use std::path::PathBuf;\n");
+    }
+
+    // Check for PathBuf (used in TestInfo)
+    if structure.ident.to_string() == "TestInfo" {
+        uses.push("use std::path::PathBuf;\n");
+    }
+
+    // Check for Level0DeclsVisitor specific uses
+    if structure.ident.to_string() == "Level0DeclsVisitor" {
+        uses.push("use syn::{ItemConst, ItemStruct};\n");
+        uses.push("use syn::visit::Visit;\n");
+    }
+
+    uses.join("")
+}
+
+fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
+
+    let args = Args::parse();
+
+    // Determine the project root. If args.path is ".", resolve it to the actual current directory.
+    // Then, find the parent directory that contains the Cargo.toml for the workspace.
+    // For now, we'll assume args.path is the project root if it's explicitly set,
+    // otherwise, we'll try to find the workspace root from the current executable's directory.
+    let project_root = if args.path == PathBuf::from(".") {
+        // If path is ".", it means the current directory of the prelude-generator executable.
+        // The actual project root is its parent.
+        std::env::current_dir()?.parent().unwrap().to_path_buf()
+    } else {
+        args.path.clone()
+    };
+
+
+    let config = if let Some(config_path) = &args.config_file_path {
+        Some(config_parser::read_config(config_path, &project_root)?)
+    } else {
+        // If config_file_path is not provided, try to read from the default location
+        let default_config_path = project_root.join("config.toml");
+        if default_config_path.exists() {
+            Some(config_parser::read_config(&default_config_path, &project_root)?)
+        } else {
+            None
+        }
+    };
+    Ok((args, config))
+}
+
+fn get_required_uses(decl_name: &str) -> String {
+    match decl_name {
+        "Args" => "use clap::{Parser, Args, Command};\nuse std::path::PathBuf;\n".to_string(),
+        "TestInfo" => "use serde::{Serialize, Deserialize};\nuse std::path::PathBuf;\n".to_string(),
+        "BinsConfig" => "use serde::Deserialize;\nuse std::collections::HashMap;\nuse std::path::PathBuf;\n".to_string(),
+        "PipelineState" | "StageSummary" | "UseStatement" => "use serde::{Serialize, Deserialize};\n".to_string(),
+        "Level0DeclsVisitor" => "use syn::{ItemConst, ItemStruct};\nuse syn::visit::Visit;\n".to_string(),
+        _ => "".to_string(),
+    }
+}
+
+fn get_required_uses_for_item_const(_constant: &syn::ItemConst) -> String {
+    // For Level 0 constants, typically no special uses are needed unless they use complex types.
+    // For now, return empty string.
+    "".to_string()
+}
+
+fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String {
+    let mut uses = Vec::new();
+
+    // Check for clap attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Parser")
+            } else { false }
+        } else { false }
+    }) {
+        uses.push("use clap::{Parser, Args, Command};\n");
+        uses.push("use std::path::PathBuf;\n"); // Args often uses PathBuf
+    }
+
+    // Check for serde attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Serialize") || meta_list.tokens.to_string().contains("Deserialize")
+            } else { false }
+        } else { false }
+    }) {
+        uses.push("use serde::{Serialize, Deserialize};\n");
+    }
+
+    // Check for HashMap (used in BinsConfig)
+    if structure.ident.to_string() == "BinsConfig" {
+        uses.push("use std::collections::HashMap;\n");
+        uses.push("use std::path::PathBuf;\n");
+    }
+
+    // Check for PathBuf (used in TestInfo)
+    if structure.ident.to_string() == "TestInfo" {
+        uses.push("use std::path::PathBuf;\n");
+    }
+
+    // Check for Level0DeclsVisitor specific uses
+    if structure.ident.to_string() == "Level0DeclsVisitor" {
+        uses.push("use syn::{ItemConst, ItemStruct};\n");
+        uses.push("use syn::visit::Visit;\n");
+    }
+
+    uses.join("")
+}
+
+const MAX_FILE_SIZE: usize = 4 * 1024; // 4KB
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -222,7 +392,93 @@ async fn main() -> anyhow::Result<()> {
             }
         }
 
-        println!("\n--- Level 0 Declaration Extraction Report ---");
+        let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
+            project_root.join("generated/level0_decls")
+        });
+
+        let consts_output_dir = generated_decls_output_dir.join("const");
+        let structs_output_dir = generated_decls_output_dir.join("struct");
+
+        tokio::fs::create_dir_all(&consts_output_dir).await
+            .context(format!("Failed to create output directory {:?}", consts_output_dir))?;
+        tokio::fs::create_dir_all(&structs_output_dir).await
+            .context(format!("Failed to create output directory {:?}", structs_output_dir))?;
+
+        println!("  -> Generated constants will be written to: {:?}", consts_output_dir);
+        println!("  -> Generated structs will be written to: {:?}", structs_output_dir);
+
+        let mut errors: Vec<anyhow::Error> = Vec::new();
+
+        // Process constants
+        for constant in &all_constants {
+            let const_name = constant.ident.to_string();
+            let file_name = format!("{}.rs", const_name);
+            let output_path = consts_output_dir.join(&file_name);
+
+            let result = async {
+                let tokens = quote! { #constant };
+                let mut code = tokens.to_string();
+
+                let required_uses = get_required_uses_for_item_const(&constant);
+                code = format!("{}{}", required_uses, code);
+
+                tokio::fs::write(&output_path, code.as_bytes()).await
+                    .context(format!("Failed to write constant {:?} to {:?}", const_name, output_path))?;
+                println!("  -> Wrote constant {:?} to {:?}", const_name, output_path);
+
+                // Format the generated code
+                format_rust_code(&output_path).await
+                    .context(format!("Constant {:?} formatting failed for {:?}", const_name, output_path))?;
+                println!("  -> Constant {:?} formatted successfully.", const_name);
+
+                // Validate the generated code
+                validate_rust_code(&output_path).await
+                    .context(format!("Constant {:?} validation failed for {:?}", const_name, output_path))?;
+                println!("  -> Constant {:?} validated successfully.\n", const_name);
+                Ok(())
+            }.await;
+
+            if let Err(e) = result {
+                eprintln!("Error processing constant {}: {:?}\n", const_name, e);
+                errors.push(e);
+            }
+        }
+
+        // Process structs
+        for structure in &all_layer0_structs {
+            let struct_name = structure.ident.to_string();
+            let file_name = format!("{}.rs", struct_name);
+            let output_path = structs_output_dir.join(&file_name);
+
+            let result = async {
+                let tokens = quote! { #structure };
+                let mut code = tokens.to_string();
+
+                let required_uses = get_required_uses_for_item_struct(&structure);
+                code = format!("{}{}", required_uses, code);
+
+                tokio::fs::write(&output_path, code.as_bytes()).await
+                    .context(format!("Failed to write struct {:?} to {:?}", struct_name, output_path))?;
+                println!("  -> Wrote struct {:?} to {:?}", struct_name, output_path);
+
+                // Format the generated code
+                format_rust_code(&output_path).await
+                    .context(format!("Struct {:?} formatting failed for {:?}", struct_name, output_path))?;
+                println!("  -> Struct {:?} formatted successfully.\n", struct_name);
+
+                // Validate the generated code
+                validate_rust_code(&output_path).await
+                    .context(format!("Struct {:?} validation failed for {:?}", struct_name, output_path))?;
+                println!("  -> Struct {:?} validated successfully.\n", struct_name);
+                Ok(())
+            }.await;
+
+            if let Err(e) = result {
+                eprintln!("Error processing struct {}: {:?}\n", struct_name, e);
+                errors.push(e);
+            }
+        }
+
         println!("Total files processed: {}", total_files_processed);
         println!("Total constants extracted: {}", all_constants.len());
         println!("Total functions found: {}", total_fns);
@@ -233,36 +489,78 @@ async fn main() -> anyhow::Result<()> {
         println!("Total other items found: {}", total_other_items);
         println!("---------------------------------------------");
 
-        let generated_code_constants = generate_constants_module(&all_constants);
-        let output_file_path_constants = project_root.join("prelude-generator/src/global_level0_decls.rs");
+        if !errors.is_empty() {
+            eprintln!("\n--- Errors Encountered ---");
+            for error in errors {
+                eprintln!("{:?}", error);
+            }
+            eprintln!("--------------------------");
+            println!("Declaration processing completed with errors.");
+        } else {
+            println!("Declaration processing completed successfully.");
+        }
+    }
 
-        tokio::fs::write(&output_file_path_constants, generated_code_constants.as_bytes()).await
-            .context(format!("Failed to write global_level0_decls.rs to {:?}", output_file_path_constants))?;
-        println!("  -> Generated global_level0_decls.rs written to {:?}", output_file_path_constants);
+    // Process numerical constants
+    if args.extract_numerical_constants {
+        let numerical_output_dir = project_root.join("generated/numerical_constants");
+        tokio::fs::create_dir_all(&numerical_output_dir).await
+            .context(format!("Failed to create output directory {:?}", numerical_output_dir))?;
+                    constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure(&all_numerical_constants, &numerical_output_dir).await?;        println!("  -> Numerical constants will be written to: {:?}", numerical_output_dir);
+        println!("  -> Total numerical constants extracted: {}", all_numerical_constants.len());
+    }
 
-        // Validate the generated code
-        println!("--- Validating Generated global_level0_decls.rs ---");
-        validate_rust_code(&output_file_path_constants).await
-            .context(format!("Generated global_level0_decls.rs validation failed for {:?}", output_file_path_constants))?;
-        println!("  -> Generated global_level0_decls.rs validated successfully.\n");
+    // Process string constants
+    if args.extract_string_constants {
+        let string_output_dir = project_root.join("generated/string_constants");
+        tokio::fs::create_dir_all(&string_output_dir).await
+            .context(format!("Failed to create output directory {:?}", string_output_dir))?;
+                    constant_storage::string_constants::write_string_constants_to_hierarchical_structure(&all_string_constants, &string_output_dir).await?;        println!("  -> String constants will be written to: {:?}", string_output_dir);
+        println!("  -> Total string constants extracted: {}", all_string_constants.len());
+    }
 
-        // Generate and write Layer 0 structs module
-        let generated_code_structs = generate_structs_module(&all_layer0_structs);
-        let output_file_path_structs = project_root.join("prelude-generator/src/global_level0_structs.rs");
+    if args.analyze_bag_of_words {
+        println!("Analyzing bag of words...");
+        let project_root = if args.path == PathBuf::from(".") {
+            std::env::current_dir()?.parent().unwrap().to_path_buf()
+        } else {
+            args.path.clone()
+        };
 
-        tokio::fs::write(&output_file_path_structs, generated_code_structs.as_bytes()).await
-            .context(format!("Failed to write global_level0_structs.rs to {:?}", output_file_path_structs))?;
-        println!("  -> Generated global_level0_structs.rs written to {:?}", output_file_path_structs);
+        let mut bag_of_words_visitor = BagOfWordsVisitor::new();
+        let mut files_processed_for_bow = 0;
 
-        // Validate the generated code
-        println!("--- Validating Generated global_level0_structs.rs ---");
-        validate_rust_code(&output_file_path_structs).await
-            .context(format!("Generated global_level0_structs.rs validation failed for {:?}", output_file_path_structs))?;
-        println!("  -> Generated global_level0_structs.rs validated successfully.\n");
+        for entry in walkdir::WalkDir::new(&project_root)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
+        {
+            let path = entry.path();
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                if let Ok(file) = syn::parse_file(&content) {
+                    bag_of_words_visitor.visit_file(&file);
+                    files_processed_for_bow += 1;
+                } else {
+                    eprintln!("Warning: Could not parse file for bag of words analysis: {}", path.display());
+                }
+            } else {
+                eprintln!("Warning: Could not read file for bag of words analysis: {}", path.display());
+            }
+        }
+
+        println!("Processed {} files for bag of words analysis.", files_processed_for_bow);
+        println!("Top 20 most common terms:");
+
+        let mut sorted_terms: Vec<(&String, &usize)> = bag_of_words_visitor.bag_of_words.iter().collect();
+        sorted_terms.sort_by(|a, b| b.1.cmp(a.1));
+
+        for (term, count) in sorted_terms.iter().take(20) {
+            println!("  - {}: {}", term, count);
+        }
     }
 
     // If no specific command was executed, print help or a default message
-    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls {
+    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants {
         println!("No specific command executed. Use --help for options.");
     }
 

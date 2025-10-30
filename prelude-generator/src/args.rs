@@ -114,6 +114,27 @@ pub struct Args {
     /// Extract all Level 0 declarations (constants) from all modules and write to a global module.
     #[arg(long, default_value_t = false)]
     pub extract_global_level0_decls: bool,
+
+    /// Path to the directory where individually generated Level 0 declaration files will be placed.
+    /// Only used if `extract_global_level0_decls` is true.
+    #[arg(long)]
+    pub generated_decls_output_dir: Option<PathBuf>,
+
+    /// Analyze the bag of words from all identifiers in the project.
+    #[arg(long, default_value_t = false)]
+    pub analyze_bag_of_words: bool,
+
+    /// Path to the output TOML file for the bag of words report. Only used if `analyze_bag_of_words` is true.
+    #[arg(long, default_value = "bag_of_words_report.toml")]
+    pub bag_of_words_output_file: PathBuf,
+
+    /// Extract and organize numerical constants into a hierarchical directory structure.
+    #[arg(long, default_value_t = false)]
+    pub extract_numerical_constants: bool,
+
+    /// Extract and organize string constants into a hierarchical directory structure.
+    #[arg(long, default_value_t = false)]
+    pub extract_string_constants: bool,
 }
 
 #[cfg(test)]

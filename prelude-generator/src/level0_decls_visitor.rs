@@ -3,6 +3,8 @@ use quote::quote;
 
 pub struct Level0DeclsVisitor {
     pub constants: Vec<ItemConst>,
+    pub numerical_constants: Vec<ItemConst>,
+    pub string_constants: Vec<ItemConst>,
     pub layer0_structs: Vec<ItemStruct>,
     pub fn_count: usize,
     pub struct_count: usize,
@@ -15,6 +17,8 @@ impl Level0DeclsVisitor {
     pub fn new() -> Self {
         Level0DeclsVisitor {
             constants: Vec::new(),
+            numerical_constants: Vec::new(),
+            string_constants: Vec::new(),
             layer0_structs: Vec::new(),
             fn_count: 0,
             struct_count: 0,
@@ -34,6 +38,18 @@ impl Level0DeclsVisitor {
 impl<'ast> Visit<'ast> for Level0DeclsVisitor {
     fn visit_item_const(&mut self, i: &'ast ItemConst) {
         self.constants.push(i.clone());
+        // Check if the constant's expression is a literal number or string
+        if let syn::Expr::Lit(expr_lit) = &*i.expr {
+            match &expr_lit.lit {
+                syn::Lit::Int(_) | syn::Lit::Float(_) => {
+                    self.numerical_constants.push(i.clone());
+                },
+                syn::Lit::Str(_) => {
+                    self.string_constants.push(i.clone());
+                },
+                _ => {},
+            }
+        }
         syn::visit::visit_item_const(self, i);
     }
 
@@ -101,39 +117,33 @@ fn is_layer0_struct(s: &ItemStruct) -> bool {
 }
 
 pub fn generate_constants_module(constants: &[ItemConst]) -> String {
-    let generated_code = constants.iter().map(|c| {
-        quote! { #c }
-    }).collect::<Vec<_>>();
+    let generated_decl_strings: Vec<String> = constants.iter().map(|c| {
+        let tokens = quote! { #c };
+        tokens.to_string()
+    }).collect();
 
-    if generated_code.is_empty() {
-        return quote! {
-            // No Level 0 constant declarations found in this module.
-        }.to_string();
+    if generated_decl_strings.is_empty() {
+        return "// No Level 0 constant declarations found in this module.\n".to_string();
     }
 
-    quote! {
-        // This module contains extracted Level 0 constant declarations.
-        // It is automatically generated.
+    let header = "// This module contains extracted Level 0 constant declarations.\n// It is automatically generated.\n\n";
+    let joined_decls = generated_decl_strings.join("\n\n");
 
-        #(#generated_code)*
-    }.to_string()
+    format!("{}{}", header, joined_decls)
 }
 
 pub fn generate_structs_module(structs: &[ItemStruct]) -> String {
-    let generated_code = structs.iter().map(|s| {
-        quote! { #s }
-    }).collect::<Vec<_>>();
+    let generated_decl_strings: Vec<String> = structs.iter().map(|s| {
+        let tokens = quote! { #s };
+        tokens.to_string()
+    }).collect();
 
-    if generated_code.is_empty() {
-        return quote! {
-            // No Level 0 struct declarations found in this module.
-        }.to_string();
+    if generated_decl_strings.is_empty() {
+        return "// No Level 0 struct declarations found in this module.\n".to_string();
     }
 
-    quote! {
-        // This module contains extracted Level 0 struct declarations.
-        // It is automatically generated.
+    let header = "// This module contains extracted Level 0 struct declarations.\n// It is automatically generated.\n\n";
+    let joined_decls = generated_decl_strings.join("\n\n");
 
-        #(#generated_code)*
-    }.to_string()
+    format!("{}{}", header, joined_decls)
 }

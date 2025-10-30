@@ -38,3 +38,5 @@ target/
 standalonex/src/bootstrap/src/core/config_utils/src/target/
 standalonex/src/target/
 standalonex/test_minimal/result
+/standalonex/libglobal_level0_decls.rmeta
+/standalonex/libself_generated_code.rmeta

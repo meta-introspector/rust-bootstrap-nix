@@ -12,7 +12,8 @@ pub mod code_generator;
 pub mod measurement;
 pub mod parser;
 pub mod level0_decls_visitor;
-pub mod global_level0_decls;
+pub mod bag_of_words_visitor;
+//pub mod global_level0_decls;
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;
@@ -23,6 +24,7 @@ pub use test_extractor::{collect_all_test_cases, generate_test_report_json, gene
 pub use pipeline_traits::{AstStatistics, VariableInfo, FunctionInfo, ImportInfo};
 pub use ast_decoder::AstTraversalFunctor;
 pub use level0_decls_visitor::{Level0DeclsVisitor, generate_constants_module, generate_structs_module};
+pub use bag_of_words_visitor::{BagOfWordsVisitor, tokenize_ident_to_subwords};
 
 // Re-export necessary types from prelude_collector
 pub use prelude_collector::{FileProcessingResult, FileProcessingStatus};
