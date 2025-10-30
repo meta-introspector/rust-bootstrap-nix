@@ -60,82 +60,40 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
         .context(format!("Failed to write generated code to {:?}", output_file_path))?;
     writer.write_all(format!("  -> Generated code written to {:?}\n", output_file_path).as_bytes()).await?;
 
+    // Validate the generated code
+    writer.write_all(format!("--- Validating Generated Code ---\n").as_bytes()).await?;
+    validate_rust_code(&output_file_path).await
+        .context(format!("Generated code validation failed for {:?}", output_file_path))?;
+    writer.write_all(format!("  -> Generated code validated successfully.\n").as_bytes()).await?;
+
     let collected_metrics = measurement::get_collected_metrics();
     let json_metrics = serde_json::to_string_pretty(&collected_metrics).context("Failed to serialize metrics to JSON")?;
     writer.write_all(format!("--- METRICS_START ---\n{}\n--- METRICS_END ---\n", json_metrics).as_bytes()).await?;
 
-    // Analyze ASTs from the generated Hugging Face dataset
-    // writer.write_all(format!("\n--- AST Node Type Report ---\n").as_bytes()).await?;
-    // let ValidatedFile(_, dataset_output_path) = validated_file; // Destructure to get the path
-    // let ast_statistics = hf_dataset_reader::analyze_hf_dataset_asts(
-    //         &dataset_output_path,
-    //     )
-    //     .await
-    //     .context("Failed to analyze ASTs from Hugging Face dataset")?;
-    // writer.write_all(format!("### Node Type Counts:\n{:#?}\n", ast_statistics.node_type_counts).as_bytes()).await?;
-    // writer.write_all(format!("### Line Statistics:\n{:#?}\n", ast_statistics.line_stats).as_bytes()).await?;
-    // writer.write_all(format!("### Column Statistics:\n{:#?}\n", ast_statistics.column_stats).as_bytes()).await?;
-    // writer.write_all(format!("### Processing Time Statistics:\n{:#?}\n", ast_statistics.processing_time_stats).as_bytes()).await?;
-    // writer.write_all(format!("### Rust Version Counts:\n{:#?}\n", ast_statistics.rust_version_counts).as_bytes()).await?;
-    // writer.write_all(format!("### Analyzer Version Counts:\n{:#?}\n", ast_statistics.analyzer_version_counts).as_bytes()).await?;
-    // writer.write_all(format!("### Snippet Length Stats:\n{:#?}\n", ast_statistics.snippet_length_stats).as_bytes()).await?;
+    Ok(())
+}
 
-    // writer.write_all(b"\n### Dependency Analysis:\n").await?;
-    // if ast_statistics.dependencies.is_empty() {
-    //     writer.write_all(b"  No dependencies found.\n").await?;
-    // } else {
-    //     for dep in &ast_statistics.dependencies {
-    //         let dep_type = if dep.source.starts_with("git+") {
-    //             "External (Git)"
-    //         } else if dep.source.starts_with("registry+") {
-    //             "External (Crates.io)"
-    //         } else if dep.source == "path" {
-    //             "Internal (Path)"
-    //         } else {
-    //             "Other"
-    //         };
+async fn validate_rust_code(file_path: &PathBuf) -> anyhow::Result<()> {
+    use tokio::process::Command;
 
-    //         writer.write_all(format!("  - Name: {}\n", dep.name).as_bytes()).await?;
-    //         writer.write_all(format!("    Type: {}\n", dep_type).as_bytes()).await?;
-    //         writer.write_all(format!("    Version Req: {}\n", dep.version_req).as_bytes()).await?;
-    //         if let Some(resolved_version) = &dep.resolved_version {
-    //             writer.write_all(format!("    Resolved Version: {}\n", resolved_version).as_bytes()).await?;
-    //         }
-    //         writer.write_all(format!("    Optional: {}\n", dep.optional).as_bytes()).await?;
-    //         writer.write_all(format!("    Default Features: {}\n", dep.default_features).as_bytes()).await?;
-    //         if !dep.features.is_empty() {
-    //             writer.write_all(format!("    Features: {:?}\n", dep.features).as_bytes()).await?;
-    //         }
-    //         writer.write_all(format!("    Source: {}\n", dep.source).as_bytes()).await?;
-    //         writer.write_all(format!("    Dev Dependency: {}\n", dep.is_dev).as_bytes()).await?;
-    //         writer.write_all(format!("    Build Dependency: {}\n", dep.is_build).as_bytes()).await?;
+    let output = Command::new("rustc")
+        .arg("--emit=metadata") // Only check for errors, don't produce artifacts
+        .arg("--crate-type=lib") // Treat as a library crate
+        .arg(file_path)
+        .output()
+        .await
+        .context("Failed to execute rustc")?;
 
-    //         // Extract Git details if it's a Git dependency
-    //         if dep.source.starts_with("git+") {
-    //             if let Some(git_url_end_idx) = dep.source.find('#') {
-    //                 let git_url = &dep.source[4..git_url_end_idx];
-    //                 let git_ref = &dep.source[git_url_end_idx + 1..];
-    //                 writer.write_all(format!("    Git URL: {}\n", git_url).as_bytes()).await?;
-    //                 writer.write_all(format!("    Git Ref: {}\n", git_ref).as_bytes()).await?;
-    //             } else {
-    //                 writer.write_all(format!("    Git URL: {}\n", &dep.source[4..]).as_bytes()).await?;
-    //             }
-    //         }
-    //         writer.write_all(b"\n").await?;
-    //     }
-    // }
-    // writer.write_all(format!("--- End AST Node Type Report ---\n").as_bytes()).await?;
-
-    // // Generate Rust code for AST statistics
-    // let ast_statistics_code = generate_ast_statistics_code(&ast_statistics);
-    // let ast_statistics_file_path = PathBuf::from("generated/ast_statistics.rs");
-    // tokio::fs::write(&ast_statistics_file_path, ast_statistics_code.as_bytes()).await
-    //     .context(format!("Failed to write generated AST statistics code to {:?}", ast_statistics_file_path))?;
-    // writer.write_all(format!("  -> Generated AST statistics code written to {:?}\n", ast_statistics_file_path).as_bytes()).await?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Rustc check failed for file {:?}:\n{}", file_path, stderr);
+    }
 
     Ok(())
 }
+
 fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
+
     let args = Args::parse();
 
     // Determine the project root. If args.path is ".", resolve it to the actual current directory.
