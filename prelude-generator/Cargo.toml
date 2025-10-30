@@ -22,6 +22,7 @@ indoc = "1.0"
 lazy_static = "1.4.0"
 libgit2-sys = "*"
 tokio = { version = "1", features = ["full"] }
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
 #
 #git2 = "^0.18.3"
 git2 = "*"
@@ -30,5 +31,6 @@ hf-dataset-validator = {	     path = "../vendor/rust/hugging-face-dataset-valida
 
 arrow = { version = "57.0.0" }
 parquet = { version = "57.0.0" }
+pipeline-traits = { path = "../pipeline-traits" }
 
 [dev-dependencies]

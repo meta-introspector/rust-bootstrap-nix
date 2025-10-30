@@ -1,19 +1,26 @@
-use anyhow::Context;
-use tokio::io::AsyncWriteExt;
-use clap::Parser;
-use prelude_generator::Args;
-use prelude_generator::category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, ParseFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor};
-use prelude_generator::category_pipeline::{AstReconstructionFunctor};
-use std::fs;
+//use crate::prelude_category_pipeline::{ClassifyUsesFunctor, ExtractUsesFunctor, PipelineFunctor, RawFile, HuggingFaceValidatorFunctor, AstReconstructionFunctor};
+use prelude_generator::parser::ParseFunctor;
+use prelude_generator::args::Args;
+use crate::config_parser::Config; // Fixed import
 use prelude_generator::measurement;
-use std::path::Path;
-
+use clap::Parser;
+use anyhow::{Context};
+use tokio::fs;
+use tokio::io::AsyncWriteExt;
+//use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 mod hf_dataset_reader;
 mod config_parser;
+mod parser;
 
-async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(writer: &mut W, file_path: &Path, args: &Args, config: &Option<config_parser::Config>) -> anyhow::Result<()> {
-    let content = fs::read_to_string(file_path).context("Failed to read file content")?;
-    let raw_file = RawFile(file_path.to_string_lossy().to_string(), content);
+async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
+    writer: &mut W,
+    file_content: &str,
+    file_path_str: &str,
+    args: &Args,
+    config: &Option<config_parser::Config>,
+) -> anyhow::Result<()> {
+    let raw_file = RawFile(file_path_str.to_string(), file_content.to_string());
 
     writer.write_all(format!("--- Stage 1: Parsing ---\n").as_bytes()).await?;
     let parse_functor = ParseFunctor;
@@ -42,16 +49,23 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(write
 
     writer.write_all(format!("--- Stage 5: AST Reconstruction from Hugging Face Dataset ---\n").as_bytes()).await?;
     let ast_reconstruction_functor = AstReconstructionFunctor;
-    let _reconstructed_ast = PipelineFunctor::map(&ast_reconstruction_functor, writer, validated_file).await.context("AST Reconstruction failed")?;
+    let reconstructed_code = PipelineFunctor::map(&ast_reconstruction_functor, writer, validated_file).await.context("AST Reconstruction failed")?;
     writer.write_all(format!("  -> AST Reconstruction completed successfully.\n").as_bytes()).await?;
-    // Print collected metrics
+
+    // Write generated code to a file
+    let output_file_path = PathBuf::from("generated/self_generated_code.rs"); // Define output path
+    tokio::fs::create_dir_all(output_file_path.parent().unwrap()).await?;
+    tokio::fs::write(&output_file_path, reconstructed_code.as_bytes()).await
+        .context(format!("Failed to write generated code to {:?}", output_file_path))?;
+    writer.write_all(format!("  -> Generated code written to {:?}\n", output_file_path).as_bytes()).await?;
+
     let collected_metrics = measurement::get_collected_metrics();
     let json_metrics = serde_json::to_string_pretty(&collected_metrics).context("Failed to serialize metrics to JSON")?;
     writer.write_all(format!("--- METRICS_START ---\n{}\n--- METRICS_END ---\n", json_metrics).as_bytes()).await?;
 
     Ok(())
 }
-fn main() -> anyhow::Result<()> {
+fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     let args = Args::parse();
 
     let config = if let Some(config_path) = &args.config_file_path {
@@ -59,30 +73,49 @@ fn main() -> anyhow::Result<()> {
     } else {
         None
     };
+    Ok((args, config))
+}
+
+fn main() -> anyhow::Result<()> {
+    let (args, config) = parse_arguments_and_config()?;
 
     // For debugging: print the parsed config if available
     if let Some(ref cfg) = config {
         eprintln!("Parsed config: {:#?}", cfg);
     }
 
+fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
     let file_to_process = if let Some(file_name) = args.file.as_ref() {
         Path::new(file_name)
     } else {
         return Err(anyhow::anyhow!("No file specified to process. Use --file argument."));
     };
 
+    let content = fs::read_to_string(file_to_process).context("Failed to read file content")?;
+    Ok((content, file_to_process.to_string_lossy().to_string()))
+}
+
+    let (content, file_path_str) = read_input_file(&args)?;
+
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
-        .build()? // This line is causing the error
+        .build()? 
         .block_on(async {
-            let result = run_category_pipeline(&mut tokio::io::stdout(), file_to_process, &args, &config).await;
-
-            if let Err(ref e) = result {
-                tokio::io::stderr().write_all(format!("Pipeline failed: {:?}\n", e).as_bytes()).await?;
-            } else {
-                tokio::io::stdout().write_all(b"Pipeline completed successfully.\n").await?;
-            }
-
-            result
+            let mut stdout = tokio::io::stdout();
+            let result = run_category_pipeline(&mut stdout, &content, &file_path_str, &args, &config).await;
+            handle_pipeline_result(result).await
         })
 }
+
+async fn handle_pipeline_result(result: anyhow::Result<()>) -> anyhow::Result<()> {
+    if let Err(ref e) = result {
+        let mut stderr = tokio::io::stderr();
+        stderr.write_all(format!("Pipeline failed: {:?}\n", e).as_bytes()).await?;
+    } else {
+        let mut stdout = tokio::io::stdout();
+        stdout.write_all(b"Pipeline completed successfully.\n").await?;
+    }
+    result
+}
+
+

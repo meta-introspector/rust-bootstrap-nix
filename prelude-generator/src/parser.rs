@@ -1,0 +1,43 @@
+use anyhow::{Context, Result};
+use std::path::PathBuf;
+use std::pin::Pin;
+use std::future::Future;
+
+use crate::measurement;
+use syn; // Add this import
+use prettyplease; // Add this import
+
+//use crate::prelude_category_pipeline::{PipelineFunctor, RawFile, ParsedFile};
+
+// ParseFunctor
+pub struct ParseFunctor;
+//use crate::prelude_category_pipeline::RawFile;
+//use prelude_generator::prelude_category_pipeline::RawFile;
+//use crate::prelude_category_pipeline::ParsedFile;
+//use crate::prelude_category_pipeline::PipelineFunctor;
+impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
+    fn map<'writer>(
+        &'writer self,
+        _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
+        input: RawFile,
+    ) -> Pin<Box<dyn Future<Output = Result<ParsedFile>> + Send + 'writer>> {
+        Box::pin(async move {
+            measurement::record_function_entry("ParseFunctor::map");
+            let RawFile(file_path_str, content) = input;
+            let file_path = PathBuf::from(file_path_str.clone());
+
+            let parsed_code = tokio::task::spawn_blocking(move || -> anyhow::Result<_> {
+                let ast = match syn::parse_file(&content) {
+                    Ok(ast) => ast,
+                    Err(_) => {
+                        return Err(anyhow::anyhow!("Failed to parse file and expand macros"));
+                    }
+                };
+                Ok(prettyplease::unparse(&ast))
+            }).await.context("Blocking task for parsing failed")??;
+
+            measurement::record_function_exit("ParseFunctor::map");
+            Ok(ParsedFile(parsed_code, file_path))
+        })
+    }
+}

@@ -7,10 +7,13 @@ pub mod processor;
 pub mod test_extractor;
 pub mod pipeline;
 pub mod use_extractor;
-pub mod category_pipeline;
+//#[path = "prelude_category_pipeline.rs"]
+pub mod prelude_category_pipeline;
 pub mod code_generator;
 pub mod measurement;
 pub mod hf_dataset_reader;
+//#[path = "parser.rs"]
+pub mod parser; // Add this line
 pub use args::Args;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;

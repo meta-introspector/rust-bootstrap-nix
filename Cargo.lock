@@ -1937,6 +1937,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
+name = "pipeline-traits"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "tokio",
+]
+
+[[package]]
 name = "pkg-config"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2034,8 +2042,10 @@ dependencies = [
  "lazy_static",
  "libgit2-sys",
  "parquet 57.0.0",
+ "pipeline-traits",
  "prelude-collector",
  "prettyplease",
+ "proc-macro2",
  "quote",
  "serde",
  "serde_json",
