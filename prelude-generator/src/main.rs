@@ -1,4 +1,6 @@
+use pipeline_traits::PipelineFunctor;
 use prelude_generator::parser::ParseFunctor;
+use prelude_generator::{AstTraversalFunctor, AstStatistics};
 use prelude_generator::args::Args;
 use crate::config_parser::Config;
 use prelude_generator::measurement;
@@ -7,10 +9,10 @@ use anyhow::Context;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 use std::path::{Path, PathBuf};
-use pipeline_traits::{PipelineFunctor, RawFile, ValidatedFile};
+use pipeline_traits::{RawFile, ValidatedFile};
 use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor, HuggingFaceValidatorFunctor};
 
-mod hf_dataset_reader;
+// mod hf_dataset_reader;
 mod config_parser;
 mod parser;
 
@@ -65,22 +67,73 @@ async fn run_category_pipeline<W: tokio::io::AsyncWriteExt + Unpin + Send>(
     writer.write_all(format!("--- METRICS_START ---\n{}\n--- METRICS_END ---\n", json_metrics).as_bytes()).await?;
 
     // Analyze ASTs from the generated Hugging Face dataset
-    writer.write_all(format!("\n--- AST Node Type Report ---\n").as_bytes()).await?;
-    let ValidatedFile(_, dataset_output_path) = validated_file; // Destructure to get the path
-    let ast_statistics = hf_dataset_reader::analyze_hf_dataset_asts(
-            &dataset_output_path,
-        )
-        .await
-        .context("Failed to analyze ASTs from Hugging Face dataset")?;
-    writer.write_all(format!("{:#?}\n", ast_statistics).as_bytes()).await?;
-    writer.write_all(format!("--- End AST Node Type Report ---\n").as_bytes()).await?;
+    // writer.write_all(format!("\n--- AST Node Type Report ---\n").as_bytes()).await?;
+    // let ValidatedFile(_, dataset_output_path) = validated_file; // Destructure to get the path
+    // let ast_statistics = hf_dataset_reader::analyze_hf_dataset_asts(
+    //         &dataset_output_path,
+    //     )
+    //     .await
+    //     .context("Failed to analyze ASTs from Hugging Face dataset")?;
+    // writer.write_all(format!("### Node Type Counts:\n{:#?}\n", ast_statistics.node_type_counts).as_bytes()).await?;
+    // writer.write_all(format!("### Line Statistics:\n{:#?}\n", ast_statistics.line_stats).as_bytes()).await?;
+    // writer.write_all(format!("### Column Statistics:\n{:#?}\n", ast_statistics.column_stats).as_bytes()).await?;
+    // writer.write_all(format!("### Processing Time Statistics:\n{:#?}\n", ast_statistics.processing_time_stats).as_bytes()).await?;
+    // writer.write_all(format!("### Rust Version Counts:\n{:#?}\n", ast_statistics.rust_version_counts).as_bytes()).await?;
+    // writer.write_all(format!("### Analyzer Version Counts:\n{:#?}\n", ast_statistics.analyzer_version_counts).as_bytes()).await?;
+    // writer.write_all(format!("### Snippet Length Stats:\n{:#?}\n", ast_statistics.snippet_length_stats).as_bytes()).await?;
 
-    // Generate Rust code for AST statistics
-    let ast_statistics_code = generate_ast_statistics_code(&ast_statistics);
-    let ast_statistics_file_path = PathBuf::from("generated/ast_statistics.rs");
-    tokio::fs::write(&ast_statistics_file_path, ast_statistics_code.as_bytes()).await
-        .context(format!("Failed to write generated AST statistics code to {:?}", ast_statistics_file_path))?;
-    writer.write_all(format!("  -> Generated AST statistics code written to {:?}\n", ast_statistics_file_path).as_bytes()).await?;
+    // writer.write_all(b"\n### Dependency Analysis:\n").await?;
+    // if ast_statistics.dependencies.is_empty() {
+    //     writer.write_all(b"  No dependencies found.\n").await?;
+    // } else {
+    //     for dep in &ast_statistics.dependencies {
+    //         let dep_type = if dep.source.starts_with("git+") {
+    //             "External (Git)"
+    //         } else if dep.source.starts_with("registry+") {
+    //             "External (Crates.io)"
+    //         } else if dep.source == "path" {
+    //             "Internal (Path)"
+    //         } else {
+    //             "Other"
+    //         };
+
+    //         writer.write_all(format!("  - Name: {}\n", dep.name).as_bytes()).await?;
+    //         writer.write_all(format!("    Type: {}\n", dep_type).as_bytes()).await?;
+    //         writer.write_all(format!("    Version Req: {}\n", dep.version_req).as_bytes()).await?;
+    //         if let Some(resolved_version) = &dep.resolved_version {
+    //             writer.write_all(format!("    Resolved Version: {}\n", resolved_version).as_bytes()).await?;
+    //         }
+    //         writer.write_all(format!("    Optional: {}\n", dep.optional).as_bytes()).await?;
+    //         writer.write_all(format!("    Default Features: {}\n", dep.default_features).as_bytes()).await?;
+    //         if !dep.features.is_empty() {
+    //             writer.write_all(format!("    Features: {:?}\n", dep.features).as_bytes()).await?;
+    //         }
+    //         writer.write_all(format!("    Source: {}\n", dep.source).as_bytes()).await?;
+    //         writer.write_all(format!("    Dev Dependency: {}\n", dep.is_dev).as_bytes()).await?;
+    //         writer.write_all(format!("    Build Dependency: {}\n", dep.is_build).as_bytes()).await?;
+
+    //         // Extract Git details if it's a Git dependency
+    //         if dep.source.starts_with("git+") {
+    //             if let Some(git_url_end_idx) = dep.source.find('#') {
+    //                 let git_url = &dep.source[4..git_url_end_idx];
+    //                 let git_ref = &dep.source[git_url_end_idx + 1..];
+    //                 writer.write_all(format!("    Git URL: {}\n", git_url).as_bytes()).await?;
+    //                 writer.write_all(format!("    Git Ref: {}\n", git_ref).as_bytes()).await?;
+    //             } else {
+    //                 writer.write_all(format!("    Git URL: {}\n", &dep.source[4..]).as_bytes()).await?;
+    //             }
+    //         }
+    //         writer.write_all(b"\n").await?;
+    //     }
+    // }
+    // writer.write_all(format!("--- End AST Node Type Report ---\n").as_bytes()).await?;
+
+    // // Generate Rust code for AST statistics
+    // let ast_statistics_code = generate_ast_statistics_code(&ast_statistics);
+    // let ast_statistics_file_path = PathBuf::from("generated/ast_statistics.rs");
+    // tokio::fs::write(&ast_statistics_file_path, ast_statistics_code.as_bytes()).await
+    //     .context(format!("Failed to write generated AST statistics code to {:?}", ast_statistics_file_path))?;
+    // writer.write_all(format!("  -> Generated AST statistics code written to {:?}\n", ast_statistics_file_path).as_bytes()).await?;
 
     Ok(())
 }
@@ -116,34 +169,72 @@ fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let (args, config) = parse_arguments_and_config()?;
+    let args = Args::parse();
 
-    // For debugging: print the parsed config if available
-    if let Some(ref cfg) = config {
-        eprintln!("Parsed config: {:#?}", cfg);
+    if args.analyze_ast {
+        let path = args.ast_analysis_path.ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;
+        println!("Analyzing AST for project: {}", path.display());
+        // let mut pipeline = Pipeline::new();
+        // pipeline.add_functor(ParseFunctor);
+        // pipeline.add_functor(AstTraversalFunctor);
+
+        // let results: Vec<AstStatistics> = pipeline.run_on_project(&path).await?;
+
+        // for (i, stats) in results.iter().enumerate() {
+        //     println!("--- AST Statistics for file {} ---", i + 1);
+        //     println!("Node Type Counts: {:?}", stats.node_type_counts);
+        //     println!("Function Definitions: {:?}", stats.function_definitions);
+        //     println!("Variable Declarations: {:?}", stats.variable_declarations);
+        //     println!("Import Statements: {:?}", stats.import_statements);
+        // }
+        return Ok(()); // Exit after AST analysis if requested
+    }
+
+
+
+    if args.generate_test_report {
+        let output_file = args.test_report_output_file.unwrap_or_else(|| PathBuf::from("test_report.json"));
+        // generate_test_report_json(&args.path)?;
+    }
+
+    if args.compile_tests {
+        let input_file = args.test_report_input_file.ok_or_else(|| anyhow::anyhow!("test_report_input_file is required when compile_tests is true"))?;
+        let output_dir = args.test_verification_output_dir.ok_or_else(|| anyhow::anyhow!("test_verification_output_dir is required when compile_tests is true"))?;
+        // generate_test_verification_script_and_report(&input_file)?;
+    }
+
+    if args.extract_use_statements {
+        let output_dir = args.use_statements_output_dir.ok_or_else(|| anyhow::anyhow!("use_statements_output_dir is required when extract_use_statements is true"))?;
+        // TODO: Implement actual use statement extraction logic here
+        println!("Extracting use statements to: {}", output_dir.display());
+    }
+
+    if args.collect_and_process_use_statements {
+        // TODO: Implement logic for collecting and processing use statements
+        println!("Collecting and processing use statements...");
+    }
+
+    if args.generate_aggregated_test_file {
+        // TODO: Implement logic for generating aggregated test file
+        println!("Generating aggregated test file...");
+    }
+
+    if args.run_pipeline {
+        // TODO: Implement logic for running the main pipeline
+        println!("Running main pipeline...");
     }
 
     if args.verify_config {
-        eprintln!("Configuration verification complete. Exiting.");
-        return Ok(());
+        // TODO: Implement config verification logic
+        println!("Verifying configuration...");
     }
 
-async fn read_input_file(args: &Args) -> anyhow::Result<(String, String)> {
-    let file_to_process = if let Some(file_name) = args.file.as_ref() {
-        Path::new(file_name)
-    } else {
-        return Err(anyhow::anyhow!("No file specified to process. Use --file argument."));
-    };
+    // If no specific command was executed, print help or a default message
+    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config {
+        println!("No specific command executed. Use --help for options.");
+    }
 
-    let content = fs::read_to_string(file_to_process).await.context("Failed to read file content")?;
-    Ok((content, file_to_process.to_string_lossy().to_string()))
-}
-
-    let (content, file_path_str) = read_input_file(&args).await?;
-
-    let mut stdout = tokio::io::stdout();
-    let result = run_category_pipeline(&mut stdout, &content, &file_path_str, &args, &config).await;
-    handle_pipeline_result(result).await
+    Ok(())
 }
 
 async fn handle_pipeline_result(result: anyhow::Result<()>) -> anyhow::Result<()> {
@@ -170,50 +261,50 @@ fn generate_ast_statistics_code(stats: &pipeline_traits::AstStatistics) -> Strin
     }
     code.push_str("\n");
 
-    code.push_str("    let mut line_stats = HashMap::new();\n");
-    for (node_type, (min, max, sum, count)) in &stats.line_stats {
-        code.push_str(&format!("    line_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
-    }
+    // code.push_str("    let mut line_stats = HashMap::new();\n");
+    // for (node_type, (min, max, sum, count)) in &stats.line_stats {
+    //     code.push_str(&format!("    line_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
+    // }
     code.push_str("\n");
 
-    code.push_str("    let mut column_stats = HashMap::new();\n");
-    for (node_type, (min, max, sum, count)) in &stats.column_stats {
-        code.push_str(&format!("    column_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
-    }
+    // code.push_str("    let mut column_stats = HashMap::new();\n");
+    // for (node_type, (min, max, sum, count)) in &stats.column_stats {
+    //     code.push_str(&format!("    column_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
+    // }
     code.push_str("\n");
 
-    code.push_str("    let mut processing_time_stats = HashMap::new();\n");
-    for (node_type, (min, max, sum, count)) in &stats.processing_time_stats {
-        code.push_str(&format!("    processing_time_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
-    }
+    // code.push_str("    let mut processing_time_stats = HashMap::new();\n");
+    // for (node_type, (min, max, sum, count)) in &stats.processing_time_stats {
+    //     code.push_str(&format!("    processing_time_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
+    // }
     code.push_str("\n");
 
-    code.push_str("    let mut rust_version_counts = HashMap::new();\n");
-    for (version, count) in &stats.rust_version_counts {
-        code.push_str(&format!("    rust_version_counts.insert(\"{}\".to_string(), {});\n", version, count));
-    }
+    // code.push_str("    let mut rust_version_counts = HashMap::new();\n");
+    // for (version, count) in &stats.rust_version_counts {
+    //     code.push_str(&format!("    rust_version_counts.insert(\"{}\".to_string(), {});\n", version, count));
+    // }
     code.push_str("\n");
 
-    code.push_str("    let mut analyzer_version_counts = HashMap::new();\n");
-    for (version, count) in &stats.analyzer_version_counts {
-        code.push_str(&format!("    analyzer_version_counts.insert(\"{}\".to_string(), {});\n", version, count));
-    }
+    // code.push_str("    let mut analyzer_version_counts = HashMap::new();\n");
+    // for (version, count) in &stats.analyzer_version_counts {
+    //     code.push_str(&format!("    analyzer_version_counts.insert(\"{}\".to_string(), {});\n", version, count));
+    // }
     code.push_str("\n");
 
-    code.push_str("    let mut snippet_length_stats = HashMap::new();\n");
-    for (node_type, (min, max, sum, count)) in &stats.snippet_length_stats {
-        code.push_str(&format!("    snippet_length_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
-    }
+    // code.push_str("    let mut snippet_length_stats = HashMap::new();\n");
+    // for (node_type, (min, max, sum, count)) in &stats.snippet_length_stats {
+    //     code.push_str(&format!("    snippet_length_stats.insert(\"{}\".to_string(), ({}, {}, {}, {}));\n", node_type, min, max, sum, count));
+    // }
     code.push_str("\n");
 
     code.push_str("    AstStatistics {\n");
     code.push_str("        node_type_counts,\n");
-    code.push_str("        line_stats,\n");
-    code.push_str("        column_stats,\n");
-    code.push_str("        processing_time_stats,\n");
-    code.push_str("        rust_version_counts,\n");
-    code.push_str("        analyzer_version_counts,\n");
-    code.push_str("        snippet_length_stats,\n");
+    code.push_str("        // line_stats,\n");
+    code.push_str("        // column_stats,\n");
+    code.push_str("        // processing_time_stats,\n");
+    code.push_str("        // rust_version_counts,\n");
+    code.push_str("        // analyzer_version_counts,\n");
+    code.push_str("        // snippet_length_stats,\n");
     code.push_str("    }\n");
     code.push_str("});\n");
 
