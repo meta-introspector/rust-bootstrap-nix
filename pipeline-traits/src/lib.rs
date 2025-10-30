@@ -4,7 +4,8 @@ use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
 use std::fmt::Debug;
-//use tokio::io::AsyncWriteExt;
+use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 
 pub mod use_statement_types;
 pub use use_statement_types::{
@@ -51,13 +52,45 @@ pub struct UseStatement {
     pub linux_details: Option<LinuxDetails>,
 }
 
-#[derive(Debug, Default)]
+/// Information about a variable found in the AST
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VariableInfo {
+    pub name: String,
+    pub type_name: String,
+    pub is_mutable: bool,
+    pub scope: String, // e.g., "function", "module", "global"
+}
+
+/// Information about a function found in the AST
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionInfo {
+    pub name: String,
+    pub visibility: String, // e.g., "public", "private"
+    pub arg_count: u32,
+    pub arg_types: Vec<String>,
+    pub return_type: String,
+    pub is_async: bool,
+    pub is_unsafe: bool,
+    pub is_const: bool,
+}
+
+/// Information about an import statement found in the AST
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportInfo {
+    pub path: String, // The full path of the import (e.g., "std::collections::HashMap")
+    pub alias: Option<String>,
+    pub is_external: bool,
+    pub source_crate: Option<String>,
+    pub git_source_url: Option<String>,
+    pub git_branch: Option<String>,
+}
+
+/// Comprehensive AST analysis data for a Rust project
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AstStatistics {
-    pub node_type_counts: std::collections::HashMap<String, usize>,
-    pub line_stats: std::collections::HashMap<String, (usize, usize, usize, usize)>, // type -> (min, max, sum, count)
-    pub column_stats: std::collections::HashMap<String, (usize, usize, usize, usize)>, // type -> (min, max, sum, count)
-    pub processing_time_stats: std::collections::HashMap<String, (u64, u64, u64, usize)>, // type -> (min, max, sum, count)
-    pub rust_version_counts: std::collections::HashMap<String, usize>,
-    pub analyzer_version_counts: std::collections::HashMap<String, usize>,
-    pub snippet_length_stats: std::collections::HashMap<String, (usize, usize, usize, usize)>, // type -> (min, max, sum, count)
+    pub node_type_counts: HashMap<String, u32>,
+    pub variable_declarations: Vec<VariableInfo>,
+    pub function_definitions: Vec<FunctionInfo>,
+    pub import_statements: Vec<ImportInfo>,
+    // Add more fields as needed, e.g., macro invocations, struct definitions
 }

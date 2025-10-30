@@ -27,10 +27,15 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             let ParsedFile(source_code, original_file_path) = input;
 
             // The source_code is already a String, no need to unparse from AST
-            // Generate a canonical directory name based on the original_file_path
-            let sanitized_file_path = original_file_path.to_string_lossy().replace("/", "_").replace(".", "_");
-            writer.write_all(format!("  -> Sanitized file path for hf-validator project: {}\n", sanitized_file_path).as_bytes()).await?;
-            let hf_validator_project_dir = PathBuf::from(format!("generated/hf_validator_projects/{}", sanitized_file_path));
+            // Generate a short, unique ID for the project directory to avoid "file name too long" errors.
+            use std::hash::{Hash, Hasher};
+            use std::collections::hash_map::DefaultHasher;
+            let mut hasher = DefaultHasher::new();
+            original_file_path.hash(&mut hasher);
+            let short_id = format!("{:x}", hasher.finish());
+
+            writer.write_all(format!("  -> Short ID for hf-validator project: {}\n", short_id).as_bytes()).await?;
+            let hf_validator_project_dir = PathBuf::from(format!("generated/hf_validator_projects/{}", short_id));
             tokio::fs::create_dir_all(&hf_validator_project_dir).await?;
 
             // Write the Rust source code to a file within the persistent directory
@@ -139,9 +144,41 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             writer.write_all(format!("  -> Hugging Face Validation Result: Dataset generated at {:#?}\n", output_path).as_bytes()).await?;
 
             // Define the permanent output directory
-            let permanent_output_dir = PathBuf::from(format!("generated/hf_dataset_output/{}", sanitized_file_path));
+            let permanent_output_dir = PathBuf::from(format!("generated/hf_dataset_output/{}", short_id));
             tokio::fs::create_dir_all(&permanent_output_dir).await?;
 
+            // --- Start: Mapping file logic ---
+            use serde::{Deserialize, Serialize};
+            use std::collections::HashMap;
+            use tokio::fs::File;
+            use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+            #[derive(Debug, Default, Deserialize, Serialize)]
+            struct Mapping {
+                #[serde(flatten)]
+                files: HashMap<String, String>,
+            }
+
+            let mapping_file_path = PathBuf::from("generated/hf_dataset_output/mapping.toml");
+            let mut mapping = if mapping_file_path.exists() {
+                let mut file = File::open(&mapping_file_path).await
+                    .context("Failed to open mapping.toml")?;
+                let mut contents = String::new();
+                file.read_to_string(&mut contents).await
+                    .context("Failed to read mapping.toml")?;
+                toml::from_str(&contents).context("Failed to parse mapping.toml")?
+            } else {
+                Mapping::default()
+            };
+
+            mapping.files.insert(original_file_path.to_string_lossy().to_string(), short_id.clone());
+
+            let toml_string = toml::to_string_pretty(&mapping).context("Failed to serialize mapping to TOML")?;
+            let mut file = File::create(&mapping_file_path).await
+                .context("Failed to create mapping.toml")?;
+            file.write_all(toml_string.as_bytes()).await
+                .context("Failed to write mapping.toml")?;
+            // --- End: Mapping file logic ---
             // Copy contents from temporary output directory to permanent directory
             // This requires iterating through the temporary directory and copying each item.
             let mut entries = tokio::fs::read_dir(&output_path).await?;

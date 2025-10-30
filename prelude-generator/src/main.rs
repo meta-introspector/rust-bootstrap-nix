@@ -1,15 +1,13 @@
 use pipeline_traits::PipelineFunctor;
 use prelude_generator::parser::ParseFunctor;
-use prelude_generator::{AstTraversalFunctor, AstStatistics};
 use prelude_generator::args::Args;
 use crate::config_parser::Config;
 use prelude_generator::measurement;
 use clap::Parser;
 use anyhow::Context;
-use tokio::fs;
 use tokio::io::AsyncWriteExt;
-use std::path::{Path, PathBuf};
-use pipeline_traits::{RawFile, ValidatedFile};
+use std::path::PathBuf;
+use pipeline_traits::RawFile;
 use prelude_generator::prelude_category_pipeline::{AstReconstructionFunctor, ExtractUsesFunctor, ClassifyUsesFunctor, HuggingFaceValidatorFunctor};
 
 // mod hf_dataset_reader;

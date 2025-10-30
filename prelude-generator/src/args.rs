@@ -103,6 +103,13 @@ pub struct Args {
     /// Verify the parsed configuration and exit.
     #[arg(long, default_value_t = false)]
     pub verify_config: bool,
+
+    /// Analyze the AST of Rust files in a given path.
+    #[arg(long, default_value_t = false)]
+    pub analyze_ast: bool,
+    /// The path to the Rust project or file to analyze AST for. Only used if `analyze_ast` is true.
+    #[arg(long)]
+    pub ast_analysis_path: Option<PathBuf>,
 }
 
 #[cfg(test)]
