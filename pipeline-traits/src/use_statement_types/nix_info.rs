@@ -1,16 +1,34 @@
 use std::fmt::Debug;
 
-pub trait NixInfo: Send + Sync + Debug {
-    fn nix_flake_path(&self) -> Option<&str>;
+#[derive(Debug, Clone)]
+pub struct NixInfo {
+    pub flake_path: String,
+    pub output_type: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct NixDetails {
-    pub flake_path: Option<String>,
+pub enum NixDetails {
+    Info(NixInfo),
+    Error(String),
+    Unknown,
 }
 
-impl NixInfo for NixDetails {
+pub trait NixInfoTrait: Send + Sync + Debug {
+    fn nix_flake_path(&self) -> Option<&str>;
+    fn nix_output_type(&self) -> Option<&str>;
+}
+
+impl NixInfoTrait for NixDetails {
     fn nix_flake_path(&self) -> Option<&str> {
-        self.flake_path.as_deref()
+        match self {
+            NixDetails::Info(info) => Some(&info.flake_path),
+            _ => None,
+        }
+    }
+    fn nix_output_type(&self) -> Option<&str> {
+        match self {
+            NixDetails::Info(info) => Some(&info.output_type),
+            _ => None,
+        }
     }
 }

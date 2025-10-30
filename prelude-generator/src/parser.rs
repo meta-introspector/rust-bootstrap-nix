@@ -10,6 +10,7 @@ use prettyplease; // Add this import
 use pipeline_traits::{PipelineFunctor, RawFile, ParsedFile};
 
 // ParseFunctor
+#[allow(dead_code)] // Suppress dead_code warning for ParseFunctor
 pub struct ParseFunctor;
 impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
     fn map<'writer>(

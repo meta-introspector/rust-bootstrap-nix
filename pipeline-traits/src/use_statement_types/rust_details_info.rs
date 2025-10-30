@@ -1,37 +1,42 @@
 use std::fmt::Debug;
-use std::path::PathBuf;
 
-pub trait RustDetailsInfo: Send + Sync + Debug {
-    fn crate_name(&self) -> Option<&str>;
-    fn version(&self) -> Option<&str>;
-    fn internal_external(&self) -> Option<&str>; // "internal", "external"
-    fn local_mount_path(&self) -> Option<&PathBuf>;
-    fn rust_version(&self) -> Option<&str>; // New field for Rust version
+#[derive(Debug, Clone)]
+pub struct RustDetailsInfo {
+    pub version: String,
+    pub crate_name: String,
+    pub item_path: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct RustDetails {
-    pub name: Option<String>,
-    pub version: Option<String>,
-    pub internal_external: Option<String>,
-    pub local_mount_path: Option<PathBuf>,
-    pub rust_version: Option<String>, // New field
+pub enum RustDetails {
+    Info(RustDetailsInfo),
+    Error(String),
+    Unknown,
 }
 
-impl RustDetailsInfo for RustDetails {
-    fn crate_name(&self) -> Option<&str> {
-        self.name.as_deref()
-    }
+pub trait RustDetailsInfoTrait: Send + Sync + Debug {
+    fn version(&self) -> Option<&str>;
+    fn crate_name(&self) -> Option<&str>;
+    fn item_path(&self) -> Option<&str>;
+}
+
+impl RustDetailsInfoTrait for RustDetails {
     fn version(&self) -> Option<&str> {
-        self.version.as_deref()
+        match self {
+            RustDetails::Info(info) => Some(&info.version),
+            _ => None,
+        }
     }
-    fn internal_external(&self) -> Option<&str> {
-        self.internal_external.as_deref()
+    fn crate_name(&self) -> Option<&str> {
+        match self {
+            RustDetails::Info(info) => Some(&info.crate_name),
+            _ => None,
+        }
     }
-    fn local_mount_path(&self) -> Option<&PathBuf> {
-        self.local_mount_path.as_ref()
-    }
-    fn rust_version(&self) -> Option<&str> {
-        self.rust_version.as_deref()
+    fn item_path(&self) -> Option<&str> {
+        match self {
+            RustDetails::Info(info) => Some(&info.item_path),
+            _ => None,
+        }
     }
 }

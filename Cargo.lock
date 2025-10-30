@@ -500,6 +500,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ast-stats-crate"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "pipeline-traits",
+]
+
+[[package]]
 name = "atoi"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2033,6 +2041,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arrow 57.0.0",
+ "ast-stats-crate",
  "chrono",
  "clap",
  "dunce",
@@ -2041,6 +2050,7 @@ dependencies = [
  "indoc",
  "lazy_static",
  "libgit2-sys",
+ "once_cell",
  "parquet 57.0.0",
  "pipeline-traits",
  "prelude-collector",

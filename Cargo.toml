@@ -8,6 +8,6 @@ members = [
     "rust-decl-splitter",
     "rust-system-composer",
     "vendor/rarrow", "metrics-reporter",
-    "vendor/rust/hugging-face-dataset-validator-rust", "pipeline-traits",
+    "vendor/rust/hugging-face-dataset-validator-rust", "pipeline-traits", "generated/crates/ast-stats-crate",
 ]
 

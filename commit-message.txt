@@ -1,0 +1,14 @@
+feat: Refactor pipeline-traits and integrate ast-stats-crate
+
+This commit refactors the `pipeline-traits` crate to properly define `GitDetails`, `NixDetails`, `RustDetails`, `CargoDetails`, `SynDetails`, `LlvmDetails`, and `LinuxDetails` as enums with `Info` variants, and their corresponding `Info` structs. This addresses the "add Info?" request and aligns the data structures with the intended usage.
+
+Key changes include:
+- Moved `AstStatistics` struct definition to `pipeline-traits` to break cyclic dependency between `prelude-generator` and `ast-stats-crate`.
+- Created `ast-stats-crate` to house the generated `AST_STATISTICS` as a static Rust code representation.
+- Updated `prelude-generator` to depend on `ast-stats-crate` and `pipeline-traits`.
+- Refactored all `_info.rs` files in `pipeline-traits/src/use_statement_types/` to use the `Info` enum variant pattern.
+- Updated `pipeline-traits/src/use_statement_types/mod.rs` and `pipeline-traits/src/lib.rs` to correctly re-export the new traits.
+- Updated `prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/classify_uses_functor.rs` to use the new enum and struct fields with a basic heuristic for classification.
+- Fixed all compilation errors and warnings, including unused imports and dead code.
+
+This work enables the `prelude-generator` to leverage statistical insights for more informed parsing and sets the stage for advanced code analysis and generation.

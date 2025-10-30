@@ -1,8 +1,34 @@
 use std::fmt::Debug;
 
-pub trait LinuxInfo: Send + Sync + Debug {}
+#[derive(Debug, Clone)]
+pub struct LinuxInfo {
+    pub kernel_version: String,
+    pub architecture: String,
+}
 
 #[derive(Debug, Clone)]
-pub struct LinuxDetails {}
+pub enum LinuxDetails {
+    Info(LinuxInfo),
+    Error(String),
+    Unknown,
+}
 
-impl LinuxInfo for LinuxDetails {}
+pub trait LinuxInfoTrait: Send + Sync + Debug {
+    fn kernel_version(&self) -> Option<&str>;
+    fn architecture(&self) -> Option<&str>;
+}
+
+impl LinuxInfoTrait for LinuxDetails {
+    fn kernel_version(&self) -> Option<&str> {
+        match self {
+            LinuxDetails::Info(info) => Some(&info.kernel_version),
+            _ => None,
+        }
+    }
+    fn architecture(&self) -> Option<&str> {
+        match self {
+            LinuxDetails::Info(info) => Some(&info.architecture),
+            _ => None,
+        }
+    }
+}
