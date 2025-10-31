@@ -1,27 +1,33 @@
 use anyhow::{Context, Result};
 use std::path::Path;
 use sha2::{Sha256, Digest};
-use indoc::indoc;
+//use indoc::indoc;
 use crate::use_extractor::rustc_info::RustcInfo;
 use crate::error_collector::ErrorSample;
 use chrono::Utc;
 //use tokio::io::AsyncWriteExt;
 use tokio::fs;
 
-pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
-    // Calculate content hash
+pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, crate_root: &Path, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
+    // Calculate content hash based on file_path and crate_root
     let mut hasher = Sha256::new();
+    hasher.update(file_path.to_string_lossy().as_bytes());
+    hasher.update(crate_root.to_string_lossy().as_bytes());
+    // Also hash the content of the file itself, as it might change without file_path changing
+    let content = tokio::fs::read_to_string(file_path).await
+        .with_context(|| format!("Failed to read file content for hashing: {}", file_path.display()))?;
     hasher.update(content.as_bytes());
+
     let content_hash = format!("{:x}", hasher.finalize());
 
-    // Create a unique cache key based on file hash, rustc info, and rustc flags
+    // Create a unique cache key based on file hash, crate root, rustc info, and cargo expand flags
     let cache_key = format!(
         "expanded_{}_{}_{}_{}_{}",
         content_hash,
         rustc_info.version,
         rustc_info.host,
-        "lib", // --crate-type
-        "2021" // --edition
+        "cargo_expand", // Indicate cargo expand was used
+        "2021" // Edition
     );
     let cached_file_path = cache_dir.join(cache_key);
 
@@ -33,51 +39,39 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
         return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
     }
 
-    // If not cached, perform expansion by creating a temporary crate
-    let temp_crate_dir = tempfile::tempdir()?;
-    let temp_crate_path = temp_crate_dir.path();
+    // Calculate relative path for cargo expand
+    let file_path_relative_to_crate_root = file_path.strip_prefix(crate_root)
+        .with_context(|| format!("File path {} is not within crate root {}", file_path.display(), crate_root.display()))?;
 
-    // Create Cargo.toml for the temporary crate
-    let cargo_toml_content = indoc! {
-        r#"[package]
-        name = "temp_crate"
-        version = "0.1.0"
-        edition = "2021"
+    // Determine target triple (assuming host triple for now)
+    let target_triple = rustc_info.host.clone();
 
-        [dependencies.serde]
-        version = "1.0"
-        features = ["derive"]
+    writer.write_all(format!("        -> Running cargo expand for: {} in crate {}", file_path.display(), crate_root.display()).as_bytes()).await?;
+    let output = tokio::process::Command::new("cargo")
+        .arg("expand")
+        .arg("--ugly") // Output less pretty-printed code
+        .arg("--output")
+        .arg("-") // Print to stdout
+        .arg("--color")
+        .arg("never")
+        .arg("--target")
+        .arg(&target_triple)
+        .arg("--") // Arguments after -- are passed to rustc
+        .arg(file_path_relative_to_crate_root)
+        .current_dir(crate_root) // Run cargo expand from the crate root
+        .output().await?;
 
-        [dependencies.serde_json]
-        version = "1.0"
-
-        [dependencies.anyhow]
-        version = "1.0"
-        "#
-    };
-    tokio::fs::write(temp_crate_path.join("Cargo.toml"), cargo_toml_content).await?;
-
-    // Create src directory
-    let temp_src_dir = temp_crate_path.join("src");
-    tokio::fs::create_dir(&temp_src_dir).await?;
-
-    // Write the original content directly to lib.rs of the temporary crate
-    let lib_rs_content = format!(
-        "#![allow(unused_imports)]\n#![allow(dead_code)]\n{}",
-        content
-    );
-    tokio::fs::write(temp_src_dir.join("lib.rs"), lib_rs_content).await?;
 
     writer.write_all(format!("        -> PATH environment variable: {:?}\n", std::env::var("PATH")).as_bytes()).await?;
     writer.write_all(format!("        -> Running cargo rustc -Zunpretty=expanded for: {}\n", file_path.display()).as_bytes()).await?;
-    let output = tokio::process::Command::new("cargo")
-        .arg("rustc")
-        .arg("--")
-        .arg("-Zunpretty=expanded")
-        .arg("--crate-type")
-        .arg("lib")
-        .current_dir(temp_crate_path)
-        .output().await?;
+//     let output = tokio::process::Command::new("cargo")
+//         .arg("rustc")
+//         .arg("--")
+//         .arg("-Zunpretty=expanded")
+//         .arg("--crate-type")
+// //        .arg("lib")
+// //        .current_dir(temp_crate_path)
+//         .output().await?;
 
     writer.write_all(format!("        -> cargo rustc status for {}: {}\n", file_path.display(), output.status).as_bytes()).await?;
     writer.write_all(format!("        -> cargo rustc stdout for {}: {}\n", file_path.display(), String::from_utf8_lossy(&output.stdout)).as_bytes()).await?;

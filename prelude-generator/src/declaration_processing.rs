@@ -7,31 +7,31 @@ use crate::decls_visitor::DeclsVisitor;
 use std::collections::HashMap;
 use crate::use_extractor::expand_macros_and_parse;
 use crate::use_extractor::rustc_info::RustcInfo;
-use crate::use_statements;
-use crate::utils;
 use crate::type_extractor;
 use crate::error_collector::ErrorSample;
+use crate::declaration::Declaration;
+use crate::gem_parser::GemConfig;
 
-pub async fn extract_level0_declarations(
-    project_root: &PathBuf,
+pub async fn extract_all_declarations_from_crate(
+    manifest_path: &Path,
     _args: &crate::Args,
-    type_map: &HashMap<String, type_extractor::TypeInfo>,
+    _type_map: &HashMap<String, type_extractor::TypeInfo>,
     filter_names: &Option<Vec<String>>,
     rustc_info: &RustcInfo,
     cache_dir: &Path,
-    gem_config: &crate::gem_parser::GemConfig,
+    gem_config: &GemConfig,
 ) -> anyhow::Result<(
-    Vec<crate::declaration::Declaration>,
+    Vec<Declaration>,
     usize, // total_files_processed
-    usize,
-    usize,
-    usize,
-    usize,
-    usize,
-    HashMap<usize, usize>,
+    usize, // total_fns
+    usize, // total_structs
+    usize, // total_enums
+    usize, // total_statics
+    usize, // total_other_items
+    HashMap<usize, usize>, // total_structs_per_layer
     Vec<ErrorSample>,
 )> {
-    let mut all_declarations: Vec<crate::declaration::Declaration> = Vec::new();
+    let mut all_declarations: Vec<Declaration> = Vec::new();
     let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
     let mut total_files_processed = 0;
     let mut total_fns = 0;
@@ -42,51 +42,54 @@ pub async fn extract_level0_declarations(
     let total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
 
     let metadata = cargo_metadata::MetadataCommand::new()
-        .manifest_path(project_root.join("Cargo.toml"))
+        .manifest_path(manifest_path)
         .exec()?;
 
-    for package in metadata.packages {
-        for target in package.targets {
-            if target.kind.contains(&"lib".to_string()) || target.kind.contains(&"bin".to_string()) {
-                let path = target.src_path.into_std_path_buf();
-                if let Some(names) = filter_names {
-                    if !names.iter().any(|name| path.to_string_lossy().contains(name)) {
-                        continue;
-                    }
-                }
+    let package = metadata.packages.into_iter().find(|p| p.manifest_path == manifest_path.to_path_buf())
+        .context(format!("Package with manifest path {} not found in metadata", manifest_path.display()))?;
 
-                total_files_processed += 1;
-                println!("  Processing file: {}", path.display());
-                let content = match std::fs::read_to_string(&path) {
-                    Ok(c) => c,
-                    Err(e) => {
-                        eprintln!("Warning: Could not read file {}: {}", path.display(), e);
-                        continue;
-                    }
-                };
+    let crate_root = manifest_path.parent().unwrap();
 
-                let mut writer = tokio::io::stdout();
-                let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
-                    .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
-
-                if let Some(err) = error_sample {
-                    all_collected_errors.push(err);
+    for target in package.targets {
+        if target.kind.contains(&"lib".to_string()) || target.kind.contains(&"bin".to_string()) {
+            let path = target.src_path.into_std_path_buf();
+            if let Some(names) = filter_names {
+                if !names.iter().any(|name| path.to_string_lossy().contains(name)) {
                     continue;
                 }
-
-                let mut visitor = DeclsVisitor::new(gem_config);
-                visitor.visit_file(&file);
-
-                all_declarations.extend(visitor.declarations);
-
-                total_fns += visitor.fn_count;
-                total_structs += visitor.struct_count;
-                total_enums += visitor.enum_count;
-                total_statics += visitor.static_count;
-                total_other_items += visitor.other_item_count;
             }
+
+            total_files_processed += 1;
+            println!("  Processing file: {}", path.display());
+
+            let mut writer = tokio::io::stdout();
+            let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &crate_root, rustc_info, cache_dir).await
+                .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
+
+            if let Some(err) = error_sample {
+                all_collected_errors.push(err);
+                continue;
+            }
+
+            let mut visitor = DeclsVisitor::new(gem_config);
+            visitor.visit_file(&file);
+
+            all_declarations.extend(visitor.declarations);
+
+            total_fns += visitor.fn_count;
+            total_structs += visitor.struct_count;
+            total_enums += visitor.enum_count;
+            total_statics += visitor.static_count;
+            total_other_items += visitor.other_item_count;
         }
     }
+
+    // Filter declarations with no dependencies
+    // This filtering logic will be moved to a separate layering function.
+    // let filtered_declarations: Vec<Declaration> = all_declarations.into_iter().filter(|decl| {
+    //     decl.referenced_types.is_empty() && decl.referenced_functions.is_empty() && decl.external_identifiers.is_empty()
+    // }).collect();
+
 
     Ok((
         all_declarations,
@@ -103,274 +106,87 @@ pub async fn extract_level0_declarations(
 
 pub async fn process_constants(
     all_constants: Vec<syn::ItemConst>,
-    _args: &crate::Args,
-    project_root: &PathBuf,
-    _all_numerical_constants: &mut Vec<syn::ItemConst>,
-    _all_string_constants: &mut Vec<syn::ItemConst>,
-    type_map: &HashMap<String, type_extractor::TypeInfo>,
-) -> anyhow::Result<()> {
-    let generated_decls_output_dir = _args.generated_decls_output_dir.clone().unwrap_or_else(|| {
-        project_root.join("generated/level0_decls")
-    });
-
-    let numerical_output_dir = project_root.join("generated/numerical_constants");
-    println!("Attempting to create numerical constants output directory: {}", numerical_output_dir.display());
-    tokio::fs::create_dir_all(&numerical_output_dir).await?;
-
-
-    let string_output_dir = project_root.join("generated/string_constants");
-    println!("Attempting to create string constants output directory: {}", string_output_dir.display());
-    tokio::fs::create_dir_all(&string_output_dir).await?;
-
-
-    println!("  -> Generated constants will be written to layer-specific directories.");
-
-    let mut errors: Vec<anyhow::Error> = Vec::new();
-
-    for constant in &all_constants {
-        let const_name = constant.ident.to_string();
-        let layer = type_map.get(&const_name).and_then(|info| info.layer).unwrap_or(0);
-        let consts_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("const");
-        println!("Attempting to create directory: {}", consts_output_dir.display());
-        tokio::fs::create_dir_all(&consts_output_dir).await
-            .context(format!("Failed to create output directory {:?}", consts_output_dir))?;
-
-        let file_name = format!("{}.rs", const_name);
-        let output_path = consts_output_dir.join(&file_name);
-        println!("Attempting to write file: {}", output_path.display());
-        let result = async {
-            let tokens = quote! { #constant };
-            let mut code = tokens.to_string();
-
-            let required_uses = use_statements::get_required_uses_for_item_const(&constant);
-            code = format!("{}{}", required_uses, code);
-
-            tokio::fs::write(&output_path, code.as_bytes()).await
-                .context(format!("Failed to write constant {:?} to {:?}", const_name, output_path))?;
-            println!("  -> Wrote constant {:?} to {:?}", const_name, output_path);
-
-            // Format the generated code
-            utils::format_rust_code(&output_path).await
-                .context(format!("Constant {:?} formatting failed for {:?}", const_name, output_path))?;
-            println!("  -> Constant {:?} formatted successfully.\n", const_name);
-
-            // Validate the generated code
-            utils::validate_rust_code(&output_path).await
-                .context(format!("Constant {:?} validation failed for {:?}", const_name, output_path))?;
-            println!(r"  -> Constant {:?} validated successfully.\n", const_name);
-            Ok(())
-        }.await;
-
-        if let Err(e) = result {
-            eprintln!(r"Error processing constant {}: {:?}\n", const_name, e);
-            errors.push(e);
-        }
-    }
-
-    if !errors.is_empty() {
-        eprintln!(r"\n--- Errors Encountered during constant processing ---");
-        for error in &errors {
-            eprintln!(r"{:?}", error);
-        }
-        eprintln!(r"-----------------------------------------------------");
-        return Err(anyhow::anyhow!("Constant processing completed with errors."));
-    } else {
-        println!(r"Declaration processing completed successfully.");
-        return Ok(())
-    }
-}
-
-pub async fn process_structs(
-    all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>>,
     args: &crate::Args,
     project_root: &PathBuf,
+    all_numerical_constants: &mut Vec<syn::ItemConst>,
+    all_string_constants: &mut Vec<syn::ItemConst>,
     _type_map: &HashMap<String, type_extractor::TypeInfo>,
 ) -> anyhow::Result<()> {
     let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
         project_root.join("generated/level0_decls")
     });
+    let constants_output_dir = generated_decls_output_dir.join("constants");
+    tokio::fs::create_dir_all(&constants_output_dir).await
+        .context(format!("Failed to create output directory {:?}", constants_output_dir))?;
 
-    println!("  -> Generated structs will be written to layer-specific directories.");
+    println!("  -> Generated constants will be written to: {:?}", constants_output_dir);
 
-    let mut errors: Vec<anyhow::Error> = Vec::new();
+    for constant in all_constants {
+        let const_name = constant.ident.to_string();
+        let file_name = format!("{}.rs", const_name);
+        let output_path = constants_output_dir.join(&file_name);
+        let content = quote! { #constant }.to_string();
 
-    // Only process structs for layer 0 for now, as per requirement
-    if let Some(layer0_structs) = all_structs_by_layer.get(&0) {
-        for structure in layer0_structs {
-            let struct_name = structure.ident.to_string();
-            let layer = 0; // Explicitly set to 0 for Level 0 processing
-            let structs_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("struct");
-            println!("Attempting to create directory: {}", structs_output_dir.display());
-            tokio::fs::create_dir_all(&structs_output_dir).await
-                .context(format!("Failed to create output directory {:?}, for struct {}", structs_output_dir, struct_name))?;
+        tokio::fs::write(&output_path, content.as_bytes()).await
+            .context(format!("Failed to write constant {:?} to {:?}", const_name, output_path))?;
+        println!("  -> Wrote constant {:?} to {:?}", const_name, output_path);
 
-            let file_name = format!("{}.rs", struct_name);
-            let output_path = structs_output_dir.join(&file_name);
-            println!("Attempting to write file: {}", output_path.display());
-            let content = quote::quote! { #structure }.to_string();
-            let code = match struct_name.as_str() {
-                "DeclsVisitor" => {
-                    format!("use syn::{{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Item}};
-{}", content)
-                },
-                "TypeCollector" => {
-                    format!("use std::collections::HashMap;
-use crate::type_extractor::TypeInfo;
-{}", content)
-                },
-                _ => content,
-            };
-
-            let result = async {
-                tokio::fs::write(&output_path, code.as_bytes()).await
-                    .context(format!("Failed to write struct {:?} to {:?}", struct_name, output_path))?;
-                println!("  -> Wrote struct {:?} to {:?}", struct_name, output_path);
-
-                // Format the generated code
-                utils::format_rust_code(&output_path).await
-                    .context(format!("Struct {:?} formatting failed for {:?}", struct_name, output_path))?;
-                println!("  -> Struct {:?} formatted successfully.\n", struct_name);
-
-                // Validate the generated code
-                utils::validate_rust_code(&output_path).await
-                    .context(format!("Struct {:?} validation failed for {:?}", struct_name, output_path))?;
-                println!(r"  -> Struct {:?} validated successfully.\n", struct_name);
-                Ok(())
-            }.await;
-
-            if let Err(e) = result {
-                eprintln!(r"Error processing struct {}: {:?}\n", struct_name, e);
-                errors.push(e);
+        // Determine if it's a numerical or string constant and add to respective vectors
+        if let syn::Expr::Lit(expr_lit) = &constant.expr.as_ref() {
+            match &expr_lit.lit {
+                syn::Lit::Int(_) | syn::Lit::Float(_) => all_numerical_constants.push(constant.clone()),
+                syn::Lit::Str(_) => all_string_constants.push(constant.clone()),
+                _ => {},
             }
         }
-    } else {
-        println!("No Level 0 structs found to process.");
     }
 
-    if !errors.is_empty() {
-        eprintln!(r"\n--- Errors Encountered during struct processing ---");
-        for error in &errors {
-            eprintln!(r"{:?}", error);
+    Ok(())
+}
+
+pub fn layer_declarations(
+    all_declarations: Vec<Declaration>,
+) -> HashMap<usize, Vec<Declaration>> {
+    let mut layered_decls: HashMap<usize, Vec<Declaration>> = HashMap::new();
+    let mut remaining_decls = all_declarations;
+    let mut current_layer_num = 0;
+
+    loop {
+        if remaining_decls.is_empty() {
+            break;
         }
-        eprintln!(r"---------------------------------------------------");
-        return Err(anyhow::anyhow!("Struct processing completed with errors."));
-    } else {
-        println!(r"Declaration processing completed successfully.");
-        return Ok(())
-    }
-}
 
-pub fn generate_constants_module(constants: &[syn::ItemConst]) -> String {
-    let generated_decl_strings: Vec<String> = constants.iter().map(|c| {
-        let tokens = quote! { #c };
-        tokens.to_string()
-    }).collect();
+        let mut current_layer_decls = Vec::new();
+        let mut next_remaining_decls = Vec::new();
+        let mut current_layer_idents = std::collections::HashSet::new();
 
-    if generated_decl_strings.is_empty() {
-        return "// No constant declarations found in this module.\n".to_string();
-    }
+        // Identify declarations for the current layer
+        for decl in remaining_decls.into_iter() {
+            let has_unresolved_deps = decl.referenced_types.iter().any(|dep| {
+                !current_layer_idents.contains(dep) && !layered_decls.values().flatten().any(|d| d.get_identifier() == *dep)
+            });
 
-    let header = "// This module contains extracted constant declarations.\n// It is automatically generated.\n\n";
-    let joined_decls = generated_decl_strings.join("\n\n");
+            if !has_unresolved_deps {
+                current_layer_idents.insert(decl.get_identifier());
+                current_layer_decls.push(decl);
+            } else {
+                next_remaining_decls.push(decl);
+            }
+        }
 
-    format!("{}{}", header, joined_decls)
-}
+        if current_layer_decls.is_empty() {
+            // No new declarations could be layered, break to prevent infinite loop
+            break;
+        }
 
-pub fn generate_structs_module(structs: &[syn::ItemStruct]) -> String {
-    let generated_decl_strings: Vec<String> = structs.iter().map(|s| {
-        let tokens = quote! { #s };
-        tokens.to_string()
-    }).collect();
+        layered_decls.insert(current_layer_num, current_layer_decls);
+        remaining_decls = next_remaining_decls;
+        current_layer_num += 1;
 
-    if generated_decl_strings.is_empty() {
-        return "// No struct declarations found in this module.\n".to_string();
-    }
-
-    let header = "// This module contains extracted struct declarations.\n// It is automatically generated.\n\n";
-    let joined_decls = generated_decl_strings.join("\n\n");
-
-    format!("{}{}", header, joined_decls)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Args;
-    use crate::type_extractor::{self};
-    use std::collections::HashMap;
-    use std::path::PathBuf;
-    use tokio;
-
-    // Helper function to set up a minimal test project
-    async fn setup_test_project(test_dir_name: &str) -> anyhow::Result<PathBuf> {
-        let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("temp_test_projects").join(test_dir_name);
-        let src_dir = project_root.join("src");
-        tokio::fs::create_dir_all(&src_dir).await?;
-
-        let cargo_toml_content = r#"#
-[package]
-name = "test_project"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-path = "src/lib.rs"
-#"#;
-        tokio::fs::write(project_root.join("Cargo.toml"), cargo_toml_content).await?;
-
-        let lib_rs_content = r#"#
-pub const TEST_NUM_CONST: u32 = 123;
-pub const TEST_STR_CONST: &str = "hello";
-
-pub struct TestStruct {
-    pub field1: u32,
-    field2: String,
-}
-
-pub enum TestEnum {
-    Variant1,
-    Variant2(u32),
-}
-
-pub fn test_function() -> u32 {
-    TEST_NUM_CONST
-}
-#"#;
-        tokio::fs::write(src_dir.join("lib.rs"), lib_rs_content).await?;
-
-        Ok(project_root)
+        if current_layer_num > 8 { // Stop at layer 8 as per requirement
+            break;
+        }
     }
 
-    #[tokio::test]
-    async fn test_extract_level0_declarations_minimal() -> anyhow::Result<()> {
-        let test_project_root = setup_test_project("minimal_project").await?;
-
-        let args = Args {
-            path: test_project_root.clone(),
-            ..Default::default()
-        };
-
-        // Extract type map first
-        let type_map = type_extractor::extract_bag_of_types(&test_project_root, &None).await?;
-
-        // Call the function under test
-        let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, l0_structs) =
-            extract_level0_declarations(&test_project_root, &args, &type_map, &None).await?;
-
-        // Assertions
-        assert_eq!(total_files_processed, 1);
-        assert_eq!(constants.len(), 2); // TEST_NUM_CONST, TEST_STR_CONST
-        assert_eq!(structs.len(), 1); // TestStruct
-        assert_eq!(enums, 1); // TestEnum
-        assert_eq!(fns, 1); // test_function
-        assert_eq!(s_structs, 1); // Assert that s_structs is 1
-        assert_eq!(statics, 0); // Assert that statics is 0
-        assert_eq!(other_items, 0); // Assert that other_items is 0
-        assert_eq!(l0_structs, 1); // Assert that l0_structs is 1
-
-        // Clean up the temporary project
-        tokio::fs::remove_dir_all(&test_project_root).await?;
-
-        Ok(())
-    }
+    layered_decls
 }

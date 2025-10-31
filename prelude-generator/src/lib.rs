@@ -28,7 +28,7 @@ pub mod command_handlers;
 pub mod type_extractor;
 //pub mod global_level0_decls;
 pub use args::Args;
-pub use declaration_processing::{extract_level0_declarations, process_constants, process_structs};
+//pub use declaration_processing::{extract_level0_declarations, process_structs};
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;
 pub use modify_file::modify_file;

@@ -84,17 +84,29 @@
           pkgs.rust-analyzer
           pkgs.openssl
           pkgs.pkg-config
-          packages = with pkgs; [
-          rust-bin.nightly.latest.default
-          cargo-watch
-          cargo-expand
-          prettyplease
-          rustfmt
-        ];
-          PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
-          OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
-          OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
-          RUST_SRC_PATH = "${rustSrcFlake}/library";
-          };
-          };
-          }
+          pkgs.cargo-watch
+          pkgs.cargo-expand
+          pkgs.rustfmt
+        ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        RUST_SRC_PATH = "${rustSrcFlake}/library";
+      };
+    };
+}
+
+#   +          packages = with pkgs; [
+# +          rust-bin.nightly.latest.default
+# +          cargo-watch
+# +          cargo-expand
+# +          prettyplease
+# +          rustfmt
+# +        ];
+# +          PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+# +          OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+# +          OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+# +          RUST_SRC_PATH = "${rustSrcFlake}/library";
+# +          };
+# +          };
+# +          }

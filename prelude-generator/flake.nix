@@ -19,8 +19,8 @@
     {
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
+          pkgs.rust-bin.nightly.latest.default # Use nightly Rust toolchain
           pkgs.cargo
-          pkgs.rustc
           pkgs.pkg-config
           pkgs.openssl
           hf-dataset-validator.packages.${system}.default # Add hf-dataset-validator to PATH
