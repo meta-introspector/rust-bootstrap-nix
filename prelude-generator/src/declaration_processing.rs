@@ -31,8 +31,6 @@ pub async fn extract_level0_declarations(
     HashMap<usize, usize>,
     Vec<ErrorSample>,
 )> {
-    let src_dir = project_root.join("src");
-    println!("Attempting to read directory: {}", src_dir.display());
     let mut all_declarations: Vec<crate::declaration::Declaration> = Vec::new();
     let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
     let mut total_files_processed = 0;
@@ -41,43 +39,52 @@ pub async fn extract_level0_declarations(
     let mut total_enums = 0;
     let mut total_statics = 0;
     let mut total_other_items = 0;
-    let mut total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
+    let total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
 
-    for entry in std::fs::read_dir(&src_dir)?
-        .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map_or(false, |ext| ext == "rs"))
-        .filter(|e| {
-            if let Some(names) = filter_names {
-                names.iter().any(|name| e.file_name().to_string_lossy().contains(name))
-            } else {
-                true
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .manifest_path(project_root.join("Cargo.toml"))
+        .exec()?;
+
+    for package in metadata.packages {
+        for target in package.targets {
+            if target.kind.contains(&"lib".to_string()) || target.kind.contains(&"bin".to_string()) {
+                let path = target.src_path.into_std_path_buf();
+                if let Some(names) = filter_names {
+                    if !names.iter().any(|name| path.to_string_lossy().contains(name)) {
+                        continue;
+                    }
+                }
+
+                total_files_processed += 1;
+                println!("  Processing file: {}", path.display());
+                let content = match std::fs::read_to_string(&path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Warning: Could not read file {}: {}", path.display(), e);
+                        continue;
+                    }
+                };
+
+                let mut writer = tokio::io::stdout();
+                let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
+                    .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
+
+                if let Some(err) = error_sample {
+                    all_collected_errors.push(err);
+                    continue;
+                }
+
+                let mut visitor = DeclsVisitor::new(gem_config);
+                visitor.visit_file(&file);
+
+                all_declarations.extend(visitor.declarations);
+
+                total_fns += visitor.fn_count;
+                total_structs += visitor.struct_count;
+                total_enums += visitor.enum_count;
+                total_statics += visitor.static_count;
+                total_other_items += visitor.other_item_count;
             }
-        })
-    {
-        let path = entry.path();
-
-        if path.is_file() && path.extension().map_or(false, |ext| ext == "rs") {
-            total_files_processed += 1;
-            println!("  Processing file: {}", path.display());
-            let content = std::fs::read_to_string(&path)?;
-            let mut writer = tokio::io::stdout(); // Or a specific log file writer
-            let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
-                .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
-            if let Some(err) = error_sample {
-                all_collected_errors.push(err);
-                continue; // Skip further processing for this file if macro expansion failed
-            }
-
-            let mut visitor = DeclsVisitor::new(gem_config);
-            visitor.visit_file(&file);
-
-            all_declarations.extend(visitor.declarations);
-
-            total_fns += visitor.fn_count;
-            total_structs += visitor.struct_count;
-            total_enums += visitor.enum_count;
-            total_statics += visitor.static_count;
-            total_other_items += visitor.other_item_count;
         }
     }
 
