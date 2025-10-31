@@ -2,7 +2,7 @@
 
 # Navigate to the directory containing this script
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR" || exit
 
 # Define the actual project root for prelude-generator (parent of standalonex)
 PRELUDE_GENERATOR_PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

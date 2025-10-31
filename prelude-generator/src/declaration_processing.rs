@@ -22,7 +22,7 @@ pub async fn extract_level0_declarations(
     usize,
     usize,
 )> {
-    let src_dir = project_root.join("prelude-generator/src");
+    let src_dir = project_root.join("src");
     println!("Attempting to read directory: {}", src_dir.display());
     let mut all_constants: Vec<syn::ItemConst> = Vec::new();
     let mut all_layer0_structs: Vec<syn::ItemStruct> = Vec::new();
