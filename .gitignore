@@ -41,3 +41,6 @@ standalonex/test_minimal/result
 /standalonex/libglobal_level0_decls.rmeta
 /standalonex/libself_generated_code.rmeta
 *.rmeta
+
+# Ignore prelude-generator cache files
+standalonex/min_test_project/.prelude_cache/

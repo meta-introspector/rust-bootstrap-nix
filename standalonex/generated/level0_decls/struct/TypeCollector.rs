@@ -1,0 +1,1 @@
+pub struct TypeCollector < 'a > { pub type_counts : & 'a mut HashMap < String , usize > , }

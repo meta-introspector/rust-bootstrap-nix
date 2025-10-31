@@ -1,0 +1,2 @@
+use serde::{Serialize, Deserialize};
+# [derive (Debug , Serialize , Deserialize)] pub struct PipelineState { pub stage_results : Vec < StageResult > , pub processed_files : Vec < String > , pub batches_run : usize , }

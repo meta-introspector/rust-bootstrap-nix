@@ -37,6 +37,13 @@
     *   Removed the initial helper function implementations for writing numerical and string constants from `prelude-generator/src/main.rs`, moving their conceptual documentation to the new Markdown files.
     *   Updated `functional.md` to include links to the new constant storage documentation.
 
+8.  **Declaration Grouping and "Gem" Implementation:**
+    *   Began implementation of the "bag of words" and "coordinate grouping" functionality in `prelude-generator`.
+    *   Modified `prelude-generator/src/decls_visitor.rs` and related files to support declaration analysis.
+    *   Introduced `prelude-generator/gems.toml` to define primitive modules (or "gems") for the code lattice.
+    *   Added `prelude-generator/src/gem_parser.rs` to parse the `gems.toml` configuration.
+    *   Added and modified test files and scripts in `standalonex/` to validate the new functionality, producing artifacts like `standalonex/generated_min_decls/` and `standalonex/min_test_project/collected_errors.json`.
+
 ## Current Blocking Issue:
 
 *   **Locating `rust-system-composer`'s `main` function:** The `rust-system-composer/src/main.rs` file consistently returns re-exports, and attempts to locate the actual `fn main()` function have been unsuccessful. This is preventing further progress on using `rust-system-composer` to process all code into Parquet.

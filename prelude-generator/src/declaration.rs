@@ -17,6 +17,7 @@ pub struct Declaration {
     pub referenced_types: HashSet<String>,
     pub referenced_functions: HashSet<String>,
     pub external_identifiers: HashSet<String>,
+    pub gem_identifiers: HashSet<String>,
     // Add other metadata as needed, e.g., source file, layer, etc.
 }
 
@@ -26,12 +27,14 @@ impl Declaration {
         referenced_types: HashSet<String>,
         referenced_functions: HashSet<String>,
         external_identifiers: HashSet<String>,
+        gem_identifiers: HashSet<String>,
     ) -> Self {
         Declaration {
             item,
             referenced_types,
             referenced_functions,
             external_identifiers,
+            gem_identifiers,
         }
     }
 }

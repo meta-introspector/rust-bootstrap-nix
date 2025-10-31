@@ -10,6 +10,7 @@ use crate::use_extractor::rustc_info::RustcInfo;
 use crate::use_statements;
 use crate::utils;
 use crate::type_extractor;
+use crate::error_collector::ErrorSample;
 
 pub async fn extract_level0_declarations(
     project_root: &PathBuf,
@@ -18,9 +19,9 @@ pub async fn extract_level0_declarations(
     filter_names: &Option<Vec<String>>,
     rustc_info: &RustcInfo,
     cache_dir: &Path,
+    gem_config: &crate::gem_parser::GemConfig,
 ) -> anyhow::Result<(
-    Vec<syn::ItemConst>,
-    HashMap<usize, Vec<syn::ItemStruct>>,
+    Vec<crate::declaration::Declaration>,
     usize, // total_files_processed
     usize,
     usize,
@@ -28,11 +29,12 @@ pub async fn extract_level0_declarations(
     usize,
     usize,
     HashMap<usize, usize>,
+    Vec<ErrorSample>,
 )> {
     let src_dir = project_root.join("src");
     println!("Attempting to read directory: {}", src_dir.display());
-    let mut all_constants: Vec<syn::ItemConst> = Vec::new();
-    let mut all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>> = HashMap::new();
+    let mut all_declarations: Vec<crate::declaration::Declaration> = Vec::new();
+    let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
     let mut total_files_processed = 0;
     let mut total_fns = 0;
     let mut total_structs = 0;
@@ -59,21 +61,17 @@ pub async fn extract_level0_declarations(
             println!("  Processing file: {}", path.display());
             let content = std::fs::read_to_string(&path)?;
             let mut writer = tokio::io::stdout(); // Or a specific log file writer
-            let file = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
+            let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
                 .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
-
-            let mut visitor = DeclsVisitor::new();
-            visitor.visit_file(&file);
-
-            // Filter structs based on layer information
-            for structure in visitor.all_structs {
-                let struct_name = structure.ident.to_string();
-                let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
-                all_structs_by_layer.entry(layer).or_insert_with(Vec::new).push(structure);
-                *total_structs_per_layer.entry(layer).or_insert(0) += 1;
+            if let Some(err) = error_sample {
+                all_collected_errors.push(err);
+                continue; // Skip further processing for this file if macro expansion failed
             }
 
-            all_constants.extend(visitor.constants);
+            let mut visitor = DeclsVisitor::new(gem_config);
+            visitor.visit_file(&file);
+
+            all_declarations.extend(visitor.declarations);
 
             total_fns += visitor.fn_count;
             total_structs += visitor.struct_count;
@@ -84,8 +82,7 @@ pub async fn extract_level0_declarations(
     }
 
     Ok((
-        all_constants,
-        all_structs_by_layer,
+        all_declarations,
         total_files_processed,
         total_fns,
         total_structs,
@@ -93,6 +90,7 @@ pub async fn extract_level0_declarations(
         total_statics,
         total_other_items,
         total_structs_per_layer,
+        all_collected_errors,
     ))
 }
 

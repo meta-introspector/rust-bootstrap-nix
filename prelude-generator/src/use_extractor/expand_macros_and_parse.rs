@@ -3,10 +3,12 @@ use std::path::Path;
 use sha2::{Sha256, Digest};
 use indoc::indoc;
 use crate::use_extractor::rustc_info::RustcInfo;
+use crate::error_collector::ErrorSample;
+use chrono::Utc;
 //use tokio::io::AsyncWriteExt;
 use tokio::fs;
 
-pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<syn::File> {
+pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, content: &str, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
     // Calculate content hash
     let mut hasher = Sha256::new();
     hasher.update(content.as_bytes());
@@ -28,7 +30,7 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
         writer.write_all(format!("      -> Using cached expanded code for: {}\n", file_path.display()).as_bytes()).await?;
     let expanded_code = fs::read_to_string(&cached_file_path).await
         .with_context(|| format!("Failed to read cached expanded code for {}", file_path.display()))?;
-        return syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()));
+        return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
     }
 
     // If not cached, perform expansion by creating a temporary crate
@@ -80,8 +82,23 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     writer.write_all(format!("        -> cargo rustc status for {}: {}\n", file_path.display(), output.status).as_bytes()).await?;
     writer.write_all(format!("        -> cargo rustc stdout for {}: {}\n", file_path.display(), String::from_utf8_lossy(&output.stdout)).as_bytes()).await?;
     if !output.status.success() {
-        writer.write_all(format!("        -> cargo rustc stderr for {}: {}\n", file_path.display(), String::from_utf8_lossy(&output.stderr)).as_bytes()).await.context("Failed to write rustc error to writer")?;
-        return Err(anyhow::anyhow!("cargo rustc macro expansion failed: {}", String::from_utf8_lossy(&output.stderr)));
+        let error_message = format!("cargo rustc macro expansion failed: {}\nStdout: {}\nStderr: {}",
+            String::from_utf8_lossy(&output.stderr),
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        writer.write_all(format!("        -> {}\n", error_message).as_bytes()).await.context("Failed to write rustc error to writer")?;
+        let error_sample = ErrorSample {
+            file_path: file_path.to_path_buf(),
+            rustc_version: rustc_info.version.clone(),
+            rustc_host: rustc_info.host.clone(),
+            error_message: error_message.clone(),
+            error_type: "MacroExpansionFailed".to_string(),
+            code_snippet: Some(content.to_string()),
+            timestamp: Utc::now(),
+            context: None,
+        };
+        return Ok((syn::parse_file("").unwrap(), Some(error_sample))); // Return a dummy syn::File and the error sample
     }
 
     let expanded_code = String::from_utf8_lossy(&output.stdout).to_string();
@@ -98,5 +115,22 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     writer.write_all(format!("      -> Wrote expanded code to cache: {}\n", cached_file_path.display()).as_bytes()).await?;
 
     writer.write_all(format!("        -> Parsing expanded code for: {}\n", file_path.display()).as_bytes()).await?;
-    return syn::parse_file(&relevant_expanded_code).with_context(|| format!("Failed to parse expanded code for {}", file_path.display()));
+    match syn::parse_file(&relevant_expanded_code) {
+        Ok(file) => Ok((file, None)),
+        Err(e) => {
+            let error_message = format!("Failed to parse expanded code for {}: {}", file_path.display(), e);
+            writer.write_all(format!("        -> {}\n", error_message).as_bytes()).await.context("Failed to write parsing error to writer")?;
+            let error_sample = ErrorSample {
+                file_path: file_path.to_path_buf(),
+                rustc_version: rustc_info.version.clone(),
+                rustc_host: rustc_info.host.clone(),
+                error_message: error_message.clone(),
+                error_type: "SynParsingFailed".to_string(),
+                code_snippet: Some(relevant_expanded_code.to_string()),
+                timestamp: Utc::now(),
+                context: None,
+            };
+            Ok((syn::parse_file("").unwrap(), Some(error_sample))) // Return a dummy syn::File and the error sample
+        }
+    }
 }

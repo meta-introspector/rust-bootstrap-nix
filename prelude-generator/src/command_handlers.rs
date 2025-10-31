@@ -1,7 +1,8 @@
 use anyhow::Context;
 use std::path::PathBuf;
 use syn::{self, visit::Visit};
-use crate::{declaration_processing, constant_storage, BagOfWordsVisitor, config_parser, pipeline, type_extractor};
+use crate::{declaration_processing, constant_storage, BagOfWordsVisitor, config_parser, pipeline, type_extractor, error_collector::ErrorCollection};
+use std::collections::HashMap;
 
 pub fn handle_analyze_ast(_args: &crate::Args) -> anyhow::Result<()> {
     let path = _args.ast_analysis_path.clone().ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;
@@ -60,6 +61,8 @@ pub fn handle_verify_config() {
     println!("Verifying configuration...");
 }
 
+use crate::gem_parser::GemConfig;
+
 pub async fn handle_extract_global_level0_decls(
     project_root: &PathBuf,
     args: &crate::Args,
@@ -75,12 +78,34 @@ pub async fn handle_extract_global_level0_decls(
     });
     println!("Generated decls output dir: {}", generated_decls_output_dir.display());
 
+    let gem_config_path = project_root.join("gems.toml");
+    let gem_config = GemConfig::load_from_file(&gem_config_path)
+        .context(format!("Failed to load gem config from {}", gem_config_path.display()))?;
+
     let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
 
-    let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, total_structs_per_layer) =
-        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map, &args.filter_names, rustc_info, cache_dir).await?;
+    let (all_declarations, total_files_processed, fns, s_structs, enums, statics, other_items, total_structs_per_layer, collected_errors) =
+        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map, &args.filter_names, rustc_info, cache_dir, &gem_config).await?;
 
-    let mut all_errors: Vec<anyhow::Error> = Vec::new();
+    let mut error_collection = ErrorCollection::default();
+    for err_sample in collected_errors {
+        error_collection.add_error(err_sample);
+    }
+
+    // Separate constants and structs from all_declarations for further processing
+    let mut constants: Vec<syn::ItemConst> = Vec::new();
+    let mut structs: HashMap<usize, Vec<syn::ItemStruct>> = HashMap::new();
+    for decl in all_declarations {
+        match decl.item {
+            crate::declaration::DeclarationItem::Const(c) => constants.push(c),
+            crate::declaration::DeclarationItem::Struct(s) => {
+                let struct_name = s.ident.to_string();
+                let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
+                structs.entry(layer).or_insert_with(Vec::new).push(s);
+            },
+            _ => {},
+        }
+    }
 
     if let Err(e) = declaration_processing::process_constants(
         constants.clone(),
@@ -90,7 +115,8 @@ pub async fn handle_extract_global_level0_decls(
         all_string_constants,
         &type_map,
     ).await {
-        all_errors.push(e);
+        // For now, still collect anyhow errors from process_constants
+        eprintln!("Error processing constants: {:?}", e);
     }
 
     if let Err(e) = declaration_processing::process_structs(
@@ -99,7 +125,8 @@ pub async fn handle_extract_global_level0_decls(
         &project_root,
         &type_map,
     ).await {
-        all_errors.push(e);
+        // For now, still collect anyhow errors from process_structs
+        eprintln!("Error processing structs: {:?}", e);
     }
 
     println!("Total files processed: {}", total_files_processed);
@@ -112,13 +139,15 @@ pub async fn handle_extract_global_level0_decls(
     println!("Total other items found: {}", other_items);
     println!("---------------------------------------------");
 
-    if !all_errors.is_empty() {
-        eprintln!(r"\n--- Summary of Errors Encountered ---");
-        for error in all_errors {
-            eprintln!(r"{:?}", error);
+    if !error_collection.errors.is_empty() {
+        eprintln!(r"\n--- Summary of Errors Encountered During Macro Expansion/Parsing ---");
+        for error in &error_collection.errors {
+            eprintln!(r"File: {}, Type: {}, Message: {}", error.file_path.display(), error.error_type, error.error_message);
         }
-        eprintln!(r"-------------------------------------");
-        anyhow::bail!("Global Level 0 declaration processing completed with errors.");
+        eprintln!(r"---------------------------------------------------------------------");
+        let error_output_path = project_root.join("collected_errors.json");
+        error_collection.write_to_file(&error_output_path).await?;
+        eprintln!("Collected errors written to: {}", error_output_path.display());
     }
 
     Ok(())

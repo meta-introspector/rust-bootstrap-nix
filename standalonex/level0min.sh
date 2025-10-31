@@ -19,4 +19,5 @@ echo "Running prelude-generator to extract Level 0 declarations from minimal tes
 cargo run --bin prelude-generator -- \
     --extract-global-level0-decls \
     --path "$MIN_TEST_PROJECT_ROOT" \
-    --generated-decls-output-dir "$SCRIPT_DIR/generated_min_decls"
+    --generated-decls-output-dir "$SCRIPT_DIR/generated_min_decls" \
+    --filter-names lib.rs,malformed.rs
