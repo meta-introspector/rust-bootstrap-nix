@@ -43,10 +43,10 @@
 
 ## Next Steps:
 
-1.  **Integrate constant extraction calls in `main.rs`**:
-    *   **Action:** Modify the `if args.extract_global_level0_decls` block in `prelude-generator/src/main.rs` to collect `all_numerical_constants` and `all_string_constants` from `Level0DeclsVisitor`.
-    *   **Action:** Add placeholder calls to `write_numerical_constants_to_hierarchical_structure` and `write_string_constants_to_hierarchical_structure` within `main.rs`, guarded by their respective CLI arguments (`--extract-numerical-constants`, `--extract-string-constants`).
-    *   **Action:** Update the final "No specific command executed" check to include the new constant extraction arguments.
+1.  **Refactor `prelude-generator/src/main.rs`**:
+    *   **Action:** The constant extraction calls have been integrated into `prelude-generator/src/main.rs`.
+    *   **Action:** Split the `main.rs` file into separate functions for processing structs and constants to improve modularity and readability.
+    *   **Action:** Ensure all internal calls within the extracted functions and the `main` function use the `prelude_generator::` prefix where necessary.
 
 2.  **Refine hierarchical directory structure for constants**:
     *   **Goal:** Enhance the logic within the conceptual `write_numerical_constants_to_hierarchical_structure` and `write_string_constants_to_hierarchical_structure` functions (as documented in Markdown) to create actual sorted, hierarchical directories based on constant properties (e.g., hash, value prefixes), and ensure 4KB file blocking.

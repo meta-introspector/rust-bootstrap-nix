@@ -135,6 +135,10 @@ pub struct Args {
     /// Extract and organize string constants into a hierarchical directory structure.
     #[arg(long, default_value_t = false)]
     pub extract_string_constants: bool,
+
+    /// Calculate and report the layer of each type in the project.
+    #[arg(long, default_value_t = false)]
+    pub calculate_layers: bool,
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 use syn::{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Ident};
 use std::collections::HashMap;
-use regex::{Regex, Captures};
+use regex::Regex;
 use once_cell::sync::Lazy;
 
 // Lazy static regex for splitting identifiers
