@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     if args.calculate_layers {
-        crate::command_handlers::handle_calculate_layers(&project_root).await?;
+        crate::command_handlers::handle_calculate_layers(&project_root, &args).await?;
     }
 
     // If no specific command was executed, print help or a default message

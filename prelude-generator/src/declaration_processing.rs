@@ -10,6 +10,7 @@ pub async fn extract_level0_declarations(
     project_root: &PathBuf,
     _args: &crate::Args,
     type_map: &HashMap<String, type_extractor::TypeInfo>,
+    filter_names: &Option<Vec<String>>,
 ) -> anyhow::Result<(
     Vec<syn::ItemConst>,
     Vec<syn::ItemStruct>,
@@ -22,6 +23,7 @@ pub async fn extract_level0_declarations(
     usize,
 )> {
     let src_dir = project_root.join("prelude-generator/src");
+    println!("Attempting to read directory: {}", src_dir.display());
     let mut all_constants: Vec<syn::ItemConst> = Vec::new();
     let mut all_layer0_structs: Vec<syn::ItemStruct> = Vec::new();
     let mut total_files_processed = 0;
@@ -32,8 +34,17 @@ pub async fn extract_level0_declarations(
     let mut total_other_items = 0;
     let mut total_layer0_structs = 0;
 
-    for entry in std::fs::read_dir(&src_dir)? {
-        let entry = entry?;
+    for entry in std::fs::read_dir(&src_dir)?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().map_or(false, |ext| ext == "rs"))
+        .filter(|e| {
+            if let Some(names) = filter_names {
+                names.iter().any(|name| e.file_name().to_string_lossy().contains(name))
+            } else {
+                true
+            }
+        })
+    {
         let path = entry.path();
 
         if path.is_file() && path.extension().map_or(false, |ext| ext == "rs") {
@@ -89,6 +100,16 @@ pub async fn process_constants(
         project_root.join("generated/level0_decls")
     });
 
+    let numerical_output_dir = project_root.join("generated/numerical_constants");
+    println!("Attempting to create numerical constants output directory: {}", numerical_output_dir.display());
+    tokio::fs::create_dir_all(&numerical_output_dir).await?;
+
+
+    let string_output_dir = project_root.join("generated/string_constants");
+    println!("Attempting to create string constants output directory: {}", string_output_dir.display());
+    tokio::fs::create_dir_all(&string_output_dir).await?;
+
+
     println!("  -> Generated constants will be written to layer-specific directories.");
 
     let mut errors: Vec<anyhow::Error> = Vec::new();
@@ -97,13 +118,13 @@ pub async fn process_constants(
         let const_name = constant.ident.to_string();
         let layer = type_map.get(&const_name).and_then(|info| info.layer).unwrap_or(0);
         let consts_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("const");
-
+        println!("Attempting to create directory: {}", consts_output_dir.display());
         tokio::fs::create_dir_all(&consts_output_dir).await
             .context(format!("Failed to create output directory {:?}", consts_output_dir))?;
 
         let file_name = format!("{}.rs", const_name);
         let output_path = consts_output_dir.join(&file_name);
-
+        println!("Attempting to write file: {}", output_path.display());
         let result = async {
             let tokens = quote! { #constant };
             let mut code = tokens.to_string();
@@ -164,40 +185,48 @@ pub async fn process_structs(
         let struct_name = structure.ident.to_string();
         let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
         let structs_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("struct");
-
+        println!("Attempting to create directory: {}", structs_output_dir.display());
         tokio::fs::create_dir_all(&structs_output_dir).await
             .context(format!("Failed to create output directory {:?}", structs_output_dir))?;
 
         let file_name = format!("{}.rs", struct_name);
         let output_path = structs_output_dir.join(&file_name);
+        println!("Attempting to write file: {}", output_path.display());
+            let content = quote::quote! { #structure }.to_string();
+            let code = match struct_name.as_str() {
+                "Level0DeclsVisitor" => {
+                    format!("use syn::{{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Item}};
+{}", content)
+                },
+                "TypeCollector" => {
+                    format!("use std::collections::HashMap;
+use crate::type_extractor::TypeInfo;
+{}", content)
+                },
+                _ => content,
+            };
 
-        let result = async {
-            let tokens = quote! { #structure };
-            let mut code = tokens.to_string();
+            let result = async {
+                tokio::fs::write(&output_path, code.as_bytes()).await
+                    .context(format!("Failed to write struct {:?} to {:?}", struct_name, output_path))?;
+                println!("  -> Wrote struct {:?} to {:?}", struct_name, output_path);
 
-            let required_uses = use_statements::get_required_uses_for_item_struct(&structure);
-            code = format!("{}{}", required_uses, code);
+                // Format the generated code
+                utils::format_rust_code(&output_path).await
+                    .context(format!("Struct {:?} formatting failed for {:?}", struct_name, output_path))?;
+                println!("  -> Struct {:?} formatted successfully.\n", struct_name);
 
-            tokio::fs::write(&output_path, code.as_bytes()).await
-                .context(format!("Failed to write struct {:?} to {:?}", struct_name, output_path))?;
-            println!("  -> Wrote struct {:?} to {:?}", struct_name, output_path);
+                // Validate the generated code
+                utils::validate_rust_code(&output_path).await
+                    .context(format!("Struct {:?} validation failed for {:?}", struct_name, output_path))?;
+                println!(r"  -> Struct {:?} validated successfully.\n", struct_name);
+                Ok(())
+            }.await;
 
-            // Format the generated code
-            utils::format_rust_code(&output_path).await
-                .context(format!("Struct {:?} formatting failed for {:?}", struct_name, output_path))?;
-            println!(r"  -> Struct {:?} formatted successfully.\n", struct_name);
-
-            // Validate the generated code
-            utils::validate_rust_code(&output_path).await
-                .context(format!("Struct {:?} validation failed for {:?}", struct_name, output_path))?;
-            println!(r"  -> Struct {:?} validated successfully.\n", struct_name);
-            Ok(())
-        }.await;
-
-        if let Err(e) = result {
-            eprintln!(r"Error processing struct {}: {:?}\n", struct_name, e);
-            errors.push(e);
-        }
+            if let Err(e) = result {
+                eprintln!(r"Error processing struct {}: {:?}\n", struct_name, e);
+                errors.push(e);
+            }
     }
 
     if !errors.is_empty() {

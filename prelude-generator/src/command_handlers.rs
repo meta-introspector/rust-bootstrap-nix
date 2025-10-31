@@ -67,11 +67,16 @@ pub async fn handle_extract_global_level0_decls(
     all_string_constants: &mut Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {
     println!("Extracting global Level 0 declarations...");
+    println!("Project root: {}", project_root.display());
+    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
+        project_root.join("generated/level0_decls")
+    });
+    println!("Generated decls output dir: {}", generated_decls_output_dir.display());
 
-    let type_map = type_extractor::extract_bag_of_types(project_root).await?;
+    let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
 
     let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, l0_structs) =
-        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map).await?;
+        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map, &args.filter_names).await?;
 
     let mut all_errors: Vec<anyhow::Error> = Vec::new();
 
@@ -189,9 +194,9 @@ pub fn handle_analyze_bag_of_words(
     Ok(())
 }
 
-pub async fn handle_calculate_layers(project_root: &PathBuf) -> anyhow::Result<()> {
+pub async fn handle_calculate_layers(project_root: &PathBuf, args: &crate::Args) -> anyhow::Result<()> {
     println!("Calculating type layers...");
-    let type_map = type_extractor::extract_bag_of_types(project_root).await?;
+    let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
 
     println!("\n--- Type Layer Analysis ---");
     println!("{:<30} {:<10} {:<10}", "Type", "Count", "Layer");

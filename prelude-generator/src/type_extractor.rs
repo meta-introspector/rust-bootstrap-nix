@@ -129,19 +129,27 @@ fn contains_complex_type_in_type(ty: &Type) -> bool {
     }
 }
 
-pub async fn extract_bag_of_types(project_root: &PathBuf) -> Result<HashMap<String, TypeInfo>> {
+pub async fn extract_bag_of_types(project_root: &PathBuf, filter_names: &Option<Vec<String>>) -> Result<HashMap<String, TypeInfo>> {
     let mut type_map: HashMap<String, TypeInfo> = HashMap::new();
 
     for entry in WalkDir::new(project_root)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
+        .filter(|e| {
+            if let Some(names) = filter_names {
+                names.iter().any(|name| e.file_name().to_string_lossy().contains(name))
+            } else {
+                true
+            }
+        })
     {
         let path = entry.path();
+        // println!("Attempting to read file: {}", path.display());
         let content = match std::fs::read_to_string(&path) {
             Ok(c) => c,
             Err(e) => {
-                eprintln!("Warning: Could not read file {}: {:?}", path.display(), e);
+                eprintln!("Error reading file {}: {:?}", path.display(), e);
                 continue;
             }
         };

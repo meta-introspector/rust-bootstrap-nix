@@ -139,6 +139,10 @@ pub struct Args {
     /// Calculate and report the layer of each type in the project.
     #[arg(long, default_value_t = false)]
     pub calculate_layers: bool,
+
+    /// Comma-separated list of file/module names to filter by during processing.
+    #[arg(long, value_delimiter = ',')]
+    pub filter_names: Option<Vec<String>>,
 }
 
 #[cfg(test)]

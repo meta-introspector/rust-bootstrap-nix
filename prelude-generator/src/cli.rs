@@ -13,7 +13,7 @@ pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     // For now, we'll assume args.path is the project root if it's explicitly set,
     // otherwise, we'll try to find the workspace root from the current executable's directory.
     let project_root = if args.path == PathBuf::from(".") {
-        std::env::current_dir()?
+        std::env::current_dir()?.parent().unwrap().to_path_buf()
     } else {
         args.path.clone()
     };
