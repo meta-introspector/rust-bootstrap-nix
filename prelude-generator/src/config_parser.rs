@@ -106,7 +106,6 @@ pub struct Config {
 pub fn read_config(config_path: &PathBuf, project_root: &PathBuf) -> Result<Config> {
     let config_content = std::fs::read_to_string(config_path)
         .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
-    println!("Config content:\n{}", config_content);
     let mut config: Config = toml::from_str(&config_content)
         .with_context(|| format!("Failed to parse config file: {}", config_path.display()))?;
 

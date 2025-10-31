@@ -138,8 +138,20 @@ pub async fn extract_bag_of_types(project_root: &PathBuf) -> Result<HashMap<Stri
         .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
     {
         let path = entry.path();
-        let content = std::fs::read_to_string(&path)?;
-        let file = syn::parse_file(&content)?;
+        let content = match std::fs::read_to_string(&path) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("Warning: Could not read file {}: {:?}", path.display(), e);
+                continue;
+            }
+        };
+        let file = match syn::parse_file(&content) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("Warning: Could not parse file {}: {:?}", path.display(), e);
+                continue;
+            }
+        };
 
         let mut collector = TypeCollector {
             type_map: &mut type_map,
