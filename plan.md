@@ -43,7 +43,17 @@
 
 ## Next Steps:
 
-1.  **Refactor `prelude-generator/src/main.rs`**:
+1.  **Implement Bag of Words and Coordinate Grouping for Declarations:**
+    *   **Goal:** Enhance `prelude-generator` to collect a "bag of words" (referenced types, functions, external identifiers) for each declaration and group these declarations into "coordinates" (modules) aiming for ~4KB chunks.
+    *   **Actions:**
+        *   Enhanced `DeclsVisitor` to collect referenced types, functions, and external identifiers.
+        *   Introduced a `Declaration` struct to unify declaration representation with associated "bag of words."
+        *   Implement grouping logic to create ~4KB chunks based on declaration dependencies.
+        *   Generate unique module paths for each group.
+        *   Generate a "Canonical Prelude" file with `pub use` statements for all generated group modules.
+        *   Establish a symbol table for primitives and module-based "lattices" to identify new terms.
+
+2.  **Refactor `prelude-generator/src/main.rs`**:
     *   **Action:** The constant extraction calls have been integrated into `prelude-generator/src/main.rs`.
     *   **Action:** Split the `main.rs` file into separate functions for processing structs and constants to improve modularity and readability.
     *   **Action:** Ensure all internal calls within the extracted functions and the `main` function use the `prelude_generator::` prefix where necessary.

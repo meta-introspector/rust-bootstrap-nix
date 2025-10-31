@@ -59,6 +59,25 @@ This crate is responsible for generating prelude files, which are essential for 
 
 By providing a comprehensive and expanded view of the code, `prelude-generator` enables subsequent tools to perform accurate dependency analysis and apply transformation rules effectively.
 
+### `prelude-generator`'s Role in Lattice Construction (Bag of Words & Coordinate Grouping)
+
+The `prelude-generator` plays a pivotal role in constructing the "Lattice of Functions" by implementing a "bag of words" approach for each declaration and grouping them into "coordinates" with module paths. This process is fundamental for understanding the dependencies and relationships between code components, which are the "nodes" and "edges" of our lattice.
+
+**Key Contributions:**
+
+*   **Declaration-Level Bag of Words:** The `DeclsVisitor` within `prelude-generator` is enhanced to collect a "bag of words" for each `syn::Item` (declaration). This includes:
+    *   All referenced types (`syn::Ident`).
+    *   All referenced functions (`syn::Ident`).
+    *   Identified external identifiers (those not defined within the current file or project).
+    *   This "bag of words" is stored alongside the declaration in a generic `Declaration` struct.
+*   **Structured Declaration Representation:** The introduction of a `Declaration` struct provides a unified way to represent any `syn::Item` along with its associated "bag of words" and other metadata. This allows for consistent processing and analysis of all declaration types.
+*   **Coordinate Grouping Logic:** Declarations will be grouped into "coordinates" based on their "bag of words." The grouping criteria will aim for ~4KB chunks (a single disk block) to optimize storage and retrieval. This grouping forms the basis for defining the "nodes" of the lattice.
+*   **Module Path Generation:** Unique and descriptive module paths will be generated for each group of declarations (e.g., `prelude::group_hash_XXXX`), facilitating modular organization.
+*   **Canonical Prelude Generation:** A main `prelude.rs` file will be created, containing `pub use` statements for all generated group modules, providing a canonical entry point for accessing these grouped declarations.
+*   **Symbol Table Integration:** A symbol table will be established to register primitives and populate with modules (Rust standard library, project modules, external crates) as "lattices" or "gems." This baseline will aid in identifying new terms and types, crucial for understanding codebase evolution.
+
+By implementing these features, `prelude-generator` directly contributes to the "Dependency Mapping" and "Canonicalization and Refactoring" steps of the high-level approach, providing the granular, dependency-aware building blocks necessary for the construction of the "Lattice of Functions."
+
 ## Use Statement Processing Pipeline
 
 To further enhance the analysis and transformation capabilities of the system, a sophisticated, multi-stage pipeline for processing `use` statements has been implemented within the `prelude-generator`. This pipeline is designed to be robust, debuggable, and re-runnable, drawing inspiration from Makefile-like systems.

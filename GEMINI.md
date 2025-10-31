@@ -90,6 +90,17 @@ To build the `test-openssl-sys` flake:
     *   Created `docs/sops/SOP_Nix_Github_Meta_Introspector_Policy.md` documenting the policy for Nix flake inputs from `github:meta-introspector` and branch-only references.
     *   Created `docs/Precommit_Nix_Submodule_Overview.md` providing a table of pre-commit hooks, Nix packages, and Git submodule information.
     *   Created `docs/Precommit_Nix_Submodule_Summary.md` providing a focused summary table of pre-commit hooks, their associated submodules, branch/revision, and Nixification status.
+*   **`prelude-generator` Macro Expansion and Declaration Extraction Fixes:**
+    *   Resolved issues in `prelude-generator/src/use_extractor/expand_macros_and_parse.rs` related to macro expansion failures and `temp_rs_file_name` references. The logic for extracting relevant expanded code was simplified.
+    *   Corrected module import paths in `prelude-generator/src/main.rs` and `prelude-generator/src/lib.rs`.
+    *   Refactored declaration visitor logic, including the deletion of `prelude-generator/src/level0_decls_visitor.rs` and the introduction of `prelude-generator/src/decls_visitor.rs`.
+    *   Verified fixes by successfully running `bash standalonex/level0min.sh`, confirming correct Level 0 declaration extraction.
+*   **`prelude-generator` Structured Error Collection:**
+    *   Implemented a structured error collection mechanism in `prelude-generator` to collect errors during macro expansion and parsing instead of crashing.
+    *   Introduced `ErrorSample` and `ErrorCollection` structs in `prelude-generator/src/error_collector.rs` to store detailed error information (file path, Rustc version, error message, code snippet, etc.).
+    *   Modified `prelude-generator/src/use_extractor/expand_macros_and_parse.rs` to return `Result<(syn::File, Option<ErrorSample>)>`, allowing errors to be captured and returned as `ErrorSample` instances.
+    *   Integrated `ErrorCollection` into `prelude-generator/src/declaration_processing.rs` and `prelude-generator/src/command_handlers.rs` to aggregate and output collected errors to `collected_errors.json`.
+    *   Verified the functionality by creating a malformed Rust file (`standalonex/min_test_project/src/malformed.rs`) and confirming that the error was correctly collected and written to `collected_errors.json`.
 
 ### Prelude Generator Configuration and Binary Path Integration
 
