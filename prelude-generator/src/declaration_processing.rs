@@ -241,3 +241,86 @@ use crate::type_extractor::TypeInfo;
         return Ok(());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Args;
+    use crate::type_extractor::{self};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tokio;
+
+    // Helper function to set up a minimal test project
+    async fn setup_test_project(test_dir_name: &str) -> anyhow::Result<PathBuf> {
+        let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("temp_test_projects").join(test_dir_name);
+        let src_dir = project_root.join("src");
+        tokio::fs::create_dir_all(&src_dir).await?;
+
+        let cargo_toml_content = r#"
+[package]
+name = "test_project"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+"#;
+        tokio::fs::write(project_root.join("Cargo.toml"), cargo_toml_content).await?;
+
+        let lib_rs_content = r#"
+pub const TEST_NUM_CONST: u32 = 123;
+pub const TEST_STR_CONST: &str = "hello";
+
+pub struct TestStruct {
+    pub field1: u32,
+    field2: String,
+}
+
+pub enum TestEnum {
+    Variant1,
+    Variant2(u32),
+}
+
+pub fn test_function() -> u32 {
+    TEST_NUM_CONST
+}
+"#;
+        tokio::fs::write(src_dir.join("lib.rs"), lib_rs_content).await?;
+
+        Ok(project_root)
+    }
+
+    #[tokio::test]
+    async fn test_extract_level0_declarations_minimal() -> anyhow::Result<()> {
+        let test_project_root = setup_test_project("minimal_project").await?;
+
+        let args = Args {
+            path: test_project_root.clone(),
+            ..Default::default()
+        };
+
+        // Extract type map first
+        let type_map = type_extractor::extract_bag_of_types(&test_project_root, &None).await?;
+
+        // Call the function under test
+        let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, l0_structs) =
+            extract_level0_declarations(&test_project_root, &args, &type_map, &None).await?;
+
+        // Assertions
+        assert_eq!(total_files_processed, 1);
+        assert_eq!(constants.len(), 2); // TEST_NUM_CONST, TEST_STR_CONST
+        assert_eq!(structs.len(), 1); // TestStruct
+        assert_eq!(enums, 1); // TestEnum
+        assert_eq!(fns, 1); // test_function
+        assert_eq!(s_structs, 1); // Assert that s_structs is 1
+        assert_eq!(statics, 0); // Assert that statics is 0
+        assert_eq!(other_items, 0); // Assert that other_items is 0
+        assert_eq!(l0_structs, 1); // Assert that l0_structs is 1
+
+        // Clean up the temporary project
+        tokio::fs::remove_dir_all(&test_project_root).await?;
+
+        Ok(())
+    }
+}
