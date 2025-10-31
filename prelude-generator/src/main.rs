@@ -2,6 +2,7 @@ use prelude_generator::command_handlers;
 use std::path::PathBuf;
 use syn;
 use tokio;
+use prelude_generator::use_extractor::get_rustc_info;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -12,6 +13,10 @@ async fn main() -> anyhow::Result<()> {
     } else {
         args.path.clone()
     };
+
+    let rustc_info = get_rustc_info()?;
+    let cache_dir = project_root.join(".prelude_cache");
+    tokio::fs::create_dir_all(&cache_dir).await?;
 
     let mut all_numerical_constants: Vec<syn::ItemConst> = Vec::new();
     let mut all_string_constants: Vec<syn::ItemConst> = Vec::new();
@@ -55,6 +60,8 @@ async fn main() -> anyhow::Result<()> {
             &args,
             &mut all_numerical_constants,
             &mut all_string_constants,
+            &rustc_info,
+            &cache_dir,
         ).await?;
     }
 

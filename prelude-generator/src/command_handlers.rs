@@ -65,6 +65,8 @@ pub async fn handle_extract_global_level0_decls(
     args: &crate::Args,
     all_numerical_constants: &mut Vec<syn::ItemConst>,
     all_string_constants: &mut Vec<syn::ItemConst>,
+    rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
+    cache_dir: &std::path::Path,
 ) -> anyhow::Result<()> {
     println!("Extracting global Level 0 declarations...");
     println!("Project root: {}", project_root.display());
@@ -75,8 +77,8 @@ pub async fn handle_extract_global_level0_decls(
 
     let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
 
-    let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, l0_structs) =
-        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map, &args.filter_names).await?;
+    let (constants, structs, total_files_processed, fns, s_structs, enums, statics, other_items, total_structs_per_layer) =
+        declaration_processing::extract_level0_declarations(&project_root, &args, &type_map, &args.filter_names, rustc_info, cache_dir).await?;
 
     let mut all_errors: Vec<anyhow::Error> = Vec::new();
 
@@ -104,7 +106,7 @@ pub async fn handle_extract_global_level0_decls(
     println!("Total constants extracted: {}", constants.len());
     println!("Total functions found: {}", fns);
     println!("Total structs found: {}", s_structs);
-    println!("Total Layer 0 structs extracted: {}", l0_structs);
+    println!("Total structs extracted per layer: {:?}", total_structs_per_layer);
     println!("Total enums found: {}", enums);
     println!("Total statics found: {}", statics);
     println!("Total other items found: {}", other_items);

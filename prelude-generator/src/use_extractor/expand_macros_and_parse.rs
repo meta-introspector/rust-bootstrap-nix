@@ -59,15 +59,10 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     let temp_src_dir = temp_crate_path.join("src");
     tokio::fs::create_dir(&temp_src_dir).await?;
 
-    // Write the original content to a file within the temporary crate
-    let temp_rs_file_name = file_path.file_name().unwrap_or_else(|| "temp_file.rs".as_ref());
-    let temp_rs_file_path = temp_src_dir.join(temp_rs_file_name);
-    tokio::fs::write(&temp_rs_file_path, content).await?;
-
-    // Create lib.rs that includes the target file
+    // Write the original content directly to lib.rs of the temporary crate
     let lib_rs_content = format!(
-        "#![allow(unused_imports)]\n#![allow(dead_code)]\ninclude!(\"{}\");\n",
-        temp_rs_file_name.to_string_lossy() // Pass the full file name
+        "#![allow(unused_imports)]\n#![allow(dead_code)]\n{}",
+        content
     );
     tokio::fs::write(temp_src_dir.join("lib.rs"), lib_rs_content).await?;
 
@@ -91,13 +86,10 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
 
     let expanded_code = String::from_utf8_lossy(&output.stdout).to_string();
 
-    // Extract the relevant expanded code for the specific file
-    // This is a heuristic and might need refinement.
-    let search_string = format!("// {}
-", temp_rs_file_name.to_string_lossy());
-    let start_index = expanded_code.find(&search_string).unwrap_or(0);
-    let end_index = expanded_code[start_index..].find("// ").map_or(expanded_code.len(), |i| start_index + i);
-    let relevant_expanded_code = expanded_code[start_index..end_index].to_string();
+    // For now, assume the entire expanded_code is relevant.
+    // This might need refinement if cargo rustc -Zunpretty=expanded output
+    // contains other artifacts.
+    let relevant_expanded_code = expanded_code.to_string();
 
     writer.write_all(format!("        -> Writing expanded code to cache for: {}\n", file_path.display()).as_bytes()).await?;
     // Cache the expanded code

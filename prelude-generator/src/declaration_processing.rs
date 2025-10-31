@@ -1,38 +1,45 @@
 use anyhow::Context;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use syn::visit::Visit;
 use quote::quote;
 
-use crate::{Level0DeclsVisitor, use_statements, utils, type_extractor};
+use crate::decls_visitor::DeclsVisitor;
 use std::collections::HashMap;
+use crate::use_extractor::expand_macros_and_parse;
+use crate::use_extractor::rustc_info::RustcInfo;
+use crate::use_statements;
+use crate::utils;
+use crate::type_extractor;
 
 pub async fn extract_level0_declarations(
     project_root: &PathBuf,
     _args: &crate::Args,
     type_map: &HashMap<String, type_extractor::TypeInfo>,
     filter_names: &Option<Vec<String>>,
+    rustc_info: &RustcInfo,
+    cache_dir: &Path,
 ) -> anyhow::Result<(
     Vec<syn::ItemConst>,
-    Vec<syn::ItemStruct>,
+    HashMap<usize, Vec<syn::ItemStruct>>,
     usize, // total_files_processed
     usize,
     usize,
     usize,
     usize,
     usize,
-    usize,
+    HashMap<usize, usize>,
 )> {
     let src_dir = project_root.join("src");
     println!("Attempting to read directory: {}", src_dir.display());
     let mut all_constants: Vec<syn::ItemConst> = Vec::new();
-    let mut all_layer0_structs: Vec<syn::ItemStruct> = Vec::new();
+    let mut all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>> = HashMap::new();
     let mut total_files_processed = 0;
     let mut total_fns = 0;
     let mut total_structs = 0;
     let mut total_enums = 0;
     let mut total_statics = 0;
     let mut total_other_items = 0;
-    let mut total_layer0_structs = 0;
+    let mut total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
 
     for entry in std::fs::read_dir(&src_dir)?
         .filter_map(|e| e.ok())
@@ -51,17 +58,19 @@ pub async fn extract_level0_declarations(
             total_files_processed += 1;
             println!("  Processing file: {}", path.display());
             let content = std::fs::read_to_string(&path)?;
-            let file = syn::parse_file(&content)?;
+            let mut writer = tokio::io::stdout(); // Or a specific log file writer
+            let file = expand_macros_and_parse(&mut writer, &path, &content, rustc_info, cache_dir).await
+                .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
 
-            let mut visitor = Level0DeclsVisitor::new();
+            let mut visitor = DeclsVisitor::new();
             visitor.visit_file(&file);
 
             // Filter structs based on layer information
-            for structure in visitor.layer0_structs {
+            for structure in visitor.all_structs {
                 let struct_name = structure.ident.to_string();
-                if type_map.get(&struct_name).map_or(false, |info| info.layer == Some(0)) {
-                    all_layer0_structs.push(structure);
-                }
+                let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
+                all_structs_by_layer.entry(layer).or_insert_with(Vec::new).push(structure);
+                *total_structs_per_layer.entry(layer).or_insert(0) += 1;
             }
 
             all_constants.extend(visitor.constants);
@@ -71,20 +80,19 @@ pub async fn extract_level0_declarations(
             total_enums += visitor.enum_count;
             total_statics += visitor.static_count;
             total_other_items += visitor.other_item_count;
-            total_layer0_structs += all_layer0_structs.len(); // Update count after filtering
         }
     }
 
     Ok((
         all_constants,
-        all_layer0_structs,
+        all_structs_by_layer,
         total_files_processed,
         total_fns,
         total_structs,
         total_enums,
         total_statics,
         total_other_items,
-        total_layer0_structs,
+        total_structs_per_layer,
     ))
 }
 
@@ -163,15 +171,15 @@ pub async fn process_constants(
         return Err(anyhow::anyhow!("Constant processing completed with errors."));
     } else {
         println!(r"Declaration processing completed successfully.");
-        return Ok(());
+        return Ok(())
     }
 }
 
 pub async fn process_structs(
-    all_layer0_structs: Vec<syn::ItemStruct>,
+    all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>>,
     args: &crate::Args,
     project_root: &PathBuf,
-    type_map: &HashMap<String, type_extractor::TypeInfo>,
+    _type_map: &HashMap<String, type_extractor::TypeInfo>,
 ) -> anyhow::Result<()> {
     let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
         project_root.join("generated/level0_decls")
@@ -181,20 +189,22 @@ pub async fn process_structs(
 
     let mut errors: Vec<anyhow::Error> = Vec::new();
 
-    for structure in &all_layer0_structs {
-        let struct_name = structure.ident.to_string();
-        let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
-        let structs_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("struct");
-        println!("Attempting to create directory: {}", structs_output_dir.display());
-        tokio::fs::create_dir_all(&structs_output_dir).await
-            .context(format!("Failed to create output directory {:?}", structs_output_dir))?;
+    // Only process structs for layer 0 for now, as per requirement
+    if let Some(layer0_structs) = all_structs_by_layer.get(&0) {
+        for structure in layer0_structs {
+            let struct_name = structure.ident.to_string();
+            let layer = 0; // Explicitly set to 0 for Level 0 processing
+            let structs_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("struct");
+            println!("Attempting to create directory: {}", structs_output_dir.display());
+            tokio::fs::create_dir_all(&structs_output_dir).await
+                .context(format!("Failed to create output directory {:?}, for struct {}", structs_output_dir, struct_name))?;
 
-        let file_name = format!("{}.rs", struct_name);
-        let output_path = structs_output_dir.join(&file_name);
-        println!("Attempting to write file: {}", output_path.display());
+            let file_name = format!("{}.rs", struct_name);
+            let output_path = structs_output_dir.join(&file_name);
+            println!("Attempting to write file: {}", output_path.display());
             let content = quote::quote! { #structure }.to_string();
             let code = match struct_name.as_str() {
-                "Level0DeclsVisitor" => {
+                "DeclsVisitor" => {
                     format!("use syn::{{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Item}};
 {}", content)
                 },
@@ -227,6 +237,9 @@ use crate::type_extractor::TypeInfo;
                 eprintln!(r"Error processing struct {}: {:?}\n", struct_name, e);
                 errors.push(e);
             }
+        }
+    } else {
+        println!("No Level 0 structs found to process.");
     }
 
     if !errors.is_empty() {
@@ -238,8 +251,40 @@ use crate::type_extractor::TypeInfo;
         return Err(anyhow::anyhow!("Struct processing completed with errors."));
     } else {
         println!(r"Declaration processing completed successfully.");
-        return Ok(());
+        return Ok(())
     }
+}
+
+pub fn generate_constants_module(constants: &[syn::ItemConst]) -> String {
+    let generated_decl_strings: Vec<String> = constants.iter().map(|c| {
+        let tokens = quote! { #c };
+        tokens.to_string()
+    }).collect();
+
+    if generated_decl_strings.is_empty() {
+        return "// No constant declarations found in this module.\n".to_string();
+    }
+
+    let header = "// This module contains extracted constant declarations.\n// It is automatically generated.\n\n";
+    let joined_decls = generated_decl_strings.join("\n\n");
+
+    format!("{}{}", header, joined_decls)
+}
+
+pub fn generate_structs_module(structs: &[syn::ItemStruct]) -> String {
+    let generated_decl_strings: Vec<String> = structs.iter().map(|s| {
+        let tokens = quote! { #s };
+        tokens.to_string()
+    }).collect();
+
+    if generated_decl_strings.is_empty() {
+        return "// No struct declarations found in this module.\n".to_string();
+    }
+
+    let header = "// This module contains extracted struct declarations.\n// It is automatically generated.\n\n";
+    let joined_decls = generated_decl_strings.join("\n\n");
+
+    format!("{}{}", header, joined_decls)
 }
 
 #[cfg(test)]
@@ -257,7 +302,7 @@ mod tests {
         let src_dir = project_root.join("src");
         tokio::fs::create_dir_all(&src_dir).await?;
 
-        let cargo_toml_content = r#"
+        let cargo_toml_content = r#"#
 [package]
 name = "test_project"
 version = "0.1.0"
@@ -265,10 +310,10 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
-"#;
+#"#;
         tokio::fs::write(project_root.join("Cargo.toml"), cargo_toml_content).await?;
 
-        let lib_rs_content = r#"
+        let lib_rs_content = r#"#
 pub const TEST_NUM_CONST: u32 = 123;
 pub const TEST_STR_CONST: &str = "hello";
 
@@ -285,7 +330,7 @@ pub enum TestEnum {
 pub fn test_function() -> u32 {
     TEST_NUM_CONST
 }
-"#;
+#"#;
         tokio::fs::write(src_dir.join("lib.rs"), lib_rs_content).await?;
 
         Ok(project_root)
