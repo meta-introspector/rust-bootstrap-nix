@@ -63,7 +63,7 @@ pub async fn extract_all_declarations_from_crate(
             println!("  Processing file: {}", path.display());
 
             let mut writer = tokio::io::stdout();
-            let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &crate_root, rustc_info, cache_dir).await
+            let (file, error_sample) = expand_macros_and_parse(&mut writer, &path, &crate_root, manifest_path, rustc_info, cache_dir).await
                 .with_context(|| format!("Failed to expand macros and parse file: {}", path.display()))?;
 
             if let Some(err) = error_sample {

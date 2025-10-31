@@ -7,8 +7,9 @@ use crate::error_collector::ErrorSample;
 use chrono::Utc;
 //use tokio::io::AsyncWriteExt;
 use tokio::fs;
+use tempfile;
 
-pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, crate_root: &Path, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
+pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, crate_root: &Path, manifest_path: &Path, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
     // Calculate content hash based on file_path and crate_root
     let mut hasher = Sha256::new();
     hasher.update(file_path.to_string_lossy().as_bytes());
@@ -39,44 +40,60 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
         return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
     }
 
-    // Calculate relative path for cargo expand
-    let file_path_relative_to_crate_root = file_path.strip_prefix(crate_root)
-        .with_context(|| format!("File path {} is not within crate root {}", file_path.display(), crate_root.display()))?;
+    // Create a unique cache key based on file hash, rustc info, and rustc flags
+    let cache_key = format!(
+        "expanded_{}_{}_{}_{}",
+        content_hash,
+        rustc_info.version,
+        rustc_info.host,
+        "2021" // Edition
+    );
+    let cached_file_path = cache_dir.join(cache_key);
 
-    // Determine target triple (assuming host triple for now)
-    let target_triple = rustc_info.host.clone();
+    // Check if expanded code is already cached
+    if cached_file_path.exists() {
+        writer.write_all(format!("      -> Using cached expanded code for: {}\n", file_path.display()).as_bytes()).await?;
+    let expanded_code = fs::read_to_string(&cached_file_path).await
+        .with_context(|| format!("Failed to read cached expanded code for {}", file_path.display()))?;
+        return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
+    }
 
-    writer.write_all(format!("        -> Running cargo expand for: {} in crate {}", file_path.display(), crate_root.display()).as_bytes()).await?;
-    let output = tokio::process::Command::new("cargo")
-        .arg("expand")
-        .arg("--ugly") // Output less pretty-printed code
-        .arg("--output")
-        .arg("-") // Print to stdout
-        .arg("--color")
-        .arg("never")
-        .arg("--target")
-        .arg(&target_triple)
-        .arg("--") // Arguments after -- are passed to rustc
-        .arg(file_path_relative_to_crate_root)
-        .current_dir(crate_root) // Run cargo expand from the crate root
-        .output().await?;
+    let temp_crate_dir = tempfile::tempdir().context("Failed to create temporary directory")?;
+    let temp_crate_path = temp_crate_dir.path();
 
+    // Copy the original Cargo.toml to the temporary crate directory
+    let original_cargo_toml_path = manifest_path;
+    let temp_cargo_toml_path = temp_crate_path.join("Cargo.toml");
+    fs::copy(&original_cargo_toml_path, &temp_cargo_toml_path).await.context("Failed to copy Cargo.toml to temporary directory")?;
+
+    // Create src directory in the temporary crate
+    let temp_src_dir = temp_crate_path.join("src");
+    fs::create_dir(&temp_src_dir).await.context("Failed to create temporary src directory")?;
+
+    // Copy the file to be expanded into the temporary src directory
+    let temp_rs_file_name = file_path.file_name().unwrap_or_else(|| "temp_file.rs".as_ref());
+    let temp_rs_file_path = temp_src_dir.join(temp_rs_file_name);
+    fs::copy(file_path, &temp_rs_file_path).await.context("Failed to copy source file to temporary directory")?;
 
     writer.write_all(format!("        -> PATH environment variable: {:?}\n", std::env::var("PATH")).as_bytes()).await?;
     writer.write_all(format!("        -> Running cargo rustc -Zunpretty=expanded for: {}\n", file_path.display()).as_bytes()).await?;
-//     let output = tokio::process::Command::new("cargo")
-//         .arg("rustc")
-//         .arg("--")
-//         .arg("-Zunpretty=expanded")
-//         .arg("--crate-type")
-// //        .arg("lib")
-// //        .current_dir(temp_crate_path)
-//         .output().await?;
+    let output = tokio::process::Command::new("cargo")
+        .arg("rustc")
+        .arg("--manifest-path")
+        .arg(&temp_cargo_toml_path)
+        .arg("--")
+        .arg("-Zunpretty=expanded")
+        .arg("--crate-type")
+        .arg("lib")
+        .arg("--emit")
+        .arg("mir") // or some other intermediate representation
+        .arg(&temp_rs_file_path)
+        .output().await?;
 
-    writer.write_all(format!("        -> cargo rustc status for {}: {}\n", file_path.display(), output.status).as_bytes()).await?;
-    writer.write_all(format!("        -> cargo rustc stdout for {}: {}\n", file_path.display(), String::from_utf8_lossy(&output.stdout)).as_bytes()).await?;
+    writer.write_all(format!("        -> rustc status for {}: {}\n", file_path.display(), output.status).as_bytes()).await?;
+    writer.write_all(format!("        -> rustc stdout for {}: {}\n", file_path.display(), String::from_utf8_lossy(&output.stdout)).as_bytes()).await?;
     if !output.status.success() {
-        let error_message = format!("cargo rustc macro expansion failed: {}\nStdout: {}\nStderr: {}",
+        let error_message = format!("rustc macro expansion failed: {}\nStdout: {}\nStderr: {}",
             String::from_utf8_lossy(&output.stderr),
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
@@ -98,7 +115,7 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     let expanded_code = String::from_utf8_lossy(&output.stdout).to_string();
 
     // For now, assume the entire expanded_code is relevant.
-    // This might need refinement if cargo rustc -Zunpretty=expanded output
+    // This might need refinement if rustc -Zunpretty=expanded output
     // contains other artifacts.
     let relevant_expanded_code = expanded_code.to_string();
 
