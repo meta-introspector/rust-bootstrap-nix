@@ -79,8 +79,7 @@
 
       devShells.aarch64-linux.default = pkgs.mkShell {
         buildInputs = [
-          pkgs.rustc
-          pkgs.cargo
+          pkgs.rust-bin.nightly.latest.default
           pkgs.rust-analyzer
           pkgs.openssl
           pkgs.pkg-config

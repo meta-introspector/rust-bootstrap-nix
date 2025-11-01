@@ -7,7 +7,6 @@ edition = "2021"
 toml = "0.5"
 serde = "1.0"
 serde_derive = "1.0"
-stage0_parser_crate = { path = "../../../../stage0_parser_crate" }
 
 [features]
 bootstrap-self-test = []

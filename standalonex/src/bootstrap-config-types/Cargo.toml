@@ -12,9 +12,7 @@ toml = "0.5"
 clap = { version = "4.0", features = ["derive"] }
 clap_complete = { version = "4.4" }
 anyhow = "1.0"
-semver = "1.0"
 config_macros = { path = "../config_macros" }
 config_core = { path = "../config_core" }
 build_helper = { path = "../build_helper" }
-bootstrap-macros = { path = "../../macros/bootstrap-macros" }
 #build_helper = { path = "../" }

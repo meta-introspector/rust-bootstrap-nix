@@ -1,4 +1,4 @@
-.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir
+.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir fix-shear generate-use-statements-test-file
 
 all: build build-config-builder
 
@@ -18,6 +18,7 @@ generate-config: build-config-builder
 		--config-file bootstrap-config-builder/config.toml \
 		--project-root $(CURDIR) \
 		--output config.toml
+
 
 generate-seed-config: build-config-builder
 	@echo "Generating seed config.toml using bootstrap-config-generator..."
@@ -64,13 +65,14 @@ generate-rustc-test-lattice: build-config-builder
 	@echo "Generating rustc test lattice (flakes and configs)..."
 	@for version in $(RUSTC_BUILD_VERSIONS); do \
 		echo "Generating artifacts for rustc $$version"; \
-		nix develop --command bash -c "cargo run --bin bootstrap-config-generator -- \\
-			--config-file bootstrap-config-builder/config.toml \\
-			--build-rustc-version \"$$version\" \\
-			--solana-rustc-path \"$(SOLANA_RUSTC_PATH)\" \\
-			--cargo-path \"$(CARGO_PATH)\" \\
-			--project-root \"$(PROJECT_ROOT)\" \\
-			--rust-src-flake-path \"$(RUST_SRC_FLAKE_PATH)\""; \
+		nix develop --command bash -c "cargo run --bin bootstrap-config-generator -- \
+			--config-file bootstrap-config-builder/config.toml \
+			--build-rustc-version \"$$version\" \
+			--solana-rustc-path \"$(SOLANA_RUSTC_PATH)\" \
+			--cargo-path \"$(CARGO_PATH)\" \
+			--project-root \"$(PROJECT_ROOT)\" \
+			--rust-src-flake-path \"$(RUST_SRC_FLAKE_PATH)\"" \
+	; \
 	done
 
 clean-rustc-test-flakes:
@@ -79,3 +81,18 @@ clean-rustc-test-flakes:
 		rm -rf "flakes/$$version"; \
 		echo "Cleaned flakes/$$version"; \
 	done
+
+fix-shear: prelude-generator/.shear-fixed-stamp
+
+prelude-generator/.shear-fixed-stamp:
+	@echo "Running cargo shear --fix --expand for prelude-generator..."
+	nix develop --command bash -c "cargo shear --fix --expand -p prelude-generator"
+	@touch $@
+
+generate-use-statements-test-file: generated/use_statement_tests/.all-use-statements-generated-stamp
+
+generated/use_statement_tests/.all-use-statements-generated-stamp:
+	@echo "Generating all_use_statements.rs..."
+	mkdir -p generated/use_statement_tests
+	nix develop --command bash -c "cargo run --package prelude-generator -- --generate-aggregated-test-file"
+	@touch $@
