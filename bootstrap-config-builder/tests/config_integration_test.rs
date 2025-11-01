@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use bootstrap_config_builder::prelude::*;
 
 
 use bootstrap_config_builder::config::AppConfig;

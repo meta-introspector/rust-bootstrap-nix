@@ -101,6 +101,12 @@ status = "TODO" # This stage requires significant development and is marked as T
     description = "Run instrumented builds for all identified Cargo projects, collecting all specified dumps and traces."
     status = "TODO"
 
+    [[stages.steps]]
+    id = "2.4"
+    name = "Nixify Cargo Expand Output Capture"
+    description = "For each package with non-zero cargo expand output, create a Nix flake to run the expansion and capture the expanded output in the Nix store. This ensures that the expanded code is versioned and reproducible within the Nix ecosystem."
+    status = "TODO"
+
 [[stages]]
 id = 3
 name = "Data Processing and Level 0 Knowledgebase Construction"

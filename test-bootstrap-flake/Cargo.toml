@@ -6,7 +6,7 @@ edition = "2021"
 default-run = "test-bootstrap"
 
 [features]
-build-metrics = ["sysinfo"]
+build-metrics = []
 bootstrap-self-test = [] # enabled in the bootstrap unit tests
 
 
@@ -37,47 +37,6 @@ test = false
 #test = false
 
 [dependencies]
-ignore = "=0.4.23"
-globset = "=0.4.16"
-# Most of the time updating these dependencies requires modifications to the
-# bootstrap codebase(e.g., https://github.com/rust-lang/rust/issues/124565);
-# otherwise, some targets will fail. That's why these dependencies are explicitly pinned.
-cc = "=1.1.22"
-cmake = "=0.1.48"
-
-
-
-clap = { version = "4.4", default-features = false, features = ["std", "usage", "help", "derive", "error-context"] }
-clap_complete = "4.4"
-fd-lock = "4.0"
-home = "0.5"
-
-libc = "0.2"
-object = { version = "0.36.3", default-features = false, features = ["archive", "coff", "read_core", "unaligned"] }
-opener = "0.5"
-semver = "1.0"
-serde = "1.0"
-# Directly use serde_derive rather than through the derive feature of serde to allow building both
-# in parallel and to allow serde_json and toml to start building as soon as serde has been built.
-serde_derive = "1.0"
-serde_json = "1.0"
-sha2 = "0.10"
-tar = "0.4"
-termcolor = "1.4"
-toml = "0.5"
-walkdir = "2.4"
-xz2 = "0.1"
-
-config_core = { path = "../standalonex/src/config_core" }
-config_macros = { path = "../standalonex/src/config_macros" }
-bootstrap-config-utils = { path = "../standalonex/src/bootstrap/src/core/config_utils" }
-bootstrap-test-utils = { path = "../standalonex/src/bootstrap/src/core/build_steps/test_utils" }
-build_helper = { path = "../standalonex/src/build_helper" }
-#stage0_parser_crate = { path = "../stage0_parser_crate" }
-
-# Dependencies needed by the build-metrics feature
-sysinfo = { version = "0.31.2", default-features = false, optional = true, features = ["system"] }
-anyhow = "1.0.100"
 #test_definitions_macro = { path = "../../../test_definitions_crates/test_definitions_macro" }
 
 [target.'cfg(windows)'.dependencies.junction]
@@ -96,7 +55,6 @@ features = [
 ]
 
 [dev-dependencies]
-pretty_assertions = "1.4"
 
 # We care a lot about bootstrap's compile times, so don't include debuginfo for
 # dependencies, only bootstrap itself.
