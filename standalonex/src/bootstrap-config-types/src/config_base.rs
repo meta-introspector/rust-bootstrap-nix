@@ -1,6 +1,5 @@
 use std::cell::*;
 use std::collections::*;
-use build_helper::prelude::*;
 use crate::TargetSelection;
 use crate::Target;
 use std::path::PathBuf;
@@ -16,17 +15,8 @@ use crate::RustcLto;
 use crate::LlvmLibunwind;
 
 use crate::ciconfig::CiConfig;
-use crate::TomlConfig;
-use crate::rust::Rust;
-use crate::llvm::Llvm;
 //use crate::Config;
-///use crate::Flags;
-
-use crate::env;
-use crate::fs;
 use std::collections::HashMap;
-use config_core::ReplaceOpt;
-use std::process::Command;
 
 //pub use crate::channel::GitInfo;
 /// Global configuration for the entire build and/or bootstrap.

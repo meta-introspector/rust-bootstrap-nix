@@ -1,4 +1,3 @@
-use build_helper::prelude::*;
 /// LTO mode used for compiling rustc itself.
 #[derive(Default, Clone, PartialEq, Debug)]
 pub enum RustcLto {

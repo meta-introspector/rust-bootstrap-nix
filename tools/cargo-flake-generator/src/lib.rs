@@ -1,9 +1,8 @@
 // src/lib.rs for cargo-flake-generator
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use anyhow::{Result, Context, anyhow};
 use cargo_metadata::{MetadataCommand, Metadata};
-use serde::{Serialize, Deserialize};
 
 // This struct will hold configuration for flake generation
 pub struct FlakeGeneratorConfig {

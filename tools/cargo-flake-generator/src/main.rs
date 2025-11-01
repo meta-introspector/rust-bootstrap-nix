@@ -1,6 +1,6 @@
 // src/main.rs for cargo-flake-generator
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use anyhow::{Result, Context};
 use clap::Parser;
 
