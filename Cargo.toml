@@ -1,5 +1,6 @@
 [workspace]
-resolver = "2"
+#resolver = "2"
+resolver = "3"
 members = [
     "ast-decoder",
     "bootstrap-config-builder",
@@ -15,19 +16,23 @@ members = [
     "rust-decl-splitter",
     "rust-system-composer",
     "standalonex/min_test_project",
-    "standalonex/src",
+#    "standalonex/src",
     "standalonex/src/bootstrap",
     "standalonex/src/bootstrap-config",
     "standalonex/src/bootstrap-config-builder-core",
     "standalonex/src/bootstrap-config-types",
     "standalonex/src/bootstrap-config/config_macros",
     "standalonex/src/bootstrap/src/core/build_steps/test_utils",
-    "standalonex/src/bootstrap/src/core/config_crates/config_tests",
+#    "standalonex/src/bootstrap/src/core/config_crates/config_tests",
     "standalonex/src/bootstrap/src/core/config_processor",
     "standalonex/src/bootstrap/src/core/config_utils",
     "standalonex/src/build_helper",
+
+#
     "standalonex/src/config_core",
     "standalonex/src/config_macros",
+    "standalonex/src/config_tests"	,
+    
     "standalonex/src/stage0_parser_crate",
     "test-bootstrap-flake",
     "test-openssl-sys",

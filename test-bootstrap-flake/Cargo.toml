@@ -1,5 +1,5 @@
 [package]
-name = "bootstrap"
+name = "test-bootstrap"
 version = "0.0.0"
 edition = "2021"
 build = "build.rs"
@@ -70,17 +70,17 @@ toml = "0.5"
 walkdir = "2.4"
 xz2 = "0.1"
 
-config_core = { path = "src/core/config_crates/config_core" }
-config_macros = { path = "src/core/config_crates/config_macros" }
-bootstrap-config-utils = { path = "src/core/config_utils" }
-bootstrap-test-utils = { path = "src/core/build_steps/test_utils" }
-build_helper = { path = "../build_helper" }
-stage0_parser_crate = { path = "../stage0_parser_crate" }
+config_core = { path = "../standalonex/src/config_core" }
+config_macros = { path = "../standalonex/src/config_macros" }
+bootstrap-config-utils = { path = "../standalonex/src/bootstrap/src/core/config_utils" }
+bootstrap-test-utils = { path = "../standalonex/src/bootstrap/src/core/build_steps/test_utils" }
+build_helper = { path = "../standalonex/src/build_helper" }
+#stage0_parser_crate = { path = "../stage0_parser_crate" }
 
 # Dependencies needed by the build-metrics feature
 sysinfo = { version = "0.31.2", default-features = false, optional = true, features = ["system"] }
 anyhow = "1.0.100"
-test_definitions_macro = { path = "../../../test_definitions_crates/test_definitions_macro" }
+#test_definitions_macro = { path = "../../../test_definitions_crates/test_definitions_macro" }
 
 [target.'cfg(windows)'.dependencies.junction]
 version = "1.0.0"

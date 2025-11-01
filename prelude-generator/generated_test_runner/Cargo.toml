@@ -8,4 +8,4 @@ anyhow = "1.0"
 tempfile = "3.8"
 prelude-generator = { path = "../" }
 
-[workspace]
+#[workspace]

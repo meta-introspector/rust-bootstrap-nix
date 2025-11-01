@@ -25,7 +25,7 @@ pub struct ParsedFile(pub String, pub PathBuf);
 #[derive(Debug)]
 pub struct UseStatements(pub Vec<String>);
 #[derive(Debug)]
-pub struct ClassifiedUseStatements(pub Vec<UseStatement>);
+pub struct ClassifiedUseStatements(pub Vec<UseStatement>, pub HashMap<String, Vec<String>>);
 #[derive(Debug, Clone)]
 pub struct ValidatedFile(pub String, pub PathBuf);
 
