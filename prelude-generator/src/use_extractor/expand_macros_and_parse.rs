@@ -71,7 +71,7 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     fs::create_dir(&temp_src_dir).await.context("Failed to create temporary src directory")?;
 
     // Copy the file to be expanded into the temporary src directory, renaming it to lib.rs
-    let original_file_stem = file_path.file_stem().unwrap_or_else(|| "temp_file".as_ref());
+    //let original_file_stem = file_path.file_stem().unwrap_or_else(|| "temp_file".as_ref());
     let temp_lib_rs_path = temp_src_dir.join("lib.rs");
     fs::copy(file_path, &temp_lib_rs_path).await.context("Failed to copy source file to temporary lib.rs")?;
 

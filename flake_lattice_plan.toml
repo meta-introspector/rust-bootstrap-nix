@@ -1,0 +1,89 @@
+# flake_lattice_plan.toml
+title = "Nix Flake Generation and Lattice Restructuring for Cargo Crates"
+description = "A detailed plan to generate Nix flakes for each Cargo crate in the repository, create a lattice of flakes down to base standard libraries, and then split and rebuild dependencies into a new lattice structure."
+status = "in progress"
+created_at = "2025-11-01T12:00:00Z" # Placeholder for current timestamp
+
+[[stages]]
+id = 1
+name = "Flake Generator Module Development"
+description = "Decouple the flake generation logic into its own module and define its API."
+
+    [[stages.steps]]
+    id = "1.1"
+    name = "Identify Existing Flake Generation Logic"
+    description = "Located existing flake generation logic, which is based on `cargo2nix`. The provided `Cargo.nix` files (`bootstrap-config-builder/Cargo.nix` and `standalonex/src/Cargo.nix`) serve as examples of its output. Understanding of their structure and mapping of Cargo concepts to Nix has been achieved."
+    status = "completed"
+
+    [[stages.steps]]
+    id = "1.2"
+    name = "Create New Module/Crate for Flake Generation"
+    description = "Decoupled the identified flake generation logic into a dedicated Rust module/crate named `cargo-flake-generator` located at `tools/cargo-flake-generator/`. A basic `Cargo.toml` and `src/lib.rs` have been created."
+    status = "completed"
+
+    [[stages.steps]]
+    id = "1.3"
+    name = "Define API for Flake Generation"
+    description = "Designed and implemented the initial API for the `cargo-flake-generator` module in `src/lib.rs`, including `FlakeGeneratorConfig` and `generate_flake_for_crate` function."
+    status = "completed"
+
+[[stages]]
+id = 2
+name = "Crate Discovery and Initial Flake Generation"
+description = "Discover all Cargo crates in the repository and generate initial Nix flakes for them."
+
+    [[stages.steps]]
+    id = "2.1"
+    name = "Discover All Cargo Crates in Current Repository"
+    description = "Used `glob` to find 46 `Cargo.toml` files within the current working directory, representing individual Cargo crates. This list will be used as `repo_cargo_projects`."
+    tool = "glob"
+    command = "glob('**/Cargo.toml', path='/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix')"
+    output_variable = "repo_cargo_projects"
+    expected_output = "List of absolute paths to Cargo.toml files in the current repository."
+    status = "completed"
+
+    [[stages.steps]]
+    id = "2.2"
+    name = "Generate Initial Flakes for Each Crate"
+    description = "For each discovered Cargo crate, use the newly developed flake generator module to create a basic Nix flake (e.g., `flake.nix` and `flake.lock`)."
+    status = "TODO" # Depends on Stage 1 completion.
+
+[[stages]]
+id = 3
+name = "Dependency Analysis and Flake Lattice Construction"
+description = "Analyze crate dependencies and construct a hierarchical lattice of Nix flakes, extending down to base standard libraries."
+
+    [[stages.steps]]
+    id = "3.1"
+    name = "Analyze Crate Dependencies"
+    description = "For each Cargo crate, determine its direct and transitive dependencies using `cargo metadata` or similar tools."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "3.2"
+    name = "Identify Standard Library Dependencies"
+    description = "Determine how each crate depends on Rust standard libraries and other fundamental components."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "3.3"
+    name = "Construct Flake Lattice"
+    description = "Build a hierarchical structure of Nix flakes, where each flake explicitly depends on its constituent crates and their dependencies, all the way down to the base standard libraries. This will likely involve creating a root flake that aggregates all sub-flakes."
+    status = "TODO"
+
+[[stages]]
+id = 4
+name = "Dependency Splitting and Rebuilding"
+description = "Analyze and split dependencies into module and declaration levels, then rebuild the lattice with this granular structure."
+
+    [[stages.steps]]
+    id = "4.1"
+    name = "Differentiate Module and Declaration Dependencies"
+    description = "Analyze the Rust code and its dependencies to distinguish between module-level dependencies (e.g., `use crate::foo;`) and declaration-level dependencies (e.g., `const MY_CONST: u32 = foo::BAR;`). This will likely require semantic analysis of the Rust code."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "4.2"
+    name = "Rebuild Lattice with Split Dependencies"
+    description = "Reconstruct the flake lattice, potentially creating separate flakes or outputs for module dependencies and declaration dependencies, allowing for more granular control and optimization."
+    status = "TODO"

@@ -31,7 +31,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &nixpkgs_url,
         &system_arch,
         args.use_rustc_wrapper,
-        args.rustc_wrapper_path.as_ref(),
     );
     let config_content = fs::read_to_string(&args.config_path)?;
     write_flake_and_config(&absolute_output_dir, &flake_nix_content, &config_content)?;

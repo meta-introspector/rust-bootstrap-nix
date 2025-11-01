@@ -1,4 +1,3 @@
-/*
 use std::time::Instant;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -49,10 +48,9 @@ pub fn record_function_exit(function_name: &str) {
         entry.duration_micros = Some(duration.as_micros());
         // println!("[MEASURE] Exiting function: {} (Duration: {:?})"); // Removed print
     }
-}
+    }
 
 // New function to retrieve collected metrics
 pub fn get_collected_metrics() -> HashMap<String, FunctionMetrics> {
     METRICS.lock().unwrap().clone()
 }
-*/

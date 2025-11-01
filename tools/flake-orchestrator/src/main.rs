@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::path::{Path, PathBuf};
+use std::path::{ PathBuf};
 use tokio::fs;
 use tokio::process::Command;
 use walkdir::WalkDir;
@@ -60,8 +60,8 @@ async fn main() -> Result<()> {
             let flake_nix_content = flake_template_generator::generate_flake_nix_content(
                 nixpkgs_url,
                 system_arch,
-                true, // use_rustc_wrapper
-                Some(&rustc_wrapper_path),
+                //true, // use_rustc_wrapper
+                &rustc_wrapper_path,
             );
             fs::write(flake_output_dir.join("flake.nix"), flake_nix_content).await?;
 
