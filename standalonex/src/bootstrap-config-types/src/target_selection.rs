@@ -1,5 +1,8 @@
 use std::fmt;
 use build_helper::prelude::*;
+use crate::LlvmLibunwind;
+//use build_helper::Interned;
+//use build_helper::INTERNER;
 #[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TargetSelection {
     pub triple: Interned<String>,
@@ -8,7 +11,7 @@ pub struct TargetSelection {
 }
 /// Newtype over `Vec<TargetSelection>` so we can implement custom parsing logic
 #[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct TargetSelectionList(Vec<TargetSelection>);
+pub struct TargetSelectionList(pub Vec<TargetSelection>);
 pub fn target_selection_list(s: &str) -> Result<TargetSelectionList, String> {
     Ok(
         TargetSelectionList(

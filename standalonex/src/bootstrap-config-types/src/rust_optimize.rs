@@ -1,5 +1,6 @@
 use serde::{Deserialize, Deserializer};
 use build_helper::prelude::*;
+use crate::config_part6::OptimizeVisitor;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RustOptimize {
     String(String),

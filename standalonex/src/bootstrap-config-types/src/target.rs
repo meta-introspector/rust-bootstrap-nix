@@ -1,4 +1,5 @@
 use build_helper::prelude::*;
+use crate::target_selection::Target;
 impl Target {
     pub fn from_triple(triple: &str) -> Self {
         let mut target: Self = Default::default();

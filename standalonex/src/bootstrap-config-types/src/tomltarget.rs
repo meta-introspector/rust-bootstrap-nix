@@ -1,4 +1,6 @@
 use build_helper::prelude::*;
+use crate::define_config;
+use crate::StringOrBool;
 define_config! {
     struct TomlTarget {
     llvm_libunwind : Option < String > = "llvm-libunwind", split_debuginfo : Option <

@@ -1,5 +1,10 @@
 use std::collections::*;
 use build_helper::prelude::*;
+use crate::define_config;
+use crate::RustOptimize;
+use crate::DebuginfoLevel;
+use crate::LldMode;
+use crate::StringOrBool;
 define_config! {
     struct Rust {
     optimize : Option < RustOptimize > = "optimize", debug : Option < bool > = "debug",

@@ -1,6 +1,34 @@
 use std::cell::*;
 use std::collections::*;
 use build_helper::prelude::*;
+use crate::TargetSelection;
+use crate::Target;
+use std::path::PathBuf;
+use crate::flags::Color;
+use crate::subcommand::Subcommand;
+use crate::DryRun;
+use crate::LldMode;
+use crate::RustOptimize;
+use crate::DebuginfoLevel;
+use build_helper::channel;
+use crate::RustfmtState;
+use crate::RustcLto;
+use crate::LlvmLibunwind;
+
+use crate::ciconfig::CiConfig;
+use crate::TomlConfig;
+use crate::rust::Rust;
+use crate::llvm::Llvm;
+//use crate::Config;
+use crate::Flags;
+
+use crate::env;
+use crate::fs;
+use std::collections::HashMap;
+use config_core::ReplaceOpt;
+use std::process::Command;
+
+//pub use crate::channel::GitInfo;
 /// Global configuration for the entire build and/or bootstrap.
 ///
 /// This structure is parsed from `config.toml`, and some of the fields are inferred from `git` or build-time parameters.

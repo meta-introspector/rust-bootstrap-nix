@@ -1,4 +1,5 @@
 use build_helper::prelude::*;
+use config_macros::define_config;
 define_config! {
     struct Dist { sign_folder : Option < String > = "sign-folder", upload_addr : Option <
     String > = "upload-addr", src_tarball : Option < bool > = "src-tarball",

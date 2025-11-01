@@ -1,4 +1,6 @@
 use build_helper::prelude::*;
+use crate::Config;
+use crate::Flags;
 
 pub(crate) fn parse(config: &str) -> Config {
     Config::parse_inner(

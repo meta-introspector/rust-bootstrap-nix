@@ -1,5 +1,83 @@
-use build_helper::prelude::*;
+#![macro_use]
+
+use bootstrap_macros::t;
+use build_helper::GitInfo;
+use build_helper::RUSTC_IF_UNCHANGED_ALLOWED_PATHS;
+use build_helper::channel;
+use build_helper::ci::CiEnv;
 use build_helper::exit;
+use build_helper::git::GitConfig;
+use build_helper::git::get_closest_merge_commit;
+use build_helper::git::output_result;
+//use build_helper::git::GitCommand;
+use build_helper::git::Command;
+use build_helper::helpers;
+use build_helper::llvm;
+use build_helper::output;
+use build_helper::prelude::*;
+use build_helper::prelude::*;
+use config_core::ReplaceOpt;
+use crate::CODEGEN_BACKEND_PREFIX;
+use crate::ChangeIdWrapper;
+use crate::Config;
+use crate::DebuginfoLevel;
+use crate::DocTests;
+use crate::DryRun;
+use crate::Flags;
+use crate::Kind;
+use crate::LldMode;
+use crate::LlvmLibunwind;
+use crate::OptimizeVisitor;
+use crate::RustOptimize;
+use crate::RustcLto;
+use crate::RustfmtState;
+use crate::SplitDebuginfo;
+use crate::StringOrBool;
+use crate::StringOrInt;
+use crate::Target;
+use crate::TargetSelection;
+use crate::TargetSelectionList;
+use crate::TomlConfig;
+//use crate::get_toml;
+use crate::check_incompatible_options_for_ci_rustc;
+use crate::ci::Ci;
+use crate::ciconfig::CiConfig;
+use crate::dist::Dist;
+use crate::env;
+use crate::exe;
+use crate::flags::Color;
+use crate::flags::Warnings;
+use crate::fs;
+use crate::install::Install;
+use crate::llvm::Llvm;
+use crate::rust::Rust;
+use crate::subcommand::Subcommand;
+use crate::subcommand_groups::BuildTool::Build;
+use crate::target_selection::target_selection_list;
+use crate::tomltarget::TomlTarget;
+use std::cell::*;
+use std::cmp;
+use std::collections::*;
+use std::path::absolute;
+use std::thread::Builder;
+//use crate::macro_rules::check_ci_llvm;
+//use crate::Kind::Build;
+//use crate::subcommand::BuildTool::Build;
+//use crate::subcommand::Subcommand::Build;
+//use crate::subcommand_groups::BuildTool::Build;
+
+
+macro_rules! check_ci_llvm {
+    ($name:expr) => {
+        assert!(
+            $name.is_none(),
+            "setting {} is incompatible with download-ci-llvm.",
+            stringify!($name).replace("_", "-")
+        );
+    };
+}
+
+
 
 impl Config {
     pub(crate) fn parse_inner(
@@ -31,7 +109,7 @@ impl Config {
         config.bypass_bootstrap_lock = flags.bypass_bootstrap_lock;
         config.src = if let Some(src) = flags.src {
             src
-        } else if let Some(src) = build_src_from_toml {
+        } else if let Some(src) = build_src_from_toml_field {
             src
         } else {
             let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -140,7 +218,7 @@ impl Config {
             exit!(2)
         }
         toml.merge(override_toml, ReplaceOpt::Override);
-        let build_src = toml.build.as_ref().and_then(|b| b.src.clone());
+        let build_src_from_toml = toml.build.as_ref().and_then(|b| b.src.clone());
         let Ci { channel_file, version_file, tools_dir, llvm_project_dir, gcc_dir } = toml
             .ci
             .unwrap_or_default();
@@ -158,6 +236,7 @@ impl Config {
             config.rust_src_flake_path = nix.rust_src_flake_path;
         }
         config.resolve_nix_paths().expect("Failed to resolve Nix paths");
+
         let Build {
             build,
             host,
@@ -201,18 +280,19 @@ impl Config {
             dist_stage,
             bench_stage,
             patch_binaries_for_nix,
-            metrics: _,
+            metrics: _metrics,
             android_ndk,
             optimized_compiler_builtins,
             jobs,
             compiletest_diff_tool,
-            src: build_src_from_toml,
+            src: build_src_from_toml_field,
         } = toml.build.unwrap_or_default();
-        config.jobs = Some(threads_from_config(flags.jobs.unwrap_or(jobs.unwrap_or(0))));
-        if let Some(file_build) = build {
-            config.build = TargetSelection::from_user(&file_build);
+
+        config.jobs = Some(threads_from_config(flags.jobs.unwrap_or(toml.build.as_ref().and_then(|b| b.jobs).unwrap_or(0))));
+        if let Some(file_build) = toml.build {
+            config.build = file_build;
         }
-        set(&mut config.out, flags.build_dir.or_else(|| build_dir.map(PathBuf::from)));
+        set(&mut config.out, flags.build_dir.or_else(|| toml.build.as_ref().and_then(|b| b.build_dir).map(PathBuf::from)));
         if !config.out.is_absolute() {
             config.out = absolute(&config.out).expect("can't make empty path absolute");
         }
@@ -221,8 +301,8 @@ impl Config {
                 "WARNING: Using `build.cargo-clippy` without `build.rustc` usually fails due to toolchain conflict."
             );
         }
-        config.initial_cargo_clippy = cargo_clippy;
-        config.initial_rustc = if let Some(rustc) = rustc {
+        config.initial_cargo_clippy = toml.build.as_ref().and_then(|b| b.cargo_clippy);
+        config.initial_rustc = if let Some(rustc) = toml.build.as_ref().and_then(|b| b.rustc) {
             if !flags.skip_stage0_validation {
                 config.check_stage0_version(&rustc, "rustc");
             }
@@ -236,7 +316,7 @@ impl Config {
                 .join("bin")
                 .join(exe("rustc", config.build))
         };
-        config.initial_cargo = if let Some(cargo) = cargo {
+        config.initial_cargo = if let Some(cargo) = toml.build.as_ref().and_then(|b| b.cargo) {
             if !flags.skip_stage0_validation {
                 config.check_stage0_version(&cargo, "cargo");
             }
@@ -257,46 +337,45 @@ impl Config {
         }
         config.hosts = if let Some(TargetSelectionList(arg_host)) = flags.host {
             arg_host
-        } else if let Some(file_host) = host {
+        } else if let Some(file_host) = toml.build.as_ref().and_then(|b| b.host) {
             file_host.iter().map(|h| TargetSelection::from_user(h)).collect()
         } else {
             vec![config.build]
         };
         config.targets = if let Some(TargetSelectionList(arg_target)) = flags.target {
             arg_target
-        } else if let Some(file_target) = target {
+        } else if let Some(file_target) = toml.build.as_ref().and_then(|b| b.target) {
             file_target.iter().map(|h| TargetSelection::from_user(h)).collect()
         } else {
             config.hosts.clone()
         };
-        config.nodejs = nodejs.map(PathBuf::from);
-        config.npm = npm.map(PathBuf::from);
-        config.gdb = gdb.map(PathBuf::from);
-        config.lldb = lldb.map(PathBuf::from);
-        config.python = python.map(PathBuf::from);
-        config.reuse = reuse.map(PathBuf::from);
-        config.submodules = submodules;
-        config.android_ndk = android_ndk;
-        config.bootstrap_cache_path = bootstrap_cache_path;
-        set(&mut config.low_priority, low_priority);
-        set(&mut config.compiler_docs, compiler_docs);
-        set(&mut config.library_docs_private_items, library_docs_private_items);
-        set(&mut config.docs_minification, docs_minification);
-        set(&mut config.docs, docs);
-        set(&mut config.locked_deps, locked_deps);
-        set(&mut config.vendor, vendor);
-        set(&mut config.full_bootstrap, full_bootstrap);
-        set(&mut config.extended, extended);
-        config.tools = tools;
-        set(&mut config.verbose, verbose);
-        set(&mut config.sanitizers, sanitizers);
-        set(&mut config.profiler, profiler);
-        set(&mut config.cargo_native_static, cargo_native_static);
-        set(&mut config.configure_args, configure_args);
-        set(&mut config.local_rebuild, local_rebuild);
-        set(&mut config.print_step_timings, print_step_timings);
-        set(&mut config.print_step_rusage, print_step_rusage);
-        config.patch_binaries_for_nix = patch_binaries_for_nix;
+        config.nodejs = toml.build.as_ref().and_then(|b| b.nodejs).map(PathBuf::from);
+        config.npm = toml.build.as_ref().and_then(|b| b.npm).map(PathBuf::from);
+        config.gdb = toml.build.as_ref().and_then(|b| b.gdb).map(PathBuf::from);
+        config.lldb = toml.build.as_ref().and_then(|b| b.lldb).map(PathBuf::from);
+        config.python = toml.build.as_ref().and_then(|b| b.python).map(PathBuf::from);
+        config.reuse = toml.build.as_ref().and_then(|b| b.reuse).map(PathBuf::from);
+        config.submodules = toml.build.as_ref().and_then(|b| b.submodules);
+        config.android_ndk = toml.build.as_ref().and_then(|b| b.android_ndk);
+        config.bootstrap_cache_path = toml.build.as_ref().and_then(|b| b.bootstrap_cache_path);
+        set(&mut config.low_priority, toml.build.as_ref().and_then(|b| b.low_priority));
+        set(&mut config.compiler_docs, toml.build.as_ref().and_then(|b| b.compiler_docs));
+        set(&mut config.library_docs_private_items, toml.build.as_ref().and_then(|b| b.library_docs_private_items));
+        set(&mut config.docs_minification, toml.build.as_ref().and_then(|b| b.docs_minification));
+        set(&mut config.docs, toml.build.as_ref().and_then(|b| b.docs));
+        set(&mut config.locked_deps, toml.build.as_ref().and_then(|b| b.locked_deps));
+        set(&mut config.vendor, toml.build.as_ref().and_then(|b| b.vendor));
+        set(&mut config.full_bootstrap, toml.build.as_ref().and_then(|b| b.full_bootstrap));
+        set(&mut config.extended, toml.build.as_ref().and_then(|b| b.extended));
+        config.tools = toml.build.as_ref().and_then(|b| b.tools);
+        set(&mut config.sanitizers, toml.build.as_ref().and_then(|b| b.sanitizers));
+        set(&mut config.profiler, toml.build.as_ref().and_then(|b| b.profiler));
+        set(&mut config.cargo_native_static, toml.build.as_ref().and_then(|b| b.cargo_native_static));
+        set(&mut config.configure_args, toml.build.as_ref().and_then(|b| b.configure_args));
+        set(&mut config.local_rebuild, toml.build.as_ref().and_then(|b| b.local_rebuild));
+        set(&mut config.print_step_timings, toml.build.as_ref().and_then(|b| b.print_step_timings));
+        set(&mut config.print_step_rusage, toml.build.as_ref().and_then(|b| b.print_step_rusage));
+        config.patch_binaries_for_nix = toml.build.as_ref().and_then(|b| b.patch_binaries_for_nix);
         config.verbose = cmp::max(config.verbose, flags.verbose as usize);
         config.verbose_tests = config.is_verbose();
         if let Some(install) = toml.install {
@@ -848,24 +927,24 @@ impl Config {
         config.rust_debuginfo_level_tools = with_defaults(debuginfo_level_tools);
         config.rust_debuginfo_level_tests = debuginfo_level_tests
             .unwrap_or(DebuginfoLevel::None);
-        config.optimized_compiler_builtins = optimized_compiler_builtins
+        config.optimized_compiler_builtins = toml.build.as_ref().and_then(|b| b.optimized_compiler_builtins)
             .unwrap_or(config.channel != "dev");
-        config.compiletest_diff_tool = compiletest_diff_tool;
+        config.compiletest_diff_tool = toml.build.as_ref().and_then(|b| b.compiletest_diff_tool);
         let download_rustc = config.download_rustc_commit.is_some();
         config.stage = match config.cmd {
-            Subcommand::Check { .. } => flags.stage.or(check_stage).unwrap_or(0),
+            Subcommand::Check { .. } => flags.stage.or(toml.build.as_ref().and_then(|b| b.check_stage)).unwrap_or(0),
             Subcommand::Doc { .. } => {
-                flags.stage.or(doc_stage).unwrap_or(if download_rustc { 2 } else { 0 })
+                flags.stage.or(toml.build.as_ref().and_then(|b| b.doc_stage)).unwrap_or(if download_rustc { 2 } else { 0 })
             }
             Subcommand::Build { .. } => {
-                flags.stage.or(build_stage).unwrap_or(if download_rustc { 2 } else { 1 })
+                flags.stage.or(toml.build.as_ref().and_then(|b| b.build_stage)).unwrap_or(if download_rustc { 2 } else { 1 })
             }
             Subcommand::Test { .. } | Subcommand::Miri { .. } => {
-                flags.stage.or(test_stage).unwrap_or(if download_rustc { 2 } else { 1 })
+                flags.stage.or(toml.build.as_ref().and_then(|b| b.test_stage)).unwrap_or(if download_rustc { 2 } else { 1 })
             }
-            Subcommand::Bench { .. } => flags.stage.or(bench_stage).unwrap_or(2),
-            Subcommand::Dist { .. } => flags.stage.or(dist_stage).unwrap_or(2),
-            Subcommand::Install { .. } => flags.stage.or(install_stage).unwrap_or(2),
+            Subcommand::Bench { .. } => flags.stage.or(toml.build.as_ref().and_then(|b| b.bench_stage)).unwrap_or(2),
+            Subcommand::Dist { .. } => flags.stage.or(toml.build.as_ref().and_then(|b| b.dist_stage)).unwrap_or(2),
+            Subcommand::Install { .. } => flags.stage.or(toml.build.as_ref().and_then(|b| b.install_stage)).unwrap_or(2),
             Subcommand::Perf { .. } => flags.stage.unwrap_or(1),
             Subcommand::Clean { .. }
             | Subcommand::Clippy { .. }

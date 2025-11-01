@@ -1,4 +1,35 @@
 use build_helper::prelude::*;
+use build_helper::prelude::*;
+use build_helper::exit;
+use bootstrap_macros::t;
+use std::cell::*;
+use std::collections::*;
+use build_helper::prelude::*;
+use crate::TargetSelection;
+use crate::Target;
+use crate::flags::Color;
+use crate::subcommand::Subcommand;
+use crate::DryRun;
+use crate::LldMode;
+use crate::RustOptimize;
+use crate::DebuginfoLevel;
+use build_helper::channel;
+use crate::RustfmtState;
+use crate::RustcLto;
+use crate::LlvmLibunwind;
+
+use crate::ciconfig::CiConfig;
+use crate::TomlConfig;
+use crate::rust::Rust;
+use crate::llvm::Llvm;
+use crate::Config;
+use crate::Flags;
+
+use crate::env;
+use crate::fs;
+use std::collections::HashMap;
+use config_core::ReplaceOpt;
+
 /// Compares the current `Llvm` options against those in the CI LLVM builder and detects any incompatible options.
 /// It does this by destructuring the `Llvm` instance to make sure every `Llvm` field is covered and not missing.
 #[cfg(not(feature = "bootstrap-self-test"))]

@@ -32,19 +32,22 @@ use std::cell::{Cell, RefCell};
 use std::cmp;
 use std::env;
 use std::fs;
-use std::fmt;
+use std::fmt::{self, Display};
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
 
 pub use clap::{Parser, ValueEnum, Args, Subcommand};
 
-pub use build_helper::git::{GitConfig, output_result as git_output_result, get_closest_merge_commit};
+pub use build_helper::git::{GitConfig, output_result as git_output_result, get_closest_merge_commit };
+//GitInfo, output
+
 pub use build_helper::ci::CiEnv;
 pub use build_helper::exit;
 pub use build_helper::channel;
-pub use build_helper::llvm;
+//pub use build_helper::get_toml;
 pub use build_helper::get_builder_toml;
 pub use build_helper::RUSTC_IF_UNCHANGED_ALLOWED_PATHS;
+pub use build_helper::helpers;
 
 pub use crate::target_selection::{TargetSelection, TargetSelectionList, Target};
 pub use crate::tomlconfig::{TomlConfig};
@@ -60,13 +63,15 @@ pub use crate::string_or_int::StringOrInt;
 pub use crate::rustfmt::RustfmtState;
 pub use crate::replaceop::ReplaceOpt;
 pub use crate::changeid::ChangeIdWrapper;
-pub use crate::ci::Ci;
+//pub use crate::ci::Ci;
 pub use crate::subcommand::DistTool::Dist;
 pub use crate::subcommand::DistTool::Install;
-pub use crate::llvm::Llvm;
-pub use crate::rust::Rust;
-pub use crate::build::Build;
-pub use crate::subcommand::BuildTool::Build;
+//pub use crate::llvm::Llvm;
+//pub use crate::rust::Rust;
+//pub use crate::build::Build;
+pub use crate::Kind::Build;
+//pub use crate::subcommand::BuildTool::Build;
+//pub use crate::subcommand::BuildTool::Build;
 pub use crate::warnings::Warnings;
 pub use crate::color::Color;
 pub use crate::dry_run::DryRun;
@@ -117,6 +122,7 @@ pub mod install;
 pub mod lld_mode;
 pub mod llvm;
 pub mod llvm_lib_unwind;
+#[macro_use]
 pub mod macro_rules;
 pub mod merge;
 pub mod replaceop;

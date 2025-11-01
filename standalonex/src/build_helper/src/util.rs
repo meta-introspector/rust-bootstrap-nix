@@ -1,6 +1,5 @@
-use std::env;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::path::Path;
+use std::process::Command;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::sync::OnceLock;
@@ -73,4 +72,8 @@ pub fn set<T>(field: &mut T, val: T) {
 
 pub fn threads_from_config(val: u32) -> u32 {
     val
+}
+
+pub fn output(_cmd: &mut Command) -> String {
+    "placeholder_output".to_string()
 }

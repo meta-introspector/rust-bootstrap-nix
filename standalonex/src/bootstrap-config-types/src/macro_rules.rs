@@ -17,13 +17,3 @@
 //    ":!triagebot.toml",
 //];
 
-macro_rules! check_ci_llvm {
-    ($name:expr) => {
-        assert!(
-            $name.is_none(),
-            "setting {} is incompatible with download-ci-llvm.",
-            stringify!($name).replace("_", "-")
-        );
-    };
-}
-
