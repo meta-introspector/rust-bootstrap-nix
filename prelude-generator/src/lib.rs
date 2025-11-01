@@ -26,6 +26,7 @@ pub mod constant_storage;
 pub mod declaration_processing;
 pub mod command_handlers;
 pub mod type_extractor;
+pub mod public_tests;
 //pub mod global_level0_decls;
 pub use args::Args;
 //pub use declaration_processing::{extract_level0_declarations, process_structs};

@@ -388,46 +388,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bootstrap"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "bootstrap-config-types",
- "bootstrap-config-utils",
- "bootstrap-macros",
- "bootstrap-test-utils",
- "build_helper",
- "cc",
- "clap",
- "clap_complete",
- "cmake",
- "config_core",
- "config_macros",
- "fd-lock",
- "globset",
- "home",
- "ignore",
- "junction",
- "libc",
- "object",
- "opener",
- "pretty_assertions",
- "semver",
- "serde",
- "serde_derive",
- "serde_json",
- "sha2",
- "stage0_parser_crate",
- "sysinfo",
- "tar",
- "termcolor",
- "toml 0.5.11",
- "walkdir",
- "windows 0.52.0",
- "xz2",
-]
-
-[[package]]
 name = "bootstrap-config"
 version = "0.1.0"
 dependencies = [
@@ -998,15 +958,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
-]
-
-[[package]]
-name = "generated-test-runner"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "prelude-generator",
- "tempfile",
 ]
 
 [[package]]
