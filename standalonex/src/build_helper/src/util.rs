@@ -1,4 +1,9 @@
-use crate::prelude::*;
+use std::env;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+use std::fs::File;
+use std::io::{BufReader, BufRead};
+use std::sync::OnceLock;
 /// Invokes `build_helper::util::detail_exit` with `cfg!(test)`
 ///
 /// This is a macro instead of a function so that it uses `cfg(test)` in the *calling* crate, not in build helper.
@@ -29,7 +34,7 @@ pub fn try_run(cmd: &mut Command, print_cmd_on_fail: bool) -> Result<(), ()> {
     if !status.success() {
         if print_cmd_on_fail {
             println!(
-                "\n\ncommand did not execute successfully: {:?}\n\
+                "\n\ncommand did not execute successfully: {:?}\n\\
                  expected success, got: {}\n\n",
                 cmd, status
             );
@@ -60,4 +65,12 @@ pub fn parse_gitmodules(target_dir: &Path) -> &[String] {
         submodules_paths
     };
     SUBMODULES_PATHS.get_or_init(|| init_submodules_paths())
+}
+
+pub fn set<T>(field: &mut T, val: T) {
+    *field = val;
+}
+
+pub fn threads_from_config(val: u32) -> u32 {
+    val
 }

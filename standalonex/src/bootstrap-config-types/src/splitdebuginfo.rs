@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SplitDebuginfo {
     Packed,

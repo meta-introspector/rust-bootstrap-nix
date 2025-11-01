@@ -41,11 +41,8 @@ pub static AST_STATISTICS: Lazy<AstStatistics> = Lazy::new(|| {
 
     AstStatistics {
         node_type_counts,
-        line_stats,
-        column_stats,
-        processing_time_stats,
-        rust_version_counts,
-        analyzer_version_counts,
-        snippet_length_stats,
+        variable_declarations: Vec::new(),
+        function_definitions: Vec::new(),
+        import_statements: Vec::new(),
     }
 });

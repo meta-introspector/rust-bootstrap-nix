@@ -1,6 +1,7 @@
-use crate::prelude::*;
+use std::collections::*;
+use build_helper::prelude::*;
 define_config! {
-    #[doc = " TOML representation of how the Rust build is configured."] struct Rust {
+    struct Rust {
     optimize : Option < RustOptimize > = "optimize", debug : Option < bool > = "debug",
     codegen_units : Option < u32 > = "codegen-units", codegen_units_std : Option < u32 >
     = "codegen-units-std", rustc_debug_assertions : Option < bool > = "debug-assertions",

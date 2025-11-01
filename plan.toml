@@ -127,18 +127,42 @@ status = "TODO"
 
 [[stages]]
 id = 4
+name = "Crate Usage Analysis and Refactoring for Lattice Construction"
+description = "Analyze declaration-level crate usage, refactor into client-X crates, and decouple API types using traits to build a lattice of crate dependencies."
+status = "TODO"
+
+    [[stages.steps]]
+    id = "4.1"
+    name = "Extract Declaration-Level Crate Usage"
+    description = "Identify all declarations and the external crates they directly use."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "4.2"
+    name = "Group Declarations into Client Crates"
+    description = "Group declarations into new 'client-X' or 'client-X-Y' crates based on their primary external crate dependencies, aiming for the 'one external crate per module' principle."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "4.3"
+    name = "Decouple API Types using Traits"
+    description = "Refactor client crates to export functions via traits, decoupling them from concrete bound API types to enhance modularity and flexibility."
+    status = "TODO"
+
+[[stages]]
+id = 5
 name = "Minizinc Solver Integration"
 description = "Prepare the Level 0 knowledgebase as input for a Minizinc solver and execute the solver."
 status = "TODO"
 
     [[stages.steps]]
-    id = "4.1"
+    id = "5.1"
     name = "Format Knowledgebase for Minizinc"
     description = "Convert the Level 0 knowledgebase into a format suitable for input to a Minizinc solver."
     status = "TODO"
 
     [[stages.steps]]
-    id = "4.2"
+    id = "5.2"
     name = "Execute Minizinc Solver"
     description = "Run the Minizinc solver with the prepared input data."
     status = "TODO"

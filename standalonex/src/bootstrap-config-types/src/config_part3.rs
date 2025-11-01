@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 /// Compares the current `Llvm` options against those in the CI LLVM builder and detects any incompatible options.
 /// It does this by destructuring the `Llvm` instance to make sure every `Llvm` field is covered and not missing.
 #[cfg(not(feature = "bootstrap-self-test"))]

@@ -12,4 +12,6 @@ pub use std :: path :: {  PathBuf } ;
 pub use std :: process :: Command ;
 pub use std :: process :: Stdio  ;
 pub use std :: sync :: OnceLock ;
+pub use crate::util::{self, set, threads_from_config};
 //pub use super :: DropBomb ;
+//

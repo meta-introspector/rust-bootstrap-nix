@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 define_config! {
     struct Dist { sign_folder : Option < String > = "sign-folder", upload_addr : Option <
     String > = "upload-addr", src_tarball : Option < bool > = "src-tarball",

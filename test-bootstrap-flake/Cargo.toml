@@ -2,41 +2,39 @@
 name = "test-bootstrap"
 version = "0.0.0"
 edition = "2021"
-build = "build.rs"
-default-run = "bootstrap"
+
+default-run = "test-bootstrap"
 
 [features]
 build-metrics = ["sysinfo"]
 bootstrap-self-test = [] # enabled in the bootstrap unit tests
 
-[lib]
-path = "src/lib.rs"
-doctest = false
+
 
 [[bin]]
-name = "bootstrap"
+name = "test-bootstrap"
 path = "src/bin/main.rs"
 test = false
 
-[[bin]]
-name = "rustc"
-path = "src/bin/rustc.rs"
-test = false
+#[[bin]]
+#name = "test-rustc"
+#path = "src/bin/rustc.rs"
+#test = false
 
-[[bin]]
-name = "rustdoc"
-path = "src/bin/rustdoc.rs"
-test = false
+#[[bin]]
+#name = "test-rustdoc"
+#path = "src/bin/rustdoc.rs"
+#test = false
 
-[[bin]]
-name = "sccache-plus-cl"
-path = "src/bin/sccache-plus-cl.rs"
-test = false
+#[[bin]]
+#name = "test-sccache-plus-cl"
+#path = "src/bin/sccache-plus-cl.rs"
+#test = false
 
-[[bin]]
-name = "nix_bootstrap"
-path = "src/bin/nix_bootstrap.rs"
-test = false
+#[[bin]]
+#name = "test-nix_bootstrap"
+#path = "src/bin/nix_bootstrap.rs"
+#test = false
 
 [dependencies]
 ignore = "=0.4.23"

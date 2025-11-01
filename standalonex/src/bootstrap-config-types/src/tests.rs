@@ -1,4 +1,5 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
+
 pub(crate) fn parse(config: &str) -> Config {
     Config::parse_inner(
         Flags::parse(&["check".to_string(), "--config=/does/not/exist".to_string()]),

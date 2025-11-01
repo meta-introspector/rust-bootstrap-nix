@@ -1,4 +1,6 @@
-use crate::prelude::*;
+use std::collections::*;
+use build_helper::prelude::*;
+use config_macros::define_config;
 define_config! {
     #[doc = " TOML representation of various global build decisions."] #[derive(Default)]
     struct BuildConfig { build : Option < String > = "build", src : Option < PathBuf > =

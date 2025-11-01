@@ -60,12 +60,6 @@ description = "Analyze crate dependencies and construct a hierarchical lattice o
     status = "TODO"
 
     [[stages.steps]]
-    id = "3.2"
-    name = "Identify Standard Library Dependencies"
-    description = "Determine how each crate depends on Rust standard libraries and other fundamental components."
-    status = "TODO"
-
-    [[stages.steps]]
     id = "3.3"
     name = "Construct Flake Lattice"
     description = "Build a hierarchical structure of Nix flakes, where each flake explicitly depends on its constituent crates and their dependencies, all the way down to the base standard libraries. This will likely involve creating a root flake that aggregates all sub-flakes."
@@ -86,4 +80,27 @@ description = "Analyze and split dependencies into module and declaration levels
     id = "4.2"
     name = "Rebuild Lattice with Split Dependencies"
     description = "Reconstruct the flake lattice, potentially creating separate flakes or outputs for module dependencies and declaration dependencies, allowing for more granular control and optimization."
+    status = "TODO"
+
+[[stages]]
+id = 5
+name = "Layered Crate Architecture Definition"
+description = "Define a layered architecture for existing Cargo crates to manage dependencies and external library introduction."
+
+    [[stages.steps]]
+    id = "5.1"
+    name = "Define Canonical Lib Layer 0"
+    description = "Establish 'canonical lib layer 0' as a new standard library containing all items with zero external dependencies. This layer will be physically split into 4KB disk file chunks for efficient management."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "5.2"
+    name = "Define Layered Dependency Structure"
+    description = "Implement a hierarchical dependency structure where Layer 1 depends solely on Layer 0, and subsequent layers (up to Layer 8 maximum) depend on all public items from preceding layers. This ensures a controlled and auditable dependency graph."
+    status = "TODO"
+
+    [[stages.steps]]
+    id = "5.3"
+    name = "Controlled External Library Introduction"
+    description = "Integrate external libraries only at the latest possible layers within the architecture. This minimizes the attack surface and maintains a lean core, ensuring that external dependencies are introduced only when absolutely necessary and at a well-defined point in the dependency chain."
     status = "TODO"

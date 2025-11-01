@@ -1,4 +1,6 @@
-use crate::prelude::*;
+use std::cell::*;
+use std::collections::*;
+use build_helper::prelude::*;
 /// Global configuration for the entire build and/or bootstrap.
 ///
 /// This structure is parsed from `config.toml`, and some of the fields are inferred from `git` or build-time parameters.

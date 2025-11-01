@@ -1,4 +1,5 @@
-use crate::prelude::*;
+use serde::{Deserialize, Deserializer};
+use build_helper::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RustOptimize {
     String(String),

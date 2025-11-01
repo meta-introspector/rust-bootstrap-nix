@@ -1,6 +1,6 @@
-pub mod prelude;
-use crate::prelude::*;
-extern crate syn;
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, Ident, LitBool, LitStr};
 struct TestDefinitionArgs {
     name: Ident,
     path: LitStr,

@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 pub struct OptimizeVisitor;
 impl serde::de::Visitor<'_> for OptimizeVisitor {
     type Value = RustOptimize;

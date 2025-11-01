@@ -1,22 +1,98 @@
-//use build_helper::util::{output as build_helper_output, exe as build_helper_exe};
-use std::process::Command;
-use crate::target_selection::TargetSelection;
-
-fn output(cmd: &mut Command) -> String {
-    let stdout = build_helper_output(cmd);
-    String::from_utf8(stdout).expect("command output was not valid utf-8")
+pub enum Kind {
+    Bench,
+    Check,
+    Clippy,
+    Fix,
+    Format,
+    Test,
+    Miri,
+    Suggest,
+    Perf,
+    Build,
+    Doc,
+    Dist,
+    Install,
+    Clean,
+    Run,
+    Setup,
+    Vendor,
 }
 
-fn exe(name: &str, target: crate::target_selection::TargetSelection) -> String {
-    build_helper_exe(name, target)
+pub enum DocTests {
+    Only,
+    No,
+    Yes,
+}
+
+use bootstrap_macros::t;
+
+use std::process::Command;
+use std::collections::{HashMap, HashSet, BTreeSet};
+use std::cell::{Cell, RefCell};
+use std::cmp;
+use std::env;
+use std::fs;
+use std::fmt;
+use std::str::FromStr;
+use std::path::{Path, PathBuf};
+
+pub use clap::{Parser, ValueEnum, Args, Subcommand};
+
+pub use build_helper::git::{GitConfig, output_result as git_output_result, get_closest_merge_commit};
+pub use build_helper::ci::CiEnv;
+pub use build_helper::exit;
+pub use build_helper::channel;
+pub use build_helper::llvm;
+pub use build_helper::get_builder_toml;
+pub use build_helper::RUSTC_IF_UNCHANGED_ALLOWED_PATHS;
+
+pub use crate::target_selection::{TargetSelection, TargetSelectionList, Target};
+pub use crate::tomlconfig::{TomlConfig};
+pub use crate::flags::Flags;
+pub use crate::rust_optimize::RustOptimize;
+pub use crate::debug_info_level::DebuginfoLevel;
+pub use crate::lld_mode::LldMode;
+pub use crate::rustclto::RustcLto;
+pub use crate::llvm_lib_unwind::LlvmLibunwind;
+pub use crate::splitdebuginfo::SplitDebuginfo;
+pub use crate::stringorbool::StringOrBool;
+pub use crate::string_or_int::StringOrInt;
+pub use crate::rustfmt::RustfmtState;
+pub use crate::replaceop::ReplaceOpt;
+pub use crate::changeid::ChangeIdWrapper;
+pub use crate::ci::Ci;
+pub use crate::subcommand::DistTool::Dist;
+pub use crate::subcommand::DistTool::Install;
+pub use crate::llvm::Llvm;
+pub use crate::rust::Rust;
+pub use crate::build::Build;
+pub use crate::subcommand::BuildTool::Build;
+pub use crate::warnings::Warnings;
+pub use crate::color::Color;
+pub use crate::dry_run::DryRun;
+pub use crate::config_base::Config;
+pub use crate::config_part2::check_incompatible_options_for_ci_rustc;
+pub use crate::config_part6::OptimizeVisitor;
+pub use config_macros::define_config;
+
+fn output(cmd: &mut Command) -> Vec<u8> {
+    cmd.output().expect("command failed to run").stdout
+}
+
+fn exe(name: &str, _target: crate::target_selection::TargetSelection) -> String {
+    if cfg!(windows) {
+        format!("{}.exe", name)
+    } else {
+        name.to_string()
+    }
 }
 
 fn is_download_ci_available(_triple: &TargetSelection, _llvm_assertions: bool) -> bool {
     false
 }
 
-//use crate::prelude::*;
-pub mod prelude;
+const CODEGEN_BACKEND_PREFIX: &str = "codegen-backend-";
+
 pub mod build;
 pub mod changeid;
 pub mod ci;
@@ -59,10 +135,3 @@ pub mod tests;
 pub mod tomlconfig;
 pub mod tomltarget;
 pub mod warnings;
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum DocTests {
-    Yes,
-    No,
-    Only,
-}

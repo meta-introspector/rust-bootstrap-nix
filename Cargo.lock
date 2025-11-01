@@ -488,6 +488,7 @@ name = "bootstrap-config-types"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bootstrap-macros",
  "build_helper",
  "clap",
  "clap_complete",
@@ -507,6 +508,10 @@ dependencies = [
  "stage0_parser_crate",
  "toml 0.5.11",
 ]
+
+[[package]]
+name = "bootstrap-macros"
+version = "0.1.0"
 
 [[package]]
 name = "bootstrap-test-utils"

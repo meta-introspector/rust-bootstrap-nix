@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 /// Compares the current Rust options against those in the CI rustc builder and detects any incompatible options.
 /// It does this by destructuring the `Rust` instance to make sure every `Rust` field is covered and not missing.
 pub fn check_incompatible_options_for_ci_rustc(

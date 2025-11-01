@@ -6,7 +6,7 @@ pub fn generate_flake_nix_content(
     format!(
         r#"{{
   
-  description = "Nix flake for Rust macro expansion for {rust_file_name}";
+  description = "Nix flake for Rust macro expansion";
 
   inputs = {{
     nixpkgs.url = "{}";

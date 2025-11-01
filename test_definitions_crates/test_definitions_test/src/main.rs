@@ -1,6 +1,5 @@
 use crate::prelude::*;
 pub mod prelude;
-mod prelude;
 extern crate test_definitions_macro;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Compiler;
