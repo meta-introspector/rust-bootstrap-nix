@@ -4,8 +4,8 @@ use crate::prelude::*;
 // N.B.: This type is used everywhere, and the entire codebase relies on it being Copy.
 // Making !Copy is highly nontrivial!
 pub struct TargetSelection {
-    pub triple: Interned<String>,
-    file: Option<Interned<String>>,
+    pub triple: String,
+    file: Option<String>,
     synthetic: bool,
 }
 

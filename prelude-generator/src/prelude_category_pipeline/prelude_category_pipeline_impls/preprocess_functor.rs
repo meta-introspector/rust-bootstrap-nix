@@ -2,6 +2,7 @@ use anyhow::{Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
+use std::collections::HashMap;
 
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, ClassifiedUseStatements, UseStatement};
@@ -17,7 +18,7 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
     ) -> Pin<Box<dyn Future<Output = Result<ClassifiedUseStatements>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("PreprocessFunctor::map");
-            let ClassifiedUseStatements(classified_uses) = input;
+            let ClassifiedUseStatements(classified_uses, _) = input;
             let mut new_classified_uses = Vec::new();
             for use_statement in classified_uses {
                 if use_statement.error.is_some() {
@@ -69,7 +70,7 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for Prepr
                     });
                 }
             }
-            let __result = Ok(ClassifiedUseStatements(new_classified_uses));
+            let __result = Ok(ClassifiedUseStatements(new_classified_uses, HashMap::new()));
             measurement::record_function_exit("PreprocessFunctor::map");
             __result
         })

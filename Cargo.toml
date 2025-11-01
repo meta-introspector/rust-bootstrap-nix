@@ -19,7 +19,7 @@ members = [
 #    "standalonex/src",
     "standalonex/src/bootstrap",
     "standalonex/src/bootstrap-config",
-    "standalonex/src/bootstrap-config-builder-core",
+#    "standalonex/src/bootstrap-config-builder-core",
     "standalonex/src/bootstrap-config-types",
     "standalonex/src/bootstrap-config/config_macros",
     "standalonex/src/bootstrap/src/core/build_steps/test_utils",

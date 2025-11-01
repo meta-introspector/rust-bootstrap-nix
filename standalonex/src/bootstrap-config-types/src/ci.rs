@@ -1,6 +1,7 @@
 use build_helper::prelude::*;
 use config_macros::define_config;
 define_config! {
+    #[derive(Deserialize)]
     #[doc = " TOML representation of CI-related paths and settings."] #[derive(Default)]
     struct Ci { channel_file : Option < String > = "channel-file", version_file : Option
     < String > = "version-file", tools_dir : Option < String > = "tools-dir",

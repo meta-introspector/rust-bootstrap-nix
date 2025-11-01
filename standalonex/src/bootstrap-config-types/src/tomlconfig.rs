@@ -2,7 +2,7 @@ use build_helper::prelude::*;
 use serde::Deserialize;
 use crate::ChangeIdWrapper;
 //use crate::build::Build;
-use crate::subcommand_groups::BuildTool;
+//use crate::subcommand_groups::BuildTool;
 use crate::install::Install;
 use crate::llvm::Llvm;
 use crate::rust::Rust;
@@ -28,10 +28,10 @@ pub struct Nix {
 pub struct TomlConfig {
     #[serde(flatten)]
     change_id: ChangeIdWrapper,
-    build: Option<crate::build::Build>,
+//    build: Option<>,
     install: Option<Install>,
-    llvm: Option<Llvm>,
-    rust: Option<Rust>,
+    pub llvm: Option<Llvm>,
+    pub rust: Option<Rust>,
     target: Option<HashMap<String, TomlTarget>>,
     dist: Option<Dist>,
     ci: Option<Ci>,

@@ -1,5 +1,5 @@
 use std::fmt;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de::Error};
 use build_helper::prelude::*;
 use crate::StringOrInt;
 use std::fmt::Display;

@@ -3,6 +3,9 @@ name = "bootstrap-config-types"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+bootstrap-self-test = []
+
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"

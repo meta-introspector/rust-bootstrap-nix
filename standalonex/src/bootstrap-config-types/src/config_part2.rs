@@ -7,12 +7,12 @@ use std::collections::*;
 use build_helper::prelude::*;
 use crate::TargetSelection;
 use crate::Target;
-use crate::flags::Color;
-use crate::subcommand::Subcommand;
+//use crate::flags::Color;
+//use crate::subcommand::Subcommand;
 use crate::DryRun;
 use crate::LldMode;
 use crate::RustOptimize;
-use crate::DebuginfoLevel;
+//use crate::DebuginfoLevel;
 use build_helper::channel;
 use crate::RustfmtState;
 use crate::RustcLto;
@@ -23,7 +23,7 @@ use crate::TomlConfig;
 use crate::rust::Rust;
 use crate::llvm::Llvm;
 use crate::Config;
-use crate::Flags;
+//use crate::Flags;
 
 use crate::env;
 use crate::fs;
@@ -65,7 +65,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         optimize,
         randomize_layout,
         debug_logging,
-        debuginfo_level_rustc,
         llvm_tools,
         llvm_bitcode_linker,
         lto,
@@ -86,10 +85,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         std_debug_assertions: _,
         overflow_checks: _,
         overflow_checks_std: _,
-        debuginfo_level: _,
-        debuginfo_level_std: _,
-        debuginfo_level_tools: _,
-        debuginfo_level_tests: _,
         backtrace: _,
         parallel_compiler: _,
         musl_root: _,
@@ -120,7 +115,7 @@ pub fn check_incompatible_options_for_ci_rustc(
     err!(current_rust_config.optimize, optimize);
     err!(current_rust_config.randomize_layout, randomize_layout);
     err!(current_rust_config.debug_logging, debug_logging);
-    err!(current_rust_config.debuginfo_level_rustc, debuginfo_level_rustc);
+
     err!(current_rust_config.rpath, rpath);
     err!(current_rust_config.strip, strip);
     err!(current_rust_config.lld_mode, lld_mode);

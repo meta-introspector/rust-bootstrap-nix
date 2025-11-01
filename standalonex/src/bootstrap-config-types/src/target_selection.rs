@@ -1,12 +1,15 @@
 use std::fmt;
 use build_helper::prelude::*;
 use crate::LlvmLibunwind;
+use crate::SplitDebuginfo;
+use crate::StringOrBool;
+
 //use build_helper::Interned;
 //use build_helper::INTERNER;
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TargetSelection {
-    pub triple: Interned<String>,
-    file: Option<Interned<String>>,
+    pub triple: String,
+    file: Option<String>,
     synthetic: bool,
 }
 /// Newtype over `Vec<TargetSelection>` so we can implement custom parsing logic
@@ -36,18 +39,18 @@ impl TargetSelection {
         } else {
             (selection, None)
         };
-        let triple = INTERNER.intern_str(triple);
-        let file = file.map(|f| INTERNER.intern_str(f));
+//        let triple = INTERNER.intern_str(triple);
+//	let file = file.map(|f| INTERNER.intern_str(f));
         Self {
-            triple,
-            file,
+            triple: triple.to_string(),
+            file: file.map(|s| s.to_string()),
             synthetic: false,
         }
     }
     pub fn create_synthetic(triple: &str, file: &str) -> Self {
         Self {
-            triple: INTERNER.intern_str(triple),
-            file: Some(INTERNER.intern_str(file)),
+            triple: triple.to_string(),
+            file: Some(file.to_string()),
             synthetic: true,
         }
     }
@@ -83,7 +86,7 @@ impl TargetSelection {
 impl fmt::Display for TargetSelection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.triple)?;
-        if let Some(file) = self.file {
+        if let Some(file) = &self.file {
             write!(f, "({file})")?;
         }
         Ok(())

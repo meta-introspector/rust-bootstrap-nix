@@ -2,23 +2,26 @@ use std::collections::*;
 use build_helper::prelude::*;
 use crate::define_config;
 use crate::RustOptimize;
-use crate::DebuginfoLevel;
+//use crate::DebuginfoLevel;
 use crate::LldMode;
 use crate::StringOrBool;
 define_config! {
+    #[derive(Deserialize)]
     struct Rust {
     optimize : Option < RustOptimize > = "optimize", debug : Option < bool > = "debug",
     codegen_units : Option < u32 > = "codegen-units", codegen_units_std : Option < u32 >
     = "codegen-units-std", rustc_debug_assertions : Option < bool > = "debug-assertions",
-    randomize_layout : Option < bool > = "randomize-layout", std_debug_assertions :
-    Option < bool > = "debug-assertions-std", overflow_checks : Option < bool > =
-    "overflow-checks", overflow_checks_std : Option < bool > = "overflow-checks-std",
-    debug_logging : Option < bool > = "debug-logging", debuginfo_level : Option <
-    DebuginfoLevel > = "debuginfo-level", debuginfo_level_rustc : Option < DebuginfoLevel
-    > = "debuginfo-level-rustc", debuginfo_level_std : Option < DebuginfoLevel > =
-    "debuginfo-level-std", debuginfo_level_tools : Option < DebuginfoLevel > =
-    "debuginfo-level-tools", debuginfo_level_tests : Option < DebuginfoLevel > =
-    "debuginfo-level-tests", backtrace : Option < bool > = "backtrace", incremental :
+	randomize_layout : Option < bool > = "randomize-layout",
+	std_debug_assertions :	Option < bool > = "debug-assertions-std",
+	overflow_checks : Option < bool > =  "overflow-checks",
+	overflow_checks_std : Option < bool > = "overflow-checks-std",
+	debug_logging : Option < bool > = "debug-logging",
+//	debuginfo_level : Option <DebuginfoLevel > = "debuginfo-level",
+//	debuginfo_level_rustc : Option < DebuginfoLevel    > = "debuginfo-level-rustc", debuginfo_level_std : Option < DebuginfoLevel > =
+//    "debuginfo-level-std", debuginfo_level_tools : Option < DebuginfoLevel > =
+//    "debuginfo-level-tools", debuginfo_level_tests : Option < DebuginfoLevel > =
+	//    "debuginfo-level-tests",
+	backtrace : Option < bool > = "backtrace", incremental :
     Option < bool > = "incremental", parallel_compiler : Option < bool > =
     "parallel-compiler", default_linker : Option < String > = "default-linker", channel :
     Option < String > = "channel", description : Option < String > = "description",

@@ -2,6 +2,7 @@ use build_helper::prelude::*;
 use crate::define_config;
 use crate::StringOrBool;
 define_config! {
+    #[derive(Deserialize)]
     struct TomlTarget {
     llvm_libunwind : Option < String > = "llvm-libunwind", split_debuginfo : Option <
     String > = "split-debuginfo", profiler : Option < StringOrBool > = "profiler",
