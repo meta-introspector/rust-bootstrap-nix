@@ -8,7 +8,8 @@ use crate::Compiler;
 use crate::Mode;
 //use crate::TargetSelection;
 //use crate::core::config::Target;
-use crate::utils::helpers::{exe, t, output, libdir};
+use bootstrap_macros::t;
+use crate::utils::helpers::{exe,  output, libdir};
 //use crate::builder::BootstrapCommand;
 
 impl Build { // Wrap functions in an impl block for the Build struct

@@ -394,6 +394,7 @@ dependencies = [
  "anyhow",
  "bootstrap-config-types",
  "bootstrap-config-utils",
+ "bootstrap-macros",
  "bootstrap-test-utils",
  "build_helper",
  "cc",
