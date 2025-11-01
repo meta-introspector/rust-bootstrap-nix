@@ -44,3 +44,7 @@ standalonex/test_minimal/result
 
 # Ignore prelude-generator cache files
 standalonex/min_test_project/.prelude_cache/
+
+# Cargo expand output files
+.expand_output_*.rs
+.expand_processed_*

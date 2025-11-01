@@ -1,8 +1,6 @@
-.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir fix-shear generate-use-statements-test-file
+.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir shear-all clean-shear expand-all clean-expand generate-use-statements-test-file check-rust-decl-splitter
 
 all: build build-config-builder
-
-build: generate-config
 	$(MAKE) -C nix-build-scripts/
 
 fast-build:
@@ -82,12 +80,21 @@ clean-rustc-test-flakes:
 		echo "Cleaned flakes/$$version"; \
 	done
 
-fix-shear: prelude-generator/.shear-fixed-stamp
+shear-all:
+	@echo "Running cargo shear on all packages via Makefile.shear..."
+	$(MAKE) -f Makefile.shear shear-all
 
-prelude-generator/.shear-fixed-stamp:
-	@echo "Running cargo shear --fix --expand for prelude-generator..."
-	nix develop --command bash -c "cargo shear --fix --expand -p prelude-generator"
-	@touch $@
+clean-shear:
+	@echo "Cleaning shear processed stamps via Makefile.shear..."
+	$(MAKE) -f Makefile.shear clean-shear
+
+expand-all:
+	@echo "Running cargo expand on all packages via Makefile.expand..."
+	$(MAKE) -f Makefile.expand expand-all
+
+clean-expand:
+	@echo "Cleaning expand processed stamps and output files via Makefile.expand..."
+	$(MAKE) -f Makefile.expand clean-expand
 
 generate-use-statements-test-file: generated/use_statement_tests/.all-use-statements-generated-stamp
 
@@ -96,3 +103,7 @@ generated/use_statement_tests/.all-use-statements-generated-stamp:
 	mkdir -p generated/use_statement_tests
 	nix develop --command bash -c "cargo run --package prelude-generator -- --generate-aggregated-test-file"
 	@touch $@
+
+check-rust-decl-splitter:
+	@echo "Running cargo check for rust-decl-splitter..."
+	nix develop --command bash -c "cargo check -p rust-decl-splitter"
