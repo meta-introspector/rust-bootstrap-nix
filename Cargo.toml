@@ -11,5 +11,6 @@ members = [
     #"vendor/rust/hugging-face-dataset-validator-rust",
     "pipeline-traits",
     "ast-decoder",
+    "tools/flake-orchestrator",
 ]
 

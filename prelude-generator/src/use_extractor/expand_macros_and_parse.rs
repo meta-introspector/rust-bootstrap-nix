@@ -70,24 +70,24 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
     let temp_src_dir = temp_crate_path.join("src");
     fs::create_dir(&temp_src_dir).await.context("Failed to create temporary src directory")?;
 
-    // Copy the file to be expanded into the temporary src directory
-    let temp_rs_file_name = file_path.file_name().unwrap_or_else(|| "temp_file.rs".as_ref());
-    let temp_rs_file_path = temp_src_dir.join(temp_rs_file_name);
-    fs::copy(file_path, &temp_rs_file_path).await.context("Failed to copy source file to temporary directory")?;
+    // Copy the file to be expanded into the temporary src directory, renaming it to lib.rs
+    let original_file_stem = file_path.file_stem().unwrap_or_else(|| "temp_file".as_ref());
+    let temp_lib_rs_path = temp_src_dir.join("lib.rs");
+    fs::copy(file_path, &temp_lib_rs_path).await.context("Failed to copy source file to temporary lib.rs")?;
+
+    // Create a dummy main.rs if the original was a binary, or if it's a lib, ensure it's a lib
+    // For simplicity, we'll always treat the temporary crate as a library.
+    // The original file's content is now in temp_lib_rs_path.
 
     writer.write_all(format!("        -> PATH environment variable: {:?}\n", std::env::var("PATH")).as_bytes()).await?;
-    writer.write_all(format!("        -> Running cargo rustc -Zunpretty=expanded for: {}\n", file_path.display()).as_bytes()).await?;
+    writer.write_all(format!("        -> Running cargo rustc -Zunpretty=expanded --lib for: {}\n", file_path.display()).as_bytes()).await?;
     let output = tokio::process::Command::new("cargo")
         .arg("rustc")
         .arg("--manifest-path")
         .arg(&temp_cargo_toml_path)
+        .arg("--lib") // Explicitly compile as a library
         .arg("--")
         .arg("-Zunpretty=expanded")
-        .arg("--crate-type")
-        .arg("lib")
-        .arg("--emit")
-        .arg("mir") // or some other intermediate representation
-        .arg(&temp_rs_file_path)
         .output().await?;
 
     writer.write_all(format!("        -> rustc status for {}: {}\n", file_path.display(), output.status).as_bytes()).await?;

@@ -26,4 +26,10 @@ pub struct Args {
     /// Show verbose output for Git operations
     #[arg(long, default_value_t = false)]
     pub verbose: bool,
+    /// Enable rustc wrapper for logging calls
+    #[arg(long, default_value_t = false)]
+    pub use_rustc_wrapper: bool,
+    /// Path to the rustc wrapper script
+    #[arg(long)]
+    pub rustc_wrapper_path: Option<PathBuf>,
 }

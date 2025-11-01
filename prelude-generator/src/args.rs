@@ -143,6 +143,10 @@ pub struct Args {
     /// Comma-separated list of file/module names to filter by during processing.
     #[arg(long, value_delimiter = ',')]
     pub filter_names: Option<Vec<String>>,
+
+    /// Path to a rustc wrapper script to use for macro expansion.
+    #[arg(long)]
+    pub rustc_wrapper_path: Option<PathBuf>,
 }
 
 #[cfg(test)]
