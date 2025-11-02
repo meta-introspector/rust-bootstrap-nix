@@ -1,1 +1,0 @@
-# [doc = " LTO mode used for compiling rustc itself."] pub enum RustcLto { Off , # [default] ThinLocal , Thin , Fat , }

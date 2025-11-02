@@ -1,1 +1,0 @@
-pub fn compose_path (path_expr : & str , path_template : & str) -> String { path_expr . replacen ("{}" , & :: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("{0}" , path_template)) }) , 1 ,) }

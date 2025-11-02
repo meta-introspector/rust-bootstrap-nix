@@ -1,1 +1,0 @@
-# [serde (untagged)] pub enum StringOrInt { String (String) , Int (i64) , }

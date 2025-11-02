@@ -1,1 +1,0 @@
-pub fn set < T > (field : & mut T , val : Option < T >) { if let Some (v) = val { * field = v ; } }

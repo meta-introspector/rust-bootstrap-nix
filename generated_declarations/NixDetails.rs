@@ -1,1 +1,0 @@
-pub enum NixDetails { Info (NixInfo) , Error (String) , Unknown , }

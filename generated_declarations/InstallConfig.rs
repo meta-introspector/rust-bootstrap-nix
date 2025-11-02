@@ -1,1 +1,0 @@
-pub struct InstallConfig { pub prefix : Option < String > , pub sysconfdir : Option < String > , }

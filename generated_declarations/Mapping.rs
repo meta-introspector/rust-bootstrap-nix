@@ -1,1 +1,0 @@
-struct Mapping { # [serde (flatten)] files : HashMap < String , String > , }

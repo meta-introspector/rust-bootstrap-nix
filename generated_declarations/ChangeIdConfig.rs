@@ -1,1 +1,0 @@
-pub struct ChangeIdConfig { pub id : Option < String > , }

@@ -1,1 +1,0 @@
-pub enum DeclarationItem { Const (ItemConst) , Struct (ItemStruct) , Enum (ItemEnum) , Fn (ItemFn) , Static (ItemStatic) , Other (syn :: Item) , }

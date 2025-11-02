@@ -1,1 +1,0 @@
-# [serde (tag = "outcome" , rename_all = "snake_case")] pub enum TestOutcome { Passed , Failed , Ignored { ignore_reason : Option < String > } , }

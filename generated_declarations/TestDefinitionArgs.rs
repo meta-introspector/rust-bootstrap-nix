@@ -1,1 +1,0 @@
-struct TestDefinitionArgs { name : Ident , path : LitStr , mode : LitStr , suite : LitStr , default : LitBool , host : LitBool , compare_mode : syn :: Expr , }

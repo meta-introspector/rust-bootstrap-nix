@@ -1,1 +1,0 @@
-pub fn get_collected_metrics () -> HashMap < String , FunctionMetrics > { METRICS . lock () . unwrap () . clone () }

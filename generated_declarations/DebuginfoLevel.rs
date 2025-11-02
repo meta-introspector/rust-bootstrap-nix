@@ -1,1 +1,0 @@
-pub enum DebuginfoLevel { # [default] None , LineDirectivesOnly , LineTablesOnly , Limited , Full , }

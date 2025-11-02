@@ -1,1 +1,0 @@
-# [doc (hidden)] const VARIANTS : & 'static [& 'static str] = & ["Success" , "Skipped" , "Failed"] ;

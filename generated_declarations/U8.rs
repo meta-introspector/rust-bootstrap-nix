@@ -1,1 +1,0 @@
-pub (crate) trait U8 { fn as_usize (self) -> usize ; }

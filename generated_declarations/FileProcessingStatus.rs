@@ -1,1 +1,0 @@
-pub enum FileProcessingStatus { Success , Skipped { reason : String } , Failed { error : String } , }
