@@ -48,3 +48,12 @@ standalonex/min_test_project/.prelude_cache/
 # Cargo expand output files
 .expand_output_*.rs
 .expand_processed_*
+
+# Cargo shear output files
+.shear_processed_*
+Makefile.shear
+files.txt
+prelude-generator/.shear-fixed-stamp
+standalonex/.shear_processed_bootstrap-config
+standalonex/.shear_processed_bootstrap-config-types
+standalonex/min_test_project/.prelude_cache/
