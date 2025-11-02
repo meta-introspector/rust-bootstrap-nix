@@ -1,0 +1,1 @@
+pub struct MyTest { pub compiler : Compiler , pub target : TargetSelection , }

@@ -61,175 +61,22 @@ pub fn handle_verify_config() {
     println!("Verifying configuration...");
 }
 
-use crate::gem_parser::GemConfig;
-
-use cargo_metadata::{MetadataCommand, Package};
-//use walkdir::WalkDir;
+// Removed use crate::gem_parser::GemConfig;
+// Removed use cargo_metadata::{MetadataCommand, Package};
 
 pub async fn handle_extract_global_level0_decls(
-    project_root: &PathBuf,
-    args: &crate::Args,
-    all_numerical_constants: &mut Vec<syn::ItemConst>,
-    all_string_constants: &mut Vec<syn::ItemConst>,
-    rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
-    cache_dir: &std::path::Path,
+    _project_root: &PathBuf,
+    _args: &crate::Args,
+    _all_numerical_constants: &mut Vec<syn::ItemConst>,
+    _all_string_constants: &mut Vec<syn::ItemConst>,
+    _rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
+    _cache_dir: &std::path::Path,
 ) -> anyhow::Result<()> {
-    println!("Extracting global Level 0 declarations...");
-    println!("Project root: {}", project_root.display());
-    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
-        project_root.join("generated/level0_decls")
-    });
-    println!("Generated decls output dir: {}", generated_decls_output_dir.display());
-
-    let gem_config_path = project_root.join("gems.toml");
-    let gem_config = GemConfig::load_from_file(&gem_config_path)
-        .context(format!("Failed to load gem config from {}", gem_config_path.display()))?;
-
-    let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
-
-    let metadata = MetadataCommand::new()
-        .manifest_path(project_root.join("Cargo.toml"))
-        .exec()
-        .context("Failed to execute cargo metadata")?;
-
-    let mut all_declarations: Vec<crate::declaration::Declaration> = Vec::new();
-    let mut total_files_processed = 0;
-    let mut collected_errors = Vec::new();
-    let mut total_fns = 0;
-    let mut total_structs = 0;
-    let mut total_enums = 0;
-    let mut total_statics = 0;
-    let mut total_other_items = 0;
-    let total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
-
-    // Collect all packages to process (workspace members + local path dependencies)
-    let mut packages_to_process: Vec<&Package> = Vec::new();
-
-    // Add workspace members
-    for member_id in &metadata.workspace_members {
-        if let Some(pkg) = metadata.packages.iter().find(|p| &p.id == member_id) {
-            packages_to_process.push(pkg);
-        }
-    }
-
-    // Add local path dependencies that are not workspace members
-    for pkg in &metadata.packages {
-        if pkg.manifest_path.starts_with(project_root) && !metadata.workspace_members.contains(&pkg.id) {
-            // Check if it's a local path dependency and not already a workspace member
-            // This heuristic might need refinement for complex dependency graphs
-            packages_to_process.push(pkg);
-        }
-    }
-
-    for pkg in packages_to_process {
-        let manifest_path = pkg.manifest_path.to_path_buf();
-        println!("Processing crate: {} at {}", pkg.name, manifest_path);
-
-        let (decls, files_processed, fns, structs, enums, statics, other_items, _structs_per_layer, errors) =
-            declaration_processing::extract_all_declarations_from_crate(
-                manifest_path.as_ref(),
-                &args,
-                &type_map,
-                &args.filter_names,
-                rustc_info,
-                cache_dir,
-                &gem_config,
-            ).await?;
-
-        all_declarations.extend(decls);
-        collected_errors.extend(errors);
-        total_files_processed += files_processed;
-        total_fns += fns;
-        total_structs += structs;
-        total_enums += enums;
-        total_statics += statics;
-        total_other_items += other_items;
-        // Merge structs_per_layer if needed, or re-calculate from all_declarations later
-    }
-
-    let mut error_collection = ErrorCollection::default();
-    for err_sample in collected_errors {
-        error_collection.add_error(err_sample);
-    }
-
-    // Layer the declarations
-    let layered_declarations = declaration_processing::layer_declarations(all_declarations);
-
-    println!("\n--- Layered Declaration Analysis ---");
-    for layer_num in 0..=8 { // Iterate up to 8 layers as per requirement
-        if let Some(decls_in_layer) = layered_declarations.get(&layer_num) {
-            println!("Layer {}: {} declarations", layer_num, decls_in_layer.len());
-            // For now, just print the count. Further processing can be added here.
-        } else if layer_num == 0 && layered_declarations.get(&0).is_none() {
-            println!("Layer 0: No declarations found.");
-        } else if layered_declarations.get(&layer_num).is_none() && layer_num > 0 {
-            println!("Layer {}: No declarations found.", layer_num);
-            // If a layer is empty and it's not layer 0, we can stop if no more layers are expected
-            if layered_declarations.keys().all(|&k| k < layer_num) {
-                break;
-            }
-        }
-    }
-    println!("-------------------------------------");
-
-    // Separate constants and structs from all_declarations for further processing
-    // Note: This part might need adjustment if constants/structs are now processed per layer.
-    let mut constants: Vec<syn::ItemConst> = Vec::new();
-    let mut structs: HashMap<usize, Vec<syn::ItemStruct>> = HashMap::new();
-    // Re-collect constants and structs from layered_declarations if needed for process_constants
-    for (_layer_num, decls_in_layer) in layered_declarations.iter() {
-        for decl in decls_in_layer {
-            match &decl.item {
-                crate::declaration::DeclarationItem::Const(c) => constants.push(c.clone()),
-                crate::declaration::DeclarationItem::Struct(s) => {
-                    let struct_name = s.ident.to_string();
-                    let layer = type_map.get(&struct_name).and_then(|info| info.layer).unwrap_or(0);
-                    structs.entry(layer).or_insert_with(Vec::new).push(s.clone());
-                },
-                _ => {},
-            }
-        }
-    }
-
-    if let Err(e) = declaration_processing::process_constants(
-        constants.clone(),
-        &args,
-        &project_root,
-        all_numerical_constants,
-        all_string_constants,
-        &type_map,
-    ).await {
-        // For now, still collect anyhow errors from process_constants
-        eprintln!("Error processing constants: {:?}", e);
-    }
-
-
-    println!("Total files processed: {}", total_files_processed);
-    println!("Total constants extracted: {}", constants.len());
-    println!("Total functions found: {}", total_fns);
-    println!("Total structs found: {}", total_structs);
-    println!("Total structs extracted per layer: {:?}", total_structs_per_layer);
-    println!("Total enums found: {}", total_enums);
-    println!("Total statics found: {}", total_statics);
-    println!("Total other items found: {}", total_other_items);
-    println!("---------------------------------------------");
-
-    if !error_collection.errors.is_empty() {
-        eprintln!(r"\n--- Summary of Errors Encountered During Macro Expansion/Parsing ---");
-        for error in &error_collection.errors {
-            eprintln!(r"File: {}, Type: {}, Message: {}", error.file_path.display(), error.error_type, error.error_message);
-        }
-        eprintln!(r"---------------------------------------------------------------------");
-        let error_output_path = project_root.join("collected_errors.json");
-        error_collection.write_to_file(&error_output_path).await?;
-        eprintln!("Collected errors written to: {}", error_output_path.display());
-    }
-
+    println!("handle_extract_global_level0_decls is now handled by split-expanded-bin.");
     Ok(())
 }
 
-pub async fn handle_extract_numerical_constants(
-    _project_root: &PathBuf,
+pub async fn handle_extract_numerical_constants(    _project_root: &PathBuf,
     _args: &crate::Args,
     all_numerical_constants: &Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {

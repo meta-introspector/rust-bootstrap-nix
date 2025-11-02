@@ -1,0 +1,1 @@
+pub struct MinTestStruct { pub id : u32 , }

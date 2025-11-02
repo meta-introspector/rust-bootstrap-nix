@@ -1,0 +1,1 @@
+pub enum CargoDetails { Info (CargoInfo) , Error (String) , Unknown , }

@@ -51,4 +51,6 @@ members = [
     # "vendor/rarrow/others/echo/crates/rmg-ffi",
     # "vendor/rarrow/others/echo/crates/rmg-wasm",
     # "vendor/rust/hugging-face-dataset-validator-rust",
+    "split-expanded-lib",
+    "split-expanded-bin",
 ]

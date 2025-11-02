@@ -1,0 +1,1 @@
+pub fn parse_config (config_path : & PathBuf ,) -> Result < Config , Box < dyn std :: error :: Error > > { let config_content = fs :: read_to_string (config_path) ? ; let config : Config = toml :: from_str (& config_content) ? ; Ok (config) }

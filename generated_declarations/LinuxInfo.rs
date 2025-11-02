@@ -1,0 +1,1 @@
+pub struct LinuxInfo { pub kernel_version : String , pub architecture : String , }

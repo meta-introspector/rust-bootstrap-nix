@@ -1,0 +1,1 @@
+pub fn dir_is_empty (_path : & Path) -> bool { false }

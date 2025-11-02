@@ -1,4 +1,4 @@
-.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir shear-all clean-shear expand-all clean-expand generate-use-statements-test-file check-rust-decl-splitter
+.PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir shear-all clean-shear expand-all clean-expand generate-use-statements-test-file check-rust-decl-splitter run-decl-splitter clean-decl-splitter build-decl-splitter quick-decl-splitter-check run-prelude-generator clean-prelude-generator build-prelude-generator
 
 all: build build-config-builder
 	$(MAKE) -C nix-build-scripts/
@@ -107,3 +107,5 @@ generated/use_statement_tests/.all-use-statements-generated-stamp:
 check-rust-decl-splitter:
 	@echo "Running cargo check for rust-decl-splitter..."
 	nix develop --command bash -c "cargo check -p rust-decl-splitter"
+
+include Makefile.prelude

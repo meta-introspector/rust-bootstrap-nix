@@ -1,0 +1,1 @@
+static SUBMODULES_PATHS : OnceLock < Vec < String > > = OnceLock :: new () ;

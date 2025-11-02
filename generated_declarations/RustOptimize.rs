@@ -1,0 +1,1 @@
+pub enum RustOptimize { String (String) , Int (u8) , Bool (bool) , }

@@ -1,0 +1,1 @@
+pub struct ValidatedFile (pub String , pub PathBuf) ;

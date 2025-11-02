@@ -1,0 +1,1 @@
+pub struct TypeCollector < 'a > { pub type_map : & 'a mut HashMap < String , TypeInfo > , }

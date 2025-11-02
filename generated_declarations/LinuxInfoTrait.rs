@@ -1,0 +1,1 @@
+pub trait LinuxInfoTrait : Send + Sync + Debug { fn kernel_version (& self) -> Option < & str > ; fn architecture (& self) -> Option < & str > ; }

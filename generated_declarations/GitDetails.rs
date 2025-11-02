@@ -1,0 +1,1 @@
+pub enum GitDetails { Info (GitInfo) , Error (String) , Unknown , }

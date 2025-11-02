@@ -1,0 +1,1 @@
+static ACTIVE_GROUPS : Mutex < Vec < String > > = Mutex :: new (Vec :: new ()) ;

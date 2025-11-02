@@ -1,0 +1,1 @@
+pub enum RustDetails { Info (RustDetailsInfo) , Error (String) , Unknown , }

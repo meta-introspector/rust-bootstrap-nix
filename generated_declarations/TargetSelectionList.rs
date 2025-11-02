@@ -1,0 +1,1 @@
+# [doc = " Newtype over `Vec<TargetSelection>` so we can implement custom parsing logic"] pub struct TargetSelectionList (pub Vec < TargetSelection >) ;

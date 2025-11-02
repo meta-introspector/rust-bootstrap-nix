@@ -1,0 +1,1 @@
+# [doc = " An iterator over each equivalence class."] pub (crate) struct ByteClassIter { it : core :: ops :: Range < usize > , }

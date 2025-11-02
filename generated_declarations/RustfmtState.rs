@@ -1,0 +1,1 @@
+pub enum RustfmtState { SystemToolchain (PathBuf) , Downloaded (PathBuf) , Unavailable , # [default] LazyEvaluated , }

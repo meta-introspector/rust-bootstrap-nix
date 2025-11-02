@@ -9,7 +9,7 @@ async fn main() -> anyhow::Result<()> {
     let (args, config) = prelude_generator::cli::parse_arguments_and_config()?;
 
     let project_root = if args.path == PathBuf::from(".") {
-        std::env::current_dir()?.parent().unwrap().to_path_buf()
+        std::env::current_dir()?
     } else {
         args.path.clone()
     };

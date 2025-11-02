@@ -1,0 +1,1 @@
+pub struct DropBomb { command : OsString , defused : bool , armed_location : panic :: Location < 'static > , }

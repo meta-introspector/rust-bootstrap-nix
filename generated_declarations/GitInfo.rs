@@ -1,0 +1,1 @@
+pub struct GitInfo { pub repo_url : String , pub branch : String , pub commit_hash : String , }

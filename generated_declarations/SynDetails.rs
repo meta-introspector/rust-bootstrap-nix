@@ -1,0 +1,1 @@
+pub enum SynDetails { Info (SynInfo) , Error (String) , Unknown , }
