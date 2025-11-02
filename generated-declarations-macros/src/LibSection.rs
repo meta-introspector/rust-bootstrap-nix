@@ -1,0 +1,1 @@
+struct LibSection { # [serde (rename = "proc-macro" , default)] proc_macro : bool , }

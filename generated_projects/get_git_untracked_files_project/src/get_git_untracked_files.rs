@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " Returns the files that haven't been added to git yet."] pub fn get_git_untracked_files (config : & GitConfig < '_ > , git_dir : Option < & Path > ,) -> Result < Option < Vec < String > > , String > { let Ok (_updated_master) = updated_master_branch (config , git_dir) else { return Ok (None) ; } ; let mut git = Command :: new ("git") ; if let Some (git_dir) = git_dir { git . current_dir (git_dir) ; } let files = output_result (git . arg ("ls-files") . arg ("--others") . arg ("--exclude-standard") ,) ? . lines () . map (| s | s . trim () . to_owned ()) . collect () ; Ok (Some (files)) }

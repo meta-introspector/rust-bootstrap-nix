@@ -1,0 +1,1 @@
+pub enum LlvmDetails { Info (LlvmInfo) , Error (String) , Unknown , }

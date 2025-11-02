@@ -1,0 +1,1 @@
+# [inline (always)] fn __static_ref_initialize () -> Mutex < HashMap < String , FunctionMetrics > > { Mutex :: new (HashMap :: new ()) }

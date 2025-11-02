@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub fn handle_analyze_ast (_args : & crate :: Args) -> anyhow :: Result < () > { let path = _args . ast_analysis_path . clone () . ok_or_else (| | :: anyhow :: __private :: must_use ({ let error = :: anyhow :: __private :: format_err (format_args ! ("ast_analysis_path is required when analyze_ast is true" ,) ,) ; error })) ? ; { :: std :: io :: _print (format_args ! ("Analyzing AST for project: {0}\n" , path . display ()) ,) ; } ; Ok (()) }

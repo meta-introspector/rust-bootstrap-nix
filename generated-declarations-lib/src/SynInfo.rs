@@ -1,0 +1,1 @@
+pub struct SynInfo { pub parsed_type : String , pub version : String , }

@@ -1,0 +1,1 @@
+pub struct FileProcessingResult { pub path : PathBuf , pub status : FileProcessingStatus , }

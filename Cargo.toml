@@ -52,5 +52,6 @@ members = [
     # "vendor/rarrow/others/echo/crates/rmg-wasm",
     # "vendor/rust/hugging-face-dataset-validator-rust",
     "split-expanded-lib",
-    "split-expanded-bin", "generated-declarations-lib",
+    "split-expanded-bin", "generated-declarations-lib", "generated-proc-macros-lib",
+    "monadic-io-traits",
 ]

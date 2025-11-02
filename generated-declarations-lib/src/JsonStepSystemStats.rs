@@ -1,0 +1,1 @@
+# [serde (rename_all = "snake_case")] pub struct JsonStepSystemStats { pub cpu_utilization_percent : f64 , }

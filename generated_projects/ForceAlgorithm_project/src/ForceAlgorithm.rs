@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " An internal option for forcing the use of a particular packed algorithm."] # [doc = ""] # [doc = " When an algorithm is forced, if a searcher could not be constructed for it,"] # [doc = " then no searcher will be returned even if an alternative algorithm would"] # [doc = " work."] enum ForceAlgorithm { Teddy , RabinKarp , }

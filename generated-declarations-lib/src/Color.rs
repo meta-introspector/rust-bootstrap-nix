@@ -1,0 +1,1 @@
+pub enum Color { Always , Never , # [default] Auto , }

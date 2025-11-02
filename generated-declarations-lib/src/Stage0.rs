@@ -1,0 +1,1 @@
+pub struct Stage0 { pub compiler : VersionMetadata , pub rustfmt : Option < VersionMetadata > , pub config : Stage0Config , pub checksums_sha256 : BTreeMap < String , String > , }

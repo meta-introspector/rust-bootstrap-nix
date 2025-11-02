@@ -1,0 +1,1 @@
+pub struct CargoInfo { pub package_name : String , pub version : String , }

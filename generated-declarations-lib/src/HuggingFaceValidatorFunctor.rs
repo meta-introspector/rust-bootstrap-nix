@@ -1,0 +1,1 @@
+pub struct HuggingFaceValidatorFunctor { pub args : crate :: Args , pub hf_validator_path : Option < PathBuf > , }

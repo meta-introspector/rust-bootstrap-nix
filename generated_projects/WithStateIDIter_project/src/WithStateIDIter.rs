@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " An iterator adapter that is like std::iter::Enumerate, but attaches"] # [doc = " small index values instead. It requires `ExactSizeIterator`. At"] # [doc = " construction, it ensures that the index of each element in the"] # [doc = " iterator is representable in the corresponding small index type."] pub (crate) struct WithStateIDIter < I > { it : I , ids : StateIDIter , }

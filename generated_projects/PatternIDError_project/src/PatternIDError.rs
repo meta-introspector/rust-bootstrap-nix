@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " This error occurs when an ID could not be constructed."] # [doc = ""] # [doc = " This occurs when given an integer exceeding the maximum allowed"] # [doc = " value."] # [doc = ""] # [doc = " When the `std` feature is enabled, this implements the `Error`"] # [doc = " trait."] pub struct PatternIDError (SmallIndexError) ;

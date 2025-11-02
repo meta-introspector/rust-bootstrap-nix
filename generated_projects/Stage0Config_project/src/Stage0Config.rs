@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub struct Stage0Config { pub dist_server : String , pub artifacts_server : String , pub artifacts_with_llvm_assertions_server : String , pub git_merge_commit_email : String , pub git_repository : String , pub nightly_branch : String , }

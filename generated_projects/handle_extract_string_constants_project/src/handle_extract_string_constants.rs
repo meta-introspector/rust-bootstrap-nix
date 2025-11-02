@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub async fn handle_extract_string_constants (_project_root : & PathBuf , _args : & crate :: Args , all_string_constants : & Vec < syn :: ItemConst > ,) -> anyhow :: Result < () > { let string_output_dir = _project_root . join (r"generated/string_constants") ; tokio :: fs :: create_dir_all (& string_output_dir) . await . context (:: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("Failed to create output directory {0:?}" , string_output_dir ,) ,) }) ,) ? ; constant_storage :: string_constants :: write_string_constants_to_hierarchical_structure (& all_string_constants , & string_output_dir ,) . await ? ; { :: std :: io :: _print (format_args ! ("  -> String constants will be written to: {0:?}\n" , string_output_dir ,) ,) ; } ; { :: std :: io :: _print (format_args ! ("  -> Total string constants extracted: {0}\n" , all_string_constants . len () ,) ,) ; } ; Ok (()) }

@@ -1,0 +1,16 @@
+[package]
+name = "config_ci_project"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+# This will be set to proc-macro = true if proc macros are detected
+
+[dependencies]
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+anyhow = "1.0"
+split-expanded-lib = { path = "../../split-expanded-lib" }
+
+[workspace]

@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " All github actions log messages from this call to the Drop of the return value"] # [doc = " will be grouped and hidden by default in logs. Note that since github actions doesn't"] # [doc = " support group nesting, any active group will be first finished when a subgroup is started,"] # [doc = " and then re-started when the subgroup finishes."] # [track_caller] pub fn group (name : impl std :: fmt :: Display) -> Group { let mut groups = ACTIVE_GROUPS . lock () . unwrap () ; if ! groups . is_empty () { end_group () ; } let name = name . to_string () ; start_group (& name) ; groups . push (name) ; Group (()) }

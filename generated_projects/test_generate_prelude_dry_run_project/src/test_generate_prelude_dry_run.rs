@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub fn test_generate_prelude_dry_run () -> Result < () > { let dir = tempdir () ? ; let src_dir = dir . path () . join ("src") ; fs :: create_dir (& src_dir) ? ; let prelude_content = "// Test prelude content" ; generate_prelude :: generate_prelude (& src_dir , prelude_content , true , false) ? ; let prelude_path = src_dir . join ("prelude.rs") ; if ! ! prelude_path . exists () { :: core :: panicking :: panic ("assertion failed: !prelude_path.exists()") } Ok (()) }

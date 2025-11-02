@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " An iterator of overlapping matches in a particular haystack."] # [doc = ""] # [doc = " This iterator will report all possible matches in a particular haystack,"] # [doc = " even when the matches overlap."] # [doc = ""] # [doc = " This iterator is constructed via the"] # [doc = " [`Automaton::try_find_overlapping_iter`] method."] # [doc = ""] # [doc = " The type variable `A` refers to the implementation of the [`Automaton`]"] # [doc = " trait used to execute the search."] # [doc = ""] # [doc = " The lifetime `'a` refers to the lifetime of the [`Automaton`]"] # [doc = " implementation."] # [doc = ""] # [doc = " The lifetime `'h` refers to the lifetime of the haystack being searched."] pub struct FindOverlappingIter < 'a , 'h , A > { aut : & 'a A , input : Input < 'h > , state : OverlappingState , }

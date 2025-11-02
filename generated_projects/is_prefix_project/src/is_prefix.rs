@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " Returns true if and only if `needle` is a prefix of `haystack`."] # [doc = ""] # [doc = " This uses a latency optimized variant of `memcmp` internally which *might*"] # [doc = " make this faster for very short strings."] # [doc = ""] # [doc = " # Inlining"] # [doc = ""] # [doc = " This routine is marked `inline(always)`. If you want to call this function"] # [doc = " in a way that is not always inlined, you'll need to wrap a call to it in"] # [doc = " another function that is marked as `inline(never)` or just `inline`."] # [inline (always)] fn is_prefix (haystack : & [u8] , needle : & [u8]) -> bool { if needle . len () > haystack . len () { return false ; } unsafe { is_equal_raw (haystack . as_ptr () , needle . as_ptr () , needle . len ()) } }

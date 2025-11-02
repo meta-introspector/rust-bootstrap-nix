@@ -1,0 +1,1 @@
+pub fn is_ci_llvm_available (_llvm_config : bool , _asserts : bool) -> bool { false }

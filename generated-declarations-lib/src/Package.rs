@@ -1,0 +1,1 @@
+struct Package { name : String , manifest_path : PathBuf , }

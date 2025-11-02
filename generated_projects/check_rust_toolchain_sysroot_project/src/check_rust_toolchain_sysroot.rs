@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub fn check_rust_toolchain_sysroot (rust_src_flake_path : & str) -> Result < () > { let known_file = :: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("{0}/src/ci/channel" , rust_src_flake_path)) }) ; if std :: path :: Path :: new (& known_file) . exists () { Ok (()) } else { return :: anyhow :: __private :: Err (:: anyhow :: Error :: msg (:: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("Rust source flake NOT found at: {0}. Known file \'src/ci/channel\' missing." , rust_src_flake_path ,) ,) }) ,) ,) ; } }

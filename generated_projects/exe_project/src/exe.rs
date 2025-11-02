@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+fn exe (name : & str , _target : crate :: target_selection :: TargetSelection) -> String { if false { :: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("{0}.exe" , name)) }) } else { name . to_string () } }

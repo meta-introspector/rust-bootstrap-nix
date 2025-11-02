@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub fn validate_project_root (project_root : & PathBuf) -> Result < PathBuf > { let canonicalized_root = fs :: canonicalize (project_root) . with_context (| | { :: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("Failed to find absolute path for project root: {0:?}" , project_root ,) ,) }) }) ? ; if ! canonicalized_root . join ("flake.nix") . exists () { return :: anyhow :: __private :: Err (:: anyhow :: Error :: msg (:: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("flake.nix not found in the specified project root: {0:?}" , canonicalized_root ,) ,) }) ,) ,) ; } Ok (canonicalized_root) }

@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub struct LocalDist { pub sign_folder : Option < PathBuf > , pub upload_addr : Option < String > , pub compression_formats : Option < Vec < String > > , pub compression_profile : Option < String > , pub src_tarball : Option < bool > , pub include_mingw_linker : Option < bool > , pub vendor : Option < bool > , }

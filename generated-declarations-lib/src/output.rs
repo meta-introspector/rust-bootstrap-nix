@@ -1,0 +1,1 @@
+fn output (cmd : & mut Command) -> Vec < u8 > { cmd . output () . expect ("command failed to run") . stdout }

@@ -1,0 +1,1 @@
+pub struct InspectFunctor < 'a , T : Debug > { label : & 'a str , _phantom : std :: marker :: PhantomData < T > , }

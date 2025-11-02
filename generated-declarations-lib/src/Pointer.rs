@@ -1,0 +1,1 @@
+pub (crate) trait Pointer { fn as_usize (self) -> usize ; }

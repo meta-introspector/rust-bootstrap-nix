@@ -1,0 +1,1 @@
+pub struct FlakeGeneratorConfig { pub nixpkgs_url : String , pub rust_overlay_url : String , }

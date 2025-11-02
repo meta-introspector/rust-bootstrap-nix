@@ -1,0 +1,1 @@
+pub struct MyConfig { pub field1 : Option < String > , pub field2 : Option < u32 > , }

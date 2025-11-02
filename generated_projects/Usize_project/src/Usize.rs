@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub (crate) trait Usize { fn as_u8 (self) -> u8 ; fn as_u16 (self) -> u16 ; fn as_u32 (self) -> u32 ; fn as_u64 (self) -> u64 ; }

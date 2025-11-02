@@ -1,0 +1,1 @@
+const _ : () = { extern crate proc_macro ; # [rustc_proc_macro_decls] # [used] # [allow (deprecated)] static _DECLS : & [proc_macro :: bridge :: client :: ProcMacro] = & [proc_macro :: bridge :: client :: ProcMacro :: bang ("test_definitions" , test_definitions) ,] ; } ;

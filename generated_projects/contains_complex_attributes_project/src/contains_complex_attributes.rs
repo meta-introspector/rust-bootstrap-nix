@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+fn contains_complex_attributes (structure : & ItemStruct) -> bool { structure . attrs . iter () . any (| attr | { if attr . path () . is_ident ("derive") { if let Meta :: List (meta_list) = & attr . meta { let tokens_str = meta_list . tokens . to_string () ; tokens_str . contains ("Parser") || tokens_str . contains ("Serialize") || tokens_str . contains ("Deserialize") } else { false } } else { false } }) }

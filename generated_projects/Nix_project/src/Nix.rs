@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+# [doc = " Structure of the `config.toml` file that configuration is read from."] # [doc = ""] # [doc = " This structure uses `Decodable` to automatically decode a TOML configuration"] # [doc = " file into this format, and then this is traversed and written into the above"] # [doc = " `Config` structure."] pub struct Nix { pub nixpkgs_path : Option < PathBuf > , pub rust_overlay_path : Option < PathBuf > , pub rust_bootstrap_nix_path : Option < PathBuf > , pub configuration_nix_path : Option < PathBuf > , pub rust_src_flake_path : Option < PathBuf > , }

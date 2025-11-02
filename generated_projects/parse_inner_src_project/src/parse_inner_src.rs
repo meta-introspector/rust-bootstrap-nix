@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub mod parse_inner_src { use crate :: prelude :: * ; pub fn parse_inner_src (config : & mut ParsedConfig , flags : & LocalFlags , build_src_from_toml : & Option < PathBuf > ,) { config . src = if let Some (src) = flags . src . clone () { src } else if let Some (src) = build_src_from_toml . clone () { src } else { let manifest_dir = PathBuf :: from ("/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/config_utils" ,) ; manifest_dir . parent () . unwrap () . parent () . unwrap () . to_owned () } ; } }

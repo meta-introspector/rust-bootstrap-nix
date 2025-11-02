@@ -1,0 +1,1 @@
+pub enum LinuxDetails { Info (LinuxInfo) , Error (String) , Unknown , }

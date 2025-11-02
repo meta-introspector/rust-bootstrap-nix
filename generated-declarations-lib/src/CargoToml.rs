@@ -1,0 +1,1 @@
+struct CargoToml { # [serde (default)] lib : Option < LibSection > , }

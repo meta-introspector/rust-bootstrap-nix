@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub async fn handle_run_pipeline (args : & crate :: Args , config : & config_parser :: Config ,) -> anyhow :: Result < () > { { :: std :: io :: _print (format_args ! ("Running main pipeline...\n")) ; } ; let mut stdout = tokio :: io :: stdout () ; let dummy_content = "fn main() { println!(\"Hello, world!\"); }" . to_string () ; let dummy_path = "dummy_file.rs" . to_string () ; pipeline :: run_category_pipeline (& mut stdout , & dummy_content , & dummy_path , & args , & Some (config . clone ()) ,) . await ? ; Ok (()) }

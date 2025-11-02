@@ -1,0 +1,4 @@
+use std::collections::HashSet;
+use split_expanded_lib::{DeclarationItem};
+
+pub struct ComplexConfig { pub name : Option < String > , pub version : Option < f64 > , pub enabled : Option < bool > , pub count : Option < usize > , pub path : Option < std :: path :: PathBuf > , }
