@@ -54,15 +54,25 @@ BINARY_PACKAGES := configuration-nix metrics-reporter rust-decl-splitter bootstr
 
 define EXPAND_RULE
 .expand_processed_$(subst /,-,$1)_lib:
-	@echo "Running cargo expand --lib for $1..."
+	@echo "Checking cargo expand --lib for $1..."
 	mkdir -p ../generated/ # Ensure the directory exists
-	nix develop --command bash -c "cargo expand -p $1 --lib > ../generated/.expand_output_$(subst /,-,$1)_lib.rs" || true
+	@if [ ! -f "../generated/.expand_output_$(subst /,-,$1)_lib.rs" ]; then \
+		echo "Running cargo expand --lib for $1..."; \
+		nix develop --command bash -c "cargo expand -p $1 --lib > ../generated/.expand_output_$(subst /,-,$1)_lib.rs" || true; \
+	else \
+		echo "Expanded file for $1 (lib) is up to date."; \
+	fi
 	@touch .expand_processed_$(subst /,-,$1)_lib
 
 .expand_processed_$(subst /,-,$1)_bin:
-	@echo "Running cargo expand --bin $1 for $1..."
+	@echo "Checking cargo expand --bin $1 for $1..."
 	mkdir -p ../generated/ # Ensure the directory exists
-	nix develop --command bash -c "cargo expand -p $1 --bin $1 > ../generated/.expand_output_$(subst /,-,$1)_bin.rs" || true
+	@if [ ! -f "../generated/.expand_output_$(subst /,-,$1)_bin.rs" ]; then \
+		echo "Running cargo expand --bin $1 for $1..."; \
+		nix develop --command bash -c "cargo expand -p $1 --bin $1 > ../generated/.expand_output_$(subst /,-,$1)_bin.rs" || true; \
+	else \
+		echo "Expanded file for $1 (bin) is up to date."; \
+	fi
 	@touch .expand_processed_$(subst /,-,$1)_bin
 endef
 
