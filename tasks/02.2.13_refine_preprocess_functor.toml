@@ -1,5 +1,0 @@
-title = "Refine `PreprocessFunctor` (if necessary)"
-description = "Review `PreprocessFunctor` to see if any preprocessing steps can be optimized or informed by the `AST_STATISTICS`."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

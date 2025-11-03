@@ -1,5 +1,0 @@
-title = "`rust-system-composer` Generated Projects"
-description = "Successfully compiled generated projects, confirming correctness of generated `Cargo.toml`, `lib.rs`, and extracted declarations."
-dependencies = ["rust-system-composer"]
-testing_strategy = "Compilation of generated projects. Verification of generated Cargo.toml, lib.rs, and extracted declarations."
-associated_scripts_code = ["rust-system-composer/src/main.rs"]

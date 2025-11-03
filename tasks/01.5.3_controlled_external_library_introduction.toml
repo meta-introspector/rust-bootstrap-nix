@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "5.3"
-    name = "Controlled External Library Introduction"
-    description = "Integrate external libraries only at the latest possible layers within the architecture. This minimizes the attack surface and maintains a lean core, ensuring that external dependencies are introduced only when absolutely necessary and at a well-defined point in the dependency chain."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["Layered Dependency Structure from 5.2"]
-    testing_strategy = "Audit external library usage to ensure they are introduced at the highest possible layers. Verify that the core remains lean."
-    associated_scripts_code = []

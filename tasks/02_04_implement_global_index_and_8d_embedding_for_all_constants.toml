@@ -1,0 +1,8 @@
+title = "Implement global index and 8D embedding for all constants"
+description = "Develop a mechanism to create a central index (e.g., TOML/JSON) mapping constant names/paths to their 8D coordinates and other metadata, moving beyond the hardcoded 0 for string constants."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "plan.md"
+stage_id = 4
+step_id = "4"
+name = "Implement global index and 8D embedding for all constants"

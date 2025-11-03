@@ -1,0 +1,8 @@
+title = "Execute Minizinc Solver"
+description = "Run the Minizinc solver with the prepared input data."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_23_format_knowledgebase_for_minizinc.toml"
+stage_id = 5
+step_id = "5.2"
+name = "Execute Minizinc Solver"

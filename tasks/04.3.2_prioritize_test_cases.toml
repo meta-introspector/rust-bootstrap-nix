@@ -1,5 +1,0 @@
-title = "Prioritize Test Cases"
-description = "Based on the `TODO.md`, focus on critical paths first (e.g., `bootstrap-config-builder` output, core Nix integration)."
-dependencies = ["TODO.md"]
-testing_strategy = "N/A (planning phase)"
-associated_scripts_code = []

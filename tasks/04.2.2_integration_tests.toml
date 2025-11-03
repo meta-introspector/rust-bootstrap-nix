@@ -1,5 +1,0 @@
-title = "Integration Tests"
-description = "Rust-Nix Interaction: Write Rust tests that call the Nix interaction logic and assert on the outcomes (e.g., correct Nix command execution, valid path resolution). Component Interaction: Test the flow between `bootstrap-config-builder` and the main Rust bootstrap process."
-dependencies = []
-testing_strategy = "Execution of integration tests. Verification of correct Nix command execution and component interaction."
-associated_scripts_code = []

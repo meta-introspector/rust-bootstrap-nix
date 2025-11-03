@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "5.3"
-    name = "Build Level 0 Knowledgebase Index"
-    description = "Organize the extracted constants, names, and IDs into a tree structure of 4KB blocks, forming the Level 0 knowledgebase index."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["Extracted constants, names, and IDs from 5.2"]
-    testing_strategy = "Verify the tree structure and 4KB block organization. Ensure efficient lookup and retrieval from the knowledgebase."
-    associated_scripts_code = []

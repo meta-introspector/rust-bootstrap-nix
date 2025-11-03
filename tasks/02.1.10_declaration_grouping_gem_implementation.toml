@@ -1,5 +1,0 @@
-title = "Declaration Grouping and \"Gem\" Implementation"
-description = "Began implementation of the \"bag of words\" and \"coordinate grouping\" functionality in `prelude-generator`. Modified `prelude-generator/src/decls_visitor.rs` and related files to support declaration analysis. Introduced `prelude-generator/gems.toml` to define primitive modules (or \"gems\") for the code lattice. Added `prelude-generator/src/gem_parser.rs` to parse the `gems.toml` configuration. Added and modified test files and scripts in `standalonex/` to validate the new functionality, producing artifacts like `standalonex/generated_min_decls/` and `standalonex/min_test_project/collected_errors.json`."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

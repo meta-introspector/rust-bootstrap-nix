@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "2.2"
-    name = "Generate Initial Flakes for Each Crate"
-    description = "For each discovered Cargo crate, used the newly developed flake generator module to create a basic Nix flake (e.g., `flake.nix` and `flake.lock`). This step is now completed."
-    status = "completed"
-    # Additional Details
-    dependencies = ["tools/cargo-flake-generator", "repo_cargo_projects"]
-    testing_strategy = "Verify the existence and basic structure of generated `flake.nix` and `flake.lock` files for each crate. Attempt `nix build` on a subset of generated flakes."
-    associated_scripts_code = ["tools/cargo-flake-generator/src/lib.rs"]

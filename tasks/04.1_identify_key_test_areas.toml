@@ -1,5 +1,0 @@
-title = "Identify Key Test Areas"
-description = "`bootstrap-config-builder`: Configuration loading, merging, and override logic. Precondition checks (`preconditions.rs`). `nix-dir` tool functionality (output, filtering, JSON). Rust Bootstrap Integration with Nix: Correct reading and utilization of Nix configuration from `ParsedConfig`. Accurate execution of Nix commands from Rust (e.g., `nix eval`, `nix build`). Successful integration of resolved Nix store paths into the Rust build process. Verification of the 8-level bootstrap process. Overall Project Build & Test Commands: Functionality of the main `Makefile` targets. Correctness of `nix-build` and `nix-shell` commands. `devShell` Environment: Ensuring all necessary development tools are available and correctly configured."
-dependencies = []
-testing_strategy = "Comprehensive testing of each component listed, including unit, integration, and system tests."
-associated_scripts_code = []

@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "4.1"
-    name = "Differentiate Module and Declaration Dependencies"
-    description = "Analyze the Rust code and its dependencies to distinguish between module-level dependencies (e.g., `use crate::foo;`) and declaration-level dependencies (e.g., `const MY_CONST: u32 = foo::BAR;`). This will likely require semantic analysis of the Rust code."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["Rust code ASTs"]
-    testing_strategy = "Unit tests for the semantic analysis component. Manual review of dependency differentiation for sample code."
-    associated_scripts_code = []

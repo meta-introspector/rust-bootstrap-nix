@@ -1,5 +1,0 @@
-title = "`ast-stats-crate` Creation"
-description = "Created a new isolated crate (`generated/crates/ast-stats-crate`) to house the generated `AST_STATISTICS`. Configured `ast-stats-crate` to correctly depend on `once_cell` and `pipeline-traits`. Successfully built `ast-stats-crate`."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

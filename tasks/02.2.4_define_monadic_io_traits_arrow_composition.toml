@@ -1,5 +1,0 @@
-title = "Define Monadic I/O Traits and Arrow Composition"
-description = "Goal: Create a new crate (e.g., `monadic-io-traits`) that defines generic traits for monadic I/O operations and arrow composition, drawing inspiration from `functional_arrow_best_practices.md`. Actions: Create a new library crate `monadic-io-traits` in the workspace. Define traits like `Monad`, `Applicative`, `Functor`, `Arrow`, `Category` (if not already present in `pipeline-traits` or similar). Define associated types for input, output, and error handling. Implement basic combinators for these traits. Add `monadic-io-traits` as a dependency to `rust-system-composer` and potentially to the generated projects if they need to implement these traits."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

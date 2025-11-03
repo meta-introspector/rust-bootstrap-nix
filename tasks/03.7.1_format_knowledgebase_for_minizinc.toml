@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "7.1"
-    name = "Format Knowledgebase for Minizinc"
-    description = "Convert the Level 0 knowledgebase into a format suitable for input to a Minizinc solver."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["Level 0 Knowledgebase"]
-    testing_strategy = "Unit tests for the formatting logic. Verify that the output matches Minizinc input specifications."
-    associated_scripts_code = []

@@ -1,9 +1,0 @@
-[[stages.steps]]
-    id = "1.3"
-    name = "Define API for Flake Generation"
-    description = "Designed and implemented the initial API for the `cargo-flake-generator` module in `src/lib.rs`, including `FlakeGeneratorConfig` and `generate_flake_for_crate` function."
-    status = "completed"
-    # Additional Details
-    dependencies = ["tools/cargo-flake-generator/src/lib.rs"]
-    testing_strategy = "Unit tests for `FlakeGeneratorConfig` and `generate_flake_for_crate` with various inputs."
-    associated_scripts_code = ["tools/cargo-flake-generator/src/lib.rs"]

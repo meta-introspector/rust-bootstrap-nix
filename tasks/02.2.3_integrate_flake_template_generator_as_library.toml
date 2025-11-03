@@ -1,5 +1,0 @@
-title = "Integrate `flake-template-generator` as a library"
-description = "Goal: Generate a `flake.nix` for each project using `flake-template-generator`'s library functionality. Actions: Add `flake-template-generator` as a dependency to `rust-system-composer/Cargo.toml`. Identify the relevant public functions in `flake-template-generator` for generating a `flake.nix`. Modify `rust-system-composer/src/main.rs` to call these library functions after the Rust project structure is in place. This will involve passing parameters like `project_dir`, `project_name`, and potentially other Nix-specific configurations."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

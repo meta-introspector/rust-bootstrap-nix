@@ -1,0 +1,12 @@
+title = "Build hf-dataset-validator (cargo2hf_extractor)"
+description = "Ensure the hf-dataset-validator binary is built and available for extracting Cargo information."
+tool = "run_shell_command"
+command = "cargo build --release --package hf-dataset-validator"
+directory = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/vendor/rust/hugging-face-dataset-validator-rust"
+expected_output = "Successful build of the hf-dataset-validator crate."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 1
+step_id = "1.2"
+name = "Build hf-dataset-validator (cargo2hf_extractor)"

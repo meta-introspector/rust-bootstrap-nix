@@ -1,5 +1,0 @@
-title = "Resolved Compilation Errors and Warnings"
-description = "Fixed cyclic dependency issues between `prelude-generator` and `ast-stats-crate`. Addressed all compilation errors and warnings, including unused imports and dead code."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

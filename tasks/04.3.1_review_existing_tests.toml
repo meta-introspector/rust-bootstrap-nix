@@ -1,5 +1,0 @@
-title = "Review Existing Tests"
-description = "Identify current unit, integration, and system tests."
-dependencies = []
-testing_strategy = "Manual review of existing test suites and test reports."
-associated_scripts_code = []

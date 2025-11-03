@@ -1,5 +1,0 @@
-title = "`devShell` Environment"
-description = "Ensuring all necessary development tools are available and correctly configured."
-dependencies = []
-testing_strategy = "Verification of tool availability and configuration within the nix develop shell."
-associated_scripts_code = ["flake.nix"]

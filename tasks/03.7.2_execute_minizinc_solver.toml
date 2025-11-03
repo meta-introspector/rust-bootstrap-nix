@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "7.2"
-    name = "Execute Minizinc Solver"
-    description = "Run the Minizinc solver with the prepared input data."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["Formatted Knowledgebase (from 7.1)", "Minizinc solver"]
-    testing_strategy = "Verify successful execution of the Minizinc solver. Analyze solver output for correctness and optimality."
-    associated_scripts_code = []

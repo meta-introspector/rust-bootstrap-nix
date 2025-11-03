@@ -1,8 +1,0 @@
-[[stages]]
-id = 1
-name = "Flake Generator Module Development"
-description = "Decouple the flake generation logic into its own module and define its API."
-# Additional Details
-dependencies = []
-testing_strategy = "Unit tests for the module's API and integration tests with a mock flake generation scenario."
-associated_scripts_code = ["tools/cargo-flake-generator/src/lib.rs", "tools/cargo-flake-generator/Cargo.toml"]

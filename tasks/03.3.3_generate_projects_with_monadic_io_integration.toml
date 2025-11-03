@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "3.3"
-    name = "Generate Projects with Monadic I/O Integration"
-    description = "Ensure that the generated projects can easily integrate with the monadic I/O framework."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["monadic-io-traits (from 3.1)", "rust-system-composer (refactored in 3.2)"]
-    testing_strategy = "Compilation of generated projects. Verify that generated boilerplate code correctly uses monadic I/O traits."
-    associated_scripts_code = ["rust-system-composer/src/main.rs"]

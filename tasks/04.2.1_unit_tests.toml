@@ -1,5 +1,0 @@
-title = "Unit Tests"
-description = "Leverage Rust's built-in `cargo test` for individual functions and modules, especially within `bootstrap-config-builder` and the refactored `standalonex/src/bootstrap/src/lib.rs` components."
-dependencies = []
-testing_strategy = "Execution of `cargo test` for all unit tests. Code coverage analysis."
-associated_scripts_code = ["bootstrap-config-builder/src/lib.rs", "standalonex/src/bootstrap/src/lib.rs"]

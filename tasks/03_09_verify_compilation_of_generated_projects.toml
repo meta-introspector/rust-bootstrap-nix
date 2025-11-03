@@ -1,0 +1,12 @@
+title = "Verify Compilation of Generated Projects"
+description = "Compile a sample generated project to ensure correctness of generated Cargo.toml, lib.rs, and extracted declarations."
+tool = "run_shell_command"
+command = "cargo build"
+directory = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/generated_projects/Declaration_project"
+expected_output = "Successful compilation of the sample project."
+status = "DONE"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 2
+step_id = "2.3"
+name = "Verify Compilation of Generated Projects"

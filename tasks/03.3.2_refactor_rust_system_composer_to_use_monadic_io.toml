@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "3.2"
-    name = "Refactor rust-system-composer to use Monadic I/O"
-    description = "Modify rust-system-composer's I/O operations (file reading, writing, external command execution) to use the newly defined monadic I/O traits."
-    status = "TODO"
-    # Additional Details
-    dependencies = ["monadic-io-traits (from 3.1)", "rust-system-composer"]
-    testing_strategy = "Integration tests for rust-system-composer to ensure I/O operations are correctly wrapped and composed using monadic traits."
-    associated_scripts_code = ["rust-system-composer/src/main.rs"]

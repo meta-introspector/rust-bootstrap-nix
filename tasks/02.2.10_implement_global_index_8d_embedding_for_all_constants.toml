@@ -1,5 +1,0 @@
-title = "Implement global index and 8D embedding for all constants"
-description = "Goal: Develop a mechanism to create a central index (e.g., TOML/JSON) mapping constant names/paths to their 8D coordinates and other metadata, moving beyond the hardcoded 0 for string constants."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

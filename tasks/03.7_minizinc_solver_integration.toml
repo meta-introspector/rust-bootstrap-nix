@@ -1,9 +1,0 @@
-[[stages]]
-id = 7
-name = "Minizinc Solver Integration"
-description = "Prepare the Level 0 knowledgebase as input for a Minizinc solver and execute the solver."
-status = "TODO"
-# Additional Details
-dependencies = ["Level 0 Knowledgebase (from Stage 5)"]
-testing_strategy = "Verification of Minizinc input format. Ensure the Minizinc solver executes successfully and produces valid output."
-associated_scripts_code = []

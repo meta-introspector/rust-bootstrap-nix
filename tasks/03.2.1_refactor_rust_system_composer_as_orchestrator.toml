@@ -1,9 +1,0 @@
-    [[stages.steps]]
-    id = "2.1"
-    name = "Refactor rust-system-composer as Orchestrator"
-    description = "Refactor rust-system-composer to act as an orchestrator, using library calls to split-expanded-lib to generate per-file Rust projects."
-    status = "DONE"
-    # Additional Details
-    dependencies = ["split-expanded-lib"]
-    testing_strategy = "Unit tests for rust-system-composer's orchestration logic. Integration tests with split-expanded-lib."
-    associated_scripts_code = ["rust-system-composer/src/main.rs", "split-expanded-lib/src/lib.rs"]

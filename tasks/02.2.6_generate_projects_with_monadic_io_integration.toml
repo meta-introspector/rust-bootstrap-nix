@@ -1,5 +1,0 @@
-title = "Generate Projects with Monadic I/O Integration"
-description = "Goal: Ensure that the generated projects can easily integrate with the monadic I/O framework. Actions: Modify the `Cargo.toml` generation in `rust-system-composer` to include `monadic-io-traits` as a dependency for generated projects. Potentially generate boilerplate code in `lib.rs` or other files within the generated projects to facilitate the use of monadic I/O for their specific functionalities."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

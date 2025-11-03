@@ -1,5 +1,0 @@
-title = "AST Statistics Generation"
-description = "Implemented statistical analysis of AST nodes from the generated Hugging Face dataset. Generated a Rust code file (`generated/ast_statistics.rs`) containing these statistics as a `static` `AstStatistics` struct."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

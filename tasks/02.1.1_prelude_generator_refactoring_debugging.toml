@@ -1,5 +1,0 @@
-title = "`prelude-generator` Refactoring & Debugging"
-description = "Successfully refactored `prelude-generator` to use `pipeline-traits` for core data structures. Resolved `tokio` runtime panics and `hf-validator` execution issues, including the \"file name too long\" error by using hash-based short IDs for temporary project directories. Implemented default `config.toml` loading and `--verify-config` argument. Successfully ran `prelude-generator` to generate Hugging Face datasets. Created `generated/hf_dataset_output/mapping.toml` to map original file paths to their generated short IDs. Improved the formatting of the AST Node Type Report for better readability."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []

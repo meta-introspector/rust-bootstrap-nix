@@ -1,5 +1,0 @@
-title = "Refine `ClassifyUsesFunctor` (after `rust-system-composer` is functional)"
-description = "Goal: Leverage the statistical data from `ast-stats-crate::AST_STATISTICS` to inform and improve the classification logic within `prelude-generator::src::prelude_category_pipeline::prelude_category_pipeline_impls::classify_uses_functor.rs`. Details: Develop more sophisticated logic to analyze each `use` statement (and potentially other AST elements) against the statistical profiles (e.g., common patterns, typical lengths, version information). Populate the `git_details`, `nix_details`, `rust_details`, `cargo_details`, `syn_details`, `llvm_details`, and `linux_details` fields of the `UseStatement` struct based on this informed analysis."
-dependencies = []
-testing_strategy = ""
-associated_scripts_code = []
