@@ -47,7 +47,7 @@ fn main() -> io::Result<()> {
                 writeln!(level_cargo_toml_file, "[workspace]")?;
                 writeln!(level_cargo_toml_file, "members = [")?;
                 for member in level_workspace_members {
-                    writeln!(level_cargo_toml_file, "    \"{member}\"", member)?;
+                    writeln!(level_cargo_toml_file, "    \"{member}\"\n")?;
                 }
                 writeln!(level_cargo_toml_file, "]")?;
             }
@@ -61,12 +61,12 @@ fn main() -> io::Result<()> {
     for member in &root_workspace_members {
         if let Ok(level) = member.parse::<u32>() {
             if level >= 2 {
-                writeln!(root_cargo_toml_file, "    # \"{member}\"", member)?;
+                writeln!(root_cargo_toml_file, "    # \"{member}\"\n")?;
             } else {
-                writeln!(root_cargo_toml_file, "    \"{member}\"", member)?;
+                writeln!(root_cargo_toml_file, "    \"{member}\"\n")?;
             }
         } else {
-            writeln!(root_cargo_toml_file, "    \"{member}\"", member)?;
+            writeln!(root_cargo_toml_file, "    \"{member}\"\n")?;
         }
     }
     writeln!(root_cargo_toml_file, "]")?;
