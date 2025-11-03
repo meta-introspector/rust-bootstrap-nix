@@ -395,6 +395,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        // Create a Declaration for the module itself
         let decl = Declaration::new(
             DeclarationItem::Mod(i.clone()),
             HashSet::new(),
@@ -409,6 +410,15 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.mod_count += 1;
+
+        // Recursively visit items within the module
+        if let Some((_, items)) = &i.content {
+            for item in items {
+                self.visit_item(item);
+            }
+        }
+        // Do not call syn::visit::visit_item_mod(self, i) here,
+        // as we are manually recursing into the module's content.
     }
 
     fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {

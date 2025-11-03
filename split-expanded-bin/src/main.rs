@@ -109,7 +109,12 @@ async fn main() -> anyhow::Result<()> {
 
     // Write all declarations to individual files in the src_dir
     for (identifier, declaration) in global_declarations.into_iter() {
-        let output_file_path = src_dir.join(format!("{}.rs", identifier));
+        let types_count = declaration.referenced_types.len();
+        let declaration_dir = src_dir.join(format!("types_{}", types_count));
+        fs::create_dir_all(&declaration_dir)
+            .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
+
+        let output_file_path = declaration_dir.join(format!("{}.rs", identifier));
 
         let mut file_content = String::new();
 
