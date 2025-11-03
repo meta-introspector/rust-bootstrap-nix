@@ -1,6 +1,6 @@
 use anyhow::Result;
 use std::fs;
-use prelude_collector::{FileProcessingResult, FileProcessingStatus};
+use crate::types::{FileProcessingResult, FileProcessingStatus};
 
 /// Generates a markdown report of the file processing results.
 pub fn generate_report(results: &[FileProcessingResult]) -> Result<()> {

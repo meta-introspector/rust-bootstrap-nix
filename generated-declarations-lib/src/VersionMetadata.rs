@@ -1,1 +1,0 @@
-pub struct VersionMetadata { pub date : String , pub version : String , }

@@ -1,1 +1,0 @@
-struct ConfigInput { attrs : Vec < syn :: Attribute > , ident : Ident , fields : syn :: punctuated :: Punctuated < ConfigField , :: syn :: token :: Comma > , }

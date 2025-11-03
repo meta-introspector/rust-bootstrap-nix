@@ -1,8 +1,0 @@
-[package]
-name = "handle_analyze_bag_of_words"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-prelude = { path = "../../prelude" }
-serde = { version = "1.0", features = ["derive"] }

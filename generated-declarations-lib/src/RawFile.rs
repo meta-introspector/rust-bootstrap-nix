@@ -1,1 +1,0 @@
-pub struct RawFile (pub String , pub String) ;

@@ -1,1 +1,0 @@
-pub fn format_optimize_error_msg (v : impl std :: fmt :: Display) -> String { :: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("unrecognized option for rust optimize: \"{0}\", expected one of 0, 1, 2, 3, \"s\", \"z\", true, false" , v ,) ,) }) }

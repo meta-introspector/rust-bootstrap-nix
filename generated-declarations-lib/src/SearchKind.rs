@@ -1,1 +1,0 @@
-enum SearchKind { Teddy (teddy :: Searcher) , RabinKarp , }

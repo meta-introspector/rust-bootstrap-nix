@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-# [doc = " This error occurs when a small index could not be constructed."] # [doc = ""] # [doc = " This occurs when given an integer exceeding the maximum small index value."] # [doc = ""] # [doc = " When the `std` feature is enabled, this implements the `Error` trait."] pub struct SmallIndexError { attempted : u64 , }

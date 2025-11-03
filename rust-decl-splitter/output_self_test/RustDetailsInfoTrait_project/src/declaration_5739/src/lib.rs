@@ -1,6 +1,0 @@
-#![feature(panic_internals)]
-#![feature(print_internals)]
-
-use prelude::*;
-
-pub trait RustDetailsInfoTrait : Send + Sync + Debug { fn version (& self) -> Option < & str > ; fn crate_name (& self) -> Option < & str > ; fn item_path (& self) -> Option < & str > ; }

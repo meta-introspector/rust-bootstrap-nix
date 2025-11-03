@@ -1,1 +1,0 @@
-struct RustcInfo { version : String , host : String , }

@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub fn test_generate_prelude_no_force_no_overwrite () -> Result < () > { let dir = tempdir () ? ; let src_dir = dir . path () . join ("src") ; fs :: create_dir (& src_dir) ? ; let prelude_path = src_dir . join ("prelude.rs") ; let original_content = "// Original content" ; fs :: write (& prelude_path , original_content) ? ; let new_prelude_content = "// New prelude content" ; generate_prelude :: generate_prelude (& src_dir , new_prelude_content , false , false) ? ; if ! prelude_path . exists () { :: core :: panicking :: panic ("assertion failed: prelude_path.exists()") } match (& fs :: read_to_string (& prelude_path) ? , & original_content) { (left_val , right_val) => { if ! (* left_val == * right_val) { let kind = :: core :: panicking :: AssertKind :: Eq ; :: core :: panicking :: assert_failed (kind , & * left_val , & * right_val , :: core :: option :: Option :: None ,) ; } } } ; Ok (()) }

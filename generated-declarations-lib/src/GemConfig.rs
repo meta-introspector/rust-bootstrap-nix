@@ -1,1 +1,0 @@
-pub struct GemConfig { pub gem : Vec < GemEntry > , }

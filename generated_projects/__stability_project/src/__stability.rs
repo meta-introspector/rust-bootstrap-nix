@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-# [inline (always)] fn __stability () -> & 'static Mutex < HashMap < String , FunctionMetrics > > { static LAZY : :: lazy_static :: lazy :: Lazy < Mutex < HashMap < String , FunctionMetrics > > , > = :: lazy_static :: lazy :: Lazy :: INIT ; LAZY . get (__static_ref_initialize) }

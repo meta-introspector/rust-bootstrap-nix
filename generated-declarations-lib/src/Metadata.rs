@@ -1,1 +1,0 @@
-struct Metadata { packages : Vec < Package > , # [allow (dead_code)] workspace_root : PathBuf , }

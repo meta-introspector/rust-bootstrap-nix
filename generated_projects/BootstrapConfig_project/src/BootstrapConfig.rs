@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub struct BootstrapConfig { pub dry_run : bool , pub out_dir : std :: path :: PathBuf , pub channel : Option < String > , pub jobs : Option < usize > , pub build_triple : Option < String > , pub rust_optimize_tests : Option < bool > , pub docs : Option < bool > , pub docs_minification : Option < bool > , pub rust_rpath : Option < bool > , pub rust_strip : Option < bool > , pub rust_dist_src : Option < bool > , pub deny_warnings : Option < bool > , pub dist_include_mingw_linker : Option < bool > , pub llvm_optimize : Option < bool > , pub llvm_static_stdcpp : Option < bool > , pub llvm_libzstd : Option < bool > , pub llvm_assertions : Option < bool > , pub llvm_tests : bool , pub llvm_enzyme_flag : Option < bool > , pub llvm_offload : bool , pub llvm_plugins : bool , }

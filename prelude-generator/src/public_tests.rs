@@ -2,11 +2,12 @@ use super::args::Args;
 use std::path::PathBuf;
 use anyhow::Result;
 use std::fs;
-use prelude_collector::{FileProcessingResult, FileProcessingStatus};
+//use prelude_collector::{FileProcessingResult, FileProcessingStatus};
 use tempfile::tempdir;
 use super::generate_prelude;
 use clap::Parser;
-
+use crate::FileProcessingResult;
+use crate::FileProcessingStatus;
 pub fn test_args_default_values() {
     let args = Args::parse_from(&["prelude-generator"]);
     assert!(!args.dry_run);

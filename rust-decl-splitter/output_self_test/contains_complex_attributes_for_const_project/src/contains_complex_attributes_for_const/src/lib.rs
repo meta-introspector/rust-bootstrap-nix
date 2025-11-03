@@ -1,6 +1,0 @@
-#![feature(panic_internals)]
-#![feature(print_internals)]
-
-use prelude::*;
-
-pub mod contains_complex_attributes_for_const ;

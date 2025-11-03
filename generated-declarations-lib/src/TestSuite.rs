@@ -1,1 +1,0 @@
-pub struct TestSuite { pub metadata : TestSuiteMetadata , pub tests : Vec < Test > , }

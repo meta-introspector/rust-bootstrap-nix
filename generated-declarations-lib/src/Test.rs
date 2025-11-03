@@ -1,1 +1,0 @@
-pub struct Test { pub name : String , # [serde (flatten)] pub outcome : TestOutcome , }

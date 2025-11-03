@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub fn handle_compile_tests (_args : & crate :: Args) -> anyhow :: Result < () > { let _input_file = _args . test_report_input_file . clone () . ok_or_else (| | :: anyhow :: __private :: must_use ({ let error = :: anyhow :: __private :: format_err (format_args ! ("test_report_input_file is required when compile_tests is true" ,) ,) ; error })) ? ; let _output_dir = _args . test_verification_output_dir . clone () . ok_or_else (| | :: anyhow :: __private :: must_use ({ let error = :: anyhow :: __private :: format_err (format_args ! ("test_verification_output_dir is required when compile_tests is true" ,) ,) ; error })) ? ; Ok (()) }

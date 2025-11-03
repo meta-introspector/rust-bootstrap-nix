@@ -1,1 +1,0 @@
-pub struct ErrorCollection { pub errors : Vec < ErrorSample > , }

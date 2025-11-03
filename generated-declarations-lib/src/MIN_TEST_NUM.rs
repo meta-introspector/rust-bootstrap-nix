@@ -1,1 +1,0 @@
-pub const MIN_TEST_NUM : u32 = 42 ;

@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-# [doc = " Represents the low and high nybble masks that will be used during"] # [doc = " search. Each mask is 32 bytes wide, although only the first 16 bytes are"] # [doc = " used for 128-bit vectors."] # [doc = ""] # [doc = " Each byte in the mask corresponds to a 8-bit bitset, where bit `i` is set"] # [doc = " if and only if the corresponding nybble is in the ith bucket. The index of"] # [doc = " the byte (0-15, inclusive) corresponds to the nybble."] # [doc = ""] # [doc = " Each mask is used as the target of a shuffle, where the indices for the"] # [doc = " shuffle are taken from the haystack. AND'ing the shuffles for both the"] # [doc = " low and high masks together also results in 8-bit bitsets, but where bit"] # [doc = " `i` is set if and only if the correspond *byte* is in the ith bucket."] struct SlimMaskBuilder { lo : [u8 ; 32] , hi : [u8 ; 32] , }

@@ -1,6 +1,0 @@
-#![feature(panic_internals)]
-#![feature(print_internals)]
-
-use prelude::*;
-
-pub trait NixInfoTrait : Send + Sync + Debug { fn nix_flake_path (& self) -> Option < & str > ; fn nix_output_type (& self) -> Option < & str > ; }

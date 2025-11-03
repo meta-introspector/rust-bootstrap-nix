@@ -1,1 +1,0 @@
-# [serde (untagged)] pub enum StringOrBool { String (String) , Bool (bool) , }

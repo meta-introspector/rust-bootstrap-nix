@@ -41,5 +41,9 @@ pub use ast_decoder::AstTraversalFunctor;
 
 pub use bag_of_words_visitor::{BagOfWordsVisitor, tokenize_ident_to_subwords};
 
+pub mod types;
+pub mod collect_prelude_info;
+pub use types::*;
+pub use collect_prelude_info::*;
 // Re-export necessary types from prelude_collector
-pub use prelude_collector::{FileProcessingResult, FileProcessingStatus};
+//pub use prelude_collector::{FileProcessingResult, FileProcessingStatus};

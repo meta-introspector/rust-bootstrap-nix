@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-# [doc = " Since we use `#[serde(deny_unknown_fields)]` on `TomlConfig`, we need a wrapper type"] # [doc = " for the \"change-id\" field to parse it even if other fields are invalid. This ensures"] # [doc = " that if deserialization fails due to other fields, we can still provide the changelogs"] # [doc = " to allow developers to potentially find the reason for the failure in the logs.."] pub struct ChangeIdWrapper { # [serde (alias = "change-id")] pub (crate) inner : Option < usize > , }

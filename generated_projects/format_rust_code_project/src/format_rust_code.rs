@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub async fn format_rust_code (file_path : & PathBuf) -> anyhow :: Result < () > { let output = Command :: new ("rustfmt") . arg (file_path) . arg ("--edition=2021") . arg ("--emit=files") . output () . await . context ("Failed to execute rustfmt") ? ; if ! output . status . success () { let stderr = String :: from_utf8_lossy (& output . stderr) ; return :: anyhow :: __private :: Err (:: anyhow :: Error :: msg (:: alloc :: __export :: must_use ({ :: alloc :: fmt :: format (format_args ! ("Rustfmt failed for file {0:?}:\n{1}" , file_path , stderr ,) ,) }) ,) ,) ; } Ok (()) }

@@ -1,8 +1,0 @@
-[package]
-name = "get_all_rustc_paths_from_nix_store"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-prelude = { path = "../../prelude" }
-serde = { version = "1.0", features = ["derive"] }

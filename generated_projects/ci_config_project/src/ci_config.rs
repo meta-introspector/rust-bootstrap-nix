@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub mod ci_config { use crate :: prelude :: * ; pub struct CiConfigApplicator ; impl ConfigApplicator for CiConfigApplicator { fn apply_to_config (& self , config : & mut ParsedConfig , toml : & LocalTomlConfig) { let ci_config = toml . ci . clone () . unwrap_or_default () ; config . channel_file = ci_config . channel_file ; config . version_file = ci_config . version_file ; config . tools_dir = ci_config . tools_dir ; config . llvm_project_dir = ci_config . llvm_project_dir ; config . gcc_dir = ci_config . gcc_dir ; } } }

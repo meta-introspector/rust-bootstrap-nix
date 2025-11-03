@@ -1,6 +1,0 @@
-#![feature(panic_internals)]
-#![feature(print_internals)]
-
-use prelude::*;
-
-# [doc = " A utility trait that defines a couple of adapters for making it convenient"] # [doc = " to access indices as \"small index\" types. We require ExactSizeIterator so"] # [doc = " that iterator construction can do a single check to make sure the index of"] # [doc = " each element is representable by its small index type."] pub (crate) trait IteratorIndexExt : Iterator { fn with_pattern_ids (self) -> WithPatternIDIter < Self > where Self : Sized + ExactSizeIterator , { WithPatternIDIter :: new (self) } fn with_state_ids (self) -> WithStateIDIter < Self > where Self : Sized + ExactSizeIterator , { WithStateIDIter :: new (self) } }

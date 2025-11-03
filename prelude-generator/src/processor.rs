@@ -3,7 +3,11 @@ use std::collections::HashSet;
 use std::fs;
 //use std::path::Path;
 use std::time::{Instant, Duration};
-use prelude_collector::{collect_prelude_info, FileProcessingResult};
+//use prelude_collector::{collect_prelude_info, FileProcessingResult};
+use crate::FileProcessingResult;
+use crate::collect_prelude_info;
+
+
 use serde_json;
 
 use crate::args::Args;

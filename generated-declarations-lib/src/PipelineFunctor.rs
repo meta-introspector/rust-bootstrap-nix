@@ -1,1 +1,0 @@
-pub trait PipelineFunctor < Input : Send + 'static , Output : Send + 'static > { fn map < 'writer > (& 'writer self , writer : & 'writer mut (impl tokio :: io :: AsyncWriteExt + Unpin + Send) , input : Input ,) -> Pin < Box < dyn Future < Output = Result < Output > > + Send + 'writer > > ; }

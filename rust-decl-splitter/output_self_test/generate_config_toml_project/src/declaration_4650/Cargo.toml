@@ -1,8 +1,0 @@
-[package]
-name = "declaration_4650"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-prelude = { path = "../../prelude" }
-serde = { version = "1.0", features = ["derive"] }

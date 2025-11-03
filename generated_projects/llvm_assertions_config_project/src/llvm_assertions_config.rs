@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub mod llvm_assertions_config { use crate :: prelude :: * ; pub struct LlvmAssertionsConfigApplicator ; impl ConfigApplicator for LlvmAssertionsConfigApplicator { fn apply_to_config (& self , config : & mut ParsedConfig , toml : & LocalTomlConfig) { config . llvm_assertions = Some (toml . llvm . as_ref () . and_then (| llvm | llvm . assertions) . unwrap_or (false) ,) ; } } }

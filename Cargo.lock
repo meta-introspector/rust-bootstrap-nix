@@ -1007,10 +1007,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prelude-collector"
-version = "0.1.0"
-
-[[package]]
 name = "prelude-generator"
 version = "0.1.0"
 dependencies = [
@@ -1023,7 +1019,6 @@ dependencies = [
  "lazy_static",
  "once_cell",
  "pipeline-traits",
- "prelude-collector",
  "prettyplease",
  "quote",
  "regex",
@@ -1113,10 +1108,14 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 name = "rust-decl-splitter"
 version = "0.1.0"
 dependencies = [
- "lazy_static",
+ "anyhow",
+ "cargo_metadata",
+ "clap",
+ "prelude-generator",
+ "proc-macro2",
  "quote",
- "serde",
  "syn",
+ "tokio",
  "walkdir",
 ]
 

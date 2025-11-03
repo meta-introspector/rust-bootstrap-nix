@@ -1,4 +1,0 @@
-use std::collections::HashSet;
-use split_expanded_lib::{DeclarationItem};
-
-pub mod get_toml { use crate :: prelude :: * ; pub (crate) fn get_toml (file : & Path) -> Result < LocalTomlConfig , toml :: de :: Error > { let contents = fs :: read_to_string (file) . unwrap_or_else (| _ | { :: core :: panicking :: panic_fmt (format_args ! ("config file {0} not found" , file . display ()) ,) ; }) ; toml :: from_str (& contents) . and_then (| table : toml :: Value | LocalTomlConfig :: deserialize (table)) } }

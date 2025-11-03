@@ -1,6 +1,0 @@
-#![feature(panic_internals)]
-#![feature(print_internals)]
-
-use prelude::*;
-
-pub mod git_upstream_merge_base ;

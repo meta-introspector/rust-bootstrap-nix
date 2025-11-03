@@ -1,1 +1,0 @@
-# [doc = " Return the frequency rank of the given byte. The higher the rank, the more"] # [doc = " common the byte (heuristically speaking)."] fn freq_rank (b : u8) -> u8 { use crate :: util :: byte_frequencies :: BYTE_FREQUENCIES ; BYTE_FREQUENCIES [b as usize] }

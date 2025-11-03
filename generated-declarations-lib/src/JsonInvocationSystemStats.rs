@@ -1,1 +1,0 @@
-# [serde (rename_all = "snake_case")] pub struct JsonInvocationSystemStats { pub cpu_threads_count : usize , pub cpu_model : String , pub memory_total_bytes : u64 , }

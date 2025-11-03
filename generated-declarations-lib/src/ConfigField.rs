@@ -1,1 +1,0 @@
-struct ConfigField { ident : Ident , ty : syn :: Type , key : Option < LitStr > , }
