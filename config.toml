@@ -8,7 +8,7 @@ nixpkgs_path = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify"
 rust_overlay_path = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify"
 rust_bootstrap_nix_path = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify"
 configuration_nix_path = "github:meta-introspector/configuration-nix?ref=feature/CRQ-016-nixify"
-rust_src_flake_path = "/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"
+rust_src_flake_path = "/data/data/com.termux.nix/files/home/pick-up-nix2/rust-bootstrap-core"
 rust_bootstrap_nix_flake_ref = "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify"
 rust_src_flake_ref = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
 

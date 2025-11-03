@@ -47,7 +47,7 @@ RUSTC_BUILD_VERSIONS = \
 
 CARGO_PATH = /nix/store/ahyjafkgyn6zji9qlvv92z8gxmcmaky4-cargo-1.89.0/bin/cargo
 PROJECT_ROOT = $(CURDIR)
-RUST_SRC_FLAKE_PATH = /data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
+RUST_SRC_FLAKE_PATH = /data/data/com.termux.nix/files/home/pick-up-nix2/rust-bootstrap-core
 
 .PHONY: generate-rustc-test-lattice clean-rustc-test-flakes
 
