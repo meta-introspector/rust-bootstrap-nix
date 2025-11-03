@@ -6,8 +6,7 @@ use std::fs;
 use tempfile::tempdir;
 use super::generate_prelude;
 use clap::Parser;
-use crate::FileProcessingResult;
-use crate::FileProcessingStatus;
+use crate::types::{FileProcessingResult, FileProcessingStatus};
 pub fn test_args_default_values() {
     let args = Args::parse_from(&["prelude-generator"]);
     assert!(!args.dry_run);
