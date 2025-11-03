@@ -1,3 +1,6 @@
 [submodule "vendor/rarrow"]
 	path = vendor/rarrow
 	url = https://github.com/meta-introspector/rarrow
+[submodule "rust-bootstrap-core"]
+	path = rust-bootstrap-core
+	url = https://github.com/meta-introspector/rust-bootstrap-core
