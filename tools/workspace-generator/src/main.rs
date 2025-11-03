@@ -57,23 +57,15 @@ fn main() -> io::Result<()> {
                         let lib_rs_path = src_dir.join("lib.rs");
                         let mut lib_rs_content = String::new();
                         
-                        for decl_entry in WalkDir::new(path).min_depth(1).max_depth(1).into_iter().filter_map(|e| e.ok()) {
-                            let decl_path = decl_entry.path();
-                            if decl_path.is_dir() {
-                                let decl_name = decl_path.file_name().unwrap().to_string_lossy().to_string();
-                                lib_rs_content.push_str(&format!("pub mod {};\n", decl_name));
-                                // Create mod.rs inside the declaration directory
-                                let decl_mod_rs_path = decl_path.join("mod.rs");
-                                fs::write(&decl_mod_rs_path, "")?;
-                                // Remove Cargo.toml from declaration directories if it exists
-                                let old_cargo_toml_path = decl_path.join("Cargo.toml");
-                                if old_cargo_toml_path.exists() {
-                                    fs::remove_file(&old_cargo_toml_path)?;
-                                }
-                            }
-                        }
-                        fs::write(&lib_rs_path, lib_rs_content)?;
-                    }
+                                                            for decl_entry in WalkDir::new(&path).min_depth(1).max_depth(1).into_iter().filter_map(|e| e.ok()) {
+                                                                let decl_path = decl_entry.path();
+                                                                if decl_path.is_file() && decl_path.extension().map_or(false, |ext| ext == "rs") {
+                                                                    if let Some(decl_name) = decl_path.file_stem().and_then(|s| s.to_str()) {
+                                                                        lib_rs_content.push_str(&format!("pub mod {};\n", decl_name));
+                                                                    }
+                                                                }
+                                                            }
+                                                            fs::write(&lib_rs_path, lib_rs_content)?;                    }
                 }
             }
         }
