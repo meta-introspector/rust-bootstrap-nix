@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
         let file_stem = file_path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown_crate");
         let crate_name = file_stem.trim_start_matches(".expand_output_");
 
-        let (declarations, errors) = extract_declarations_from_single_file(
+        let (declarations, errors, _file_metadata) = extract_declarations_from_single_file(
             file_path,
             &rustc_info,
             crate_name,
