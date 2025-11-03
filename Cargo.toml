@@ -10,7 +10,6 @@ members = [
     "pipeline-traits",
     "prelude-generator",
 #    "prelude-generator/generated_test_runner",
-    "rust-decl-splitter",
     "rust-system-composer",
     "standalonex/min_test_project",
 #    "standalonex/src",
