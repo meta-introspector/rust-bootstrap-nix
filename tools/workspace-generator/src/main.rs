@@ -21,8 +21,9 @@ fn main() -> io::Result<()> {
     let mut root_workspace_members = Vec::new();
     root_workspace_members.push("prelude".to_string());
 
-    println!("Searching for dependency level directories in: {:?}", output_dir);
-    for entry in WalkDir::new(&output_dir).min_depth(1).max_depth(1) {
+    let src_dir = output_dir.join("src");
+    println!("Searching for dependency level directories in: {:?}/src", output_dir);
+    for entry in WalkDir::new(&src_dir).min_depth(1).max_depth(1) {
         let entry = match entry {
             Ok(entry) => entry,
             Err(e) => {

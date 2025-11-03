@@ -1,4 +1,4 @@
-.PHONY: run-decl-splitter clean-decl-splitter build-decl-splitter quick-decl-splitter-check
+.PHONY: run-decl-splitter clean-decl-splitter build-decl-splitter quick-decl-splitter-check build-workspace-generator run-workspace-generator generate-workspace
 
 build-decl-splitter:
 	@echo "Building split-expanded-bin..."
@@ -8,8 +8,8 @@ run-decl-splitter: build-decl-splitter
 	@echo "Running split-expanded-bin on all expanded output files..."
 	mkdir -p generated_declarations
 	./target/debug/split-expanded-bin \
-		--files $(shell find ../generated/ -name "*.rs") \
-		--project-root generated_declarations \
+		$(foreach file,$(shell find ../expanded/ -name "*.rs"),--files $(file)) \
+		--project-root rust-bootstrap-core \
 		--rustc-version "1.92.0-nightly" \
 		--rustc-host "x86_64-unknown-linux-gnu" \
 		2>&1 | tee decl_splitter_full_run.log
@@ -23,8 +23,19 @@ quick-decl-splitter-check: build-decl-splitter
 	@echo "Running quick decl-splitter check on a single small expanded file..."
 	mkdir -p generated_declarations_quick_check
 	@./target/debug/split-expanded-bin \
-		--files ../generated/.expand_output_aho-corasick-wrapper_lib.rs \
+		--files ../expanded/.expand_output_aho-corasick-wrapper_lib.rs \
 		--project-root generated_declarations_quick_check \
 		--rustc-version "1.92.0-nightly" \
 		--rustc-host "x86_64-unknown-linux-gnu" \
 		2>&1 | tee decl_splitter_quick_check.log
+
+build-workspace-generator:
+	@echo "Building workspace-generator..."
+	nix develop --command bash -c "cargo build --package workspace-generator"
+
+run-workspace-generator: build-workspace-generator run-decl-splitter
+	@echo "Running workspace-generator on rust-bootstrap-core/..."
+	./target/debug/workspace-generator rust-bootstrap-core/
+
+generate-workspace: run-workspace-generator
+	@echo "Workspace generation complete."
