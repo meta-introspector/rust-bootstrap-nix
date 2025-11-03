@@ -37,9 +37,10 @@ fn main() -> io::Result<()> {
             println!("  Is a directory.");
             if let Some(dir_name) = path.file_name().and_then(|s| s.to_str()) {
                 println!("    Dir name: {}", dir_name);
-                                if let Ok(level) = dir_name.parse::<u32>() {
-                                    println!("      Is a dependency level directory: {}", level);
-                                    root_workspace_members.push(format!("{}", level));
+                                if dir_name.starts_with("types_") {
+                                    if let Ok(level) = dir_name["types_".len()..].parse::<u32>() {
+                                        println!("      Is a dependency level directory: {}", level);
+                                        root_workspace_members.push(format!("src/{}", dir_name));
                 
                                     // Create Cargo.toml for the dependency level directory (e.g., 3/Cargo.toml) as a package
                                     let package_cargo_toml_path = path.join("Cargo.toml");
