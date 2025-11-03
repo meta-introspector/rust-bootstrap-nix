@@ -100,8 +100,7 @@ fn main() -> io::Result<()> {
                                     };
                                     fs::write(&new_mod_file_path, new_mod_content.to_string())?;
                                     original_file_content
-                                        .push_str(&format!("pub mod {{}};
-", mod_name_snake));
+                                        .push_str(&format!("pub mod {};", mod_name_snake));
                                     continue;
                                 } else {
                                     (
@@ -176,14 +175,14 @@ fn main() -> io::Result<()> {
                         // The original file now just re-exports the module
                         original_file_content
                             .push_str(
-                                &format!("pub mod {{}}\n", snake_case_name),
+                                &format!("pub mod {}\n", snake_case_name),
                             );
                     }
                     let original_output_path = output_dir.join(relative_path);
                     fs::write(&original_output_path, original_file_content)?;
                 }
                 Err(e) => {
-                    eprintln!("Error parsing {}: {{}}", path.display(), e);
+                    eprintln!("Error parsing {}: {}", path.display(), e);
                 }
             }
         }

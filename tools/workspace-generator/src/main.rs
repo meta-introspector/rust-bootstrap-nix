@@ -8,13 +8,13 @@ fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <output_directory>", args[0]);
-        return Ok(())
+        return Ok(());
     }
     let output_dir = PathBuf::from(&args[1]);
 
     if !output_dir.is_dir() {
         eprintln!("Error: Output directory does not exist or is not a directory.");
-        return Ok(())
+        return Ok(());
     }
 
     let mut root_workspace_members = Vec::new();
