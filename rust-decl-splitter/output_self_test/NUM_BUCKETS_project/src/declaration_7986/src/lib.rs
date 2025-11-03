@@ -1,0 +1,6 @@
+#![feature(panic_internals)]
+#![feature(print_internals)]
+
+use prelude::*;
+
+# [doc = " The number of buckets to store our patterns in. We don't want this to be"] # [doc = " too big in order to avoid wasting memory, but we don't want it to be too"] # [doc = " small either to avoid spending too much time confirming literals."] # [doc = ""] # [doc = " The number of buckets MUST be a power of two. Otherwise, determining the"] # [doc = " bucket from a hash will slow down the code considerably. Using a power"] # [doc = " of two means `hash % NUM_BUCKETS` can compile down to a simple `and`"] # [doc = " instruction."] const NUM_BUCKETS : usize = 64 ;

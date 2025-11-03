@@ -1,7 +1,7 @@
-.PHONY: all build-splitter run-splitter
+.PHONY: all build-splitter run-splitter build-generator run-generator test-build create-prelude-crate
 
 # Default target
-all: run-splitter
+all: test-build
 
 # Build rust-decl-splitter
 build-splitter:
@@ -13,5 +13,25 @@ run-splitter: build-splitter
 	@echo "Running rust-decl-splitter..."
 	rm -rf rust-decl-splitter/output_self_test
 	cargo run --package rust-decl-splitter -- /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/generated_projects rust-decl-splitter/output_self_test
-	@echo "Listing contents of output_self_test:"
-	ls -R rust-decl-splitter/output_self_test
+
+# Create prelude crate
+create-prelude-crate:
+	@echo "Creating prelude crate..."
+	mkdir -p rust-decl-splitter/output_self_test/prelude/src
+	printf '[package]\nname = "prelude"\nversion = "0.1.0"\nedition = "2021"\n\n[dependencies]\nquote = "1.0.41"\nsyn = { version = "2.0.108", features = ["full", "visit"] }\nwalkdir = "2.5.0"\n' > rust-decl-splitter/output_self_test/prelude/Cargo.toml
+	printf 'pub use quote::quote;\npub use std::{env, fs, io, path::{Path, PathBuf}};\npub use syn::{self, Item, Ident, spanned::Spanned};\npub use walkdir::WalkDir;\n' > rust-decl-splitter/output_self_test/prelude/src/lib.rs
+
+# Build workspace-generator
+build-generator:
+	@echo "Building workspace-generator..."
+	cargo build --package workspace-generator
+
+# Run workspace-generator
+run-generator: build-generator run-splitter create-prelude-crate
+	@echo "Running workspace-generator..."
+	cargo run --package workspace-generator -- rust-decl-splitter/output_self_test
+
+# Test the generated workspace build
+test-build: run-generator
+	@echo "Testing the generated workspace build..."
+	cd rust-decl-splitter/output_self_test && cargo build

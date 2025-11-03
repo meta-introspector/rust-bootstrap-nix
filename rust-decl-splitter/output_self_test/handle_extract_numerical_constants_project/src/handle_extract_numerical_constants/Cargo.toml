@@ -1,0 +1,8 @@
+[package]
+name = "handle_extract_numerical_constants"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prelude = { path = "../../prelude" }
+serde = { version = "1.0", features = ["derive"] }

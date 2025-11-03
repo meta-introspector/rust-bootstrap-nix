@@ -1,2 +1,0 @@
-use prelude::*
-pub fn get_collected_metrics () -> HashMap < String , FunctionMetrics > { measurement :: record_function_entry (stringify ! (get_collected_metrics)) ; let __result = { METRICS . lock () . unwrap () . clone () } ; measurement :: record_function_exit (stringify ! (get_collected_metrics)) ; __result }
