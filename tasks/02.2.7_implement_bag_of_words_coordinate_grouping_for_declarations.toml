@@ -1,0 +1,5 @@
+title = "Implement Bag of Words and Coordinate Grouping for Declarations"
+description = "Goal: Enhance `prelude-generator` to collect a \"bag of words\" (referenced types, functions, external identifiers) for each declaration and group these declarations into \"coordinates\" (modules) aiming for ~4KB chunks. Actions: Enhanced `DeclsVisitor` to collect referenced types, functions, and external identifiers. Introduced a `Declaration` struct to unify declaration representation with associated \"bag of words.\". Implement grouping logic to create ~4KB chunks based on declaration dependencies. Generate unique module paths for each group. Generate a \"Canonical Prelude\" file with `pub use` statements for all generated group modules. Establish a symbol table for primitives and module-based \"lattices\" to identify new terms."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

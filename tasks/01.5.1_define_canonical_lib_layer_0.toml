@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "5.1"
+    name = "Define Canonical Lib Layer 0"
+    description = "Establish 'canonical lib layer 0' as a new standard library containing all items with zero external dependencies. This layer will be physically split into 4KB disk file chunks for efficient management."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Declaration-level dependencies"]
+    testing_strategy = "Verify that Layer 0 contains only items with zero external dependencies. Test the 4KB chunking mechanism."
+    associated_scripts_code = []

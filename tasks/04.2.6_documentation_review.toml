@@ -1,0 +1,5 @@
+title = "Documentation Review"
+description = "Regularly verify that `docs/` accurately reflects the current state and functionality of the project."
+dependencies = []
+testing_strategy = "Manual review of documentation. Cross-referencing documentation with code and project functionality."
+associated_scripts_code = []

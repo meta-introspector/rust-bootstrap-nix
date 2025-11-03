@@ -1,0 +1,5 @@
+title = "Static Analysis & Linting"
+description = "Ensure pre-commit hooks (`.pre-commit-config.yaml`) are comprehensive and run regularly. This includes `rustfmt`, `clippy`, and potentially `shellcheck` for shell scripts."
+dependencies = []
+testing_strategy = "Regular execution of pre-commit hooks. Verification of code style and adherence to linting rules."
+associated_scripts_code = [".pre-commit-config.yaml"]

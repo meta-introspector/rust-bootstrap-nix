@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "4.1"
+    name = "Develop Compiler Instrumentation Tool"
+    description = "Create or adapt a tool to hook into rustc and LLVM to dump intermediate representations (AST, HIR, MIR, LLVM IR) and execution traces during compilation."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["rustc", "LLVM"]
+    testing_strategy = "Unit tests for the instrumentation tool. Verify correct IR dumping for various Rust code constructs."
+    associated_scripts_code = []

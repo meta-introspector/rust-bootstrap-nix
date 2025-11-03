@@ -4,7 +4,6 @@ use anyhow::Result;
 use std::fs;
 use prelude_collector::{FileProcessingResult, FileProcessingStatus};
 use tempfile::tempdir;
-use std::env;
 use super::generate_prelude;
 use clap::Parser;
 

@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "4.3"
+    name = "Execute Instrumented Builds for All Projects"
+    description = "Run instrumented builds for all identified Cargo projects, collecting all specified dumps and traces."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Integrated Instrumentation (from 4.2)", "All Cargo projects"]
+    testing_strategy = "Verify the collection of IR dumps and traces for all projects. Check for completeness and consistency."
+    associated_scripts_code = []

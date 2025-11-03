@@ -25,15 +25,7 @@ generate-seed-config: build-config-builder
 		--project-root $(CURDIR) \
 		--rust-src-flake-path /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
 
-generate-flake-dir:
-	$(MAKE) -C flake-template-generator generate-flake
 
-generate-seed-config: build-config-builder
-	@echo "Generating seed config.toml using bootstrap-config-generator..."
-	cargo run --bin bootstrap-config-generator -- \
-		--output bootstrap-config-builder/generated_config.toml \
-		--project-root $(CURDIR) \
-		--rust-src-flake-path /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
 
 run-config-builder-dry-run:
 	@echo "Running bootstrap-config-builder in dry-run mode..."
@@ -109,3 +101,4 @@ check-rust-decl-splitter:
 	nix develop --command bash -c "cargo check -p rust-decl-splitter"
 
 include Makefile.prelude
+include generated_projects.mk

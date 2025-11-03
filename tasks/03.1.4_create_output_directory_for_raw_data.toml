@@ -1,0 +1,11 @@
+    [[stages.steps]]
+    id = "1.4"
+    name = "Create Output Directory for Raw Data"
+    description = "Create the specified raw data output directory if it does not already exist."
+    tool = "run_shell_command"
+    command = "mkdir -p {{raw_data_output_dir}}"
+    expected_output = "Output directory created."
+    # Additional Details
+    dependencies = ["raw_data_output_dir (from 1.3)"]
+    testing_strategy = "Verify the existence of the directory after command execution."
+    associated_scripts_code = []

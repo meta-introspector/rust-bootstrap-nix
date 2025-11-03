@@ -85,6 +85,14 @@ This command will execute the Rust program, which should print the OpenSSL versi
 
 To build the `test-openssl-sys` flake:
 ```bash
+*   **Rust System Composer Refactoring for Per-File Project Generation:**
+    *   Refactored `rust-system-composer` to act as an orchestrator for generating self-contained Rust projects from expanded `.rs` files.
+    *   It now iterates through input `.rs` files, creates a new project directory for each, generates a `Cargo.toml` (including `[workspace]` and `split-expanded-lib` dependency), calls `split_expanded_lib` to extract declarations, writes these declarations to the project's `src/` directory, generates `src/lib.rs` with `pub mod` statements, and updates `Cargo.toml` for `proc-macro = true` if necessary.
+    *   Successfully compiled `rust-system-composer` after addressing `Cargo.toml` content generation and `use` statement issues.
+    *   Successfully generated numerous per-file projects.
+    *   Successfully compiled a sample generated project (`Declaration_project`), confirming the correctness of the generated `Cargo.toml`, `lib.rs`, and extracted declaration files.
+    *   Fixed `split-expanded-lib/src/lib.rs` by re-introducing `required_imports` to the `Declaration` struct, updating `Declaration::new` calls, reinstating `FileMetadata` and its use in `extract_declarations_from_single_file`, and correcting the `DeclsVisitor` implementation's structure and `DependencyVisitor` instantiations.
+    *   Successfully re-ran `make regenerate-generated-projects` to verify compilation.
 *   **New SOP Creation:** Created `docs/sops/SOP_Digital_Mycology_Experiment_Workflow.md` to define the workflow for LLM-based science experiments.
     *   Documented `docs/Nix_and_Precommit_Setup.md` detailing the project's Nix and pre-commit configurations, including Git submodule management.
     *   Created `docs/sops/SOP_Nix_Github_Meta_Introspector_Policy.md` documenting the policy for Nix flake inputs from `github:meta-introspector` and branch-only references.
@@ -125,4 +133,12 @@ The expanded macro files, typically named `.expand_output_*.rs`, are generated b
 Therefore, when referencing these files for operations like `split-expanded-bin`, ensure you are pointing to their current location within `generated-declarations-lib/src/`.
 
 ## Next Steps:
-```
+
+1.  **Continue Documentation Enhancement (CRQ-017):**
+    *   Review `README.md` for necessary updates.
+    *   Review `docs/tutorials/` and create an "onboarding guide for n00bs" incorporating the Nixification workflow.
+    *   Ensure `docs/memos/Shellcheck_Always_After_Changes.md` is properly referenced and integrated into relevant SOPs.
+2.  **Integrate Project Components into Flake:** Use Nix tools to index all Nix packages in `~/pick-up-nix2/index/file_nix.txt`, understand their graphs, and make a report.
+3.  **Define Packages/Applications within Flake.**
+4.  **Set up Build and Test Commands for the Project.**
+5.  **Further Refine the `devShell`.**

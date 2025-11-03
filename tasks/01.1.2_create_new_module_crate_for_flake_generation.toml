@@ -1,0 +1,9 @@
+[[stages.steps]]
+    id = "1.2"
+    name = "Create New Module/Crate for Flake Generation"
+    description = "Decoupled the identified flake generation logic into a dedicated Rust module/crate named `cargo-flake-generator` located at `tools/cargo-flake-generator/`. A basic `Cargo.toml` and `src/lib.rs` have been created."
+    status = "completed"
+    # Additional Details
+    dependencies = ["Existing flake generation logic (identified in 1.1)"]
+    testing_strategy = "Compilation of the new crate. Basic unit tests for initial structure."
+    associated_scripts_code = ["tools/cargo-flake-generator/Cargo.toml", "tools/cargo-flake-generator/src/lib.rs"]

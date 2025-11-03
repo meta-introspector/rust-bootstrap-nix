@@ -1,11 +1,8 @@
+
 [package]
 name = "generated-declarations-lib"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
-[dependencies]
-openssl-sys = "0.9"
-serde = "*"
-
-[features]
-stmt_expr_attributes=[]
+[lib]
+path = "src/lib.rs"

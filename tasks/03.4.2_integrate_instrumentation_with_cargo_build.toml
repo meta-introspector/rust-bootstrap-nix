@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "4.2"
+    name = "Integrate Instrumentation with Cargo Build"
+    description = "Modify Cargo's build process (e.g., via RUSTFLAGS, custom build scripts, or a Cargo subcommand) to use the instrumentation tool during compilation of each crate."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Compiler Instrumentation Tool (from 4.1)", "Cargo build system"]
+    testing_strategy = "Verify that instrumentation is correctly invoked during `cargo build`. Check for generated IR dumps."
+    associated_scripts_code = []

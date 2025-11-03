@@ -1,0 +1,5 @@
+title = "Overall Project Build & Test Commands"
+description = "Functionality of the main `Makefile` targets. Correctness of `nix-build` and `nix-shell` commands."
+dependencies = []
+testing_strategy = "Execution of Makefile targets and Nix commands. Verification of successful build and test outcomes."
+associated_scripts_code = ["Makefile", "flake.nix"]

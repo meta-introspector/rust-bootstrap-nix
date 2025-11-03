@@ -1,0 +1,9 @@
+[[stages]]
+id = 2
+name = "Per-File Project Generation and Compilation"
+description = "Generate self-contained Rust projects for each expanded Rust file and verify their compilation."
+status = "DONE"
+# Additional Details
+dependencies = ["generated-declarations-lib/src (input)", "rust-system-composer"]
+testing_strategy = "Compilation of generated projects. Verification of generated Cargo.toml and lib.rs."
+associated_scripts_code = ["rust-system-composer/src/main.rs", "split-expanded-lib/src/lib.rs"]

@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "5.1"
+    name = "Process Raw Dumps and Traces"
+    description = "Develop parsers and processors for the various compiler dumps (ASTs, IRs) and execution traces to extract relevant data."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Compiler dumps and traces"]
+    testing_strategy = "Unit tests for parsers and processors. Verify correct data extraction from sample dumps and traces."
+    associated_scripts_code = []

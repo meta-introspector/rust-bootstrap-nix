@@ -1,0 +1,5 @@
+title = "`rust-system-composer` Refactoring for Per-File Project Generation"
+description = "Refactored `rust-system-composer` to act as an orchestrator for generating self-contained Rust projects from expanded `.rs` files. It now iterates through input `.rs` files, creates a new project directory for each, generates a `Cargo.toml` (including `[workspace]` and `split-expanded-lib` dependency), calls `split_expanded_lib` to extract declarations, writes these declarations to the project's `src/` directory, generates `src/lib.rs` with `pub mod` statements, and updates `Cargo.toml` for `proc-macro = true` if necessary. Successfully compiled `rust-system-composer` after addressing `Cargo.toml` content generation and `use` statement issues. Successfully generated numerous per-file projects. Successfully compiled a sample generated project (`Declaration_project`), confirming the correctness of the generated `Cargo.toml`, `lib.rs`, and extracted declaration files."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

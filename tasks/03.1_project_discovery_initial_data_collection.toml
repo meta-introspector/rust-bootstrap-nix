@@ -1,0 +1,9 @@
+[[stages]]
+id = 1
+name = "Project Discovery and Initial Data Collection"
+description = "Identify all Cargo projects and extract initial metadata and dependency information."
+status = "DONE"
+# Additional Details
+dependencies = []
+testing_strategy = "Verification of glob output and successful execution of hf-dataset-validator."
+associated_scripts_code = ["vendor/rust/hugging-face-dataset-validator-rust/src/main.rs"]

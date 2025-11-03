@@ -6,9 +6,6 @@ members = [
     "bootstrap-config-builder",
     "configuration-nix",
     "flake-template-generator",
-    "generated/crates/ast-stats-crate",
-    "generated/crates/prelude-collector",
-    "generated/vendor/rust/isolated-crates/aho-corasick",
     "metrics-reporter",
     "pipeline-traits",
     "prelude-generator",
@@ -52,6 +49,6 @@ members = [
     # "vendor/rarrow/others/echo/crates/rmg-wasm",
     # "vendor/rust/hugging-face-dataset-validator-rust",
     "split-expanded-lib",
-    "split-expanded-bin", "generated-declarations-lib", "generated-proc-macros-lib",
+    "split-expanded-bin",
     "monadic-io-traits",
 ]

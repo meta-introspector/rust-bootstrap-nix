@@ -1,8 +1,7 @@
 use anyhow::Context;
 use std::path::PathBuf;
 use syn::{self, visit::Visit};
-use crate::{declaration_processing, constant_storage, BagOfWordsVisitor, config_parser, pipeline, type_extractor, error_collector::ErrorCollection};
-use std::collections::HashMap;
+use crate::{constant_storage, BagOfWordsVisitor, config_parser, pipeline, type_extractor};
 
 pub fn handle_analyze_ast(_args: &crate::Args) -> anyhow::Result<()> {
     let path = _args.ast_analysis_path.clone().ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;

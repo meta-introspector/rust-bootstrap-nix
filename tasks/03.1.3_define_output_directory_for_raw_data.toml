@@ -1,0 +1,12 @@
+    [[stages.steps]]
+    id = "1.3"
+    name = "Define Output Directory for Raw Data"
+    description = "Specify the directory where the raw extracted data (Parquet files) will be stored."
+    action = "define_variable"
+    variable_name = "raw_data_output_dir"
+    value = "/data/data/com.termux.nix/files/home/pick-up-nix2/generated_raw_cargo_data"
+    expected_output = "Output directory path defined."
+    # Additional Details
+    dependencies = []
+    testing_strategy = "N/A (variable definition)"
+    associated_scripts_code = []

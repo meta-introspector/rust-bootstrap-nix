@@ -1,0 +1,5 @@
+title = "Refactor `prelude-generator/src/main.rs`"
+description = "Action: The constant extraction calls have been integrated into `prelude-generator/src/main.rs`. Action: Split the `main.rs` file into separate functions for processing structs and constants to improve modularity and readability. Action: Ensure all internal calls within the extracted functions and the `main` function use the `prelude_generator::` prefix where necessary."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

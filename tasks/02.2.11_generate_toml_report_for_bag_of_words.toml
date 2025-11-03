@@ -1,0 +1,5 @@
+title = "Generate TOML report for Bag of Words"
+description = "Goal: Implement the functionality to write the filtered bag of words to a TOML file, including the specified stop words."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

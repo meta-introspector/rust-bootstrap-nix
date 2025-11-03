@@ -1,0 +1,9 @@
+[[stages]]
+id = 4
+name = "Compiler Instrumentation and Advanced Data Collection"
+description = "Set up and execute compiler instrumentation to capture detailed build traces, ASTs, and other intermediate representations."
+status = "TODO" # This stage requires significant development and is marked as TODO for now.
+# Additional Details
+dependencies = []
+testing_strategy = "Verification of generated IR dumps and execution traces. Ensure instrumentation does not alter program behavior."
+associated_scripts_code = []

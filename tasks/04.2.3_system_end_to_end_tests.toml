@@ -1,0 +1,5 @@
+title = "System/End-to-End Tests"
+description = "Shell Scripts: Create or enhance existing shell scripts (`test.sh`, `run_bootstrap_test.sh`, etc.) to execute the full bootstrap process and verify the final output (e.g., successful compilation, correct artifacts). Nix Checks: Use `nix-build --check` and potentially `nix-diff` to ensure flake outputs are consistent and correct."
+dependencies = []
+testing_strategy = "Execution of shell scripts and Nix checks. Verification of successful compilation, correct artifacts, and consistent flake outputs."
+associated_scripts_code = ["test.sh", "run_bootstrap_test.sh"]

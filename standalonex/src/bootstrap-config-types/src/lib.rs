@@ -25,8 +25,6 @@ pub enum DocTests {
 }
 
 use std::process::Command;
-use std::env;
-use std::fs;
 
 pub use clap::{Parser, ValueEnum, Args, Subcommand};
 

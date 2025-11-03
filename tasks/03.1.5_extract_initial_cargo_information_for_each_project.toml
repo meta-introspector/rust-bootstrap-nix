@@ -1,0 +1,42 @@
+    [[stages.steps]]
+    id = "1.5"
+    name = "Extract Initial Cargo Information for Each Project"
+    description = "Iterate through each identified Cargo project and execute the hf-dataset-validator for ProjectMetadata and DependencyAnalysis phases."
+    loop_over = "nix_cargo_projects"
+    loop_variable = "project_manifest_path"
+    # Additional Details
+    dependencies = ["nix_cargo_projects (from 1.1)", "hf-dataset-validator binary (from 1.2)", "raw_data_output_dir (from 1.3)"]
+    testing_strategy = "Verify the generation of Parquet files in the output directory for each project. Check file contents for basic correctness."
+    associated_scripts_code = ["vendor/rust/hugging-face-dataset-validator-rust/src/main.rs"]
+    sub_steps = [
+        {
+            id = "1.5.1"
+            name = "Determine Project Root"
+            description = "Extract the project root path from the Cargo.toml manifest path."
+            action = "derive_variable"
+            variable_name = "project_root"
+            value = "{{dirname(project_manifest_path)}}" # Placeholder for dirname function
+            expected_output = "Project root path derived."
+            # Additional Details for sub-step
+            dependencies = ["project_manifest_path"]
+            testing_strategy = "Unit test the dirname function with various paths."
+            associated_scripts_code = []
+        },
+        {
+            id = "1.5.2"
+            name = "Execute hf-dataset-validator for Metadata and Dependencies"
+            description = "Run the hf-dataset-validator for the current project, extracting ProjectMetadata and DependencyAnalysis."
+            tool = "run_shell_command"
+            command = "nix develop --command bash -c \"/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/vendor/rust/hugging-face-dataset-validator-rust/target/release/hf-validator \
+                --project-path \"{{project_root}}\" \
+                --phases ProjectMetadata DependencyAnalysis \
+                --output-dir \"{{raw_data_output_dir}}\" \
+                --include-dependencies\""
+            directory = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/vendor/rust/hugging-face-dataset-validator-rust"
+            expected_output = "Parquet files generated for ProjectMetadata and DependencyAnalysis for the current project."
+            # Additional Details for sub-step
+            dependencies = ["project_root", "raw_data_output_dir"]
+            testing_strategy = "Verify the exit code of the command and the presence of expected Parquet files."
+            associated_scripts_code = ["vendor/rust/hugging-face-dataset-validator-rust/src/main.rs"]
+        }
+    ]

@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "6.1"
+    name = "Extract Declaration-Level Crate Usage"
+    description = "Identify all declarations and the external crates they directly use."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Processed data from Stage 5"]
+    testing_strategy = "Unit tests for usage extraction logic. Verify correct identification of external crate usage for sample declarations."
+    associated_scripts_code = []

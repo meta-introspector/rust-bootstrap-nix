@@ -1,0 +1,5 @@
+title = "`bootstrap-config-builder`"
+description = "Configuration loading, merging, and override logic. Precondition checks (`preconditions.rs`). `nix-dir` tool functionality (output, filtering, JSON)."
+dependencies = []
+testing_strategy = "Unit and integration tests for configuration logic, precondition checks, and nix-dir tool."
+associated_scripts_code = ["bootstrap-config-builder/src/lib.rs", "bootstrap-config-builder/src/preconditions.rs"]

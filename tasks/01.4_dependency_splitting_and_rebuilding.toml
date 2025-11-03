@@ -1,0 +1,9 @@
+[[stages]]
+id = 4
+name = "Dependency Splitting and Rebuilding"
+description = "Analyze and split dependencies into module and declaration levels, then rebuild the lattice with this granular structure."
+status = "TODO"
+# Additional Details
+dependencies = ["Constructed Flake Lattice from Stage 3"]
+testing_strategy = "Verify that dependencies are correctly split at module and declaration levels. Ensure the rebuilt lattice maintains functional correctness."
+associated_scripts_code = []

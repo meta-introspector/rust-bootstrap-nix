@@ -1,0 +1,19 @@
+    [[stages.steps]]
+    id = "2.2"
+    name = "Generate Per-File Projects"
+    description = "Run rust-system-composer to generate individual Rust projects for each expanded .rs file, including Cargo.toml, src/lib.rs, and extracted declarations."
+    tool = "run_shell_command"
+    command = """
+        cargo run --package rust-system-composer -- \
+            --input-dir /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/generated-declarations-lib/src \
+            --output-root-dir /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/generated_projects \
+            --rustc-version 1.92.0-nightly \
+            --rustc-host x86_64-unknown-linux-gnu
+    """
+    directory = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix"
+    expected_output = "Numerous self-contained Rust projects generated in generated_projects directory."
+    status = "DONE"
+    # Additional Details
+    dependencies = ["rust-system-composer binary", "generated-declarations-lib/src (input)"]
+    testing_strategy = "Verify the creation of project directories and the presence of expected files (Cargo.toml, src/lib.rs, declaration files)."
+    associated_scripts_code = ["rust-system-composer/src/main.rs"]

@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "6.2"
+    name = "Group Declarations into Client Crates"
+    description = "Group declarations into new 'client-X' or 'client-X-Y' crates based on their primary external crate dependencies, aiming for the 'one external crate per module' principle."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Declaration-level crate usage from 6.1"]
+    testing_strategy = "Verify correct grouping of declarations into client crates. Ensure the 'one external crate per module' principle is followed."
+    associated_scripts_code = []

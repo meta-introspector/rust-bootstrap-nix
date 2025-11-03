@@ -1,0 +1,5 @@
+title = "Utilize Generated Data for Self-Generation"
+description = "Goal: Begin implementing the \"Self-Generation\" aspect of the `prelude-generator`, as outlined in `bootstrap.md`. Details: This will involve processing the classified `UseStatement` data (which now includes rich `git_details`, `nix_details`, etc.) to generate new code, configurations, or documentation. The exact nature of this generation will depend on the specific goals of the \"better parsing\" and \"self-hosting\" objectives."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

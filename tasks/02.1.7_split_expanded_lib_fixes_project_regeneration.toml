@@ -1,0 +1,5 @@
+title = "`split-expanded-lib` Fixes and Project Regeneration"
+description = "Re-introduced `required_imports` to the `Declaration` struct. Updated `Declaration::new` calls to include `required_imports`. Reinstated `FileMetadata` and its use in `extract_declarations_from_single_file`. Corrected `DeclsVisitor` implementation's structure and `DependencyVisitor` instantiations. Successfully re-ran `make regenerate-generated-projects` without compilation errors or warnings."
+dependencies = []
+testing_strategy = ""
+associated_scripts_code = []

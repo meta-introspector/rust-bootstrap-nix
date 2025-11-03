@@ -1,7 +1,7 @@
 pub fn generate_flake_nix_content(
     nixpkgs_url: &str,
     system_arch: &str,
-    use_rustc_wrapper: bool,
+    _use_rustc_wrapper: bool,
 ) -> String {
     format!(
         r#"{{

@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "3.1"
+    name = "Analyze Crate Dependencies"
+    description = "For each Cargo crate, determine its direct and transitive dependencies using `cargo metadata` or similar tools."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Cargo.toml files of all crates"]
+    testing_strategy = "Compare extracted dependencies with `cargo metadata` output for accuracy."
+    associated_scripts_code = []

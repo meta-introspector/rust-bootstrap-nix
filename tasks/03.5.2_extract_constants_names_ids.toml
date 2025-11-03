@@ -1,0 +1,9 @@
+    [[stages.steps]]
+    id = "5.2"
+    name = "Extract Constants, Names, and IDs"
+    description = "From the processed data, identify and extract all constants, names, and unique identifiers."
+    status = "TODO"
+    # Additional Details
+    dependencies = ["Processed data from 5.1"]
+    testing_strategy = "Unit tests for extraction logic. Verify correct identification of constants, names, and IDs from sample data."
+    associated_scripts_code = []

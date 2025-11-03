@@ -1,0 +1,8 @@
+[[stages]]
+id = 2
+name = "Crate Discovery and Initial Flake Generation"
+description = "Discover all Cargo crates in the repository and generate initial Nix flakes for them."
+# Additional Details
+dependencies = ["tools/cargo-flake-generator"]
+testing_strategy = "Integration tests to verify that flakes are generated for all discovered crates and that they are syntactically correct."
+associated_scripts_code = ["tools/cargo-flake-generator/src/lib.rs"]
