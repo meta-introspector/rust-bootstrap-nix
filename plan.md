@@ -24,12 +24,9 @@
     *   Updated `pipeline-traits/src/use_statement_types/mod.rs` and `pipeline-traits/src/lib.rs` to correctly re-export the new traits.
     *   Updated `prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/classify_uses_functor.rs` to use the new enum and struct fields with a basic heuristic for classification.
 
-5.  **`rust-system-composer` Refactoring for Per-File Project Generation:**
-    *   Refactored `rust-system-composer` to act as an orchestrator for generating self-contained Rust projects from expanded `.rs` files.
-    *   It now iterates through input `.rs` files, creates a new project directory for each, generates a `Cargo.toml` (including `[workspace]` and `split-expanded-lib` dependency), calls `split_expanded_lib` to extract declarations, writes these declarations to the project's `src/` directory, generates `src/lib.rs` with `pub mod` statements, and updates `Cargo.toml` for `proc-macro = true` if necessary.
-    *   Successfully compiled `rust-system-composer` after addressing `Cargo.toml` content generation and `use` statement issues.
-    *   Successfully generated numerous per-file projects.
-    *   Successfully compiled a sample generated project (`Declaration_project`), confirming the correctness of the generated `Cargo.toml`, `lib.rs`, and extracted declaration files.
+5.  **`rust-system-composer` Modification for Batch Processing:**
+    *   Modified `rust-system-composer/src/main.rs` to discover all Rust files within a specified `workspace_root` and invoke `prelude-generator` for each.
+    *   Updated `rust-system-composer/Cargo.toml` to include the `walkdir` dependency.
 
 6.  **Resolved Compilation Errors and Warnings:**
     *   Fixed cyclic dependency issues between `prelude-generator` and `ast-stats-crate`.
@@ -47,44 +44,13 @@
     *   Added `prelude-generator/src/gem_parser.rs` to parse the `gems.toml` configuration.
     *   Added and modified test files and scripts in `standalonex/` to validate the new functionality, producing artifacts like `standalonex/generated_min_decls/` and `standalonex/min_test_project/collected_errors.json`.
 
+## Current Blocking Issue:
+
+*   **Locating `rust-system-composer`'s `main` function:** The `rust-system-composer/src/main.rs` file consistently returns re-exports, and attempts to locate the actual `fn main()` function have been unsuccessful. This is preventing further progress on using `rust-system-composer` to process all code into Parquet.
+
 ## Next Steps:
 
-1.  **Integrate `flake-template-generator` as a library:**
-    *   **Goal:** Generate a `flake.nix` for each project using `flake-template-generator`'s library functionality.
-    *   **Actions:**
-        *   Add `flake-template-generator` as a dependency to `rust-system-composer/Cargo.toml`.
-        *   Identify the relevant public functions in `flake-template-generator` for generating a `flake.nix`.
-        *   Modify `rust-system-composer/src/main.rs` to call these library functions after the Rust project structure is in place. This will involve passing parameters like `project_dir`, `project_name`, and potentially other Nix-specific configurations.
-
-2.  **Define Monadic I/O Traits and Arrow Composition:**
-    *   **Goal:** Create a new crate (e.g., `monadic-io-traits`) that defines generic traits for monadic I/O operations and arrow composition, drawing inspiration from `functional_arrow_best_practices.md`.
-    *   **Actions:**
-        *   Create a new library crate `monadic-io-traits` in the workspace.
-        *   Define traits like `Monad`, `Applicative`, `Functor`, `Arrow`, `Category` (if not already present in `pipeline-traits` or similar).
-        *   Define associated types for input, output, and error handling.
-        *   Implement basic combinators for these traits.
-        *   Add `monadic-io-traits` as a dependency to `rust-system-composer` and potentially to the generated projects if they need to implement these traits.
-
-3.  **Refactor `rust-system-composer` to use Monadic I/O:**
-    *   **Goal:** Modify `rust-system-composer`'s I/O operations (file reading, writing, external command execution) to use the newly defined monadic I/O traits.
-    *   **Actions:**
-        *   Identify I/O-bound operations within `rust-system-composer`.
-        *   Wrap these operations in types that implement the `Monad` or `Arrow` traits.
-        *   Use combinators to compose these I/O operations. This will make `rust-system-composer` itself more robust and functional.
-
-4.  **Generate Projects with Monadic I/O Integration:**
-    *   **Goal:** Ensure that the generated projects can easily integrate with the monadic I/O framework.
-    *   **Actions:**
-        *   Modify the `Cargo.toml` generation in `rust-system-composer` to include `monadic-io-traits` as a dependency for generated projects.
-        *   Potentially generate boilerplate code in `lib.rs` or other files within the generated projects to facilitate the use of monadic I/O for their specific functionalities.
-
-5.  **Refine `split-expanded-lib`'s `get_identifier`:**
-    *   Ensure that `Declaration::get_identifier()` correctly handles all cases, especially those with problematic characters or keywords, to produce valid Rust module names.
-
-6.  **Error Handling and Reporting:**
-    *   Improve error handling and reporting in `rust-system-composer`, especially for issues during file processing or project generation.
-
-7.  **Implement Bag of Words and Coordinate Grouping for Declarations:**
+1.  **Implement Bag of Words and Coordinate Grouping for Declarations:**
     *   **Goal:** Enhance `prelude-generator` to collect a "bag of words" (referenced types, functions, external identifiers) for each declaration and group these declarations into "coordinates" (modules) aiming for ~4KB chunks.
     *   **Actions:**
         *   Enhanced `DeclsVisitor` to collect referenced types, functions, and external identifiers.
@@ -94,29 +60,33 @@
         *   Generate a "Canonical Prelude" file with `pub use` statements for all generated group modules.
         *   Establish a symbol table for primitives and module-based "lattices" to identify new terms.
 
-8.  **Refactor `prelude-generator/src/main.rs`**:
+2.  **Refactor `prelude-generator/src/main.rs`**:
     *   **Action:** The constant extraction calls have been integrated into `prelude-generator/src/main.rs`.
     *   **Action:** Split the `main.rs` file into separate functions for processing structs and constants to improve modularity and readability.
     *   **Action:** Ensure all internal calls within the extracted functions and the `main` function use the `prelude_generator::` prefix where necessary.
 
-9.  **Refine hierarchical directory structure for constants**:
+2.  **Refine hierarchical directory structure for constants**:
     *   **Goal:** Enhance the logic within the conceptual `write_numerical_constants_to_hierarchical_structure` and `write_string_constants_to_hierarchical_structure` functions (as documented in Markdown) to create actual sorted, hierarchical directories based on constant properties (e.g., hash, value prefixes), and ensure 4KB file blocking.
 
-10. **Implement global index and 8D embedding for all constants**:
+3.  **Implement global index and 8D embedding for all constants**:
     *   **Goal:** Develop a mechanism to create a central index (e.g., TOML/JSON) mapping constant names/paths to their 8D coordinates and other metadata, moving beyond the hardcoded 0 for string constants.
 
-11. **Generate TOML report for Bag of Words**:
+4.  **Generate TOML report for Bag of Words**:
     *   **Goal:** Implement the functionality to write the filtered bag of words to a TOML file, including the specified stop words.
 
-12. **Refine `ClassifyUsesFunctor` (after `rust-system-composer` is functional)**:
+5.  **Resolve `rust-system-composer` `main` function location:**
+    *   **Action:** User to provide the exact path to the file containing the `fn main()` function for the `rust-system-composer` crate.
+    *   **Goal:** Once located, continue with the integration of `prelude-generator` for batch processing of all Rust files.
+
+6.  **Refine `ClassifyUsesFunctor` (after `rust-system-composer` is functional)**:
     *   **Goal:** Leverage the statistical data from `ast-stats-crate::AST_STATISTICS` to inform and improve the classification logic within `prelude-generator::src::prelude_category_pipeline::prelude_category_pipeline_impls::classify_uses_functor.rs`.
     *   **Details:**
         *   Develop more sophisticated logic to analyze each `use` statement (and potentially other AST elements) against the statistical profiles (e.g., common patterns, typical lengths, version information).
         *   Populate the `git_details`, `nix_details`, `rust_details`, `cargo_details`, `syn_details`, `llvm_details`, and `linux_details` fields of the `UseStatement` struct based on this informed analysis.
 
-13. **Refine `PreprocessFunctor` (if necessary)**:
+7.  **Refine `PreprocessFunctor` (if necessary)**:
     *   Review `PreprocessFunctor` to see if any preprocessing steps can be optimized or informed by the `AST_STATISTICS`.
 
-14. **Utilize Generated Data for Self-Generation**:
+8.  **Utilize Generated Data for Self-Generation**:
     *   **Goal:** Begin implementing the "Self-Generation" aspect of the `prelude-generator`, as outlined in `bootstrap.md`.
     *   **Details:** This will involve processing the classified `UseStatement` data (which now includes rich `git_details`, `nix_details`, etc.) to generate new code, configurations, or documentation. The exact nature of this generation will depend on the specific goals of the "better parsing" and "self-hosting" objectives.
