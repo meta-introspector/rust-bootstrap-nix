@@ -19,7 +19,6 @@ fn main() -> io::Result<()> {
     }
 
     let mut root_workspace_members = Vec::new();
-    root_workspace_members.push("prelude".to_string());
 
     let src_dir = output_dir.join("src");
     println!("Searching for dependency level directories in: {:?}/src", output_dir);
@@ -46,7 +45,7 @@ fn main() -> io::Result<()> {
                         // Create Cargo.toml for the dependency level directory (e.g., 3/Cargo.toml) as a package
                         let package_cargo_toml_path = path.join("Cargo.toml");
                         let package_cargo_toml_content = format!(
-                            "[package]\nname = \"pkg-{}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nprelude = {{ path = \"../../prelude\" }}\nserde = {{ version = \"1.0\", features = [\"derive\"] }}\n",
+                            "[package]\nname = \"pkg-{}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = {{ version = \"1.0\", features = [\"derive\"] }}\n",
                             dir_name
                         );
                         
