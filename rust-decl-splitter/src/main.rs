@@ -1,5 +1,6 @@
 pub mod prelude;
 mod measurement;
+mod dependency_analyzer;
 use crate::prelude::*;
 use syn::parse_quote;
 fn to_snake_case(ident: &Ident) -> String {
@@ -40,6 +41,9 @@ fn main() -> io::Result<()> {
                     fs::create_dir_all(&output_file_dir)?;
                     let mut original_file_content = String::new();
                     for item in file.items {
+                        // Calculate dependency count for the current item
+                        let dependency_count = dependency_analyzer::count_dependencies(&item);
+
                         let (ident, item_code) = match item {
                             Item::Fn(mut item_fn) => {
                                 let original_block = item_fn.block;
@@ -156,7 +160,10 @@ fn main() -> io::Result<()> {
                         let new_file_name = format!("{}.rs", snake_case_name);
                         let new_file_path = output_file_dir.join(&new_file_name);
 
-                        let function_output_dir = output_file_dir.join(&snake_case_name); // Directory for this function
+                        // Modify function_output_dir to include dependency_count
+                        let function_output_dir = output_file_dir
+                            .join(dependency_count.to_string()) // Add dependency_count as a directory
+                            .join(&snake_case_name); // Directory for this function
                         fs::create_dir_all(&function_output_dir)?;
 
                         let rollup_data_dir = function_output_dir.join("rollup_data"); // rollup_data inside function dir
@@ -165,15 +172,15 @@ fn main() -> io::Result<()> {
                         let wrapped_code_path = rollup_data_dir.join("wrapped_code.rs");
 
                         let mut new_file_content = String::new();
-                        new_file_content.push_str("use prelude::*;\n");
+                        new_file_content.push_str("use prelude::*\n");
                         new_file_content.push_str(&item_code.to_string());
-                        fs::write(&wrapped_code_path, new_file_content)?; // Save as wrapped_code.rs
+                        fs::write(&wrapped_code_path, new_file_content)?;
 
                         // The original file now just re-exports from the function's directory
-                        fs::write(&new_file_path, format!("pub use {}::{};\n", snake_case_name, ident))?;
+                        fs::write(&new_file_path, format!("pub use {}::{}\n", snake_case_name, ident))?;
                         original_file_content
                             .push_str(
-                                &format!("pub use {}::{};\n", snake_case_name, ident),
+                                &format!("pub use {}::{}\n", snake_case_name, ident),
                             );
                     }
                     let original_output_path = output_dir.join(relative_path);
