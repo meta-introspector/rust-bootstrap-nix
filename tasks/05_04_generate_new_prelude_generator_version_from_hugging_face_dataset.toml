@@ -1,0 +1,8 @@
+title = "Generate new prelude-generator version from Hugging Face dataset"
+description = "Use the Hugging Face dataset to generate a new version of `prelude-generator`."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "05_03_save_ast_and_use_statement_info_to_hugging_face_dataset.toml"
+stage_id = 0
+step_id = "BS_04"
+name = "Generate new prelude-generator version from Hugging Face dataset"

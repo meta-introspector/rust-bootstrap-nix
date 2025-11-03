@@ -55,6 +55,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         tasks.insert(file_name.clone(), task.clone());
     }
 
+    let recognized_virtual_nodes: HashSet<String> = [
+        "bootstrap.md".to_string(),
+        "lattice.md".to_string(),
+        "plan.md".to_string(),
+        "01_flake_lattice_plan.toml".to_string(),
+        "03_project_analysis_plan.toml".to_string(),
+        "02_current_development_plan.toml".to_string(),
+        "04_qa_plan.toml".to_string(),
+        "docs/QA_Plan.md".to_string(), // Added this line
+    ].iter().cloned().collect();
+
+    // Validate parent_task references
+    let mut unresolved_parents = Vec::new();
+    for (task_id, task) in &tasks {
+        if let Some(parent) = &task.parent_task {
+            if !all_task_ids.contains(parent) && !recognized_virtual_nodes.contains(parent) {
+                unresolved_parents.push(format!("Task '{}' references unresolved parent: '{}'", task_id, parent));
+            }
+        }
+    }
+
+    if !unresolved_parents.is_empty() {
+        eprintln!("Error: Unresolved parent task references found:");
+        for error_msg in unresolved_parents {
+            eprintln!("  {}", error_msg);
+        }
+        return Err("Unresolved parent task references".into());
+    }
+
     // Build the graph
     let mut graph = DiGraph::<String, String>::new();
     let mut node_indices: HashMap<String, NodeIndex> = HashMap::new();

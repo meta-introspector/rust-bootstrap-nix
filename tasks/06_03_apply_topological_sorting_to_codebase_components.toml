@@ -1,0 +1,8 @@
+title = "Apply topological sorting to codebase components"
+description = "Apply topological sorting to establish a clear processing order based on dependencies."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "06_02_map_internal_and_external_dependencies_for_lattice_construction.toml"
+stage_id = 0
+step_id = "LT_03"
+name = "Apply topological sorting to codebase components"
