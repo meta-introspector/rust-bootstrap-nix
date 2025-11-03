@@ -50,5 +50,5 @@ members = [
     # "vendor/rust/hugging-face-dataset-validator-rust",
     "split-expanded-lib",
     "split-expanded-bin",
-    "monadic-io-traits", "tools/task-graph-analyzer",
+    "monadic-io-traits", "tools/task-graph-analyzer", "tools/workspace-generator",
 ]

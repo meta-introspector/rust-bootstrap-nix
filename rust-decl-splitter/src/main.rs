@@ -17,13 +17,13 @@ fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: {} <input_directory> <output_directory>", args[0]);
-        return Ok(());
+        return Ok(())
     }
     let input_dir = PathBuf::from(&args[1]);
     let output_dir = PathBuf::from(&args[2]);
     if !input_dir.is_dir() {
         eprintln!("Error: Input directory does not exist or is not a directory.");
-        return Ok(());
+        return Ok(())
     }
     fs::create_dir_all(&output_dir)?;
     for entry in WalkDir::new(&input_dir) {
@@ -37,7 +37,8 @@ fn main() -> io::Result<()> {
                     println!("Successfully parsed: {}", path.display());
                     let relative_path = path.strip_prefix(&input_dir).unwrap();
                     let output_file_dir = output_dir
-                        .join(relative_path.parent().unwrap_or(Path::new("")));
+                        .join(relative_path.parent().unwrap_or(Path::new("")))
+                        ;
                     fs::create_dir_all(&output_file_dir)?;
                     let mut original_file_content = String::new();
                     for item in file.items {
@@ -99,7 +100,8 @@ fn main() -> io::Result<()> {
                                     };
                                     fs::write(&new_mod_file_path, new_mod_content.to_string())?;
                                     original_file_content
-                                        .push_str(&format!("pub mod {};\n", mod_name_snake));
+                                        .push_str(&format!("pub mod {{}};
+", mod_name_snake));
                                     continue;
                                 } else {
                                     (
@@ -152,13 +154,6 @@ fn main() -> io::Result<()> {
                             }
                         };
                         let snake_case_name = to_snake_case(&ident);
-                        let new_file_name = format!("{}.rs", snake_case_name);
-                        let new_file_path = output_file_dir.join(&new_file_name);
-                        println!(
-                            "  Splitting {} into {}", ident, new_file_path.display()
-                        );
-                        let new_file_name = format!("{}.rs", snake_case_name);
-                        let new_file_path = output_file_dir.join(&new_file_name);
 
                         // Modify function_output_dir to include dependency_count
                         let function_output_dir = output_file_dir
@@ -166,28 +161,29 @@ fn main() -> io::Result<()> {
                             .join(&snake_case_name); // Directory for this function
                         fs::create_dir_all(&function_output_dir)?;
 
-                        let rollup_data_dir = function_output_dir.join("rollup_data"); // rollup_data inside function dir
-                        fs::create_dir_all(&rollup_data_dir)?;
+                        // Create the 'src' directory inside function_output_dir
+                        let src_dir = function_output_dir.join("src");
+                        fs::create_dir_all(&src_dir)?;
 
-                        let wrapped_code_path = rollup_data_dir.join("wrapped_code.rs");
+                        // The wrapped code goes directly into src/lib.rs
+                        let lib_rs_path = src_dir.join("lib.rs");
 
                         let mut new_file_content = String::new();
                         new_file_content.push_str("use prelude::*\n");
                         new_file_content.push_str(&item_code.to_string());
-                        fs::write(&wrapped_code_path, new_file_content)?;
+                        fs::write(&lib_rs_path, new_file_content)?;
 
-                        // The original file now just re-exports from the function's directory
-                        fs::write(&new_file_path, format!("pub use {}::{}\n", snake_case_name, ident))?;
+                        // The original file now just re-exports the module
                         original_file_content
                             .push_str(
-                                &format!("pub use {}::{}\n", snake_case_name, ident),
+                                &format!("pub mod {{}}\n", snake_case_name),
                             );
                     }
                     let original_output_path = output_dir.join(relative_path);
                     fs::write(&original_output_path, original_file_content)?;
                 }
                 Err(e) => {
-                    eprintln!("Error parsing {}: {}", path.display(), e);
+                    eprintln!("Error parsing {}: {{}}", path.display(), e);
                 }
             }
         }
