@@ -1,0 +1,17 @@
+.PHONY: all build-splitter run-splitter
+
+# Default target
+all: run-splitter
+
+# Build rust-decl-splitter
+build-splitter:
+	@echo "Building rust-decl-splitter..."
+	cargo build --package rust-decl-splitter
+
+# Run rust-decl-splitter
+run-splitter: build-splitter
+	@echo "Running rust-decl-splitter..."
+	rm -rf rust-decl-splitter/output_self_test
+	cargo run --package rust-decl-splitter -- /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/generated_projects rust-decl-splitter/output_self_test
+	@echo "Listing contents of output_self_test:"
+	ls -R rust-decl-splitter/output_self_test

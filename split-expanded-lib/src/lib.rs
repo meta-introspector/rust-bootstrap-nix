@@ -1,6 +1,6 @@
 use anyhow::Context;
 use std::path::{PathBuf, Path};
-use syn::{self, visit::Visit, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
+use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 
 use quote::quote;
 
@@ -14,9 +14,7 @@ pub struct FileMetadata {
     pub feature_attributes: HashSet<String>,
     pub extern_crates: HashSet<String>,
 }
-// Removed tokio::process::Command as we are not calling rustc directly here.
 
-// --- Adapted from prelude-generator/src/declaration.rs ---
 #[derive(Debug)]
 pub enum DeclarationItem {
     Const(ItemConst),
@@ -44,8 +42,6 @@ pub struct Declaration {
     pub resolved_dependencies: HashSet<String>,
     pub is_proc_macro: bool,
     pub required_imports: HashSet<String>,
-    // Removed gem_identifiers as per user's instruction
-    // Add other metadata as needed, e.g., source file, layer, etc.
 }
 
 impl Declaration {
@@ -59,7 +55,6 @@ impl Declaration {
         resolved_dependencies: HashSet<String>,
         is_proc_macro: bool,
         required_imports: HashSet<String>,
-        // Removed gem_identifiers
     ) -> Self {
         Declaration {
             item,
@@ -71,7 +66,6 @@ impl Declaration {
             resolved_dependencies,
             is_proc_macro,
             required_imports,
-            // Removed gem_identifiers
         }
     }
 
@@ -95,33 +89,44 @@ impl Declaration {
     }
 }
 
-// --- Adapted from prelude-generator/src/error_collector.rs ---
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ErrorSample {
     pub file_path: PathBuf,
     pub rustc_version: String,
     pub rustc_host: String,
     pub error_message: String,
-    pub error_type: String, // e.g., "MacroExpansionFailed", "SynParsingFailed"
-    pub code_snippet: Option<String>, // The code that caused the error
+    pub error_type: String,
+    pub code_snippet: Option<String>,
     pub timestamp: DateTime<Utc>,
-    pub context: Option<String>, // Additional context if available
+    pub context: Option<String>,
 }
 
-// --- Adapted from prelude-generator/src/use_extractor/rustc_info.rs ---
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RustcInfo {
     pub version: String,
     pub host: String,
 }
 
-// --- Simplified DeclsVisitor (removed gem_config dependency) ---
+struct DependencyVisitor {
+    required_imports: HashSet<String>,
+    _known_identifiers: HashSet<String>,
+}
+
+impl<'ast> Visit<'ast> for DependencyVisitor {
+    fn visit_path(&mut self, path: &'ast syn::Path) {
+        if let Some(ident) = path.get_ident() {
+            self.required_imports.insert(ident.to_string());
+        }
+        visit::visit_path(self, path);
+    }
+}
+
 pub struct DeclsVisitor {
     pub declarations: HashMap<String, Declaration>,
     pub fn_count: usize,
     pub struct_count: usize,
     pub enum_count: usize,
-    pub const_count: usize, // Added
+    pub const_count: usize,
     pub static_count: usize,
     pub macro_count: usize,
     pub mod_count: usize,
@@ -135,7 +140,7 @@ pub struct DeclsVisitor {
 }
 
 impl DeclsVisitor {
-    pub fn new(source_file: PathBuf, crate_name: String) -> Self { // Simplified constructor
+    pub fn new(source_file: PathBuf, crate_name: String) -> Self {
         DeclsVisitor {
             declarations: HashMap::new(),
             fn_count: 0,
@@ -213,7 +218,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            false, // Added
+            false,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -227,7 +232,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             referenced_types.extend(self.extract_identifiers_from_type(&field.ty));
         }
 
-        let is_proc_macro = Self::is_proc_macro_item(&i.attrs); // Check for proc macro attributes
+        let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -243,7 +248,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            is_proc_macro, // Set the flag
+            is_proc_macro,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -253,7 +258,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
-        let is_proc_macro = Self::is_proc_macro_item(&i.attrs); // Check for proc macro attributes
+        let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -269,7 +274,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            is_proc_macro, // Set the flag
+            is_proc_macro,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -317,7 +322,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         };
         body_visitor.visit_block(&i.block);
 
-        let is_proc_macro = Self::is_proc_macro_item(&i.attrs); // Check for proc macro attributes
+        let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -333,7 +338,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            is_proc_macro, // Set the flag
+            is_proc_macro,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -356,7 +361,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            false, // Added
+            false,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -365,10 +370,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
-        // ItemMacro does not have attributes directly for proc_macro,
-        // but if it's a macro, it's not a proc_macro in the sense of #[proc_macro]
-        // These are declarative macros.
-        let is_proc_macro = false; // Declarative macros are not proc macros
+        let is_proc_macro = false;
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -384,7 +386,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             HashSet::new(),
-            is_proc_macro, // Set the flag
+            is_proc_macro,
             dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
@@ -393,32 +395,34 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        let decl = Declaration {
-            item: DeclarationItem::Mod(i.clone()),
-            referenced_types: HashSet::new(),
-            referenced_functions: HashSet::new(),
-            external_identifiers: HashSet::new(),
-            source_file: self.source_file.clone(),
-            crate_name: self.crate_name.clone(),
-            resolved_dependencies: HashSet::new(),
-            is_proc_macro: false, // Added
-        };
+        let decl = Declaration::new(
+            DeclarationItem::Mod(i.clone()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            HashSet::new(),
+            false,
+            HashSet::new(),
+        );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.mod_count += 1;
     }
 
     fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
-        let decl = Declaration {
-            item: DeclarationItem::Trait(i.clone()),
-            referenced_types: HashSet::new(),
-            referenced_functions: HashSet::new(),
-            external_identifiers: HashSet::new(),
-            source_file: self.source_file.clone(),
-            crate_name: self.crate_name.clone(),
-            resolved_dependencies: HashSet::new(),
-            is_proc_macro: false, // Added
-        };
+        let decl = Declaration::new(
+            DeclarationItem::Trait(i.clone()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            HashSet::new(),
+            false,
+            HashSet::new(),
+        );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.trait_count += 1;
@@ -426,48 +430,51 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
-        let decl = Declaration {
-            item: DeclarationItem::TraitAlias(i.clone()),
-            referenced_types: HashSet::new(),
-            referenced_functions: HashSet::new(),
-            external_identifiers: HashSet::new(),
-            source_file: self.source_file.clone(),
-            crate_name: self.crate_name.clone(),
-            resolved_dependencies: HashSet::new(),
-            is_proc_macro: false, // Added
-        };
+        let decl = Declaration::new(
+            DeclarationItem::TraitAlias(i.clone()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            HashSet::new(),
+            false,
+            HashSet::new(),
+        );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.trait_alias_count += 1;
     }
 
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
-        let decl = Declaration {
-            item: DeclarationItem::Type(i.clone()),
-            referenced_types: HashSet::new(),
-            referenced_functions: HashSet::new(),
-            external_identifiers: HashSet::new(),
-            source_file: self.source_file.clone(),
-            crate_name: self.crate_name.clone(),
-            resolved_dependencies: HashSet::new(),
-            is_proc_macro: false, // Added
-        };
+        let decl = Declaration::new(
+            DeclarationItem::Type(i.clone()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            HashSet::new(),
+            false,
+            HashSet::new(),
+        );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.type_count += 1;
     }
 
     fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
-        let decl = Declaration {
-            item: DeclarationItem::Union(i.clone()),
-            referenced_types: HashSet::new(),
-            referenced_functions: HashSet::new(),
-            external_identifiers: HashSet::new(),
-            source_file: self.source_file.clone(),
-            crate_name: self.crate_name.clone(),
-            resolved_dependencies: HashSet::new(),
-            is_proc_macro: false, // Added
-        };
+        let decl = Declaration::new(
+            DeclarationItem::Union(i.clone()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            HashSet::new(),
+            false,
+            HashSet::new(),
+        );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.union_count += 1;
@@ -478,7 +485,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 }
 
-// --- Function to extract declarations from a single file ---
 pub async fn extract_declarations_from_single_file(
     file_path: &Path,
     rustc_info: &RustcInfo,
@@ -495,7 +501,6 @@ pub async fn extract_declarations_from_single_file(
 
     match syn::parse_file(&file_content) {
         Ok(file) => {
-            // Collect global uses and feature attributes
             for attr in &file.attrs {
                 if attr.path().is_ident("feature") {
                     attr.parse_nested_meta(|meta| {
@@ -539,4 +544,3 @@ pub async fn extract_declarations_from_single_file(
 
     Ok((all_declarations, all_collected_errors, file_metadata))
 }
-
