@@ -1,0 +1,2 @@
+use prelude::*
+pub fn count_dependencies (item : & Item) -> usize { measurement :: record_function_entry (stringify ! (count_dependencies)) ; let __result = { let mut collector = DependencyCollector :: new () ; collector . visit_item (item) ; collector . dependencies . len () } ; measurement :: record_function_exit (stringify ! (count_dependencies)) ; __result }

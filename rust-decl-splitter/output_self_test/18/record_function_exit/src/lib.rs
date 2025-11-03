@@ -1,0 +1,2 @@
+use prelude::*
+pub fn record_function_exit (function_name : & str) { measurement :: record_function_entry (stringify ! (record_function_exit)) ; let __result = { let mut metrics = METRICS . lock () . unwrap () ; if let Some (entry) = metrics . get_mut (function_name) { entry . end_time = Some (Instant :: now ()) ; let duration = entry . end_time . unwrap () . duration_since (entry . start_time) ; entry . duration_micros = Some (duration . as_micros ()) ; } } ; measurement :: record_function_exit (stringify ! (record_function_exit)) ; __result }

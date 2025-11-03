@@ -1,0 +1,2 @@
+use prelude::*
+pub fn record_function_entry (function_name : & str) { measurement :: record_function_entry (stringify ! (record_function_entry)) ; let __result = { let mut metrics = METRICS . lock () . unwrap () ; let entry = metrics . entry (function_name . to_string ()) . or_insert_with (FunctionMetrics :: new) ; entry . start_time = Instant :: now () ; entry . call_count += 1 ; } ; measurement :: record_function_exit (stringify ! (record_function_entry)) ; __result }

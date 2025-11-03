@@ -1,0 +1,2 @@
+use prelude::*
+fn to_snake_case (ident : & Ident) -> String { measurement :: record_function_entry (stringify ! (to_snake_case)) ; let __result = { let mut s = String :: new () ; for (i , char) in ident . to_string () . chars () . enumerate () { if char . is_uppercase () && i != 0 { s . push ('_') ; } s . push (char . to_ascii_lowercase ()) ; } s } ; measurement :: record_function_exit (stringify ! (to_snake_case)) ; __result }
