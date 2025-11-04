@@ -1,0 +1,83 @@
+title = "Crash Report: Unspecified Issue"
+description = """
+A crash occurred, and the following `git diff HEAD` output captures the state of the repository at the time of the incident.
+
+```diff
+diff --git a/.gemini/commit-message.txt b/.gemini/commit-message.txt
+index 449d89e2..e80b4756 100644
+--- a/.gemini/commit-message.txt
++++ b/.gemini/commit-message.txt
+@@ -1,38 +1,20 @@
+-docs: Add canonical naming system requirements to README.md
+-
+-This commit adds a new section to `README.md` under "Architectural Goal: Lattice of Functions" outlining the need for a canonical naming system. This system will standardize the identification and referencing of various components, including compiler, architecture, target Rust version, bootstrap phase, step, vendor Git repository, Cargo name, filename, nesting level, declaration type, and declaration name. This is crucial for reproducibility, traceability, automation, and human readability within the project's architecture.feat: Implement dependency layering and new output structure in split-expanded-bin
+-
+-- Modified `split-expanded-bin/src/main.rs` to implement a dependency-based layering algorithm.
+-- Declarations are now assigned a `level` based on their direct dependencies.
+-- The output directory structure has been changed from `types_X` to `level_Y/declaration_type/`.
+-- This prepares the output for a more structured workspace generation based on dependency levels.
+-fix: Update Declaration::new calls in split-expanded-lib
+-
+-- Modified the `Declaration::new` function signature and body to initialize `resolved_dependencies` and `direct_dependencies` internally.
+-- Updated all call sites of `Declaration::new` in `split-expanded-lib/src/lib.rs` to reflect the new signature, removing the `resolved_dependencies` argument from the call.
+-fix: Improve dependency resolution in split-expanded-bin
+-
+-- Modified `split-expanded-bin/src/main.rs` to include both internal and external dependencies when populating `dependencies_to_resolve`.
+-- This ensures that `direct_dependencies` accurately reflects all dependencies, leading to a more correct layering algorithm.
+-feat: Add print statements for file and directory creation in split-expanded-bin
+-
+-- Added `println!` statements in `split-expanded-bin/src/main.rs` to log when directories (`src_dir`, `declaration_dir`) and files (`output_file_path`) are created.
+-- This will aid in debugging and understanding the tool's execution flow.
+-feat: Improve layered code generation and workspace setup
+-
+-This commit introduces several enhancements to the code generation and workspace setup process:
+-
+-- **Adjustable Verbosity:** Implemented a granular verbosity level (0-3) for `split-expanded-bin` and `workspace-generator` for better control over output.
+-- **Layering Algorithm Limit:** Added a configurable iteration limit (default 8) to the layering algorithm in `split-expanded-bin` to prevent excessive processing for deep dependency graphs.
+-- **Padded Level Directories:** Ensured generated `level_XX` directories are padded to two digits (e.g., `level_00`) for consistent naming.
+-- **Enhanced Module/Trait Dependency Extraction:** Improved `split-expanded-lib` to more accurately extract dependencies for module and trait declarations, leading to more correct layering.
+-- **Corrected Generated `use` Statements:** Modified `split-expanded-lib` to comment out invalid `use` statements (e.g., string literals, `command`, `arg`, `doc`) in generated code, preventing compilation errors.
+-- **Refined Workspace Generation:**
+-    - Updated `workspace-generator` to correctly identify `level_XX` directories and generate `pub mod` statements for `type` directories (e.g., `const_t`, `struct_t`) under `level_XX/src/`.
+-    - Ensured `mod.rs` files and their `pub mod` statements are only generated if they contain actual content, preventing "file not found" errors for empty modules.
+-    - Implemented renaming of `_` to `UNDERSCORE` for module names to avoid keyword conflicts.
+-    - Added `_t` suffix to generated type directories (e.g., `const_t`) and adjusted `pub mod` statements accordingly.
+-    - Filtered out `src` as a module name to prevent `pub mod src;` errors.
+-- **Makefile Improvements:** Added a `clean-generated-layers` target and integrated it into `regenerate-layers` for a clean build process.
+-
+-These changes collectively improve the robustness, correctness, and usability of the layered code generation and workspace management.
+\ No newline at end of file
++feat: Integrate split-expanded-bin into prelude-generator and update task workflow
++
++This commit integrates the functionality of `split-expanded-bin` directly into the `prelude-generator` crate.
++
++Key changes include:
++- `prelude-generator`:
++  - Merged `split-expanded-bin` logic into `prelude-generator/src/command_handlers/split_expanded_bin_handler.rs`.
++  - Refactored `extract_declarations_for_composer` to use `DeclarationExtractionArgs` struct for better argument management.
++  - Exposed `Declaration` and `ErrorCollection` publicly.
++  - Corrected `pub use` statements and function call paths.
++- `rust-system-composer`:
++  - Updated to use the refactored `prelude-generator` functions and types.
++  - Modified `Cargo.toml` to depend on `prelude-generator` and remove `split-expanded-lib`.
++  - Adjusted error handling and type conversions for `FileMetadata` fields.
++- `tasks/01_09_rebuild_lattice_with_split_dependencies.toml`:
++  - Updated status to "IN_QA" and added notes reflecting the integration work.
++- `docs/task_states.md`:
++  - Created a new document outlining the task state workflow (TODO, IN_PROGRESS, IN_REVIEW, IN_QA, DONE, BLOCKED, ARCHIVED).
++
++This work moves towards a more consolidated and maintainable codebase by centralizing declaration extraction logic.
+diff --git a/rust-bootstrap-core b/rust-bootstrap-core
+--- a/rust-bootstrap-core
++++ b/rust-bootstrap-core
+@@ -1 +1 @@
+-Subproject commit 974fa6fc62b3d5faa353c7fe1faf215c6537dc01
++Subproject commit 974fa6fc62b3d5faa353c7fe1faf215c6537dc01-dirty
+```
+"""
+status = "BLOCKED"
+created_at = "2025-11-04T12:00:00Z"
+parent_task = "plan.md"
+stage_id = 0
+step_id = "CRASH_REPORT"
+name = "Crash Report: Unspecified Issue"
