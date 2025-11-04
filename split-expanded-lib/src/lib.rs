@@ -42,6 +42,7 @@ pub struct Declaration {
     pub resolved_dependencies: HashSet<String>,
     pub is_proc_macro: bool,
     pub required_imports: HashSet<String>,
+    pub direct_dependencies: HashSet<String>,
 }
 
 impl Declaration {
