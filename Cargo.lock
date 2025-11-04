@@ -1017,6 +1017,7 @@ dependencies = [
  "once_cell",
  "pipeline-traits",
  "prettyplease",
+ "proc-macro2",
  "quote",
  "regex",
  "serde",

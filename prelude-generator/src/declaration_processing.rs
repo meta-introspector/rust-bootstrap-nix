@@ -10,7 +10,8 @@ use crate::use_extractor::rustc_info::RustcInfo;
 use crate::type_extractor;
 use crate::error_collector::ErrorSample;
 use crate::declaration::Declaration;
-use crate::gem_parser::GemConfig;
+
+use crate::symbol_map::SymbolMap;
 
 pub async fn extract_all_declarations_from_crate(
     manifest_path: &Path,
@@ -19,7 +20,6 @@ pub async fn extract_all_declarations_from_crate(
     filter_names: &Option<Vec<String>>,
     rustc_info: &RustcInfo,
     cache_dir: &Path,
-    gem_config: &GemConfig,
 ) -> anyhow::Result<(
     Vec<Declaration>,
     usize, // total_files_processed
@@ -71,7 +71,12 @@ pub async fn extract_all_declarations_from_crate(
                 continue;
             }
 
-            let mut visitor = DeclsVisitor::new(gem_config, Some(path.clone()), Some(package.name.clone()));
+            let mut symbol_map = SymbolMap::new();
+            let module_path = path.strip_prefix(crate_root).unwrap_or(&path).with_extension("").to_str().unwrap_or("unknown_module").to_string().replace('/', "::");
+            let crate_name = package.name.clone();
+            let verbose = _args.verbose;
+
+            let mut visitor = DeclsVisitor::new(Some(path.clone()), crate_name, module_path, &mut symbol_map, verbose);
             visitor.visit_file(&file);
 
             all_declarations.extend(visitor.declarations);
@@ -163,7 +168,7 @@ pub fn layer_declarations(
         // Identify declarations for the current layer
         for decl in remaining_decls.into_iter() {
             let has_unresolved_deps = decl.referenced_types.iter().any(|dep| {
-                !current_layer_idents.contains(dep) && !layered_decls.values().flatten().any(|d| d.get_identifier() == *dep)
+                !current_layer_idents.contains(&dep.id) && !layered_decls.values().flatten().any(|d| d.get_identifier() == dep.id)
             });
 
             if !has_unresolved_deps {

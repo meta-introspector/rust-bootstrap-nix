@@ -172,4 +172,8 @@ pub struct Args {
     /// Path to output the global declarations TOML file for split-expanded-bin.
     #[arg(long)]
     pub split_expanded_output_global_toml: Option<PathBuf>,
+
+    /// Path to output the global symbol map TOML file.
+    #[arg(long)]
+    pub output_symbol_map: Option<PathBuf>,
 }

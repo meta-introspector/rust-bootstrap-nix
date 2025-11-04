@@ -28,6 +28,9 @@ pub mod command_handlers;
 pub mod type_extractor;
 pub mod public_tests;
 pub mod split_expanded_bin_handler; // Add this line
+pub mod validation;
+pub mod symbol_map;
+pub mod reference_visitor;
 //pub mod global_level0_decls;
 pub use args::Args;
 //pub use declaration_processing::{extract_level0_declarations, process_structs};
@@ -50,18 +53,19 @@ pub use crate::declaration::Declaration;
 pub use crate::error_collector::ErrorCollection;
 
 use anyhow::Context;
-use std::path::PathBuf;
+
 use std::fs;
 use syn::parse_file;
 use crate::decls_visitor::DeclsVisitor;
-use crate::gem_parser::GemConfig;
+
+use crate::symbol_map::SymbolMap;
 
 pub async fn extract_declarations_for_composer(
     args: DeclarationExtractionArgs,
 ) -> anyhow::Result<(Vec<Declaration>, ErrorCollection, FileMetadata)> {
     let file_path = args.file_path;
     let _rustc_info = args.rustc_info; // rustc_info is not directly used in DeclsVisitor, but kept for compatibility
-    let crate_name = args.crate_name;
+    let crate_name = args.crate_name.unwrap_or_else(|| "unknown_crate".to_string());
 
     let file_content = fs::read_to_string(&file_path)
         .context(format!("Failed to read file: {:?}", file_path))?;
@@ -73,11 +77,16 @@ pub async fn extract_declarations_for_composer(
         }
     };
 
-    let gem_config = GemConfig::default();
+    let mut symbol_map = SymbolMap::new();
+    let module_path = file_path.to_string_lossy().to_string(); // A simple approximation
+    let verbose = 0; // Default verbose level
+
     let mut visitor = DeclsVisitor::new(
-        &gem_config,
         Some(file_path.clone()),
         crate_name,
+        module_path,
+        &mut symbol_map,
+        verbose,
     );
     syn::visit::Visit::visit_file(&mut visitor, &file);
 
