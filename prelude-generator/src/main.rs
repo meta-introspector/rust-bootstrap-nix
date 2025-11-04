@@ -88,8 +88,12 @@ async fn main() -> anyhow::Result<()> {
         prelude_generator::command_handlers::split_expanded_bin_handler::handle_split_expanded_bin(&args).await?;
     }
 
+    if args.run_decl_splitter {
+        prelude_generator::command_handlers::decl_splitter_handler::handle_run_decl_splitter(&args).await?;
+    }
+
     // If no specific command was executed, print help or a default message
-    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants && !args.calculate_layers && !args.run_split_expanded_bin {
+    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants && !args.calculate_layers && !args.run_split_expanded_bin && !args.run_decl_splitter {
         println!(r"No specific command executed. Use --help for options.");
     }
 

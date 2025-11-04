@@ -176,4 +176,8 @@ pub struct Args {
     /// Path to output the global symbol map TOML file.
     #[arg(long)]
     pub output_symbol_map: Option<PathBuf>,
+
+    /// Run the declaration splitter functionality.
+    #[arg(long, default_value_t = false)]
+    pub run_decl_splitter: bool,
 }

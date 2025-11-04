@@ -31,6 +31,7 @@ pub mod split_expanded_bin_handler; // Add this line
 pub mod validation;
 pub mod symbol_map;
 pub mod reference_visitor;
+pub mod dependency_analyzer;
 //pub mod global_level0_decls;
 pub use args::Args;
 //pub use declaration_processing::{extract_level0_declarations, process_structs};
