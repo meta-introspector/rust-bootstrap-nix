@@ -1,3 +1,20 @@
 docs: Add canonical naming system requirements to README.md
 
-This commit adds a new section to `README.md` under "Architectural Goal: Lattice of Functions" outlining the need for a canonical naming system. This system will standardize the identification and referencing of various components, including compiler, architecture, target Rust version, bootstrap phase, step, vendor Git repository, Cargo name, filename, nesting level, declaration type, and declaration name. This is crucial for reproducibility, traceability, automation, and human readability within the project's architecture.
+This commit adds a new section to `README.md` under "Architectural Goal: Lattice of Functions" outlining the need for a canonical naming system. This system will standardize the identification and referencing of various components, including compiler, architecture, target Rust version, bootstrap phase, step, vendor Git repository, Cargo name, filename, nesting level, declaration type, and declaration name. This is crucial for reproducibility, traceability, automation, and human readability within the project's architecture.feat: Implement dependency layering and new output structure in split-expanded-bin
+
+- Modified `split-expanded-bin/src/main.rs` to implement a dependency-based layering algorithm.
+- Declarations are now assigned a `level` based on their direct dependencies.
+- The output directory structure has been changed from `types_X` to `level_Y/declaration_type/`.
+- This prepares the output for a more structured workspace generation based on dependency levels.
+fix: Update Declaration::new calls in split-expanded-lib
+
+- Modified the `Declaration::new` function signature and body to initialize `resolved_dependencies` and `direct_dependencies` internally.
+- Updated all call sites of `Declaration::new` in `split-expanded-lib/src/lib.rs` to reflect the new signature, removing the `resolved_dependencies` argument from the call.
+fix: Improve dependency resolution in split-expanded-bin
+
+- Modified `split-expanded-bin/src/main.rs` to include both internal and external dependencies when populating `dependencies_to_resolve`.
+- This ensures that `direct_dependencies` accurately reflects all dependencies, leading to a more correct layering algorithm.
+feat: Add print statements for file and directory creation in split-expanded-bin
+
+- Added `println!` statements in `split-expanded-bin/src/main.rs` to log when directories (`src_dir`, `declaration_dir`) and files (`output_file_path`) are created.
+- This will aid in debugging and understanding the tool's execution flow.

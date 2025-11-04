@@ -30,7 +30,7 @@ members = [
     "standalonex/src/config_tests"	,
     
     "standalonex/src/stage0_parser_crate",
-    "test-bootstrap-flake",
+#    "test-bootstrap-flake",
     "test-openssl-sys",
     "test_definitions_crates/test_definitions_lib",
     "test_definitions_crates/test_definitions_test",

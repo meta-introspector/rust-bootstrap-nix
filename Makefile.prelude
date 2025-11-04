@@ -2,12 +2,12 @@
 
 build-decl-splitter:
 	@echo "Building split-expanded-bin..."
-	nix develop --command bash -c "cargo build --package split-expanded-bin"
+	#nix develop --command bash -c "cargo build --package split-expanded-bin"
 
 run-decl-splitter: build-decl-splitter
 	@echo "Running split-expanded-bin on all expanded output files..."
-	mkdir -p generated_declarations
-	./target/debug/split-expanded-bin \
+	#mkdir -p generated_declarations
+	$(CURDIR)/target/debug/split-expanded-bin --verbose \
 		$(foreach file,$(shell find ../expanded/ -name "*.rs"),--files $(file)) \
 		--project-root rust-bootstrap-core \
 		--rustc-version "1.92.0-nightly" \
@@ -31,7 +31,7 @@ quick-decl-splitter-check: build-decl-splitter
 
 build-workspace-generator:
 	@echo "Building workspace-generator..."
-	nix develop --command bash -c "cargo build --package workspace-generator"
+	#nix develop --command bash -c "cargo build --package workspace-generator"
 
 run-workspace-generator: build-workspace-generator run-decl-splitter
 	@echo "Running workspace-generator on rust-bootstrap-core/..."

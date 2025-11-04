@@ -11,10 +11,10 @@ bootstrap-self-test = [] # enabled in the bootstrap unit tests
 
 
 
-[[bin]]
-name = "test-bootstrap"
-path = "src/bin/main.rs"
-test = false
+#[[bin]]
+#name = "test-bootstrap"
+#path = "src/bin/main.rs"
+#test = false
 
 #[[bin]]
 #name = "test-rustc"

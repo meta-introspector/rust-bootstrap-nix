@@ -4,12 +4,17 @@ use std::path::PathBuf;
 use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
 use std::collections::{HashMap, HashSet};
 use std::fs; // Added
+use std::io::Write;
 
 use quote::quote;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Enable verbose output.
+    #[arg(short, long)]
+    pub verbose: bool,
+
     /// Paths to the input Rust files (e.g., expanded .rs files).
     #[arg(long)]
     pub files: Vec<PathBuf>,
@@ -41,11 +46,18 @@ async fn main() -> anyhow::Result<()> {
     let src_dir = args.project_root.join("src");
     fs::create_dir_all(&src_dir)
         .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
+    if args.verbose {
+        println!("Created project src directory: {}", src_dir.display());
+        std::io::stdout().flush().unwrap();
+    }
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
     let mut all_errors: Vec<ErrorSample> = Vec::new();
 
     for file_path in &args.files {
-        println!("Processing file: {}", file_path.display());
+        if args.verbose {
+            println!("Processing file: {}", file_path.display());
+            std::io::stdout().flush().unwrap();
+        }
 
         let file_stem = file_path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown_crate");
         let crate_name = file_stem.trim_start_matches(".expand_output_");
@@ -81,38 +93,111 @@ async fn main() -> anyhow::Result<()> {
     for (decl_id, decl) in &global_declarations {
         let mut current_resolved_dependencies = HashSet::new();
 
-        // Resolve referenced types
+        // Resolve referenced types (internal and external)
         for referenced_type in &decl.referenced_types {
             if let Some(resolved_decl) = global_declarations.get(referenced_type) {
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
+            } else {
+                // This is an external type dependency
+                current_resolved_dependencies.insert(referenced_type.clone());
             }
         }
 
-        // Resolve referenced functions
+        // Resolve referenced functions (internal and external)
         for referenced_fn in &decl.referenced_functions {
             if let Some(resolved_decl) = global_declarations.get(referenced_fn) {
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
+            } else {
+                // This is an external function dependency
+                current_resolved_dependencies.insert(referenced_fn.clone());
             }
         }
+
+        // Also consider required_imports as dependencies if they are not internal declarations
+        for import in &decl.required_imports {
+            if !global_declarations.contains_key(import) {
+                current_resolved_dependencies.insert(import.clone());
+            }
+        }
+
         dependencies_to_resolve.insert(decl_id.clone(), current_resolved_dependencies);
     }
 
-    // Second pass: Apply the resolved dependencies
+    // Second pass: Populate direct_dependencies and resolved_dependencies
     for (decl_id, decl) in global_declarations.iter_mut() {
         if let Some(resolved_deps) = dependencies_to_resolve.remove(decl_id) {
+            decl.direct_dependencies = resolved_deps.iter().map(|s| s.split("::").last().unwrap_or(s).to_string()).collect();
             decl.resolved_dependencies = resolved_deps;
         }
     }
+
+    // Phase 3: Implement Layering Algorithm
+    let mut declaration_levels: HashMap<String, usize> = HashMap::new();
+    let mut changed = true;
+    let mut max_level = 0;
+
+    // Initialize all declarations to level 0
+    for (decl_id, _) in &global_declarations {
+        declaration_levels.insert(decl_id.clone(), 0);
+    }
+
+    while changed {
+        changed = false;
+        for (decl_id, decl) in &global_declarations {
+            let current_level = *declaration_levels.get(decl_id).unwrap_or(&0);
+            let mut max_dep_level = 0;
+
+            for dep_id in &decl.direct_dependencies {
+                if let Some(dep_level) = declaration_levels.get(dep_id) {
+                    max_dep_level = max_dep_level.max(*dep_level);
+                }
+            }
+
+            // A declaration's level is 1 + the maximum level of its direct dependencies
+            let new_level = if decl.direct_dependencies.is_empty() {
+                0
+            } else {
+                max_dep_level + 1
+            };
+
+            if new_level > current_level {
+                declaration_levels.insert(decl_id.clone(), new_level);
+                changed = true;
+                max_level = max_level.max(new_level);
+            }
+        }
+    }
+
+    println!("Max dependency level found: {}", max_level);
 
     let mut generated_module_names: Vec<String> = Vec::new();
     let mut has_proc_macros = false;
 
     // Write all declarations to individual files in the src_dir
     for (identifier, declaration) in global_declarations.into_iter() {
-        let types_count = declaration.referenced_types.len();
-        let declaration_dir = src_dir.join(format!("types_{}", types_count));
+        let level = *declaration_levels.get(&identifier).unwrap_or(&0);
+        let declaration_type = match &declaration.item {
+            DeclarationItem::Const(_) => "const",
+            DeclarationItem::Struct(_) => "struct",
+            DeclarationItem::Enum(_) => "enum",
+            DeclarationItem::Fn(_) => "fn",
+            DeclarationItem::Static(_) => "static",
+            DeclarationItem::Macro(_) => "macro",
+            DeclarationItem::Mod(_) => "mod",
+            DeclarationItem::Trait(_) => "trait",
+            DeclarationItem::TraitAlias(_) => "trait_alias",
+            DeclarationItem::Type(_) => "type",
+            DeclarationItem::Union(_) => "union",
+            DeclarationItem::Other(_) => "other",
+        };
+
+        let declaration_dir = src_dir.join(format!("level_{}/{}", level, declaration_type));
         fs::create_dir_all(&declaration_dir)
             .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
+        if args.verbose {
+            println!("Created declaration directory: {}", declaration_dir.display());
+            std::io::stdout().flush().unwrap();
+        }
 
         let output_file_path = declaration_dir.join(format!("{}.rs", identifier));
 
@@ -143,6 +228,10 @@ async fn main() -> anyhow::Result<()> {
 
         fs::write(&output_file_path, file_content)
             .context(format!("Failed to write declaration to file: {}", output_file_path.display()))?;
+        if args.verbose {
+            println!("Wrote declaration to file: {}", output_file_path.display());
+            std::io::stdout().flush().unwrap();
+        }
 
         generated_module_names.push(identifier);
         if declaration.is_proc_macro {

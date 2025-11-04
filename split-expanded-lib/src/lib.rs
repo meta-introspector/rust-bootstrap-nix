@@ -53,7 +53,6 @@ impl Declaration {
         external_identifiers: HashSet<String>,
         source_file: PathBuf,
         crate_name: String,
-        resolved_dependencies: HashSet<String>,
         is_proc_macro: bool,
         required_imports: HashSet<String>,
     ) -> Self {
@@ -64,9 +63,10 @@ impl Declaration {
             external_identifiers,
             source_file,
             crate_name,
-            resolved_dependencies,
+            resolved_dependencies: HashSet::new(),
             is_proc_macro,
             required_imports,
+            direct_dependencies: HashSet::new(),
         }
     }
 
@@ -218,7 +218,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             dependency_visitor.required_imports,
         );
@@ -248,7 +247,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             is_proc_macro,
             dependency_visitor.required_imports,
         );
@@ -274,7 +272,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             is_proc_macro,
             dependency_visitor.required_imports,
         );
@@ -338,7 +335,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             is_proc_macro,
             dependency_visitor.required_imports,
         );
@@ -361,7 +357,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             dependency_visitor.required_imports,
         );
@@ -386,7 +381,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             is_proc_macro,
             dependency_visitor.required_imports,
         );
@@ -404,7 +398,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             HashSet::new(),
         );
@@ -430,7 +423,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             HashSet::new(),
         );
@@ -448,7 +440,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             HashSet::new(),
         );
@@ -465,7 +456,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             HashSet::new(),
         );
@@ -482,7 +472,6 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
-            HashSet::new(),
             false,
             HashSet::new(),
         );

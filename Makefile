@@ -1,6 +1,6 @@
 .PHONY: all build fast-build run-config-builder-dry-run build-config-builder generate-seed-config generate-flake-dir shear-all clean-shear expand-all clean-expand generate-use-statements-test-file check-rust-decl-splitter run-decl-splitter clean-decl-splitter build-decl-splitter quick-decl-splitter-check run-prelude-generator clean-prelude-generator build-prelude-generator
 
-all: build build-config-builder
+all: build build-config-builder build-split-expanded-bin
 	$(MAKE) -C nix-build-scripts/
 
 fast-build:
@@ -100,5 +100,24 @@ check-rust-decl-splitter:
 	@echo "Running cargo check for rust-decl-splitter..."
 	nix develop --command bash -c "cargo check -p rust-decl-splitter"
 
+build-split-expanded-bin:
+	@echo "Building split-expanded-bin..."
+	nix develop --command bash -c "cargo build --package split-expanded-bin"
+
 include Makefile.prelude
 include generated_projects.mk
+
+.PHONY: generate-workspace clean-workspace
+
+generate-workspace: #build-split-expanded-bin
+	@echo "Generating workspace from expanded declarations... DEBUG"
+	nix develop --command bash -c "cargo run --package split-expanded-bin -- \
+		--files generated_declarations/*.rs \
+		--project-root $(CURDIR)/generated_workspace \
+		--rustc-version 1.89.0 \
+		--rustc-host aarch64-unknown-linux-gnu \
+		--verbose"
+
+clean-workspace:
+	@echo "Cleaning generated workspace..."
+	rm -rf generated_workspace
