@@ -11,9 +11,9 @@ use quote::quote;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Enable verbose output.
-    #[arg(short, long)]
-    pub verbose: bool,
+    /// Set verbosity level (0 = silent, 1 = normal, 2 = detailed, 3 = debug).
+    #[arg(short, long, default_value_t = 1)]
+    pub verbosity: u8,
 
     /// Paths to the input Rust files (e.g., expanded .rs files).
     #[arg(long)]
@@ -35,6 +35,11 @@ pub struct Args {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
+    if args.verbosity >= 1 {
+        println!("split-expanded-bin started.");
+        println!("Verbosity level: {}", args.verbosity);
+        std::io::stdout().flush().unwrap();
+    }
 
     // Create RustcInfo from command-line arguments
     let rustc_info = RustcInfo {
@@ -46,35 +51,64 @@ async fn main() -> anyhow::Result<()> {
     let src_dir = args.project_root.join("src");
     fs::create_dir_all(&src_dir)
         .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
-    if args.verbose {
-        println!("Created project src directory: {}", src_dir.display());
+    if args.verbosity >= 2 {
+        if src_dir.exists() {
+            println!("Created project src directory already exists or was created: {}", src_dir.display());
+        } else {
+            println!("Failed to create project src directory (but context handled it): {}", src_dir.display());
+        }
         std::io::stdout().flush().unwrap();
     }
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
     let mut all_errors: Vec<ErrorSample> = Vec::new();
 
     for file_path in &args.files {
-        if args.verbose {
+        if args.verbosity >= 1 {
             println!("Processing file: {}", file_path.display());
             std::io::stdout().flush().unwrap();
         }
 
         let file_stem = file_path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown_crate");
         let crate_name = file_stem.trim_start_matches(".expand_output_");
+        if args.verbosity >= 2 {
+            println!("  Extracted file_stem: {}", file_stem);
+            println!("  Derived crate_name: {}", crate_name);
+            std::io::stdout().flush().unwrap();
+        }
 
         let (declarations, errors, _file_metadata) = extract_declarations_from_single_file(
             file_path,
             &rustc_info,
             crate_name,
+            args.verbosity,
         ).await?;
 
+        if args.verbosity >= 2 {
+            println!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), file_path.display());
+            std::io::stdout().flush().unwrap();
+        }
+
         for decl in declarations {
+            if args.verbosity >= 3 {
+                println!("    Inserting declaration: {}", decl.get_identifier());
+                std::io::stdout().flush().unwrap();
+            }
             global_declarations.insert(decl.get_identifier(), decl);
         }
-        all_errors.extend(errors);
+        if !errors.is_empty() {
+            if args.verbosity >= 2 {
+                println!("    Extending all_errors with {} new errors.", errors.len());
+                std::io::stdout().flush().unwrap();
+            }
+            all_errors.extend(errors);
+        }
     }
 
     if !all_errors.is_empty() {
+        if args.verbosity >= 2 {
+            println!("Entering error reporting block.");
+            std::io::stdout().flush().unwrap();
+        }
         eprintln!("Errors encountered during parsing:");
         for error in all_errors {
             eprintln!("  File: {}", error.file_path.display());
@@ -90,14 +124,30 @@ async fn main() -> anyhow::Result<()> {
     let mut dependencies_to_resolve: HashMap<String, HashSet<String>> = HashMap::new();
 
     // First pass: Collect all dependencies to resolve without mutating global_declarations
+    if args.verbosity >= 2 {
+        println!("Starting first pass of dependency resolution.");
+        std::io::stdout().flush().unwrap();
+    }
     for (decl_id, decl) in &global_declarations {
         let mut current_resolved_dependencies = HashSet::new();
+        if args.verbosity >= 3 {
+            println!("  Processing dependencies for declaration: {}", decl_id);
+            std::io::stdout().flush().unwrap();
+        }
 
         // Resolve referenced types (internal and external)
         for referenced_type in &decl.referenced_types {
             if let Some(resolved_decl) = global_declarations.get(referenced_type) {
+                if args.verbosity >= 3 {
+                    println!("    Resolved internal type dependency: {} -> {}", referenced_type, resolved_decl.get_identifier());
+                    std::io::stdout().flush().unwrap();
+                }
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
             } else {
+                if args.verbosity >= 3 {
+                    println!("    Identified external type dependency: {}", referenced_type);
+                    std::io::stdout().flush().unwrap();
+                }
                 // This is an external type dependency
                 current_resolved_dependencies.insert(referenced_type.clone());
             }
@@ -106,8 +156,16 @@ async fn main() -> anyhow::Result<()> {
         // Resolve referenced functions (internal and external)
         for referenced_fn in &decl.referenced_functions {
             if let Some(resolved_decl) = global_declarations.get(referenced_fn) {
+                if args.verbosity >= 3 {
+                    println!("    Resolved internal function dependency: {} -> {}", referenced_fn, resolved_decl.get_identifier());
+                    std::io::stdout().flush().unwrap();
+                }
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
             } else {
+                if args.verbosity >= 3 {
+                    println!("    Identified external function dependency: {}", referenced_fn);
+                    std::io::stdout().flush().unwrap();
+                }
                 // This is an external function dependency
                 current_resolved_dependencies.insert(referenced_fn.clone());
             }
@@ -116,6 +174,10 @@ async fn main() -> anyhow::Result<()> {
         // Also consider required_imports as dependencies if they are not internal declarations
         for import in &decl.required_imports {
             if !global_declarations.contains_key(import) {
+                if args.verbosity >= 3 {
+                    println!("    Identified external import dependency: {}", import);
+                    std::io::stdout().flush().unwrap();
+                }
                 current_resolved_dependencies.insert(import.clone());
             }
         }
@@ -124,14 +186,26 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Second pass: Populate direct_dependencies and resolved_dependencies
+    if args.verbosity >= 2 {
+        println!("Starting second pass of dependency resolution.");
+        std::io::stdout().flush().unwrap();
+    }
     for (decl_id, decl) in global_declarations.iter_mut() {
         if let Some(resolved_deps) = dependencies_to_resolve.remove(decl_id) {
+            if args.verbosity >= 3 {
+                println!("  Populating dependencies for declaration: {}", decl_id);
+                std::io::stdout().flush().unwrap();
+            }
             decl.direct_dependencies = resolved_deps.iter().map(|s| s.split("::").last().unwrap_or(s).to_string()).collect();
             decl.resolved_dependencies = resolved_deps;
         }
     }
 
     // Phase 3: Implement Layering Algorithm
+    if args.verbosity >= 2 {
+        println!("Starting layering algorithm.");
+        std::io::stdout().flush().unwrap();
+    }
     let mut declaration_levels: HashMap<String, usize> = HashMap::new();
     let mut changed = true;
     let mut max_level = 0;
@@ -141,7 +215,14 @@ async fn main() -> anyhow::Result<()> {
         declaration_levels.insert(decl_id.clone(), 0);
     }
 
-    while changed {
+    let mut iteration_count = 0;
+    let max_iterations_limit = 8; // User-defined limit for layering algorithm iterations
+    while changed && iteration_count < max_iterations_limit {
+        iteration_count += 1;
+        if args.verbosity >= 2 {
+            println!("  Layering algorithm iteration: {}", iteration_count);
+            std::io::stdout().flush().unwrap();
+        }
         changed = false;
         for (decl_id, decl) in &global_declarations {
             let current_level = *declaration_levels.get(decl_id).unwrap_or(&0);
@@ -153,7 +234,7 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
 
-            // A declaration's level is 1 + the maximum level of its direct dependencies
+            // A declaration\'s level is 1 + the maximum level of its direct dependencies
             let new_level = if decl.direct_dependencies.is_empty() {
                 0
             } else {
@@ -161,10 +242,21 @@ async fn main() -> anyhow::Result<()> {
             };
 
             if new_level > current_level {
+                if args.verbosity >= 3 {
+                    println!("    Level changed for {}: {} -> {}", decl_id, current_level, new_level);
+                    std::io::stdout().flush().unwrap();
+                }
                 declaration_levels.insert(decl_id.clone(), new_level);
                 changed = true;
                 max_level = max_level.max(new_level);
             }
+        }
+    }
+
+    if iteration_count >= max_iterations_limit {
+        if args.verbosity >= 1 {
+            println!("Layering algorithm stopped after {} iterations due to reaching the limit.", max_iterations_limit);
+            std::io::stdout().flush().unwrap();
         }
     }
 
@@ -174,6 +266,10 @@ async fn main() -> anyhow::Result<()> {
     let mut has_proc_macros = false;
 
     // Write all declarations to individual files in the src_dir
+    if args.verbosity >= 2 {
+        println!("Starting declaration writing phase.");
+        std::io::stdout().flush().unwrap();
+    }
     for (identifier, declaration) in global_declarations.into_iter() {
         let level = *declaration_levels.get(&identifier).unwrap_or(&0);
         let declaration_type = match &declaration.item {
@@ -190,12 +286,20 @@ async fn main() -> anyhow::Result<()> {
             DeclarationItem::Union(_) => "union",
             DeclarationItem::Other(_) => "other",
         };
+        if args.verbosity >= 2 {
+            println!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level);
+            std::io::stdout().flush().unwrap();
+        }
 
-        let declaration_dir = src_dir.join(format!("level_{}/{}", level, declaration_type));
+        let declaration_dir = src_dir.join(format!("level_{:02}/src/{}_t", level, declaration_type));
         fs::create_dir_all(&declaration_dir)
             .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
-        if args.verbose {
-            println!("Created declaration directory: {}", declaration_dir.display());
+        if args.verbosity >= 2 {
+            if declaration_dir.exists() {
+                println!("  Declaration directory already exists or was created: {}", declaration_dir.display());
+            } else {
+                println!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display());
+            }
             std::io::stdout().flush().unwrap();
         }
 
@@ -205,6 +309,10 @@ async fn main() -> anyhow::Result<()> {
 
         // Add use statements
         for dep in &declaration.resolved_dependencies {
+            if args.verbosity >= 3 {
+                println!("    Adding use statement: {}", dep);
+                std::io::stdout().flush().unwrap();
+            }
             file_content.push_str(&format!("use {};\n", dep));
         }
         file_content.push_str("\n");
@@ -224,17 +332,25 @@ async fn main() -> anyhow::Result<()> {
             DeclarationItem::Union(item) => quote! { #item },
             DeclarationItem::Other(item) => quote! { #item },
         };
+        if args.verbosity >= 3 {
+            println!("    Converting item to token stream for '{}'.", identifier);
+            std::io::stdout().flush().unwrap();
+        }
         file_content.push_str(&item_token_stream.to_string());
 
         fs::write(&output_file_path, file_content)
             .context(format!("Failed to write declaration to file: {}", output_file_path.display()))?;
-        if args.verbose {
+        if args.verbosity >= 2 {
             println!("Wrote declaration to file: {}", output_file_path.display());
             std::io::stdout().flush().unwrap();
         }
 
         generated_module_names.push(identifier);
         if declaration.is_proc_macro {
+            if args.verbosity >= 3 {
+                println!("  Declaration '{}' is a procedural macro.", declaration.get_identifier());
+                std::io::stdout().flush().unwrap();
+            }
             has_proc_macros = true;
         }
     }

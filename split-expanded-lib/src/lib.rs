@@ -115,10 +115,30 @@ struct DependencyVisitor {
 
 impl<'ast> Visit<'ast> for DependencyVisitor {
     fn visit_path(&mut self, path: &'ast syn::Path) {
-        if let Some(ident) = path.get_ident() {
-            self.required_imports.insert(ident.to_string());
-        }
+        let path_str = quote! { #path }.to_string();
+        // We don't have direct access to verbosity here, so we'll rely on the caller (DeclsVisitor) to print if needed.
+        self.required_imports.insert(path_str);
         visit::visit_path(self, path);
+    }
+
+    fn visit_item(&mut self, i: &'ast syn::Item) {
+        visit::visit_item(self, i);
+    }
+
+    fn visit_trait_item(&mut self, i: &'ast syn::TraitItem) {
+        visit::visit_trait_item(self, i);
+    }
+
+    fn visit_type(&mut self, i: &'ast syn::Type) {
+        let type_str = quote! { #i }.to_string();
+        self.required_imports.insert(type_str);
+        visit::visit_type(self, i);
+    }
+
+    fn visit_expr(&mut self, i: &'ast syn::Expr) {
+        let expr_str = quote! { #i }.to_string();
+        self.required_imports.insert(expr_str);
+        visit::visit_expr(self, i);
     }
 }
 
@@ -138,10 +158,11 @@ pub struct DeclsVisitor {
     pub other_item_count: usize,
     pub source_file: PathBuf,
     pub crate_name: String,
+    pub verbosity: u8,
 }
 
 impl DeclsVisitor {
-    pub fn new(source_file: PathBuf, crate_name: String) -> Self {
+    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8) -> Self {
         DeclsVisitor {
             declarations: HashMap::new(),
             fn_count: 0,
@@ -158,6 +179,7 @@ impl DeclsVisitor {
             other_item_count: 0,
             source_file,
             crate_name,
+            verbosity,
         }
     }
 
@@ -390,32 +412,51 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let mut dependency_visitor = DependencyVisitor {
+            required_imports: HashSet::new(),
+            _known_identifiers: HashSet::new(), // This will be populated later if needed
+        };
+
+        // Recursively visit items within the module to collect dependencies
+        if let Some((_, items)) = &i.content {
+            for item in items {
+                dependency_visitor.visit_item(item);
+            }
+        }
+
         // Create a Declaration for the module itself
         let decl = Declaration::new(
             DeclarationItem::Mod(i.clone()),
-            HashSet::new(),
-            HashSet::new(),
+            HashSet::new(), // referenced_types (not directly applicable to module itself)
+            HashSet::new(), // referenced_functions (not directly applicable to module itself)
             HashSet::new(),
             self.source_file.clone(),
             self.crate_name.clone(),
             false,
-            HashSet::new(),
+            dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
+        if !identifier.is_empty() && self.verbosity >= 2 {
+            println!("  [split-expanded-lib] DeclsVisitor: Visiting module '{}'. Required imports for module: {:?}", identifier, decl.required_imports);
+        }
         self.declarations.insert(identifier, decl);
         self.mod_count += 1;
 
-        // Recursively visit items within the module
-        if let Some((_, items)) = &i.content {
-            for item in items {
-                self.visit_item(item);
-            }
-        }
         // Do not call syn::visit::visit_item_mod(self, i) here,
         // as we are manually recursing into the module's content.
     }
 
     fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+        let mut dependency_visitor = DependencyVisitor {
+            required_imports: HashSet::new(),
+            _known_identifiers: HashSet::new(),
+        };
+
+        // Visit items within the trait to collect dependencies
+        for item in &i.items {
+            dependency_visitor.visit_trait_item(item);
+        }
+
         let decl = Declaration::new(
             DeclarationItem::Trait(i.clone()),
             HashSet::new(),
@@ -424,12 +465,13 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.source_file.clone(),
             self.crate_name.clone(),
             false,
-            HashSet::new(),
+            dependency_visitor.required_imports,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
         self.trait_count += 1;
-        syn::visit::visit_item_trait(self, i);
+        // Do not call syn::visit::visit_item_trait(self, i) here,
+        // as we are manually recursing into the trait's content.
     }
 
     fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
@@ -489,12 +531,15 @@ pub async fn extract_declarations_from_single_file(
     file_path: &Path,
     rustc_info: &RustcInfo,
     crate_name: &str,
+    verbosity: u8,
 ) -> anyhow::Result<(Vec<Declaration>, Vec<ErrorSample>, FileMetadata)> {
     let mut all_declarations: Vec<Declaration> = Vec::new();
     let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
     let mut file_metadata = FileMetadata::default();
 
-    println!("Processing single file: {}", file_path.display());
+    if verbosity >= 1 {
+        println!("Processing single file: {}", file_path.display());
+    }
 
     let file_content = tokio::fs::read_to_string(file_path).await
         .context(format!("Failed to read file: {}", file_path.display()))?;
@@ -515,7 +560,23 @@ pub async fn extract_declarations_from_single_file(
             for item in &file.items {
                 match item {
                     syn::Item::Use(item_use) => {
-                        file_metadata.global_uses.insert(quote! { #item_use }.to_string());
+                        let use_statement_str = quote! { #item_use }.to_string();
+                        if use_statement_str.contains('"') {
+                            if verbosity >= 2 {
+                                println!("  [split-expanded-lib] Commenting out invalid global use statement (contains string literal): {}", use_statement_str);
+                            }
+                            file_metadata.global_uses.insert(format!("// {}", use_statement_str));
+                        } else if use_statement_str == "command" || use_statement_str == "arg" || use_statement_str == "doc" {
+                            if verbosity >= 2 {
+                                println!("  [split-expanded-lib] Commenting out known invalid global use statement: {}", use_statement_str);
+                            }
+                            file_metadata.global_uses.insert(format!("// {}", use_statement_str));
+                        } else {
+                            if verbosity >= 2 {
+                                println!("  [split-expanded-lib] Global use statement found: {}", use_statement_str);
+                            }
+                            file_metadata.global_uses.insert(use_statement_str);
+                        }
                     }
                     syn::Item::ExternCrate(item_extern_crate) => {
                         file_metadata.extern_crates.insert(item_extern_crate.ident.to_string());
@@ -524,7 +585,7 @@ pub async fn extract_declarations_from_single_file(
                 }
             }
 
-            let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string());
+            let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity);
             visitor.visit_file(&file);
             all_declarations.extend(visitor.declarations.into_values());
         },
