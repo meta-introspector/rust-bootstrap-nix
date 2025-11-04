@@ -14,6 +14,14 @@ pub struct GemEntry {
     pub identifiers: Vec<String>,
 }
 
+impl Default for GemConfig {
+    fn default() -> Self {
+        GemConfig {
+            gem: Vec::new(),
+        }
+    }
+}
+
 impl GemConfig {
     pub fn load_from_file(path: &std::path::Path) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;

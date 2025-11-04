@@ -537,6 +537,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
+
+[[package]]
 name = "hashbrown"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1005,6 +1011,7 @@ dependencies = [
  "cargo_metadata",
  "chrono",
  "clap",
+ "glob",
  "indoc",
  "lazy_static",
  "once_cell",
@@ -1103,12 +1110,12 @@ dependencies = [
  "clap",
  "flake-template-generator",
  "fs_extra",
+ "prelude-generator",
  "proc-macro2",
  "quote",
  "regex",
  "serde",
  "serde_json",
- "split-expanded-lib",
  "syn",
  "tokio",
  "walkdir",
@@ -1256,33 +1263,6 @@ checksum = "17129e116933cf371d018bb80ae557e889637989d8638274fb25622827b03881"
 dependencies = [
  "libc",
  "windows-sys 0.60.2",
-]
-
-[[package]]
-name = "split-expanded-bin"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "quote",
- "split-expanded-lib",
- "tokio",
-]
-
-[[package]]
-name = "split-expanded-lib"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cargo_metadata",
- "chrono",
- "quote",
- "serde",
- "serde_json",
- "syn",
- "tokio",
- "walkdir",
 ]
 
 [[package]]
@@ -1767,7 +1747,10 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 name = "workspace-generator"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "itertools",
+ "serde",
+ "serde_json",
  "walkdir",
 ]
 

@@ -71,7 +71,7 @@ pub async fn extract_all_declarations_from_crate(
                 continue;
             }
 
-            let mut visitor = DeclsVisitor::new(gem_config);
+            let mut visitor = DeclsVisitor::new(gem_config, Some(path.clone()), Some(package.name.clone()));
             visitor.visit_file(&file);
 
             all_declarations.extend(visitor.declarations);

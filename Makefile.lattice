@@ -8,8 +8,9 @@ run-splitter:
 	cargo run --package split-expanded-bin -- \
 		--project-root /data/data/com.termux.nix/files/home/pick-up-nix2/rust-bootstrap-core \
 		--rustc-version "unknown" \
+		--verbosity=8 \
 		--rustc-host "unknown" \
-		--files $(shell find ../generated/ -name "*.rs")
+		--files $(shell find ../expanded/ -name "*.rs")
 # Create prelude crate
 create-prelude-crate:
 	@echo "Creating prelude crate..."

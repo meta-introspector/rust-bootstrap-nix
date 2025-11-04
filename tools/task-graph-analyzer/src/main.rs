@@ -6,6 +6,7 @@ use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::algo::toposort;
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 struct Task {
     title: String,
     description: String,

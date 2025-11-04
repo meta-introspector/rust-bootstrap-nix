@@ -83,8 +83,13 @@ async fn main() -> anyhow::Result<()> {
         crate::command_handlers::handle_calculate_layers(&project_root, &args).await?;
     }
 
+    // New conditional block for split-expanded-bin functionality
+    if args.run_split_expanded_bin {
+        crate::command_handlers::handle_split_expanded_bin(&args).await?;
+    }
+
     // If no specific command was executed, print help or a default message
-    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants && !args.calculate_layers {
+    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants && !args.calculate_layers && !args.run_split_expanded_bin {
         println!(r"No specific command executed. Use --help for options.");
     }
 

@@ -147,4 +147,29 @@ pub struct Args {
     /// Path to a rustc wrapper script to use for macro expansion.
     #[arg(long)]
     pub rustc_wrapper_path: Option<PathBuf>,
+
+    // New arguments for split-expanded-bin functionality
+    /// Run the split-expanded-bin functionality.
+    #[arg(long, default_value_t = false)]
+    pub run_split_expanded_bin: bool,
+
+    /// Paths to the input Rust files (e.g., expanded .rs files) for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_files: Vec<PathBuf>,
+
+    /// Directory to output the generated declaration files for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_project_root: Option<PathBuf>,
+
+    /// Rustc version (e.g., "1.89.0") for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_rustc_version: Option<String>,
+
+    /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu") for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_rustc_host: Option<String>,
+
+    /// Path to output the global declarations TOML file for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_output_global_toml: Option<PathBuf>,
 }

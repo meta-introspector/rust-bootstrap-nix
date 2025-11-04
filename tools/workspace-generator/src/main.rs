@@ -4,8 +4,12 @@ use std::io::{self};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 use itertools::Itertools;
+use serde::Deserialize;
+use serde_json;
+use std::collections::{HashMap, HashSet};
+use anyhow::Context;
 
-fn main() -> io::Result<()> {
+fn main() -> anyhow::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <output_directory> [verbosity_level]", args[0]);
@@ -22,6 +26,18 @@ fn main() -> io::Result<()> {
         eprintln!("Error: Output directory does not exist or is not a directory.");
         return Ok(())
     }
+
+    // Read dependencies.json
+    let dependencies_json_path = output_dir.join("dependencies.json");
+    let external_dependencies_by_level: HashMap<u32, HashSet<String>> = if dependencies_json_path.exists() {
+        let json_content = fs::read_to_string(&dependencies_json_path)?;
+        serde_json::from_str(&json_content).context("Failed to deserialize dependencies.json")?
+    } else {
+        if verbosity >= 1 {
+            println!("Warning: dependencies.json not found at {}. Generating Cargo.toml files without external dependencies.", dependencies_json_path.display());
+        }
+        HashMap::new()
+    };
 
     let mut root_workspace_members = Vec::new();
 
@@ -49,10 +65,25 @@ fn main() -> io::Result<()> {
                         
                         // Create Cargo.toml for the dependency level directory (e.g., 3/Cargo.toml) as a package
                         let package_cargo_toml_path = path.join("Cargo.toml");
-                        let package_cargo_toml_content = format!(
-                            "[package]\nname = \"pkg-{}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = {{ version = \"1.0\", features = [\"derive\"] }}\n",
+                        let mut package_cargo_toml_content = String::new();
+                        package_cargo_toml_content.push_str(&format!(
+                            "[package]\nname = \"pkg-{}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
                             dir_name
-                        );
+                        ));
+
+                        if let Some(deps) = external_dependencies_by_level.get(&level) {
+                            if !deps.is_empty() {
+                                package_cargo_toml_content.push_str("\n[dependencies]\n");
+                                for dep in deps.iter().sorted() {
+                                    // Hardcode versions for now, or get from a config
+                                    let version = match dep.as_str() {
+                                        "serde" => "1.0",
+                                        _ => "0.1", // Default version for other dependencies
+                                    };
+                                    package_cargo_toml_content.push_str(&format!("{0} = \"{1}\"\n", dep, version));
+                                }
+                            }
+                        }
                         
                         fs::write(&package_cargo_toml_path, package_cargo_toml_content)?;
                         // Create src directory and lib.rs for the package

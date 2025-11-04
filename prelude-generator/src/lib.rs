@@ -27,6 +27,7 @@ pub mod declaration_processing;
 pub mod command_handlers;
 pub mod type_extractor;
 pub mod public_tests;
+pub mod split_expanded_bin_handler; // Add this line
 //pub mod global_level0_decls;
 pub use args::Args;
 //pub use declaration_processing::{extract_level0_declarations, process_structs};
@@ -43,7 +44,52 @@ pub use bag_of_words_visitor::{BagOfWordsVisitor, tokenize_ident_to_subwords};
 
 pub mod types;
 pub mod collect_prelude_info;
-pub use types::*;
+pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo, FileMetadata, RustcInfo, DeclarationExtractionArgs};
 pub use collect_prelude_info::*;
 // Re-export necessary types from prelude_collector
 //pub use prelude_collector::{FileProcessingResult, FileProcessingStatus};
+
+use anyhow::Context;
+use std::path::PathBuf;
+use std::fs;
+use syn::parse_file;
+use crate::decls_visitor::DeclsVisitor;
+use crate::gem_parser::GemConfig;
+use crate::declaration::Declaration;
+use crate::error_collector::ErrorCollection;
+// Removed: use crate::types::{FileMetadata, RustcInfo}; as they are now directly used from `pub use types::...`
+
+pub async fn extract_declarations_for_composer(
+    args: DeclarationExtractionArgs,
+) -> anyhow::Result<(Vec<Declaration>, ErrorCollection, FileMetadata)> {
+    let file_path = args.file_path;
+    let _rustc_info = args.rustc_info; // rustc_info is not directly used in DeclsVisitor, but kept for compatibility
+    let crate_name = args.crate_name;
+
+    let file_content = fs::read_to_string(&file_path)
+        .context(format!("Failed to read file: {:?}", file_path))?;
+
+    let file = match parse_file(&file_content) {
+        Ok(file) => file,
+        Err(e) => {
+            return Err(anyhow::anyhow!("Failed to parse file {}: {}", file_path.display(), e));
+        }
+    };
+
+    let gem_config = GemConfig::default();
+    let mut visitor = DeclsVisitor::new(
+        &gem_config,
+        Some(file_path.clone()),
+        crate_name,
+    );
+    syn::visit::Visit::visit_file(&mut visitor, &file);
+
+    let mut file_metadata = FileMetadata::default();
+    for decl in &visitor.declarations {
+        file_metadata.global_uses.extend(decl.required_imports.iter().cloned());
+        file_metadata.extern_crates.extend(decl.extern_crates.iter().cloned());
+    }
+    // Feature attributes are not directly collected by DeclsVisitor yet, so it remains empty for now.
+
+    Ok((visitor.declarations, ErrorCollection::default(), file_metadata))
+}

@@ -2,7 +2,7 @@ use clap::Parser;
 use anyhow::Context;
 use std::path::PathBuf;
 use std::fs;
-use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem};
+use prelude_generator::{extract_declarations_for_composer, RustcInfo, Declaration, FileMetadata, ErrorCollection};
 use quote::quote;
 use walkdir::WalkDir;
 
@@ -78,10 +78,13 @@ async fn main() -> anyhow::Result<()> {
                 .context(format!("Failed to write flake.nix for project {}", project_name))?;
 
             // Extract declarations using split-expanded-lib
-            let (declarations, errors, file_metadata) = extract_declarations_from_single_file(
-                file_path,
-                &rustc_info,
-                &project_name, // Use project_name as crate_name for now
+            let extraction_args = prelude_generator::DeclarationExtractionArgs {
+                file_path: file_path.to_path_buf(),
+                rustc_info: rustc_info.clone(),
+                crate_name: Some(project_name.clone()),
+            };
+            let (declarations, errors, file_metadata) = prelude_generator::extract_declarations_for_composer(
+                extraction_args,
             ).await?;
 
             if !errors.is_empty() {
@@ -107,7 +110,7 @@ async fn main() -> anyhow::Result<()> {
 
                 // Add necessary global use statements for the generated file
                 file_content.push_str("use std::collections::HashSet;\n");
-                file_content.push_str("use split_expanded_lib::{DeclarationItem};\n"); // Assuming DeclarationItem is always needed
+                file_content.push_str("use prelude_generator::{DeclarationItem};\n"); // Assuming DeclarationItem is always needed
 
                 // Add use statements from resolved_dependencies
                 for dep in &declaration.resolved_dependencies {
@@ -117,18 +120,18 @@ async fn main() -> anyhow::Result<()> {
 
                 // Add the declaration item
                 let item_token_stream = match &declaration.item {
-                    DeclarationItem::Const(item) => quote! { #item },
-                    DeclarationItem::Struct(item) => quote! { #item },
-                    DeclarationItem::Enum(item) => quote! { #item },
-                    DeclarationItem::Fn(item) => quote! { #item },
-                    DeclarationItem::Static(item) => quote! { #item },
-                    DeclarationItem::Macro(item) => quote! { #item },
-                    DeclarationItem::Mod(item) => quote! { #item },
-                    DeclarationItem::Trait(item) => quote! { #item },
-                    DeclarationItem::TraitAlias(item) => quote! { #item },
-                    DeclarationItem::Type(item) => quote! { #item },
-                    DeclarationItem::Union(item) => quote! { #item },
-                    DeclarationItem::Other(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Const(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Struct(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Enum(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Fn(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Static(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Macro(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Mod(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Trait(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::TraitAlias(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Type(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Union(item) => quote! { #item },
+                    prelude_generator::declaration::DeclarationItem::Other(item) => quote! { #item },
                 };
                 file_content.push_str(&item_token_stream.to_string());
 

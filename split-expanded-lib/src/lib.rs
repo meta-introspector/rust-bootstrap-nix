@@ -15,7 +15,7 @@ pub struct FileMetadata {
     pub extern_crates: HashSet<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DeclarationItem {
     Const(ItemConst),
     Struct(ItemStruct),
@@ -31,7 +31,7 @@ pub enum DeclarationItem {
     Other(syn::Item),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Declaration {
     pub item: DeclarationItem,
     pub referenced_types: HashSet<String>,
@@ -43,6 +43,23 @@ pub struct Declaration {
     pub is_proc_macro: bool,
     pub required_imports: HashSet<String>,
     pub direct_dependencies: HashSet<String>,
+    pub extern_crates: HashSet<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SerializableDeclaration {
+    pub identifier: String,
+    pub declaration_type: String,
+    pub referenced_types: HashSet<String>,
+    pub referenced_functions: HashSet<String>,
+    pub external_identifiers: HashSet<String>,
+    pub source_file: PathBuf,
+    pub crate_name: String,
+    pub resolved_dependencies: HashSet<String>,
+    pub is_proc_macro: bool,
+    pub required_imports: HashSet<String>,
+    pub direct_dependencies: HashSet<String>,
+    pub extern_crates: HashSet<String>,
 }
 
 impl Declaration {
@@ -55,6 +72,7 @@ impl Declaration {
         crate_name: String,
         is_proc_macro: bool,
         required_imports: HashSet<String>,
+        extern_crates: HashSet<String>,
     ) -> Self {
         Declaration {
             item,
@@ -67,6 +85,7 @@ impl Declaration {
             is_proc_macro,
             required_imports,
             direct_dependencies: HashSet::new(),
+            extern_crates,
         }
     }
 
@@ -159,10 +178,11 @@ pub struct DeclsVisitor {
     pub source_file: PathBuf,
     pub crate_name: String,
     pub verbosity: u8,
+    pub file_extern_crates: HashSet<String>,
 }
 
 impl DeclsVisitor {
-    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8) -> Self {
+    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8, file_extern_crates: HashSet<String>) -> Self {
         DeclsVisitor {
             declarations: HashMap::new(),
             fn_count: 0,
@@ -180,6 +200,7 @@ impl DeclsVisitor {
             source_file,
             crate_name,
             verbosity,
+            file_extern_crates,
         }
     }
 
@@ -242,6 +263,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -271,6 +293,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             is_proc_macro,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -296,6 +319,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             is_proc_macro,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -359,6 +383,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             is_proc_macro,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -381,6 +406,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -405,6 +431,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             is_proc_macro,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -434,6 +461,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         if !identifier.is_empty() && self.verbosity >= 2 {
@@ -466,6 +494,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             dependency_visitor.required_imports,
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -484,6 +513,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             HashSet::new(),
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -500,6 +530,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             HashSet::new(),
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -516,6 +547,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             self.crate_name.clone(),
             false,
             HashSet::new(),
+            self.file_extern_crates.clone(),
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -585,7 +617,7 @@ pub async fn extract_declarations_from_single_file(
                 }
             }
 
-            let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity);
+            let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity, file_metadata.extern_crates.clone());
             visitor.visit_file(&file);
             all_declarations.extend(visitor.declarations.into_values());
         },
