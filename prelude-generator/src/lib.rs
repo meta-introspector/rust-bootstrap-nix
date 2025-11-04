@@ -46,8 +46,8 @@ pub mod types;
 pub mod collect_prelude_info;
 pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo, FileMetadata, RustcInfo, DeclarationExtractionArgs};
 pub use collect_prelude_info::*;
-// Re-export necessary types from prelude_collector
-//pub use prelude_collector::{FileProcessingResult, FileProcessingStatus};
+pub use crate::declaration::Declaration;
+pub use crate::error_collector::ErrorCollection;
 
 use anyhow::Context;
 use std::path::PathBuf;
@@ -55,9 +55,6 @@ use std::fs;
 use syn::parse_file;
 use crate::decls_visitor::DeclsVisitor;
 use crate::gem_parser::GemConfig;
-use crate::declaration::Declaration;
-use crate::error_collector::ErrorCollection;
-// Removed: use crate::types::{FileMetadata, RustcInfo}; as they are now directly used from `pub use types::...`
 
 pub async fn extract_declarations_for_composer(
     args: DeclarationExtractionArgs,

@@ -87,9 +87,9 @@ async fn main() -> anyhow::Result<()> {
                 extraction_args,
             ).await?;
 
-            if !errors.is_empty() {
+            if !errors.errors.is_empty() {
                 eprintln!("Errors encountered during parsing for {}:", file_path.display());
-                for error in errors {
+                for error in errors.errors {
                     eprintln!("  File: {}", error.file_path.display());
                     eprintln!("  Error Type: {}", error.error_type);
                     eprintln!("  Message: {}", error.error_message);
@@ -148,8 +148,8 @@ async fn main() -> anyhow::Result<()> {
             let lib_rs_content = project_generator::generate_lib_rs_content(
                 &generated_module_names,
                 has_proc_macros,
-                &file_metadata.feature_attributes,
-                &file_metadata.extern_crates,
+                &file_metadata.feature_attributes.clone().into_iter().collect(),
+                &file_metadata.extern_crates.into_iter().collect(),
                 file_path.to_str().unwrap_or(""),
             );
             fs::write(project_src_dir.join("lib.rs"), lib_rs_content)
@@ -158,8 +158,8 @@ async fn main() -> anyhow::Result<()> {
             // Generate src/prelude.rs
             let common_imports = project_generator::get_common_imports();
             let prelude_rs_content = project_generator::generate_prelude_rs_content(
-                &file_metadata.global_uses,
-                &file_metadata.feature_attributes,
+                &file_metadata.global_uses.into_iter().collect(),
+                &file_metadata.feature_attributes.into_iter().collect(),
                 &common_imports,
             );
             fs::write(project_src_dir.join("prelude.rs"), prelude_rs_content)

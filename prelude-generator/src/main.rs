@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
 
     // New conditional block for split-expanded-bin functionality
     if args.run_split_expanded_bin {
-        crate::command_handlers::handle_split_expanded_bin(&args).await?;
+        prelude_generator::command_handlers::split_expanded_bin_handler::handle_split_expanded_bin(&args).await?;
     }
 
     // If no specific command was executed, print help or a default message
