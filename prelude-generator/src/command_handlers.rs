@@ -68,14 +68,85 @@ pub fn handle_verify_config() {
 // Removed use cargo_metadata::{MetadataCommand, Package};
 
 pub async fn handle_extract_global_level0_decls(
-    _project_root: &PathBuf,
-    _args: &crate::Args,
-    _all_numerical_constants: &mut Vec<syn::ItemConst>,
-    _all_string_constants: &mut Vec<syn::ItemConst>,
-    _rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
+    project_root: &PathBuf,
+    args: &crate::Args,
+    all_numerical_constants: &mut Vec<syn::ItemConst>,
+    all_string_constants: &mut Vec<syn::ItemConst>,
+    rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
     _cache_dir: &std::path::Path,
+    crate_name: &str,
 ) -> anyhow::Result<()> {
-    println!("handle_extract_global_level0_decls is now handled by split-expanded-bin.");
+    let output_dir = args.generated_decls_output_dir.clone().ok_or_else(|| anyhow::anyhow!("generated_decls_output_dir is required"))?;
+    tokio::fs::create_dir_all(&output_dir).await.context("Failed to create output directory")?;
+
+    let mut all_public_symbols: Vec<split_expanded_lib::PublicSymbol> = Vec::new();
+    let mut all_collected_errors: Vec<split_expanded_lib::ErrorSample> = Vec::new();
+
+    let rustc_info_for_split_expanded_lib = split_expanded_lib::RustcInfo {
+        version: rustc_info.version.clone(),
+        host: rustc_info.host.clone(),
+    };
+
+    let walker = walkdir::WalkDir::new(project_root)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"));
+
+    for entry in walker {
+        let file_path = entry.path().to_path_buf();
+
+
+        let should_process_file = args.filter_names.as_ref().map_or(true, |filter_names| {
+            filter_names.iter().any(|f| file_path.to_string_lossy().contains(f))
+        });
+
+        if should_process_file {
+            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::extract_declarations_from_single_file(
+                &file_path,
+                &rustc_info_for_split_expanded_lib,
+                &crate_name,
+                args.verbose,
+            ).await?;
+
+            all_collected_errors.extend(errors);
+            all_public_symbols.extend(public_symbols);
+
+            for decl in declarations {
+                match &decl.item {
+                    split_expanded_lib::DeclarationItem::Const(s) => {
+                        if let Ok(item_const) = syn::parse_str::<syn::ItemConst>(s) {
+                            if item_const.ident.to_string().ends_with("_NUM") {
+                                all_numerical_constants.push(item_const);
+                            } else {
+                                all_string_constants.push(item_const);
+                            }
+                        }
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+
+    // Save public symbols to a JSON file
+    let public_symbols_output_path = output_dir.join("public_symbols.json");
+    let json_content = serde_json::to_string_pretty(&all_public_symbols)
+        .context("Failed to serialize public symbols to JSON")?;
+    tokio::fs::write(&public_symbols_output_path, json_content).await
+        .context(format!("Failed to write public symbols to file: {:?}", public_symbols_output_path))?;
+
+    println!("Extracted {} public symbols to {:?}", all_public_symbols.len(), public_symbols_output_path);
+
+    // Handle errors if any
+    if !all_collected_errors.is_empty() {
+        let error_output_path = output_dir.join("errors.json");
+        let error_json_content = serde_json::to_string_pretty(&all_collected_errors)
+            .context("Failed to serialize errors to JSON")?;
+        tokio::fs::write(&error_output_path, error_json_content).await
+            .context(format!("Failed to write errors to file: {:?}", error_output_path))?;
+        eprintln!("{} errors collected during declaration extraction. See {:?}", all_collected_errors.len(), error_output_path);
+    }
+
     Ok(())
 }
 
