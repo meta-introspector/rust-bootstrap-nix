@@ -4,9 +4,10 @@ use std::path::PathBuf;
 use std::fs;
 
 mod metadata;
-mod expanded_metadata;
+
 mod flake_lock;
 mod expander;
+mod manifest;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -22,6 +23,18 @@ struct Args {
     /// Clean the output directory before processing.
     #[arg(long, default_value_t = false)]
     clean: bool,
+
+    /// Rustc version (e.g., "1.89.0").
+    #[arg(long)]
+    rustc_version: String,
+
+    /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu").
+    #[arg(long)]
+    rustc_host: String,
+
+    /// Project root directory.
+    #[arg(long)]
+    project_root: PathBuf,
 }
 
 #[tokio::main]
@@ -42,11 +55,26 @@ async fn main() -> Result<()> {
 
     let flake_lock_json = flake_lock::get_flake_lock_json().await?;
 
-    expander::expand_code(
+    let expanded_files = expander::expand_code(
         &args.metadata_path,
         &args.output_dir,
         &flake_lock_json,
     ).await?;
+
+    let manifest = manifest::ExpandedManifest {
+        rustc_version: args.rustc_version,
+        rustc_host: args.rustc_host,
+        project_root: args.project_root,
+        expanded_files,
+    };
+
+    let manifest_path = args.output_dir.join("expanded_manifest.json");
+    let manifest_json = serde_json::to_string_pretty(&manifest)
+        .context("Failed to serialize expanded manifest")?;
+    fs::write(&manifest_path, manifest_json)
+        .context(format!("Failed to write expanded manifest to {}", manifest_path.display()))?;
+
+    println!("Generated expanded manifest: {}", manifest_path.display());
 
     Ok(())
 }

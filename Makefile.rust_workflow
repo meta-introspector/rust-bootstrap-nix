@@ -1,0 +1,49 @@
+SHELL := /usr/bin/env bash
+
+.PHONY: all deps-all expand-all split-all clean
+
+# Define paths
+METADATA_FILE := rust-bootstrap-core/full_metadata.json
+EXPANDED_DIR := expanded
+PROJECT_ROOT := .
+
+# --- Dependency Collection (from Makefile.deps) ---
+deps-all: $(METADATA_FILE)
+
+$(METADATA_FILE):
+	@echo "Collecting full workspace metadata using cargo metadata..."
+	mkdir -p $(@D) # Ensure the directory exists
+	cargo metadata --format-version 1 > $@
+
+# --- Expanded Code Collection (using expanded-code-collector) ---
+expand-all: $(METADATA_FILE)
+	@echo "Running expanded-code-collector..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--clean \
+		--rustc-version "1.89.0" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--project-root $(PROJECT_ROOT)
+
+# --- Split and Organize Declarations (using split-expanded-bin) ---
+split-all: expand-all
+	@echo "Running split-expanded-bin..."
+	cargo run --bin split-expanded-bin -- \
+		--expanded-manifest $(EXPANDED_DIR)/expanded_manifest.json \
+		--project-root $(PROJECT_ROOT) \
+		--rustc-version "1.89.0" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--verbosity 1
+
+# --- All Workflow ---
+all: deps-all expand-all split-all
+
+# --- Clean Target ---
+clean:
+	@echo "Cleaning generated files..."
+	rm -rf $(METADATA_FILE)
+	rm -rf $(EXPANDED_DIR)
+	rm -rf src/level_*
+	rm -f scripts/packages.list
+	rm -f scripts/binary_packages.list

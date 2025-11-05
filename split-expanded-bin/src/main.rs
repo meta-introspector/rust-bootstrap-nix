@@ -1,19 +1,29 @@
-use anyhow::Context;
 use clap::Parser;
-use quote::quote;
-use serde::{Deserialize, Serialize};
-use serde_json;
+use anyhow::Context;
+use std::path::{PathBuf};
 use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::Write;
-use std::path::{PathBuf, Path};
+use serde::{Deserialize, Serialize};
+use serde_json;
+
+use quote::quote;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ExpandedMetadata {
+pub struct ExpandedManifest {
+    pub rustc_version: String,
+    pub rustc_host: String,
+    pub project_root: PathBuf,
+    pub expanded_files: Vec<ExpandedFileEntry>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExpandedFileEntry {
     pub package_name: String,
     pub target_type: String,
     pub target_name: String,
+    pub expanded_rs_path: PathBuf,
     pub cargo_expand_command: String,
     pub timestamp: u64,
     pub flake_lock_details: serde_json::Value,
@@ -26,9 +36,9 @@ pub struct Args {
     #[arg(short, long, default_value_t = 1)]
     pub verbosity: u8,
 
-    /// Paths to the input expanded JSON metadata files.
+    /// Path to the expanded_manifest.json file.
     #[arg(long)]
-    pub expanded_json_files: Vec<PathBuf>,
+    pub expanded_manifest: PathBuf,
 
     /// Directory to output the generated declaration files.
     #[clap(short, long, value_parser, required = true)]
@@ -52,14 +62,20 @@ async fn main() -> anyhow::Result<()> {
         std::io::stdout().flush().unwrap();
     }
 
-    // Create RustcInfo from command-line arguments
+    // Read expanded manifest
+    let manifest_content = fs::read_to_string(&args.expanded_manifest)
+        .context(format!("Failed to read expanded manifest file: {}", args.expanded_manifest.display()))?;
+    let expanded_manifest: ExpandedManifest = serde_json::from_str(&manifest_content)
+        .context(format!("Failed to parse expanded manifest JSON from: {}", args.expanded_manifest.display()))?;
+
+    // Create RustcInfo from manifest
     let rustc_info = RustcInfo {
-        version: args.rustc_version,
-        host: args.rustc_host,
+        version: expanded_manifest.rustc_version,
+        host: expanded_manifest.rustc_host,
     };
 
     // Create project root and src directory if they don't exist
-    let src_dir = args.project_root.join("src");
+    let src_dir = expanded_manifest.project_root.join("src");
     fs::create_dir_all(&src_dir)
         .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
     if args.verbosity >= 2 {
@@ -73,24 +89,14 @@ async fn main() -> anyhow::Result<()> {
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
     let mut all_errors: Vec<ErrorSample> = Vec::new();
 
-    for json_file_path in &args.expanded_json_files {
+    for expanded_file_entry in expanded_manifest.expanded_files {
         if args.verbosity >= 1 {
-            println!("Processing JSON metadata file: {}", json_file_path.display());
+            println!("Processing expanded RS file: {}", expanded_file_entry.expanded_rs_path.display());
             std::io::stdout().flush().unwrap();
         }
 
-        let metadata_content = fs::read_to_string(json_file_path)
-            .context(format!("Failed to read expanded metadata file: {}", json_file_path.display()))?;
-        let expanded_metadata: ExpandedMetadata = serde_json::from_str(&metadata_content)
-            .context(format!("Failed to parse expanded metadata JSON from: {}", json_file_path.display()))?;
-
-        let crate_name = expanded_metadata.package_name.as_str();
-        let expanded_rs_file_name = format!(".expand_output_{}_{}_{}.rs",
-            expanded_metadata.package_name.replace("-", "_"),
-            expanded_metadata.target_name.replace("-", "_"),
-            expanded_metadata.target_type
-        );
-        let expanded_rs_file_path = json_file_path.parent().unwrap().join(expanded_rs_file_name);
+        let crate_name = expanded_file_entry.package_name.as_str();
+        let expanded_rs_file_path = expanded_file_entry.expanded_rs_path;
 
         if args.verbosity >= 2 {
             println!("  Derived crate_name: {}", crate_name);
