@@ -1,89 +1,13 @@
-use clap::Parser;
 use anyhow::Context;
-use std::path::{PathBuf, Path};
-use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::io::Write;
-use serde::{Deserialize, Serialize};
-
+use clap::Parser;
 use quote::quote;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ExpandedMetadata {
-    pub package_name: String,
-    pub target_type: String,
-    pub target_name: String,
-    pub cargo_expand_command: String,
-    pub timestamp: u64,
-    pub flake_lock_details: serde_json::Value,
-}
-
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-pub struct Args {
-    /// Set verbosity level (0 = silent, 1 = normal, 2 = detailed, 3 = debug).
-    #[arg(short, long, default_value_t = 1)]
-    pub verbosity: u8,
-
-    /// Paths to the input expanded JSON metadata files.
-    #[arg(long)]
-    pub expanded_json_files: Vec<PathBuf>,
-
-    /// Directory to output the generated declaration files.
-    #[clap(short, long, value_parser, required = true)]
-    project_root: PathBuf,
-
-    /// Rustc version (e.g., "1.89.0").
-    #[arg(long)]
-    pub rustc_version: String,
-
-    /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu").
-    #[arg(long)]
-    pub rustc_host: String,
-}
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
-    if args.verbosity >= 1 {
-        println!("split-expanded-bin started.");
-        println!("Verbosity level: {}", args.verbosity);
-        std::io::stdout().flush().unwrap();
-    }
-
-    // Create RustcInfo from command-line arguments
-    let rustc_info = RustcInfo {
-        version: args.rustc_version,
-        host: args.rustc_host,
-    };
-
-    // Create project root and src directory if they don't exist
-    let src_dir = args.project_root.join("src");
-    fs::create_dir_all(&src_dir)
-        .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
-    if args.verbosity >= 2 {
-        if src_dir.exists() {
-            println!("Created project src directory already exists or was created: {}", src_dir.display());
-        } else {
-            println!("Failed to create project src directory (but context handled it): {}", src_dir.display());
-        }
-        std::io::stdout().flush().unwrap();
-    }
-    let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
-    let mut all_errors: Vec<ErrorSample> = Vec::new();
-
-use clap::Parser;
-use anyhow::Context;
-use std::path::{PathBuf, Path};
-use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::io::Write;
 use serde::{Deserialize, Serialize};
 use serde_json;
-
-use quote::quote;
+use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::io::Write;
+use std::path::{PathBuf, Path};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExpandedMetadata {
