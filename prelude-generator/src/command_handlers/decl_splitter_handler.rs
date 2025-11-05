@@ -7,7 +7,8 @@ use crate::Args; // Use prelude_generator's Args
 
 use std::collections::HashMap;
 use quote::quote;
-use crate::declaration::DeclarationItem;
+use toml;
+use crate::declaration::{DeclarationItem, CollectedProjectInfo};
 
 pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
     println!("Running declaration splitter functionality...");
@@ -29,7 +30,7 @@ pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
 
 
     // Call prelude-generator's extraction function
-    let (all_declarations, _, _, _, _, _, _, _, collected_errors) = 
+    let (all_declarations, _, _, _, _, _, _, _, collected_errors, symbol_map) = 
         declaration_processing::extract_all_declarations_from_crate(
             &input_dir, // Assuming input_dir is the manifest_path for now
             args, // Pass the actual args
@@ -93,6 +94,34 @@ pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
     }
 
     println!("Split {} declarations into separate crates.\n", declaration_count);
+
+    if let Some(output_path) = args.output_declarations_toml.clone() {
+        let mut types_map = HashMap::new();
+        let mut modules_map = HashMap::new();
+        let mut crates_map = HashMap::new();
+
+        for (id, dep) in symbol_map.map.iter() {
+            match dep.dependency_type.as_str() {
+                "type" => { types_map.insert(id.clone(), dep.clone()); },
+                "module" => { modules_map.insert(id.clone(), dep.clone()); },
+                "crate" => { crates_map.insert(id.clone(), dep.clone()); },
+                _ => {},
+            }
+        }
+
+        let collected_info = CollectedProjectInfo {
+            declarations: layered_decls.into_values().flatten().collect(), // Flatten all layers into a single Vec
+            types: types_map,
+            modules: modules_map,
+            crates: crates_map,
+        };
+
+        let toml_string = toml::to_string_pretty(&collected_info)
+            .context("Failed to serialize collected project info to TOML")?;
+        tokio::fs::write(&output_path, toml_string)
+            .context(format!("Failed to write collected project info to file: {:?}", output_path))?;
+        println!("Successfully wrote collected project info to {:?}", output_path);
+    }
 
     Ok(())
 }

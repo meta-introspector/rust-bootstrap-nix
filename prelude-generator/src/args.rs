@@ -180,4 +180,8 @@ pub struct Args {
     /// Run the declaration splitter functionality.
     #[arg(long, default_value_t = false)]
     pub run_decl_splitter: bool,
+
+    /// Path to output a TOML file containing all declarations, types, modules, and crates.
+    #[arg(long)]
+    pub output_declarations_toml: Option<PathBuf>,
 }

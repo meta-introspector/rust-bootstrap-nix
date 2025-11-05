@@ -1,16 +1,19 @@
-.PHONY: all build-splitter run-splitter build-generator run-generator test-build create-prelude-crate
+.PHONY: all build-splitter run-splitter build-generator run-generator test-build create-prelude-crate dump-declarations-toml
 
 # Default target
-all: test-build
+all: test-build dump-declarations-toml
 
 run-splitter:
-	@echo "Running split-expanded-bin..."
-	cargo run --package split-expanded-bin -- \
-		--project-root /data/data/com.termux.nix/files/home/pick-up-nix2/rust-bootstrap-core \
-		--rustc-version "unknown" \
-		--verbosity=8 \
-		--rustc-host "unknown" \
-		--files $(shell find ../expanded/ -name "*.rs")
+	@echo "Running prelude-generator with --run-decl-splitter..."
+	cargo run --package prelude-generator -- \
+		--run-decl-splitter \
+		--path . \
+		--generated-decls-output-dir generated_declarations \
+		--output-declarations-toml generated_declarations/project_info.toml
+
+dump-declarations-toml: run-splitter
+	@echo "Dumping declarations to generated_declarations/project_info.toml"
+
 # Create prelude crate
 create-prelude-crate:
 	@echo "Creating prelude crate..."

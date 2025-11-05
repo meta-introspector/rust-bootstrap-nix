@@ -30,6 +30,7 @@ pub async fn extract_all_declarations_from_crate(
     usize, // total_other_items
     HashMap<usize, usize>, // total_structs_per_layer
     Vec<ErrorSample>,
+    SymbolMap,
 )> {
     let mut all_declarations: Vec<Declaration> = Vec::new();
     let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
@@ -106,6 +107,7 @@ pub async fn extract_all_declarations_from_crate(
         total_other_items,
         total_structs_per_layer,
         all_collected_errors,
+        symbol_map,
     ))
 }
 

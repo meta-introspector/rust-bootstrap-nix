@@ -1,5 +1,5 @@
 use syn::{ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
 
@@ -128,6 +128,14 @@ pub struct SerializableDeclaration {
     pub span_end: Option<(usize, usize)>,
     pub attributes: Vec<String>,
     pub doc_comments: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectedProjectInfo {
+    pub declarations: Vec<Declaration>,
+    pub types: HashMap<String, ResolvedDependency>,
+    pub modules: HashMap<String, ResolvedDependency>,
+    pub crates: HashMap<String, ResolvedDependency>,
 }
 
 impl From<Declaration> for SerializableDeclaration {
