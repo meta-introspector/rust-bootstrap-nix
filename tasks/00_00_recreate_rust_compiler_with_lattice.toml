@@ -1,0 +1,18 @@
+title = "Recreate Rust Compiler with Lattice System (Fungal Consumption)"
+description = """
+The long-term goal of this project is to incrementally recreate the Rust compiler from scratch using our lattice system. This process will involve a "fungal consumption" approach, where the lattice system will slowly consume and break down the existing Rust compiler's components, replacing them with our own modular, lattice-structured implementations.
+
+This task encompasses the entire journey of:
+- Decomposing the Rust compiler's AST, HIR, MIR, and other intermediate representations.
+- Extracting canonical declarations and their dependencies.
+- Building a hierarchical lattice of functions and types.
+- Implementing precondition checks and rich metadata extraction.
+- Generating a global symbol table.
+- Ultimately, self-hosting and replacing parts of the Rust toolchain with our lattice-based system.
+"""
+status = "TODO"
+created_at = "2025-11-04T12:00:00Z"
+parent_task = "plan.md"
+stage_id = 0
+step_id = "VISION"
+name = "Recreate Rust Compiler with Lattice System"

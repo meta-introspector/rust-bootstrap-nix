@@ -41,6 +41,7 @@ pub async fn extract_all_declarations_from_crate(
     let mut total_statics = 0;
     let mut total_other_items = 0;
     let total_structs_per_layer: HashMap<usize, usize> = HashMap::new();
+    let mut symbol_map = SymbolMap::new(); // Declare symbol_map here
 
     let metadata = cargo_metadata::MetadataCommand::new()
         .manifest_path(manifest_path)
