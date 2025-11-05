@@ -1,12 +1,13 @@
 use std::path::PathBuf;
 use anyhow::Context;
-use prelude_generator::use_extractor::RustcInfo;
-use prelude_generator::gem_parser::GemConfig;
-use prelude_generator::declaration_processing;
-use prelude_generator::Args; // Use prelude_generator's Args
+use crate::use_extractor::RustcInfo;
+
+use crate::declaration_processing;
+use crate::Args; // Use prelude_generator's Args
 
 use std::collections::HashMap;
 use quote::quote;
+use crate::declaration::DeclarationItem;
 
 pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
     println!("Running declaration splitter functionality...");
@@ -25,7 +26,7 @@ pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
 
     // Create dummy RustcInfo and GemConfig for now
     let rustc_info = RustcInfo { version: "unknown".to_string(), host: "unknown".to_string() };
-    let gem_config = GemConfig { gem: Vec::new() }; // Empty GemConfig
+
 
     // Call prelude-generator's extraction function
     let (all_declarations, _, _, _, _, _, _, _, collected_errors) = 
@@ -54,18 +55,18 @@ pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
         println!("Processing layer {}", layer_num);
         for decl in declarations_in_layer {
             let item_str = match &decl.item {
-                prelude_generator::declaration::DeclarationItem::Const(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Struct(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Enum(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Fn(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Static(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Other(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Macro(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Mod(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Trait(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::TraitAlias(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Type(item) => quote! { #item }.to_string(),
-                prelude_generator::declaration::DeclarationItem::Union(item) => quote! { #item }.to_string(),
+                DeclarationItem::Const(item) => quote! { #item }.to_string(),
+                DeclarationItem::Struct(item) => quote! { #item }.to_string(),
+                DeclarationItem::Enum(item) => quote! { #item }.to_string(),
+                DeclarationItem::Fn(item) => quote! { #item }.to_string(),
+                DeclarationItem::Static(item) => quote! { #item }.to_string(),
+                DeclarationItem::Other(item) => quote! { #item }.to_string(),
+                DeclarationItem::Macro(item) => quote! { #item }.to_string(),
+                DeclarationItem::Mod(item) => quote! { #item }.to_string(),
+                DeclarationItem::Trait(item) => quote! { #item }.to_string(),
+                DeclarationItem::TraitAlias(item) => quote! { #item }.to_string(),
+                DeclarationItem::Type(item) => quote! { #item }.to_string(),
+                DeclarationItem::Union(item) => quote! { #item }.to_string(),
             };
             let item_name = decl.get_identifier();
 
@@ -76,7 +77,7 @@ pub async fn handle_run_decl_splitter(args: &Args) -> anyhow::Result<()> {
             tokio::fs::create_dir_all(decl_dir.join("src")).await.context(format!("Failed to create directory {:?}/src\n", decl_dir))?;
 
             let cargo_toml_content = format!(
-                "[package]\nname = \"{eyse}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nprelude = {{ path = \"../../prelude\" }}\nserde = {{ version = \"1.0\", features = [\"derive\"] }}\n",
+                "[package]\nname = \"{}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nprelude = {{ path = \"../../prelude\" }}\nserde = {{ version = \"1.0\", features = [\"derive\"] }}\n",
                 item_name
             );
             tokio::fs::write(decl_dir.join("Cargo.toml"), cargo_toml_content).await.context(format!("Failed to write Cargo.toml for {:?}\n", item_name))?;
