@@ -49,5 +49,5 @@ members = [
     # "vendor/rarrow/others/echo/crates/rmg-ffi",
     # "vendor/rarrow/others/echo/crates/rmg-wasm",
     # "vendor/rust/hugging-face-dataset-validator-rust",
-    "monadic-io-traits", "tools/task-graph-analyzer", "tools/workspace-generator", "syn-usage-collector",
+    "monadic-io-traits", "tools/task-graph-analyzer", "tools/workspace-generator", "syn-usage-collector", "crates/expanded-code-collector",
 ]

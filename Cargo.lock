@@ -459,6 +459,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "expanded-code-collector"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1283,6 +1294,8 @@ dependencies = [
  "chrono",
  "clap",
  "quote",
+ "serde",
+ "serde_json",
  "split-expanded-lib",
  "tokio",
 ]

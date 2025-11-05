@@ -1,12 +1,23 @@
 use clap::Parser;
 use anyhow::Context;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
 use std::collections::{HashMap, HashSet};
-use std::fs; // Added
+use std::fs;
 use std::io::Write;
+use serde::{Deserialize, Serialize};
 
 use quote::quote;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExpandedMetadata {
+    pub package_name: String,
+    pub target_type: String,
+    pub target_name: String,
+    pub cargo_expand_command: String,
+    pub timestamp: u64,
+    pub flake_lock_details: serde_json::Value,
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -15,9 +26,9 @@ pub struct Args {
     #[arg(short, long, default_value_t = 1)]
     pub verbosity: u8,
 
-    /// Paths to the input Rust files (e.g., expanded .rs files).
+    /// Paths to the input expanded JSON metadata files.
     #[arg(long)]
-    pub files: Vec<PathBuf>,
+    pub expanded_json_files: Vec<PathBuf>,
 
     /// Directory to output the generated declaration files.
     #[clap(short, long, value_parser, required = true)]
@@ -62,29 +73,116 @@ async fn main() -> anyhow::Result<()> {
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
     let mut all_errors: Vec<ErrorSample> = Vec::new();
 
-    for file_path in &args.files {
+use clap::Parser;
+use anyhow::Context;
+use std::path::{PathBuf, Path};
+use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, DeclarationItem, Declaration, ErrorSample};
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::io::Write;
+use serde::{Deserialize, Serialize};
+use serde_json;
+
+use quote::quote;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExpandedMetadata {
+    pub package_name: String,
+    pub target_type: String,
+    pub target_name: String,
+    pub cargo_expand_command: String,
+    pub timestamp: u64,
+    pub flake_lock_details: serde_json::Value,
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// Set verbosity level (0 = silent, 1 = normal, 2 = detailed, 3 = debug).
+    #[arg(short, long, default_value_t = 1)]
+    pub verbosity: u8,
+
+    /// Paths to the input expanded JSON metadata files.
+    #[arg(long)]
+    pub expanded_json_files: Vec<PathBuf>,
+
+    /// Directory to output the generated declaration files.
+    #[clap(short, long, value_parser, required = true)]
+    project_root: PathBuf,
+
+    /// Rustc version (e.g., "1.89.0").
+    #[arg(long)]
+    pub rustc_version: String,
+
+    /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu").
+    #[arg(long)]
+    pub rustc_host: String,
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+    if args.verbosity >= 1 {
+        println!("split-expanded-bin started.");
+        println!("Verbosity level: {}", args.verbosity);
+        std::io::stdout().flush().unwrap();
+    }
+
+    // Create RustcInfo from command-line arguments
+    let rustc_info = RustcInfo {
+        version: args.rustc_version,
+        host: args.rustc_host,
+    };
+
+    // Create project root and src directory if they don't exist
+    let src_dir = args.project_root.join("src");
+    fs::create_dir_all(&src_dir)
+        .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
+    if args.verbosity >= 2 {
+        if src_dir.exists() {
+            println!("Created project src directory already exists or was created: {}", src_dir.display());
+        } else {
+            println!("Failed to create project src directory (but context handled it): {}", src_dir.display());
+        }
+        std::io::stdout().flush().unwrap();
+    }
+    let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
+    let mut all_errors: Vec<ErrorSample> = Vec::new();
+
+    for json_file_path in &args.expanded_json_files {
         if args.verbosity >= 1 {
-            println!("Processing file: {}", file_path.display());
+            println!("Processing JSON metadata file: {}", json_file_path.display());
             std::io::stdout().flush().unwrap();
         }
 
-        let file_stem = file_path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown_crate");
-        let crate_name = file_stem.trim_start_matches(".expand_output_");
+        let metadata_content = fs::read_to_string(json_file_path)
+            .context(format!("Failed to read expanded metadata file: {}", json_file_path.display()))?;
+        let expanded_metadata: ExpandedMetadata = serde_json::from_str(&metadata_content)
+            .context(format!("Failed to parse expanded metadata JSON from: {}", json_file_path.display()))?;
+
+        let crate_name = expanded_metadata.package_name.as_str();
+        let expanded_rs_file_name = format!(".expand_output_{}_{}_{}.rs",
+            expanded_metadata.package_name.replace("-", "_"),
+            expanded_metadata.target_name.replace("-", "_"),
+            expanded_metadata.target_type
+        );
+        let expanded_rs_file_path = json_file_path.parent().unwrap().join(expanded_rs_file_name);
+
         if args.verbosity >= 2 {
-            println!("  Extracted file_stem: {}", file_stem);
             println!("  Derived crate_name: {}", crate_name);
+            println!("  Associated expanded RS file: {}", expanded_rs_file_path.display());
             std::io::stdout().flush().unwrap();
         }
 
         let (declarations, errors, _file_metadata) = extract_declarations_from_single_file(
-            file_path,
+            &expanded_rs_file_path,
             &rustc_info,
             crate_name,
             args.verbosity,
         ).await?;
 
         if args.verbosity >= 2 {
-            println!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), file_path.display());
+            println!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), expanded_rs_file_path.display());
             std::io::stdout().flush().unwrap();
         }
 
@@ -291,7 +389,7 @@ async fn main() -> anyhow::Result<()> {
             std::io::stdout().flush().unwrap();
         }
 
-        let declaration_dir = src_dir.join(format!("level_{:02}/src/{}_t", level, declaration_type));
+        let declaration_dir = src_dir.join(format!("level_{:02}/src/{}_t/{}", level, declaration_type, declaration.crate_name));
         fs::create_dir_all(&declaration_dir)
             .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
         if args.verbosity >= 2 {

@@ -1,8 +1,8 @@
+SHELL := /usr/bin/env bash
+
 .PHONY: expand-all clean-expand
 
-#cargo expand --verbose --manifest-path ./bootstrap-config-builder/Cargo.toml --lib
 
-$(eval $(shell ./scripts/generate_package_lists.sh))
 
 FLAKE_LOCK_JSON := "$(shell jq -c . flake.lock)"
 
@@ -10,14 +10,14 @@ define EXPAND_RULE
 
 .expand_processed_$(subst /,-,$1)_lib:
 	@echo "Checking cargo expand --lib for $1..."
-	mkdir -p rust-bootstrap-core/ # Ensure the directory exists
-	@if [ ! -f "rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.rs" ]; then \\
+	mkdir -p ../expanded/ # Ensure the directory exists
+	@if [ ! -f "../expanded/.expand_output_$(subst /,-,$1)_lib.rs" ]; then \\
 		echo "Running cargo expand --lib for $1..."; \\
 		EXPAND_CMD="nix develop --command bash -c \"cargo expand -p $1 --lib\""; \\
-		${EXPAND_CMD} > rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.rs || true; \\
+		${EXPAND_CMD} > ../expanded/.expand_output_$(subst /,-,$1)_lib.rs || true; \\
 		# Generate metadata
-		METADATA_FILE="rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.json"; \\
-		TIMESTAMP=$(date +%s); \\
+		METADATA_FILE="../expanded/.expand_output_$(subst /,-,$1)_lib.json"; \\
+		TIMESTAMP=$(shell date +%s); \\
 		echo "{\"package_name\": \"$1\", \"target_type\": \"lib\", \"cargo_expand_command\": \"${EXPAND_CMD}\", \"timestamp\": ${TIMESTAMP}, \"flake_lock_details\": ${FLAKE_LOCK_JSON}}" > ${METADATA_FILE}; \\
 	else \\
 		echo "Expanded file for $1 (lib) is up to date."; \\
@@ -27,15 +27,15 @@ define EXPAND_RULE
 
 .expand_processed_$(subst /,-,$1)_bin:
 	@if echo "$(BINARY_PACKAGES)" | grep -w "$1" > /dev/null; then \
-		mkdir -p rust-bootstrap-core/ # Ensure the directory exists; \
+		mkdir -p ../expanded/ # Ensure the directory exists; \
 		@echo "Checking cargo expand --bin $1 for $1..."; \
-		@if [ ! -f "rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.rs" ]; then \
+		@if [ ! -f "../expanded/.expand_output_$(subst /,-,$1)_bin.rs" ]; then \
 			echo "Running cargo expand --bin $1 for $1..."; \
 			EXPAND_CMD="nix develop --command bash -c \"cargo expand -p $1 --bin $1\""; \
-			${EXPAND_CMD} > rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.rs || true; \
+			${EXPAND_CMD} > ../expanded/.expand_output_$(subst /,-,$1)_bin.rs || true; \
 			# Generate metadata
-			METADATA_FILE="rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.json"; \
-			TIMESTAMP=$(date +%s); \
+			METADATA_FILE="../expanded/.expand_output_$(subst /,-,$1)_bin.json"; \
+			TIMESTAMP=$(shell date +%s); \
 			echo "{\"package_name\": \"$1\", \"target_type\": \"bin\", \"cargo_expand_command\": \"${EXPAND_CMD}\", \"timestamp\": ${TIMESTAMP}, \"flake_lock_details\": ${FLAKE_LOCK_JSON}}" > ${METADATA_FILE}; \
 		else \
 			echo "Expanded file for $1 (bin) is up to date."; \
@@ -59,5 +59,5 @@ expand-all: $(SHEAR_STAMPS)
 clean-expand:
 	@echo "Cleaning expand processed stamps and output files..."
 	rm -f $(SHEAR_STAMPS)
-	rm -f rust-bootstrap-core/$(patsubst %,.expand_output_%_lib.rs,$(SUBST_PACKAGES))
-	rm -f rust-bootstrap-core/$(patsubst %,.expand_output_%_bin.rs,$(SUBST_PACKAGES))
+	rm -f ../expanded/.expand_output_*.rs
+	rm -f ../expanded/.expand_output_*.json
