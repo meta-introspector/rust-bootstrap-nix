@@ -18,3 +18,4 @@ syn = { version = "2.0", features = ["full", "extra-traits"] }
 prelude-generator = { path = "../prelude-generator" }
 cargo-flake-generator = { path = "../tools/cargo-flake-generator" }
 flake-template-generator = { path = "../flake-template-generator" }
+split-expanded-lib = { path = "../split-expanded-lib" }

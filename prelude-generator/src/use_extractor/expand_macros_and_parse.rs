@@ -3,11 +3,12 @@ use std::path::Path;
 use sha2::{Sha256, Digest};
 //use indoc::indoc;
 use crate::use_extractor::rustc_info::RustcInfo;
-use crate::error_collector::ErrorSample;
+use split_expanded_lib::ErrorSample;
 use chrono::Utc;
 //use tokio::io::AsyncWriteExt;
 use tokio::fs;
 use tempfile;
+
 
 pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, crate_root: &Path, manifest_path: &Path, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
     // Calculate content hash based on file_path and crate_root
@@ -121,6 +122,7 @@ pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt
 
     writer.write_all(format!("        -> Writing expanded code to cache for: {}\n", file_path.display()).as_bytes()).await?;
     // Cache the expanded code
+    tokio::fs::create_dir_all(cached_file_path.parent().unwrap()).await.context("Failed to create parent directories for cache file")?;
     tokio::fs::write(&cached_file_path, &relevant_expanded_code).await
         .with_context(|| format!("Failed to write expanded code to cache for {}", file_path.display()))?;
     writer.write_all(format!("      -> Wrote expanded code to cache: {}\n", cached_file_path.display()).as_bytes()).await?;

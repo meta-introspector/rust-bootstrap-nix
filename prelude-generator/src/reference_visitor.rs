@@ -2,7 +2,7 @@
 
 use syn::visit;
 
-use crate::declaration::{Declaration};
+use split_expanded_lib::{Declaration};
 use crate::symbol_map::SymbolMap;
 
 pub struct ReferenceVisitor<'a> {

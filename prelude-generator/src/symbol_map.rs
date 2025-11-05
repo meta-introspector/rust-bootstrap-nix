@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use anyhow::{Context, Result};
 use cargo_metadata::MetadataCommand;
-use crate::declaration::ResolvedDependency;
+use split_expanded_lib::ResolvedDependency;
 
 
 

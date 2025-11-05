@@ -1,5 +1,5 @@
 use anyhow::Context;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use std::collections::HashMap;
 use quote::quote;
 
@@ -76,7 +76,7 @@ use crate::type_extractor::TypeInfo;
     if !errors.is_empty() {
         eprintln!(r"\n--- Errors Encountered during struct processing ---");
         for error in &errors {
-            eprintln!(r"{:{}}", error);
+            eprintln!("{:?}", error);
         }
         eprintln!(r"---------------------------------------------------");
         return Err(anyhow::anyhow!("Struct processing completed with errors."));

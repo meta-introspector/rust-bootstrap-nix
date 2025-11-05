@@ -13,7 +13,7 @@ pub fn test_args_default_values() {
     assert_eq!(args.path, PathBuf::from("."));
     assert!(args.exclude_crates.is_empty());
     assert!(!args.report);
-    assert_eq!(args.results_file, PathBuf::from("prelude_processing_results.json"));
+    assert_eq!(args.results_file, Some(PathBuf::from("prelude_processing_results.json")));
     assert!(!args.cache_report);
     assert!(args.timeout.is_none());
     assert!(!args.force);
@@ -36,7 +36,7 @@ pub fn test_args_custom_values() {
     assert_eq!(args.path, PathBuf::from("/tmp/my_project"));
     assert_eq!(args.exclude_crates, vec!["crate1".to_string(), "crate2".to_string()]);
     assert!(args.report);
-    assert_eq!(args.results_file, PathBuf::from("custom_results.json"));
+    assert_eq!(args.results_file, Some(PathBuf::from("custom_results.json")));
     assert!(args.cache_report);
     assert_eq!(args.timeout, Some(60));
     assert!(args.force);

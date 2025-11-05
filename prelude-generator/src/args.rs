@@ -9,7 +9,7 @@ pub struct Args {
     #[arg(long)]
     pub dry_run: bool,
     /// The path to the workspace root.
-    #[arg(long, default_value = ".")]
+    #[arg(long)]
     pub path: PathBuf,
     /// Comma-separated list of crate names to exclude from processing.
     #[arg(long, value_delimiter = ',')]
@@ -18,8 +18,8 @@ pub struct Args {
     #[arg(long, default_value_t = false)]
     pub report: bool,
     /// Path to a file to save/load processing results.
-    #[arg(long, default_value = "prelude_processing_results.json")]
-    pub results_file: PathBuf,
+    #[arg(long)]
+    pub results_file: Option<PathBuf>,
     /// Generate a report on the prelude cache.
     #[arg(long, default_value_t = false)]
     pub cache_report: bool,
@@ -125,8 +125,8 @@ pub struct Args {
     pub analyze_bag_of_words: bool,
 
     /// Path to the output TOML file for the bag of words report. Only used if `analyze_bag_of_words` is true.
-    #[arg(long, default_value = "bag_of_words_report.toml")]
-    pub bag_of_words_output_file: PathBuf,
+    #[arg(long)]
+    pub bag_of_words_output_file: Option<PathBuf>,
 
     /// Extract and organize numerical constants into a hierarchical directory structure.
     #[arg(long, default_value_t = false)]
@@ -184,4 +184,20 @@ pub struct Args {
     /// Path to output a TOML file containing all declarations, types, modules, and crates.
     #[arg(long)]
     pub output_declarations_toml: Option<PathBuf>,
+
+    /// Analyze type usage in expressions.
+    #[arg(long, default_value_t = false)]
+    pub analyze_type_usage: bool,
+
+    /// The maximum expression depth to consider for type usage analysis. Required if `analyze_type_usage` is true.
+    #[arg(long)]
+    pub max_expression_depth: Option<usize>,
+
+    /// Path to output the leveled type usage report. Required if `analyze_type_usage` is true.
+    #[arg(long)]
+    pub output_type_usage_report: Option<PathBuf>,
+
+    /// Path to output all collected analysis data (expressions, lattices) to a TOML file.
+    #[arg(long)]
+    pub output_toml_report: Option<PathBuf>,
 }

@@ -1,0 +1,101 @@
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+source_file = "expanded_temp_test_crate.rs"
+crate_name = "unknown_crate"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = []
+span_start = [
+    2,
+    0,
+]
+span_end = [
+    3,
+    17,
+]
+attributes = []
+doc_comments = []
+
+[declarations.item]
+Other = "# [macro_use] extern crate std ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+source_file = "expanded_temp_test_crate.rs"
+crate_name = "unknown_crate"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+span_start = [
+    4,
+    0,
+]
+span_end = [
+    5,
+    31,
+]
+attributes = []
+doc_comments = []
+
+[declarations.item]
+Other = "# [prelude_import] use std :: prelude :: rust_2021 :: * ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+source_file = "expanded_temp_test_crate.rs"
+crate_name = "unknown_crate"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = ["# [prelude_import] use std :: prelude :: rust_2021 :: * ;"]
+direct_dependencies = []
+extern_crates = []
+span_start = [
+    6,
+    0,
+]
+span_end = [
+    8,
+    1,
+]
+attributes = []
+doc_comments = []
+
+[declarations.item]
+Struct = "pub struct MyStruct { pub field : u32 , }"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+source_file = "expanded_temp_test_crate.rs"
+crate_name = "unknown_crate"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = []
+span_start = [
+    9,
+    0,
+]
+span_end = [
+    11,
+    1,
+]
+attributes = []
+doc_comments = []
+
+[declarations.item]
+Fn = "pub fn my_function () -> u32 { 42 }"
+
+[types]
+
+[modules]
+
+[crates]

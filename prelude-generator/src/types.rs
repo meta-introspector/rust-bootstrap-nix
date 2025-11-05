@@ -1,6 +1,10 @@
-use serde::Serialize;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::path::PathBuf;
+use split_expanded_lib::{Declaration};
+use std::collections::HashMap;
+use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo};
+use crate::expression_info::ExpressionInfo;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub enum FileProcessingStatus {
     Success,
@@ -24,22 +28,18 @@ pub struct CollectedPreludeInfo {
     pub file_processing_results: Vec<FileProcessingResult>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct FileMetadata {
-    pub global_uses: Vec<String>,
-    pub feature_attributes: Vec<String>,
-    pub extern_crates: Vec<String>,
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CollectedProjectInfo {
+    pub declarations: Vec<Declaration>,
+    pub types: HashMap<String, split_expanded_lib::ResolvedDependency>,
+    pub modules: HashMap<String, split_expanded_lib::ResolvedDependency>,
+    pub crates: HashMap<String, split_expanded_lib::ResolvedDependency>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RustcInfo {
-    pub version: String,
-    pub host: String,
-}
-
-#[derive(Debug)]
-pub struct DeclarationExtractionArgs {
-    pub file_path: PathBuf,
-    pub rustc_info: RustcInfo,
-    pub crate_name: Option<String>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CollectedAnalysisData {
+    pub expressions: HashMap<String, ExpressionInfo>,
+    pub struct_lattices: HashMap<String, StructLatticeInfo>,
+    pub enum_lattices: HashMap<String, EnumLatticeInfo>,
+    pub impl_lattices: HashMap<String, ImplLatticeInfo>,
 }

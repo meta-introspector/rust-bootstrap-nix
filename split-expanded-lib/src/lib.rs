@@ -2,7 +2,7 @@ use anyhow::Context;
 use std::path::{PathBuf, Path};
 use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 
-use quote::quote;
+use quote::{quote, ToTokens};
 
 use std::collections::{HashSet, HashMap};
 use serde::{Serialize, Deserialize};
@@ -15,23 +15,23 @@ pub struct FileMetadata {
     pub extern_crates: HashSet<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DeclarationItem {
-    Const(ItemConst),
-    Struct(ItemStruct),
-    Enum(ItemEnum),
-    Fn(ItemFn),
-    Static(ItemStatic),
-    Macro(syn::ItemMacro),
-    Mod(syn::ItemMod),
-    Trait(syn::ItemTrait),
-    TraitAlias(syn::ItemTraitAlias),
-    Type(syn::ItemType),
-    Union(syn::ItemUnion),
-    Other(syn::Item),
+    Const(String),
+    Struct(String),
+    Enum(String),
+    Fn(String),
+    Static(String),
+    Macro(String),
+    Mod(String),
+    Trait(String),
+    TraitAlias(String),
+    Type(String),
+    Union(String),
+    Other(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Declaration {
     pub item: DeclarationItem,
     pub referenced_types: HashSet<String>,
@@ -60,6 +60,38 @@ pub struct SerializableDeclaration {
     pub required_imports: HashSet<String>,
     pub direct_dependencies: HashSet<String>,
     pub extern_crates: HashSet<String>,
+}
+
+impl From<Declaration> for SerializableDeclaration {
+    fn from(decl: Declaration) -> Self {
+        SerializableDeclaration {
+            identifier: decl.get_identifier(),
+            declaration_type: match &decl.item {
+                DeclarationItem::Const(_) => "const".to_string(),
+                DeclarationItem::Struct(_) => "struct".to_string(),
+                DeclarationItem::Enum(_) => "enum".to_string(),
+                DeclarationItem::Fn(_) => "function".to_string(),
+                DeclarationItem::Static(_) => "static".to_string(),
+                DeclarationItem::Macro(_) => "macro".to_string(),
+                DeclarationItem::Mod(_) => "module".to_string(),
+                DeclarationItem::Trait(_) => "trait".to_string(),
+                DeclarationItem::TraitAlias(_) => "trait_alias".to_string(),
+                DeclarationItem::Type(_) => "type_alias".to_string(),
+                DeclarationItem::Union(_) => "union".to_string(),
+                DeclarationItem::Other(_) => "other".to_string(),
+            },
+            referenced_types: decl.referenced_types,
+            referenced_functions: decl.referenced_functions,
+            external_identifiers: decl.external_identifiers,
+            source_file: decl.source_file,
+            crate_name: decl.crate_name,
+            resolved_dependencies: decl.resolved_dependencies,
+            is_proc_macro: decl.is_proc_macro,
+            required_imports: decl.required_imports,
+            direct_dependencies: decl.direct_dependencies,
+            extern_crates: decl.extern_crates,
+        }
+    }
 }
 
 impl Declaration {
@@ -91,20 +123,33 @@ impl Declaration {
 
     pub fn get_identifier(&self) -> String {
         match &self.item {
-            DeclarationItem::Const(item_const) => item_const.ident.to_string(),
-            DeclarationItem::Struct(item_struct) => item_struct.ident.to_string(),
-            DeclarationItem::Enum(item_enum) => item_enum.ident.to_string(),
-            DeclarationItem::Fn(item_fn) => item_fn.sig.ident.to_string(),
-            DeclarationItem::Static(item_static) => item_static.ident.to_string(),
-            DeclarationItem::Macro(item_macro) => item_macro.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string()),
-            DeclarationItem::Mod(item_mod) => item_mod.ident.to_string(),
-            DeclarationItem::Trait(item_trait) => item_trait.ident.to_string(),
-            DeclarationItem::TraitAlias(item_trait_alias) => item_trait_alias.ident.to_string(),
-            DeclarationItem::Type(item_type) => item_type.ident.to_string(),
-            DeclarationItem::Union(item_union) => item_union.ident.to_string(),
-            DeclarationItem::Other(_) => {
-                "unknown_declaration".to_string()
-            }
+            DeclarationItem::Const(s) => syn::parse_str::<ItemConst>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_const".to_string()),
+            DeclarationItem::Struct(s) => syn::parse_str::<ItemStruct>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_struct".to_string()),
+            DeclarationItem::Enum(s) => syn::parse_str::<ItemEnum>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_enum".to_string()),
+            DeclarationItem::Fn(s) => syn::parse_str::<ItemFn>(s).map(|item| item.sig.ident.to_string()).unwrap_or_else(|_| "unknown_fn".to_string()),
+            DeclarationItem::Static(s) => syn::parse_str::<ItemStatic>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_static".to_string()),
+            DeclarationItem::Macro(s) => syn::parse_str::<syn::ItemMacro>(s).map(|item| item.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string())).unwrap_or_else(|_| "unknown_macro".to_string()),
+            DeclarationItem::Mod(s) => syn::parse_str::<syn::ItemMod>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_mod".to_string()),
+            DeclarationItem::Trait(s) => syn::parse_str::<syn::ItemTrait>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait".to_string()),
+            DeclarationItem::TraitAlias(s) => syn::parse_str::<syn::ItemTraitAlias>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait_alias".to_string()),
+            DeclarationItem::Type(s) => syn::parse_str::<syn::ItemType>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_type".to_string()),
+            DeclarationItem::Union(s) => syn::parse_str::<syn::ItemUnion>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_union".to_string()),
+            DeclarationItem::Other(s) => syn::parse_str::<syn::Item>(s).map(|item| {
+                match item {
+                    syn::Item::Const(item_const) => item_const.ident.to_string(),
+                    syn::Item::Enum(item_enum) => item_enum.ident.to_string(),
+                    syn::Item::Fn(item_fn) => item_fn.sig.ident.to_string(),
+                    syn::Item::Macro(item_macro) => item_macro.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string()),
+                    syn::Item::Mod(item_mod) => item_mod.ident.to_string(),
+                    syn::Item::Static(item_static) => item_static.ident.to_string(),
+                    syn::Item::Struct(item_struct) => item_struct.ident.to_string(),
+                    syn::Item::Trait(item_trait) => item_trait.ident.to_string(),
+                    syn::Item::TraitAlias(item_trait_alias) => item_trait_alias.ident.to_string(),
+                    syn::Item::Type(item_type) => item_type.ident.to_string(),
+                    syn::Item::Union(item_union) => item_union.ident.to_string(),
+                    _ => "unknown_other_item".to_string(),
+                }
+            }).unwrap_or_else(|_| "unknown_other_item".to_string()),
         }
     }
 }
@@ -125,6 +170,44 @@ pub struct ErrorSample {
 pub struct RustcInfo {
     pub version: String,
     pub host: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolvedDependency {
+    pub id: String,
+    pub dependency_type: String,
+    pub crate_name: String,
+    pub module_path: String,
+    pub usage_count: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct ErrorCollection {
+    pub errors: Vec<ErrorSample>,
+}
+
+impl ErrorCollection {
+    pub fn new() -> Self {
+        ErrorCollection {
+            errors: Vec::new(),
+        }
+    }
+
+    pub fn add_error(&mut self, error: ErrorSample) {
+        self.errors.push(error);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.errors.is_empty()
+    }
+
+    pub async fn write_to_file(&self, path: &Path) -> anyhow::Result<()> {
+        let json_content = serde_json::to_string_pretty(&self.errors)
+            .context("Failed to serialize error collection to JSON")?;
+        tokio::fs::write(path, json_content).await
+            .context(format!("Failed to write error collection to file: {:?}", path))?;
+        Ok(())
+    }
 }
 
 struct DependencyVisitor {
@@ -255,7 +338,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_const(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Const(i.clone()),
+            DeclarationItem::Const(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -285,7 +368,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_struct(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Struct(i.clone()),
+            DeclarationItem::Struct(i.to_token_stream().to_string()),
             referenced_types,
             HashSet::new(),
             HashSet::new(),
@@ -311,7 +394,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_enum(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Enum(i.clone()),
+            DeclarationItem::Enum(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -375,7 +458,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_fn(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Fn(i.clone()),
+            DeclarationItem::Fn(i.to_token_stream().to_string()),
             referenced_types,
             referenced_functions,
             HashSet::new(),
@@ -398,7 +481,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_static(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Static(i.clone()),
+            DeclarationItem::Static(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -423,7 +506,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         dependency_visitor.visit_item_macro(i);
 
         let decl = Declaration::new(
-            DeclarationItem::Macro(i.clone()),
+            DeclarationItem::Macro(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -453,7 +536,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
         // Create a Declaration for the module itself
         let decl = Declaration::new(
-            DeclarationItem::Mod(i.clone()),
+            DeclarationItem::Mod(i.to_token_stream().to_string()),
             HashSet::new(), // referenced_types (not directly applicable to module itself)
             HashSet::new(), // referenced_functions (not directly applicable to module itself)
             HashSet::new(),
@@ -486,7 +569,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         }
 
         let decl = Declaration::new(
-            DeclarationItem::Trait(i.clone()),
+            DeclarationItem::Trait(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -505,7 +588,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
     fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
         let decl = Declaration::new(
-            DeclarationItem::TraitAlias(i.clone()),
+            DeclarationItem::TraitAlias(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -522,7 +605,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
         let decl = Declaration::new(
-            DeclarationItem::Type(i.clone()),
+            DeclarationItem::Type(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -539,7 +622,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
     fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
         let decl = Declaration::new(
-            DeclarationItem::Union(i.clone()),
+            DeclarationItem::Union(i.to_token_stream().to_string()),
             HashSet::new(),
             HashSet::new(),
             HashSet::new(),
@@ -555,7 +638,20 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item(&mut self, i: &'ast syn::Item) {
-        syn::visit::visit_item(self, i);
+        let decl = Declaration::new(
+            DeclarationItem::Other(i.to_token_stream().to_string()),
+            HashSet::new(),
+            HashSet::new(),
+            HashSet::new(),
+            self.source_file.clone(),
+            self.crate_name.clone(),
+            false,
+            HashSet::new(),
+            self.file_extern_crates.clone(),
+        );
+        let identifier = decl.get_identifier();
+        self.declarations.insert(identifier, decl);
+        self.other_item_count += 1;
     }
 }
 

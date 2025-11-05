@@ -1,4 +1,4 @@
-use crate::declaration::{Declaration, ResolvedDependency};
+use split_expanded_lib::{Declaration, ResolvedDependency};
 
 
 #[derive(Debug)]

@@ -2,8 +2,9 @@ use clap::Parser;
 use anyhow::Context;
 use std::path::PathBuf;
 use std::fs;
-use prelude_generator::{extract_declarations_for_composer, RustcInfo, Declaration, FileMetadata, ErrorCollection};
-use quote::quote;
+use split_expanded_lib::{Declaration, RustcInfo, FileMetadata, ErrorSample};
+use prelude_generator::declaration_processing::extract_declarations::extract_all_declarations_from_file;
+use quote::ToTokens;
 use walkdir::WalkDir;
 
 mod project_generator;
@@ -78,18 +79,18 @@ async fn main() -> anyhow::Result<()> {
                 .context(format!("Failed to write flake.nix for project {}", project_name))?;
 
             // Extract declarations using split-expanded-lib
-            let extraction_args = prelude_generator::DeclarationExtractionArgs {
-                file_path: file_path.to_path_buf(),
-                rustc_info: rustc_info.clone(),
-                crate_name: Some(project_name.clone()),
-            };
-            let (declarations, errors, file_metadata) = prelude_generator::extract_declarations_for_composer(
-                extraction_args,
+            let (declarations, _symbol_map, errors, file_metadata) = extract_all_declarations_from_file(
+                &file_path,
+                &PathBuf::new(), // output_dir is not directly used by new function
+                false, // dry_run is not directly used by new function
+                0, // verbose level
+                &rustc_info,
+                &project_name,
             ).await?;
 
-            if !errors.errors.is_empty() {
+            if !errors.is_empty() {
                 eprintln!("Errors encountered during parsing for {}:", file_path.display());
-                for error in errors.errors {
+                for error in errors {
                     eprintln!("  File: {}", error.file_path.display());
                     eprintln!("  Error Type: {}", error.error_type);
                     eprintln!("  Message: {}", error.error_message);
@@ -110,7 +111,7 @@ async fn main() -> anyhow::Result<()> {
 
                 // Add necessary global use statements for the generated file
                 file_content.push_str("use std::collections::HashSet;\n");
-                file_content.push_str("use prelude_generator::{DeclarationItem};\n"); // Assuming DeclarationItem is always needed
+                file_content.push_str("use split_expanded_lib::{DeclarationItem};\n"); // Assuming DeclarationItem is always needed
 
                 // Add use statements from resolved_dependencies
                 for dep in &declaration.resolved_dependencies {
@@ -120,18 +121,18 @@ async fn main() -> anyhow::Result<()> {
 
                 // Add the declaration item
                 let item_token_stream = match &declaration.item {
-                    prelude_generator::declaration::DeclarationItem::Const(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Struct(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Enum(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Fn(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Static(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Macro(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Mod(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Trait(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::TraitAlias(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Type(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Union(item) => quote! { #item },
-                    prelude_generator::declaration::DeclarationItem::Other(item) => quote! { #item },
+                    split_expanded_lib::DeclarationItem::Const(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Struct(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Enum(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Fn(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Static(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Macro(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Mod(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Trait(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::TraitAlias(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Type(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Union(item) => item.to_token_stream(),
+                    split_expanded_lib::DeclarationItem::Other(item) => item.to_token_stream(),
                 };
                 file_content.push_str(&item_token_stream.to_string());
 

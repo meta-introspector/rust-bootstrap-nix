@@ -3,26 +3,23 @@ use std::path::{PathBuf};
 use std::fs;
 
 use crate::Args;
-use crate::error_collector::ErrorCollection;
-use crate::decls_visitor::DeclsVisitor;
+use split_expanded_lib::ErrorCollection;
+use split_expanded_lib::{Declaration, RustcInfo, extract_declarations_from_single_file};
 use crate::gem_parser::GemConfig;
-use syn::parse_file;
 use toml;
-use crate::declaration::{Declaration, SerializableDeclaration};
+use split_expanded_lib::SerializableDeclaration;
 use crate::validation::{DeclarationValidator, DependencyValidator};
 use crate::symbol_map::SymbolMap;
 use crate::reference_visitor::ReferenceVisitor;
-
-
 
 pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
     println!("Running split-expanded-bin functionality...");
 
     let files_to_process = args.split_expanded_files.clone(); // This is already a Vec<PathBuf>
     let project_root = args.split_expanded_project_root.clone().unwrap_or_else(|| PathBuf::from("generated_workspace"));
-    let _rustc_version = args.split_expanded_rustc_version.clone().unwrap_or_else(|| "1.89.0".to_string());
-    let _rustc_host = args.split_expanded_rustc_host.clone().unwrap_or_else(|| "aarch64-unknown-linux-gnu".to_string());
-    let _verbose = args.verbose;
+    let rustc_version = args.split_expanded_rustc_version.clone().unwrap_or_else(|| "1.89.0".to_string());
+    let rustc_host = args.split_expanded_rustc_host.clone().unwrap_or_else(|| "aarch64-unknown-linux-gnu".to_string());
+    let verbose = args.verbose;
     let _output_global_toml = args.split_expanded_output_global_toml.clone();
     let _output_symbol_map = args.output_symbol_map.clone();
 
@@ -31,83 +28,82 @@ pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
     }
     fs::create_dir_all(&project_root).context(format!("Failed to create project root: {:?}", project_root))?;
 
-            let error_collection = ErrorCollection::default();
-            let gem_config = GemConfig::load_from_file(&PathBuf::from("gems.toml"))?;
-            let mut all_declarations: Vec<Declaration> = Vec::new();
-            let dependency_validator = DependencyValidator;
-    
-            let mut symbol_map = SymbolMap::new();
-            // Populate symbol_map with built-ins from gems.toml
-            for gem_entry in &gem_config.gem {
-                for identifier in &gem_entry.identifiers {
-                    symbol_map.add_declaration(
-                        identifier.clone(),
-                        "builtin".to_string(),
-                        gem_entry.crate_name.clone(),
-                        gem_entry.crate_name.clone(),
-                    );
-                }
-            }
-    
-            // Populate symbol_map with initial cargo metadata if needed, or leave empty for incremental build
-            symbol_map.populate_from_cargo_metadata(&project_root)?;
+    let mut error_collection = ErrorCollection::default();
+    let gem_config = GemConfig::load_from_file(&PathBuf::from("gems.toml"))?;
+    let mut all_declarations: Vec<Declaration> = Vec::new();
+    let dependency_validator = DependencyValidator;
+
+    let mut symbol_map = SymbolMap::new();
+    // Populate symbol_map with built-ins from gems.toml
+    for gem_entry in &gem_config.gem {
+        for identifier in &gem_entry.identifiers {
+            symbol_map.add_declaration(
+                identifier.clone(),
+                "builtin".to_string(),
+                gem_entry.crate_name.clone(),
+                gem_entry.crate_name.clone(),
+            );
+        }
+    }
+
+    // Populate symbol_map with initial cargo metadata if needed, or leave empty for incremental build
+    symbol_map.populate_from_cargo_metadata(&project_root)?;
     if files_to_process.is_empty() {
         println!("No expanded files provided for processing.");
         return Ok(());
     }
 
+    let rustc_info = RustcInfo { version: rustc_version, host: rustc_host };
+
+    let mut parsed_files: Vec<(PathBuf, syn::File)> = Vec::new();
+
     // --- Pass 1: Collect Declarations ---
     println!("\n--- Pass 1: Collecting Declarations ---");
     for file_path in &files_to_process {
         println!("Processing file for declarations: {:?}", file_path);
-        let file_content = fs::read_to_string(&file_path)
-            .context(format!("Failed to read file: {:?}", file_path))?;
-
-        let file = match parse_file(&file_content) {
-            Ok(file) => file,
-            Err(e) => {
-                eprintln!("Warning: Could not parse file {}: {}", file_path.display(), e);
-                continue;
-            }
-        };
 
         let current_crate_name = project_root.file_name().and_then(|s| s.to_str()).unwrap_or("unknown_crate").to_string();
-        let current_module_path = file_path.strip_prefix(&project_root).unwrap_or(&file_path).with_extension("").to_str().unwrap_or("unknown_module").to_string().replace("/", "::");
 
-        let mut visitor = DeclsVisitor::new(
-            Some(file_path.clone()),
-            current_crate_name.clone(),
-            current_module_path.clone(),
-            &mut symbol_map,
-            args.verbose,
-        );
-        syn::visit::Visit::visit_file(&mut visitor, &file);
-
-        for decl in visitor.declarations {
-            match dependency_validator.validate(&decl) {
-                Ok(_) => all_declarations.push(decl),
-                Err(e) => {
-                    eprintln!("Validation Error for declaration {:?}: {:?}", decl.get_identifier(), e);
-                    // Depending on desired behavior, you might want to stop here or collect errors
+        match extract_declarations_from_single_file(
+            file_path,
+            &rustc_info,
+            &current_crate_name,
+            verbose,
+        ).await {
+            Ok((declarations, errors, _file_metadata)) => {
+                // Store the parsed file for Pass 2 if parsing was successful
+                let file_content = fs::read_to_string(&file_path)
+                    .context(format!("Failed to read file: {:?}", file_path))?;
+                match syn::parse_file(&file_content) {
+                    Ok(file) => parsed_files.push((file_path.clone(), file)),
+                    Err(e) => {
+                        eprintln!("Warning: Could not re-parse file for Pass 2 {}: {}", file_path.display(), e);
+                        // Collect this error as well if needed
+                    }
                 }
+
+                for decl in declarations {
+                    match dependency_validator.validate(&decl) {
+                        Ok(_) => all_declarations.push(decl),
+                        Err(e) => {
+                            eprintln!("Validation Error for declaration {:?}: {:?}", decl.get_identifier(), e);
+                            // Depending on desired behavior, you might want to stop here or collect errors
+                        }
+                    }
+                }
+                error_collection.errors.extend(errors);
+            },
+            Err(e) => {
+                eprintln!("Error extracting declarations from file {:?}: {}", file_path, e);
+                // Collect this error as well if needed
             }
         }
     }
 
     // --- Pass 2: Resolve References ---
     println!("\n--- Pass 2: Resolving References ---");
-    for file_path in &files_to_process {
+    for (file_path, file) in parsed_files {
         println!("Processing file for references: {:?}", file_path);
-        let file_content = fs::read_to_string(&file_path)
-            .context(format!("Failed to read file: {:?}", file_path))?;
-
-        let file = match parse_file(&file_content) {
-            Ok(file) => file,
-            Err(e) => {
-                eprintln!("Warning: Could not parse file {}: {}", file_path.display(), e);
-                continue;
-            }
-        };
 
         let current_crate_name = project_root.file_name().and_then(|s| s.to_str()).unwrap_or("unknown_crate").to_string();
         let current_module_path = file_path.strip_prefix(&project_root).unwrap_or(&file_path).with_extension("").to_str().unwrap_or("unknown_module").to_string().replace("/", "::");

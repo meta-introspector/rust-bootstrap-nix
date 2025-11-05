@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use syn::{self, visit::Visit};
 use crate::{constant_storage, BagOfWordsVisitor, config_parser, pipeline, type_extractor};
 
-pub mod split_expanded_bin_handler;
 pub mod decl_splitter_handler;
-pub use split_expanded_bin_handler::handle_split_expanded_bin;
+pub use crate::split_expanded_bin_handler::handle_split_expanded_bin;
 pub use decl_splitter_handler::handle_run_decl_splitter;
 
 pub fn handle_analyze_ast(_args: &crate::Args) -> anyhow::Result<()> {
@@ -115,7 +114,7 @@ pub fn handle_analyze_bag_of_words(
     let project_root = if args.path == PathBuf::from(".") {
         std::env::current_dir()?.parent().unwrap().to_path_buf()
     } else {
-        args.path.clone()
+        PathBuf::from(&args.path)
     };
 
     let mut bag_of_words_visitor = BagOfWordsVisitor::new();

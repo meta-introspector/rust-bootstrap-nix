@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 // Lazy static regex for splitting identifiers
 static RE_SPLIT_IDENT: Lazy<Regex> = Lazy::new(|| {
     // Splits on non-alphanumeric, or camelCase transitions, or leading/trailing underscores
-    Regex::new(r"[^a-zA-Z0-9]+|(?<=[a-z])(?=[A-Z])|^_|_$").unwrap()
+    Regex::new(r"[^a-zA-Z0-9_]+").unwrap()
 });
 
 pub fn tokenize_ident_to_subwords(ident_str: &str) -> Vec<String> {

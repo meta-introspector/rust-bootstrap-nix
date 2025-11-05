@@ -1,0 +1,13 @@
+feat(prelude-generator): Implement symbol mapping and declaration layering
+
+This commit introduces significant enhancements to the prelude-generator:
+
+- **SymbolMap Integration:** Integrated a new `SymbolMap` to track and resolve Rust symbols across the codebase. This map is used by the `DeclsVisitor` to populate symbol information.
+- **Declaration Layering:** Added a `layer_declarations` function to organize declarations based on their dependencies, enabling a layered processing approach.
+- **New Data Structures:** Introduced `ResolvedDependency`, `DeclarationItem`, and `Declaration` structs to comprehensively represent parsed code elements and their interdependencies.
+- **Reference Visitor:** Implemented `ReferenceVisitor` to traverse the AST, identify function calls and type references, and update the `SymbolMap` with usage counts.
+- **Rust Language Symbols:** Added `rust_lang_symbols.rs` to provide a baseline set of common Rust primitive types, standard library types/modules, and macros for initial `SymbolMap` population.
+- **Validation Framework:** Introduced a basic validation framework with `ValidationError` and `DeclarationValidator` trait, though the `DependencyValidator`'s logic is currently a placeholder.
+- **New Task File:** Added `tasks/00_00_recreate_rust_compiler_with_lattice.toml` for a new task related to compiler recreation.
+
+These changes lay the groundwork for a more detailed understanding and analysis of Rust code structure and dependencies.

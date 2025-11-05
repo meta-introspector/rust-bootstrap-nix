@@ -117,7 +117,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             // Construct the command to execute hf-validator
             let hf_validator_executable = self.hf_validator_path.clone().unwrap_or_else(|| {
                 // Fallback to default if not provided in config.toml, assuming release build
-                self.args.path.join("target/release/hf-validator")
+                PathBuf::from(&self.args.path).join("target/release/hf-validator")
             });
 
             writer.write_all(format!("  -> Executing hf-validator: {:#?}\n", hf_validator_executable).as_bytes()).await?;

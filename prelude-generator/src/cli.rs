@@ -15,7 +15,7 @@ pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     let project_root = if args.path == PathBuf::from(".") {
         std::env::current_dir()?.parent().unwrap().to_path_buf()
     } else {
-        args.path.clone()
+        PathBuf::from(&args.path)
     };
 
 
