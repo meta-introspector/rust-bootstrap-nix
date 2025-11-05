@@ -1,6 +1,6 @@
 ## Revisit Nix Update Tasks
 
-**Status:** Pending
+Status: TODO
 
 **Description:** The Nix update tasks (`update-all-flakes` and `update-flake-lock`) were added to the Makefile but were not fully integrated due to scope constraints. Revisit these tasks to ensure they are correctly implemented and functional within the project's Nix workflow.
 

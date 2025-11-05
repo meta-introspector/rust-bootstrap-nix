@@ -1276,6 +1276,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "split-expanded-bin"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "quote",
+ "split-expanded-lib",
+ "tokio",
+]
+
+[[package]]
 name = "split-expanded-lib"
 version = "0.1.0"
 dependencies = [
@@ -1315,6 +1327,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "syn-usage-collector"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "prelude-generator",
+ "quote",
+ "serde",
+ "serde_json",
+ "split-expanded-lib",
+ "syn",
+ "tokio",
+ "walkdir",
 ]
 
 [[package]]

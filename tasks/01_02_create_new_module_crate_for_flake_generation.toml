@@ -1,6 +1,6 @@
 title = "Create New Module/Crate for Flake Generation"
 description = "Decoupled the identified flake generation logic into a dedicated Rust module/crate named `cargo-flake-generator` located at `tools/cargo-flake-generator/`. A basic `Cargo.toml` and `src/lib.rs` have been created."
-status = "completed"
+status = "DONE"
 created_at = "2025-11-01T12:00:00Z"
 parent_task = "01_flake_lattice_plan.toml"
 stage_id = 1

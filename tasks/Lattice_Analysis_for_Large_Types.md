@@ -54,7 +54,7 @@ Functions, especially those with many parameters or complex return types, can al
 
 `impl` blocks, particularly for large structs or enums, can form a lattice of functions:
 *   **Nodes**: Individual methods or associated functions within the `impl` block.
-*   **Edges**: Dependencies between these methods (e.g., one method calling another), or shared access to the fields/variants of the implemented type.
+*   **Edges**: Dependencies between these methods (e.g., one method calling another), or shared access to the fields/variants of the implemented type. Even the `impl` blocks can form a lattice of functions that may have more or less dependencies, splitting the larger structure.
 
 **Analysis Focus**:
 *   **Method Co-occurrence**: Identify groups of methods that are frequently called together or operate on the same subset of the type's data.

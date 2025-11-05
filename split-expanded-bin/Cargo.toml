@@ -1,0 +1,12 @@
+[package]
+name = "split-expanded-bin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+split-expanded-lib = { path = "../split-expanded-lib" }
+clap = { version = "4.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+quote = "1.0"

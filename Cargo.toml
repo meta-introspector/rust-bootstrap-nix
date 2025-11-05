@@ -11,6 +11,8 @@ members = [
     "prelude-generator",
 #    "prelude-generator/generated_test_runner",
     "rust-system-composer",
+    "split-expanded-lib",
+    "split-expanded-bin",
     "standalonex/min_test_project",
 #    "standalonex/src",
 #    "standalonex/src/bootstrap",
@@ -47,5 +49,5 @@ members = [
     # "vendor/rarrow/others/echo/crates/rmg-ffi",
     # "vendor/rarrow/others/echo/crates/rmg-wasm",
     # "vendor/rust/hugging-face-dataset-validator-rust",
-    "monadic-io-traits", "tools/task-graph-analyzer", "tools/workspace-generator",
+    "monadic-io-traits", "tools/task-graph-analyzer", "tools/workspace-generator", "syn-usage-collector",
 ]

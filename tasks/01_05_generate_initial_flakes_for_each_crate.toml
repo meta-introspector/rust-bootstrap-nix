@@ -1,6 +1,6 @@
 title = "Generate Initial Flakes for Each Crate"
 description = "For each discovered Cargo crate, used the newly developed flake generator module to create a basic Nix flake (e.g., `flake.nix` and `flake.lock`). This step is now completed."
-status = "completed"
+status = "DONE"
 created_at = "2025-11-01T12:00:00Z"
 parent_task = "01_flake_lattice_plan.toml"
 stage_id = 2
