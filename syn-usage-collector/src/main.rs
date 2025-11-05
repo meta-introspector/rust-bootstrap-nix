@@ -1,7 +1,6 @@
 use anyhow::Result;
 use walkdir::WalkDir;
 use std::fs;
-use syn::File;
 use syn_usage_collector::TypeUsageCollector;
 
 fn main() -> Result<()> {
@@ -12,7 +11,13 @@ fn main() -> Result<()> {
         if path.is_file() && path.extension().map_or(false, |ext| ext == "rs") {
             println!("Processing file: {}", path.display());
             let content = fs::read_to_string(path)?;
-            let ast = syn::parse_file(&content)?;
+            let ast = match syn::parse_file(&content) {
+                Ok(file) => file,
+                Err(e) => {
+                    eprintln!("Error parsing file {}: {}", path.display(), e);
+                    continue;
+                }
+            };
             let collector = syn_usage_collector::analyze_file(&ast)?;
             all_collected_types.all_types.extend(collector.all_types);
         }

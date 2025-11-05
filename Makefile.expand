@@ -2,78 +2,49 @@
 
 #cargo expand --verbose --manifest-path ./bootstrap-config-builder/Cargo.toml --lib
 
-PACKAGES := \
-    ast-decoder \
-    bootstrap-config-builder \
-    bootstrap-config-generator \
-    bootstrap-config-macros \
-    bootstrap-config-processor \
-    bootstrap-config-types \
-    bootstrap-config-utils \
-    bootstrap-macros \
-    bootstrap-test-utils \
-    build_helper \
-    cargo-flake-generator \
-    category_theory \
-    CatDB \
-    config_core \
-    config_macros \
-    config_tests \
-    configuration-nix \
-    dependency-analyzer \
-    flake-orchestrator \
-    flake-step-manager \
-    flake-template-generator \
-    generated-test-runner \
-    hf-dataset-validator \
-    hf_dataset_validator \
-    hf-validator \
-    metrics-reporter \
-    min_test_project \
-    nix-dir \
-    pipeline-traits \
-    prelude-collector \
-    prelude-generator \
-    rarrow \
-    rmg-cli \
-    rmg-core \
-    rmg-ffi \
-    rmg-wasm \
-    rust-decl-splitter \
-    rust-system-composer \
-    stage0_parser_crate \
-    temp_hf_project \
-    test-bootstrap \
-    test-openssl-sys \
-    test_definitions_lib \
-    test_definitions_macro \
-    test_definitions_test \
-    aho-corasick-wrapper
+$(eval $(shell ./scripts/generate_package_lists.sh))
 
-BINARY_PACKAGES := configuration-nix metrics-reporter rust-decl-splitter bootstrap-config-generator cargo-flake-generator config_tests dependency-analyzer flake-orchestrator flake-step-manager flake-template-generator nix-dir prelude-generator rust-system-composer test-bootstrap test-openssl-sys test_definitions_test
+FLAKE_LOCK_JSON := "$(shell jq -c . flake.lock)"
 
 define EXPAND_RULE
+
 .expand_processed_$(subst /,-,$1)_lib:
 	@echo "Checking cargo expand --lib for $1..."
-	mkdir -p ../generated/ # Ensure the directory exists
-	@if [ ! -f "../generated/.expand_output_$(subst /,-,$1)_lib.rs" ]; then \
-		echo "Running cargo expand --lib for $1..."; \
-		nix develop --command bash -c "cargo expand -p $1 --lib > ../generated/.expand_output_$(subst /,-,$1)_lib.rs" || true; \
-	else \
-		echo "Expanded file for $1 (lib) is up to date."; \
+	mkdir -p rust-bootstrap-core/ # Ensure the directory exists
+	@if [ ! -f "rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.rs" ]; then \\
+		echo "Running cargo expand --lib for $1..."; \\
+		EXPAND_CMD="nix develop --command bash -c \"cargo expand -p $1 --lib\""; \\
+		${EXPAND_CMD} > rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.rs || true; \\
+		# Generate metadata
+		METADATA_FILE="rust-bootstrap-core/.expand_output_$(subst /,-,$1)_lib.json"; \\
+		TIMESTAMP=$(date +%s); \\
+		echo "{\"package_name\": \"$1\", \"target_type\": \"lib\", \"cargo_expand_command\": \"${EXPAND_CMD}\", \"timestamp\": ${TIMESTAMP}, \"flake_lock_details\": ${FLAKE_LOCK_JSON}}" > ${METADATA_FILE}; \\
+	else \\
+		echo "Expanded file for $1 (lib) is up to date."; \\
 	fi
 	@touch .expand_processed_$(subst /,-,$1)_lib
 
+
 .expand_processed_$(subst /,-,$1)_bin:
-	@echo "Checking cargo expand --bin $1 for $1..."
-	mkdir -p ../generated/ # Ensure the directory exists
-	@if [ ! -f "../generated/.expand_output_$(subst /,-,$1)_bin.rs" ]; then \
-		echo "Running cargo expand --bin $1 for $1..."; \
-		nix develop --command bash -c "cargo expand -p $1 --bin $1 > ../generated/.expand_output_$(subst /,-,$1)_bin.rs" || true; \
+	@if echo "$(BINARY_PACKAGES)" | grep -w "$1" > /dev/null; then \
+		mkdir -p rust-bootstrap-core/ # Ensure the directory exists; \
+		@echo "Checking cargo expand --bin $1 for $1..."; \
+		@if [ ! -f "rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.rs" ]; then \
+			echo "Running cargo expand --bin $1 for $1..."; \
+			EXPAND_CMD="nix develop --command bash -c \"cargo expand -p $1 --bin $1\""; \
+			${EXPAND_CMD} > rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.rs || true; \
+			# Generate metadata
+			METADATA_FILE="rust-bootstrap-core/.expand_output_$(subst /,-,$1)_bin.json"; \
+			TIMESTAMP=$(date +%s); \
+			echo "{\"package_name\": \"$1\", \"target_type\": \"bin\", \"cargo_expand_command\": \"${EXPAND_CMD}\", \"timestamp\": ${TIMESTAMP}, \"flake_lock_details\": ${FLAKE_LOCK_JSON}}" > ${METADATA_FILE}; \
+		else \
+			echo "Expanded file for $1 (bin) is up to date."; \
+		fi; \
+		@touch .expand_processed_$(subst /,-,$1)_bin; \
 	else \
-		echo "Expanded file for $1 (bin) is up to date."; \
+		@echo "Skipping binary expansion for $1: Not in BINARY_PACKAGES."; \
+		@touch .expand_processed_$(subst /,-,$1)_bin; \
 	fi
-	@touch .expand_processed_$(subst /,-,$1)_bin
 endef
 
 $(foreach package,$(PACKAGES),$(eval $(call EXPAND_RULE,$(package))))
@@ -88,5 +59,5 @@ expand-all: $(SHEAR_STAMPS)
 clean-expand:
 	@echo "Cleaning expand processed stamps and output files..."
 	rm -f $(SHEAR_STAMPS)
-	rm -f ../generated/$(patsubst %,.expand_output_%_lib.rs,$(SUBST_PACKAGES))
-	rm -f ../generated/$(patsubst %,.expand_output_%_bin.rs,$(SUBST_PACKAGES))
+	rm -f rust-bootstrap-core/$(patsubst %,.expand_output_%_lib.rs,$(SUBST_PACKAGES))
+	rm -f rust-bootstrap-core/$(patsubst %,.expand_output_%_bin.rs,$(SUBST_PACKAGES))

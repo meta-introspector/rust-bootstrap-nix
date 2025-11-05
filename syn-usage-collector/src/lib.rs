@@ -1,4 +1,4 @@
-use syn::{visit::{self, Visit}, File, Ident, Type, Path};
+use syn::{visit::{self, Visit}, File, Type};
 use std::collections::{HashMap, HashSet};
 use anyhow::Result;
 
