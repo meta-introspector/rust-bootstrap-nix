@@ -6,3 +6,16 @@ parent_task = "01_flake_lattice_plan.toml"
 stage_id = 3
 step_id = "3.1"
 name = "Analyze Crate Dependencies"
+related_files = [
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "split-expanded-bin/src/main.rs",
+    "split-expanded-bin/Cargo.toml",
+]

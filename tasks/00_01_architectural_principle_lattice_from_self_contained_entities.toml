@@ -6,3 +6,22 @@ parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 0
 step_id = "VISION_01"
 name = "Lattice from Self-Contained Entities"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "scripts/generate_package_lists.sh",
+]

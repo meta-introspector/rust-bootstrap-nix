@@ -6,3 +6,15 @@ parent_task = "06_20_sub_lattice_of_large_types.toml"
 stage_id = 0
 step_id = "LT_21"
 name = "Analyze Enum Extension Lattice"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+    "Cargo.lock",
+    "Cargo.toml",
+]

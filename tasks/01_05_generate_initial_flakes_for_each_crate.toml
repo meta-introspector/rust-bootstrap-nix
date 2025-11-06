@@ -6,3 +6,9 @@ parent_task = "01_flake_lattice_plan.toml"
 stage_id = 2
 step_id = "2.2"
 name = "Generate Initial Flakes for Each Crate"
+related_files = [
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+]

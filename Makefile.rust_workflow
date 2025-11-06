@@ -1,3 +1,4 @@
+#-*-Makefile-*-
 SHELL := /usr/bin/env bash
 
 .PHONY: all deps-all expand-all split-all clean
@@ -24,7 +25,8 @@ expand-all: $(METADATA_FILE)
 		--clean \
 		--rustc-version "1.89.0" \
 		--rustc-host "aarch64-unknown-linux-gnu" \
-		--project-root $(PROJECT_ROOT)
+		--project-root $(PROJECT_ROOT) \
+		--layer 0
 
 # --- Split and Organize Declarations (using split-expanded-bin) ---
 split-all: expand-all
@@ -34,7 +36,10 @@ split-all: expand-all
 		--project-root $(PROJECT_ROOT) \
 		--rustc-version "1.89.0" \
 		--rustc-host "aarch64-unknown-linux-gnu" \
-		--verbosity 1
+		--verbosity 1 \
+		--layer 0 \
+		--layer 0 \
+		--layer 0
 
 # --- All Workflow ---
 all: deps-all expand-all split-all

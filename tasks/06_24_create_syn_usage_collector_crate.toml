@@ -10,3 +10,10 @@ parent_task = "06_19_extract_syn_usage_into_syn_lattice.toml"
 stage_id = 0
 step_id = "LT_24"
 name = "Create syn-usage-collector Crate"
+related_files = [
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+]

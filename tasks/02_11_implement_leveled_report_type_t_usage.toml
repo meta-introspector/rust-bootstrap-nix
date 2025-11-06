@@ -10,3 +10,15 @@ parent_task = "02_10_implement_layered_usage_reporting.toml"
 stage_id = 1
 step_id = "1.2"
 name = "Leveled Report for Type T Usage"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+    "Cargo.lock",
+    "Cargo.toml",
+]

@@ -10,3 +10,8 @@ parent_task = "01_flake_lattice_plan.toml"
 stage_id = 2
 step_id = "2.1"
 name = "Discover All Cargo Crates in Current Repository"
+related_files = [
+    "Cargo.lock",
+    "Cargo.toml",
+    "scripts/generate_package_lists.sh",
+]

@@ -15,3 +15,17 @@ parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 0
 step_id = "DEMONSTRATION"
 name = "Demonstrate Lattice Splitting"
+related_files = [
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "split-expanded-bin/Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "Cargo.lock",
+    "Cargo.toml",
+]

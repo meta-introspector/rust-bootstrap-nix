@@ -44,6 +44,7 @@ pub struct Declaration {
     pub required_imports: HashSet<String>,
     pub direct_dependencies: HashSet<String>,
     pub extern_crates: HashSet<String>,
+    pub is_public: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -60,6 +61,16 @@ pub struct SerializableDeclaration {
     pub required_imports: HashSet<String>,
     pub direct_dependencies: HashSet<String>,
     pub extern_crates: HashSet<String>,
+    pub is_public: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicSymbol {
+    pub identifier: String,
+    pub declaration_type: String,
+    pub signature: String,
+    pub source_file: PathBuf,
+    pub crate_name: String,
 }
 
 impl From<Declaration> for SerializableDeclaration {
@@ -90,6 +101,7 @@ impl From<Declaration> for SerializableDeclaration {
             required_imports: decl.required_imports,
             direct_dependencies: decl.direct_dependencies,
             extern_crates: decl.extern_crates,
+            is_public: decl.is_public,
         }
     }
 }
@@ -105,6 +117,7 @@ impl Declaration {
         is_proc_macro: bool,
         required_imports: HashSet<String>,
         extern_crates: HashSet<String>,
+        is_public: bool,
     ) -> Self {
         Declaration {
             item,
@@ -118,6 +131,7 @@ impl Declaration {
             required_imports,
             direct_dependencies: HashSet::new(),
             extern_crates,
+            is_public,
         }
     }
 
@@ -331,6 +345,8 @@ impl DeclsVisitor {
 
 impl<'ast> Visit<'ast> for DeclsVisitor {
     fn visit_item_const(&mut self, i: &'ast ItemConst) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
             _known_identifiers: HashSet::new(),
@@ -347,6 +363,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -360,6 +377,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         }
 
         let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -377,6 +395,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             is_proc_macro,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -386,6 +405,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
     fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
         let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -403,6 +423,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             is_proc_macro,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -450,6 +471,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         body_visitor.visit_block(&i.block);
 
         let is_proc_macro = Self::is_proc_macro_item(&i.attrs);
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -467,6 +489,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             is_proc_macro,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -474,6 +497,8 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_static(&mut self, i: &'ast ItemStatic) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
             _known_identifiers: HashSet::new(),
@@ -490,6 +515,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -498,6 +524,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
 
     fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
         let is_proc_macro = false;
+        let is_public = false; // Macros do not have a direct visibility attribute
 
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
@@ -515,6 +542,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             is_proc_macro,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -522,9 +550,11 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
-            _known_identifiers: HashSet::new(), // This will be populated later if needed
+            _known_identifiers: HashSet::new(),
         };
 
         // Recursively visit items within the module to collect dependencies
@@ -545,6 +575,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         if !identifier.is_empty() && self.verbosity >= 2 {
@@ -558,6 +589,8 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let mut dependency_visitor = DependencyVisitor {
             required_imports: HashSet::new(),
             _known_identifiers: HashSet::new(),
@@ -578,6 +611,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             dependency_visitor.required_imports,
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -587,6 +621,8 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let decl = Declaration::new(
             DeclarationItem::TraitAlias(i.to_token_stream().to_string()),
             HashSet::new(),
@@ -597,6 +633,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             HashSet::new(),
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -604,6 +641,8 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let decl = Declaration::new(
             DeclarationItem::Type(i.to_token_stream().to_string()),
             HashSet::new(),
@@ -614,6 +653,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             HashSet::new(),
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -621,6 +661,8 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
+        let is_public = matches!(i.vis, syn::Visibility::Public(_));
+
         let decl = Declaration::new(
             DeclarationItem::Union(i.to_token_stream().to_string()),
             HashSet::new(),
@@ -631,6 +673,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             HashSet::new(),
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -638,6 +681,20 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item(&mut self, i: &'ast syn::Item) {
+        let is_public = match i {
+            syn::Item::Const(item_const) => matches!(item_const.vis, syn::Visibility::Public(_)),
+            syn::Item::Enum(item_enum) => matches!(item_enum.vis, syn::Visibility::Public(_)),
+            syn::Item::Fn(item_fn) => matches!(item_fn.vis, syn::Visibility::Public(_)),
+            syn::Item::Mod(item_mod) => matches!(item_mod.vis, syn::Visibility::Public(_)),
+            syn::Item::Static(item_static) => matches!(item_static.vis, syn::Visibility::Public(_)),
+            syn::Item::Struct(item_struct) => matches!(item_struct.vis, syn::Visibility::Public(_)),
+            syn::Item::Trait(item_trait) => matches!(item_trait.vis, syn::Visibility::Public(_)),
+            syn::Item::TraitAlias(item_trait_alias) => matches!(item_trait_alias.vis, syn::Visibility::Public(_)),
+            syn::Item::Type(item_type) => matches!(item_type.vis, syn::Visibility::Public(_)),
+            syn::Item::Union(item_union) => matches!(item_union.vis, syn::Visibility::Public(_)),
+            _ => false, // For other item types, assume not public for now
+        };
+
         let decl = Declaration::new(
             DeclarationItem::Other(i.to_token_stream().to_string()),
             HashSet::new(),
@@ -648,6 +705,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             false,
             HashSet::new(),
             self.file_extern_crates.clone(),
+            is_public,
         );
         let identifier = decl.get_identifier();
         self.declarations.insert(identifier, decl);
@@ -660,10 +718,11 @@ pub async fn extract_declarations_from_single_file(
     rustc_info: &RustcInfo,
     crate_name: &str,
     verbosity: u8,
-) -> anyhow::Result<(Vec<Declaration>, Vec<ErrorSample>, FileMetadata)> {
+) -> anyhow::Result<(Vec<Declaration>, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
     let mut all_declarations: Vec<Declaration> = Vec::new();
     let mut all_collected_errors: Vec<ErrorSample> = Vec::new();
     let mut file_metadata = FileMetadata::default();
+    let mut public_symbols: Vec<PublicSymbol> = Vec::new();
 
     if verbosity >= 1 {
         println!("Processing single file: {}", file_path.display());
@@ -716,6 +775,48 @@ pub async fn extract_declarations_from_single_file(
             let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity, file_metadata.extern_crates.clone());
             visitor.visit_file(&file);
             all_declarations.extend(visitor.declarations.into_values());
+
+            for decl in &all_declarations {
+                if decl.is_public {
+                    let signature = match &decl.item {
+                        DeclarationItem::Fn(s) => {
+                            syn::parse_str::<syn::ItemFn>(s).map(|item| item.sig.to_token_stream().to_string()).unwrap_or_else(|_| "".to_string())
+                        },
+                        DeclarationItem::Const(s) => s.clone(),
+                        DeclarationItem::Static(s) => s.clone(),
+                        DeclarationItem::Struct(s) => s.clone(),
+                        DeclarationItem::Enum(s) => s.clone(),
+                        DeclarationItem::Union(s) => s.clone(),
+                        DeclarationItem::Type(s) => s.clone(),
+                        DeclarationItem::Trait(s) => s.clone(),
+                        DeclarationItem::TraitAlias(s) => s.clone(),
+                        DeclarationItem::Mod(s) => s.clone(),
+                        DeclarationItem::Macro(s) => s.clone(),
+                        DeclarationItem::Other(s) => s.clone(),
+                    };
+
+                    public_symbols.push(PublicSymbol {
+                        identifier: decl.get_identifier(),
+                        declaration_type: match &decl.item {
+                            DeclarationItem::Const(_) => "const".to_string(),
+                            DeclarationItem::Struct(_) => "struct".to_string(),
+                            DeclarationItem::Enum(_) => "enum".to_string(),
+                            DeclarationItem::Fn(_) => "function".to_string(),
+                            DeclarationItem::Static(_) => "static".to_string(),
+                            DeclarationItem::Macro(_) => "macro".to_string(),
+                            DeclarationItem::Mod(_) => "module".to_string(),
+                            DeclarationItem::Trait(_) => "trait".to_string(),
+                            DeclarationItem::TraitAlias(_) => "trait_alias".to_string(),
+                            DeclarationItem::Type(_) => "type_alias".to_string(),
+                            DeclarationItem::Union(_) => "union".to_string(),
+                            DeclarationItem::Other(_) => "other".to_string(),
+                        },
+                        signature,
+                        source_file: decl.source_file.clone(),
+                        crate_name: decl.crate_name.clone(),
+                    });
+                }
+            }
         },
         Err(e) => {
             all_collected_errors.push(ErrorSample {
@@ -731,5 +832,5 @@ pub async fn extract_declarations_from_single_file(
         }
     }
 
-    Ok((all_declarations, all_collected_errors, file_metadata))
+    Ok((all_declarations, all_collected_errors, file_metadata, public_symbols))
 }

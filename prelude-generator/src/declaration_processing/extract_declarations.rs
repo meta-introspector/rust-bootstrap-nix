@@ -1,5 +1,5 @@
 use std::path::Path;
-use split_expanded_lib::{Declaration, ErrorSample, FileMetadata, RustcInfo, extract_declarations_from_single_file};
+use split_expanded_lib::{Declaration, ErrorSample, FileMetadata, RustcInfo, extract_declarations_from_single_file, PublicSymbol};
 use crate::symbol_map::SymbolMap;
 
 pub async fn extract_all_declarations_from_file(
@@ -9,8 +9,8 @@ pub async fn extract_all_declarations_from_file(
     verbose: u8,
     rustc_info: &RustcInfo, // Pass RustcInfo to the new function
     crate_name: &str,       // Pass crate_name to the new function
-) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, FileMetadata)> {
-    let (declarations, errors, file_metadata) = extract_declarations_from_single_file(
+) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
+    let (declarations, errors, file_metadata, public_symbols) = extract_declarations_from_single_file(
         file_path,
         rustc_info,
         crate_name,
@@ -40,5 +40,5 @@ pub async fn extract_all_declarations_from_file(
         );
     }
 
-    Ok((declarations, symbol_map, errors, file_metadata))
+    Ok((declarations, symbol_map, errors, file_metadata, public_symbols))
 }

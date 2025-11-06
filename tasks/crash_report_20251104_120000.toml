@@ -82,3 +82,17 @@ parent_task = "plan.md"
 stage_id = 0
 step_id = "CRASH_REPORT"
 name = "Crash Report: Unspecified Issue"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "split-expanded-bin/src/main.rs",
+    "tasks/00_01_demonstrate_lattice_splitting.toml",
+]

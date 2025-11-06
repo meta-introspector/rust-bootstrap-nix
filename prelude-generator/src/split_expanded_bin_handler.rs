@@ -70,7 +70,7 @@ pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
             &current_crate_name,
             verbose,
         ).await {
-            Ok((declarations, errors, _file_metadata)) => {
+            Ok((declarations, errors, _file_metadata, _public_symbols)) => {
                 // Store the parsed file for Pass 2 if parsing was successful
                 let file_content = fs::read_to_string(&file_path)
                     .context(format!("Failed to read file: {:?}", file_path))?;

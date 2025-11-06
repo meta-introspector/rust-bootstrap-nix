@@ -10,3 +10,15 @@ parent_task = "02_01_implement_bag_of_words_and_coordinate_grouping_for_declarat
 stage_id = 1
 step_id = "1.1"
 name = "Layered Usage Reporting"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+    "Cargo.lock",
+    "Cargo.toml",
+]
