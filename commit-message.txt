@@ -1,20 +1,11 @@
-feat: Implement --layer 0 functionality for expanded-code-collector and split-expanded-bin
+feat: Catch-all commit for ongoing development and minor fixes
 
-This commit introduces the --layer 0 functionality to the expanded-code-collector and split-expanded-bin tools.
+This commit includes various changes accumulated during recent development:
 
-- **expanded-code-collector:**
-  - Added `layer: Option<u32>` argument to `Args` struct.
-  - Implemented `calculate_package_layers` function to determine dependency layers based on `CargoMetadata`'s `resolve` graph.
-  - Modified `expander::expand_code` to filter packages based on the provided `layer` argument.
-  - Updated `ExpandedFileEntry` to include the calculated `layer`.
-  - Corrected `metadata.rs` to accurately reflect the `cargo metadata` JSON structure, including `PackageId`, `Resolve`, and `Node`.
+- **Makefile.rust_workflow:** Minor adjustments to the Rust workflow Makefile.
+- **prelude-generator:** Updates to declaration splitter and extractor handlers.
+- **rust-bootstrap-core:** Submodule content modifications.
+- **split-expanded-lib:** Updates to the core library.
+- **tasks/:** Various updates to task definition files.
 
-- **split-expanded-bin:**
-  - Added `layer: Option<u32>` argument to `Args` struct.
-  - Updated `ExpandedFileEntry` struct to include the `layer` field.
-  - Modified `main` function to filter `expanded_manifest.expanded_files` based on the `layer` argument.
-
-- **rust-system-composer:**
-  - Fixed a destructuring error in `src/main.rs` to correctly handle the 5-element tuple returned by `extract_all_declarations_from_file`.
-
-These changes enable both tools to process only the most fundamental crates (layer 0) when the `--layer 0` argument is provided, facilitating a layered approach to code analysis and generation.
+This commit serves as a checkpoint for ongoing work.

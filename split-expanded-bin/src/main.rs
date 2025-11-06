@@ -7,6 +7,7 @@ use std::fs;
 use std::io::Write;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use toml; // Added this line
 
 use quote::quote;
 
@@ -280,7 +281,7 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
 
-            // A declaration\'s level is 1 + the maximum level of its direct dependencies
+            // A declaration's level is 1 + the maximum level of its direct dependencies
             let new_level = if decl.direct_dependencies.is_empty() {
                 0
             } else {
@@ -330,14 +331,30 @@ async fn main() -> anyhow::Result<()> {
             DeclarationItem::TraitAlias(_) => "trait_alias",
             DeclarationItem::Type(_) => "type",
             DeclarationItem::Union(_) => "union",
-            DeclarationItem::Other(_) => "other",
+            DeclarationItem::Other(item) => {
+                // Handle the case where 'Other' might contain a proc macro
+                if let syn::Item::Macro(mac) = item {
+                    if mac.mac.path.segments.last().map_or(false, |s| s.ident == "proc_macro") {
+                        "proc_macro"
+                    } else {
+                        "other"
+                    }
+                } else {
+                    "other"
+                }
+            },
         };
         if args.verbosity >= 2 {
             println!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level);
             std::io::stdout().flush().unwrap();
         }
 
-        let declaration_dir = src_dir.join(format!("level_{:02}/src/{}_t/{}", level, declaration_type, declaration.crate_name));
+        let declaration_dir = expanded_manifest.project_root.join("rust-bootstrap-core")
+            .join("src")
+            .join(format!("level_{:02}", level))
+            .join("src")
+            .join(format!("{}_t", declaration_type))
+            .join(&declaration.crate_name);
         fs::create_dir_all(&declaration_dir)
             .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
         if args.verbosity >= 2 {
@@ -352,6 +369,17 @@ async fn main() -> anyhow::Result<()> {
         let output_file_path = declaration_dir.join(format!("{}.rs", identifier));
 
         let mut file_content = String::new();
+
+        // Serialize declaration to TOML and write as header
+        let declaration_toml = toml::to_string_pretty(&declaration)
+            .unwrap_or_else(|e| format!("Error serializing declaration to TOML: {}", e));
+
+        writeln!(file_content, "// --- DECLARATION_METADATA ---")?;
+        for line in declaration_toml.lines() {
+            writeln!(file_content, "// {}", line)?;
+        }
+        writeln!(file_content, "// --- END_DECLARATION_METADATA ---")?;
+        writeln!(file_content, "")?; // Add an empty line for separation
 
         // Add use statements
         for dep in &declaration.resolved_dependencies {

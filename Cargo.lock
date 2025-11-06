@@ -1298,6 +1298,7 @@ dependencies = [
  "serde_json",
  "split-expanded-lib",
  "tokio",
+ "toml 0.8.23",
 ]
 
 [[package]]

@@ -22,6 +22,7 @@ pub struct Package {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[serde(transparent)]
 pub struct PackageId {
     pub repr: String,
 }

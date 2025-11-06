@@ -4,58 +4,125 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
-use crate::metadata::{CargoMetadata, Resolve, Node, PackageId};
+use crate::metadata::{CargoMetadata, PackageId};
 use crate::manifest::ExpandedFileEntry;
 
 fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId, u32> {
     let mut package_layers: HashMap<PackageId, u32> = HashMap::new();
     let mut package_id_to_name: HashMap<PackageId, String> = HashMap::new();
 
+    // Initialize all packages with an unassigned layer and populate id-to-name map
     for pkg in &cargo_metadata.packages {
         package_id_to_name.insert(pkg.id.clone(), pkg.name.clone());
-        package_layers.insert(pkg.id.clone(), u32::MAX); // Initialize all to unassigned
+        package_layers.insert(pkg.id.clone(), u32::MAX); // u32::MAX signifies unassigned
     }
 
     let mut assigned_count = 0;
     let total_packages = cargo_metadata.packages.len();
+    let mut current_layer = 0;
 
+    // First pass: assign layer 0 to packages with no dependencies
+    for node in &cargo_metadata.resolve.nodes {
+        if node.dependencies.is_empty() {
+            if let Some(layer_entry) = package_layers.get_mut(&node.id) {
+                if *layer_entry == u32::MAX { // Only assign if not already assigned
+                    *layer_entry = 0;
+                    assigned_count += 1;
+                }
+            }
+        }
+    }
+
+    // Iteratively assign layers
     while assigned_count < total_packages {
         let mut newly_assigned_in_this_iteration = 0;
+        let mut made_progress = false;
+
         for node in &cargo_metadata.resolve.nodes {
             if package_layers.get(&node.id).map_or(false, |&layer| layer != u32::MAX) {
                 continue; // Already assigned
             }
 
-            let mut all_deps_assigned = true;
+            let mut all_deps_resolved = true;
             let mut max_dep_layer = 0;
 
             for dep_id in &node.dependencies {
-                // Only consider dependencies that are part of the workspace (i.e., have an entry in package_layers)
-                if package_id_to_name.contains_key(dep_id) {
-                    if let Some(&dep_layer) = package_layers.get(dep_id) {
-                        if dep_layer == u32::MAX {
-                            all_deps_assigned = false;
-                            break;
-                        }
-                        max_dep_layer = max_dep_layer.max(dep_layer + 1);
-                    } else {
-                        // This should not happen if package_id_to_name is correctly populated for all workspace packages
-                        eprintln!("Warning: Dependency {} not found in package_id_to_name map.", dep_id.repr);
+                if let Some(&dep_layer) = package_layers.get(dep_id) {
+                    if dep_layer == u32::MAX {
+                        all_deps_resolved = false;
+                        break;
                     }
+                    max_dep_layer = max_dep_layer.max(dep_layer);
+                } else {
+                    // Dependency is not in the workspace, assume it's a base dependency (layer -1 conceptually)
+                    // or handle as already resolved if it's an external crate that cargo metadata resolved.
+                    // For simplicity, if it's not in our package_layers map, we consider it resolved
+                    // and not contributing to a higher layer for *our* packages, unless it's a direct dependency
+                    // that needs to be expanded. For layer calculation, we treat external dependencies as resolved
+                    // and potentially contributing to the current package's layer if they are not layer 0.
+                    // This part needs careful consideration based on how 'layer' is truly defined.
+                    // For now, let's assume external dependencies are 'resolved' and don't block layer assignment.
+                    // If an external dependency is truly layer 0, it should have no dependencies itself.
                 }
             }
 
-            if all_deps_assigned {
-                package_layers.insert(node.id.clone(), max_dep_layer);
-                newly_assigned_in_this_iteration += 1;
+            if all_deps_resolved {
+                if let Some(layer_entry) = package_layers.get_mut(&node.id) {
+                    if *layer_entry == u32::MAX { // Only assign if not already assigned
+                        *layer_entry = max_dep_layer + 1;
+                        newly_assigned_in_this_iteration += 1;
+                        made_progress = true;
+                    }
+                }
             }
         }
 
         if newly_assigned_in_this_iteration == 0 && assigned_count < total_packages {
-            eprintln!("Warning: Could not assign layers to all packages. Possible circular dependencies or unresolvable graph.");
+            eprintln!("Warning: Could not assign layers to all packages. Possible circular dependencies or unresolvable graph. Unassigned packages: ");
+            for (pkg_id, layer) in &package_layers {
+                if *layer == u32::MAX {
+                    if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
+                        eprintln!("- {}", pkg_name);
+                    }
+                }
+            }
+            break;
+        }
+        if !made_progress && assigned_count < total_packages {
+            eprintln!("Warning: No progress made in assigning layers in this iteration. Possible circular dependencies or unresolvable graph. Unassigned packages: ");
+            for (pkg_id, layer) in &package_layers {
+                if *layer == u32::MAX {
+                    if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
+                        eprintln!("- {}", pkg_name);
+                    }
+                }
+            }
             break;
         }
         assigned_count += newly_assigned_in_this_iteration;
+        current_layer += 1;
+    }
+
+    // Ensure all packages are assigned a layer. If not, assign remaining to a high layer or error.
+    for (pkg_id, layer) in package_layers.iter_mut() {
+        if *layer == u32::MAX {
+            // If a package remains unassigned, it means it has unresolved dependencies
+            // or is part of a circular dependency. For now, assign it to a very high layer
+            // so it's unlikely to be in a requested low layer.
+            *layer = u32::MAX - 1; // Assign a high layer to unresolvable packages
+            if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
+                eprintln!("Warning: Package {} (ID: {}) could not be assigned a proper layer due to unresolved dependencies or circularity. Assigned to layer {}.\n", pkg_name, pkg_id.repr, u32::MAX - 1);
+            }
+        }
+    }
+
+    // Debug print assigned layers
+    for (package_id, layer) in &package_layers {
+        if *layer != u32::MAX {
+            if let Some(package_name) = package_id_to_name.get(package_id) {
+                println!("Assigned layer {} to package {}", layer, package_name);
+            }
+        }
     }
 
     package_layers
@@ -130,16 +197,22 @@ pub async fn expand_code(
 
             println!("Running cargo expand for {} ({})...", package.name, target_type);
 
-            let cargo_expand_command = format!("nix develop --command bash -c \"cargo expand --manifest-path {} --{} {} --all-features --color=always --verbose\"",
+            let cargo_expand_command = format!("cargo expand --manifest-path {} --{} {} --all-features --color=always --verbose",
                 package.manifest_path.display(),
                 target_type,
                 target.name
             );
             println!("  Command: {}", cargo_expand_command);
 
-            let output = Command::new("bash")
-                .arg("-c")
-                .arg(&cargo_expand_command)
+            let output = Command::new("cargo")
+                .arg("expand")
+                .arg("--manifest-path")
+                .arg(&package.manifest_path)
+                .arg(format!("--{}", target_type))
+                .arg(&target.name)
+                .arg("--all-features")
+                .arg("--color=always")
+                .arg("--verbose")
                 .output()
                 .await
                 .context(format!("Failed to execute cargo expand for {} ({})", package.name, target.name))?;
