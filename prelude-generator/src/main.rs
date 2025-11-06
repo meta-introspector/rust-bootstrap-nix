@@ -1,10 +1,8 @@
 use prelude_generator::args::Args;
 use clap::Parser;
-use std::path::PathBuf;
 
 use prelude_generator::command_handlers;
 use prelude_generator::type_usage_analyzer;
-use prelude_generator::use_extractor::rustc_info::RustcInfo;
 
 
 #[tokio::main]

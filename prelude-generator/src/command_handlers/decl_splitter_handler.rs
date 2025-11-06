@@ -2,15 +2,9 @@ use std::path::PathBuf;
 use anyhow::Context;
 use walkdir;
 
-use split_expanded_lib::{Declaration, DeclarationItem, RustcInfo, PublicSymbol};
+use split_expanded_lib::Declaration;
 use crate::Args; // Use prelude_generator's Args
 
-use std::collections::HashMap;
-use quote::ToTokens;
-use toml;
-use crate::types::CollectedProjectInfo;
-use crate::declaration_processing::extract_declarations::extract_all_declarations_from_file;
-use crate::declaration_processing::layer_declarations::layer_declarations;
 
 
 pub async fn handle_run_decl_splitter(
@@ -35,7 +29,7 @@ pub async fn handle_run_decl_splitter(
 
     let mut all_declarations_aggregated: Vec<Declaration> = Vec::new();
     let mut all_collected_errors_aggregated: Vec<split_expanded_lib::ErrorSample> = Vec::new();
-    let mut symbol_map_aggregated = crate::symbol_map::SymbolMap::new();
+    let symbol_map_aggregated = crate::symbol_map::SymbolMap::new();
     let mut all_public_symbols_aggregated: Vec<split_expanded_lib::PublicSymbol> = Vec::new();
 
     let rustc_info_for_split_expanded_lib = split_expanded_lib::RustcInfo {

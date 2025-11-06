@@ -1,10 +1,8 @@
 use std::env;
 use std::fs;
-use std::io::{self};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 use itertools::Itertools;
-use serde::Deserialize;
 use serde_json;
 use std::collections::{HashMap, HashSet};
 use anyhow::Context;

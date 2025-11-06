@@ -2,7 +2,7 @@ use clap::Parser;
 use anyhow::Context;
 use std::path::PathBuf;
 use std::fs;
-use split_expanded_lib::{Declaration, RustcInfo, FileMetadata, ErrorSample};
+use split_expanded_lib::RustcInfo;
 use prelude_generator::declaration_processing::extract_declarations::extract_all_declarations_from_file;
 use quote::ToTokens;
 use walkdir::WalkDir;
