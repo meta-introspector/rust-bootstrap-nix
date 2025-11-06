@@ -81,7 +81,7 @@ async fn main() -> Result<()> {
 
     for (mut entry, content) in expanded_files_with_content {
         println!("\n--- Declarations for {} ({}) ---", entry.package_name, entry.target_name);
-        let (declarations, counts) = decl_parser::parse_declarations(&content);
+        let (declarations, counts, type_usages) = decl_parser::parse_declarations(&content);
         for decl in declarations {
             println!("  {:?} {} (lines {}-{})", decl.decl_type, decl.name, decl.span_start, decl.span_end);
         }
@@ -89,7 +89,126 @@ async fn main() -> Result<()> {
         for (decl_type, count) in &counts {
             println!("    {:?}: {}", decl_type, count);
         }
+
+        // Module Histogram (Depth vs. AST Type)
+        let mut module_histogram: HashMap<usize, HashMap<decl_parser::DeclarationType, usize>> = HashMap::new();
+        for decl in &declarations {
+            *module_histogram
+                .entry(decl.level)
+                .or_default()
+                .entry(decl.decl_type.clone())
+                .or_insert(0) += 1;
+        }
+
+        println!("\n  --- Module Histogram (Depth vs. AST Type) ---");
+        // Get all unique declaration types for the header
+        let mut all_decl_types: Vec<&decl_parser::DeclarationType> = Vec::new();
+        for (_level, types_map) in &module_histogram {
+            for (decl_type, _count) in types_map {
+                if !all_decl_types.contains(&decl_type) {
+                    all_decl_types.push(decl_type);
+                }
+            }
+        }
+        all_decl_types.sort_by_key(|&dt| format!("{:?}", dt)); // Sort for consistent output
+
+        // Print header
+        print!("    | Level |");
+        for decl_type in &all_decl_types {
+            print!(" {:?} |", decl_type);
+        }
+        println!();
+
+        // Print separator
+        print!("    |-------|");
+        for _ in &all_decl_types {
+            print!("-------|");
+        }
+        println!();
+
+        // Print data rows
+        let mut levels: Vec<&usize> = module_histogram.keys().collect();
+        levels.sort();
+        for level in levels {
+            print!("    | {:<5} |", level);
+            for decl_type in &all_decl_types {
+                let count = module_histogram.get(level).and_then(|m| m.get(decl_type)).unwrap_or(&0);
+                print!(" {:<5} |", count);
+            }
+            println!();
+        }
+
+        // Nesting Matrix (Parent AST Type vs. Child AST Type at Level)
+        println!("\n  --- Nesting Matrix (Parent AST Type vs. Child AST Type at Level) ---");
+        // Collect all unique parent and child declaration types
+        let mut all_parent_types: Vec<&decl_parser::DeclarationType> = Vec::new();
+        let mut all_child_types: Vec<&decl_parser::DeclarationType> = Vec::new();
+        let mut all_levels: Vec<usize> = Vec::new();
+
+        for ((p_type, c_type, level), _count) in &nesting_matrix {
+            if !all_parent_types.contains(&p_type) {
+                all_parent_types.push(p_type);
+            }
+            if !all_child_types.contains(&c_type) {
+                all_child_types.push(c_type);
+            }
+            if !all_levels.contains(level) {
+                all_levels.push(*level);
+            }
+        }
+        all_parent_types.sort_by_key(|&dt| format!("{:?}", dt));
+        all_child_types.sort_by_key(|&dt| format!("{:?}", dt));
+        all_levels.sort();
+
+        for level in &all_levels {
+            println!("\n    Level: {}", level);
+            // Print header for this level
+            print!("        | Parent Type \ Child Type | ");
+            for c_type in &all_child_types {
+                print!("{:?} | ", c_type);
+            }
+            println!();
+
+            // Print separator
+            print!("        |--------------------------|");
+            for _ in &all_child_types {
+                print!("--------|");
+            }
+            println!("\n");
+
+            // Print data rows for this level
+            for p_type in &all_parent_types {
+                print!("        | {:<24} | ", format!("{:?}", p_type));
+                for c_type in &all_child_types {
+                    let count = nesting_matrix.get(&(*p_type.clone(), *c_type.clone(), *level)).unwrap_or(&0);
+                    print!("{:<7} | ", count);
+                }
+                println!();
+            }
+        }
+        println!("  --- Type Usages ---");
+        for (type_name, usage) in &type_usages {
+            let mut parts = Vec::new();
+            if usage.function_count > 0 { parts.push(format!("Function: {}", usage.function_count)); }
+            if usage.struct_count > 0 { parts.push(format!("Struct: {}", usage.struct_count)); }
+            if usage.enum_count > 0 { parts.push(format!("Enum: {}", usage.enum_count)); }
+            if usage.trait_count > 0 { parts.push(format!("Trait: {}", usage.trait_count)); }
+            if usage.module_count > 0 { parts.push(format!("Module: {}", usage.module_count)); }
+            if usage.constant_count > 0 { parts.push(format!("Constant: {}", usage.constant_count)); }
+            if usage.static_count > 0 { parts.push(format!("Static: {}", usage.static_count)); }
+            if usage.macro_count > 0 { parts.push(format!("Macro: {}", usage.macro_count)); }
+            if usage.use_count > 0 { parts.push(format!("Use: {}", usage.use_count)); }
+            if usage.impl_count > 0 { parts.push(format!("Impl: {}", usage.impl_count)); }
+            if usage.foreign_mod_count > 0 { parts.push(format!("ForeignMod: {}", usage.foreign_mod_count)); }
+            if usage.type_alias_count > 0 { parts.push(format!("TypeAlias: {}", usage.type_alias_count)); }
+            if usage.other_count > 0 { parts.push(format!("Other: {}", usage.other_count)); }
+
+            if !parts.is_empty() {
+                println!("    {}: {}", type_name, parts.join(", "));
+            }
+        }
         entry.declaration_counts = counts;
+        entry.type_usages = type_usages;
         expanded_files_entries.push(entry);
     }
 

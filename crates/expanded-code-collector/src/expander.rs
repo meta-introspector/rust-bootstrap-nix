@@ -203,6 +203,7 @@ pub async fn expand_code(
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
                         file_size: expanded_rs_path.metadata()?.len(),
                         declaration_counts: HashMap::new(),
+                        type_usages: HashMap::new(),
                     },
                     file_content,
                 ));
@@ -275,8 +276,9 @@ pub async fn expand_code(
                         timestamp: 0, // Placeholder for dry run
                         flake_lock_details: flake_lock_json.clone(),
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
-                        file_size: calculated_size,
+                        file_size: expanded_rs_path.metadata()?.len(),
                         declaration_counts: HashMap::new(),
+                        type_usages: HashMap::new(),
                     },
                     expanded_code_content,
                 ));
@@ -325,6 +327,7 @@ pub async fn expand_code(
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
                         file_size: expanded_code_content.len() as u64,
                         declaration_counts: HashMap::new(),
+                        type_usages: HashMap::new(),
                     },
                     expanded_code_content,
                 ));

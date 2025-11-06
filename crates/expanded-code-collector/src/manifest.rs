@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::collections::HashMap;
-use crate::decl_parser::DeclarationType;
+use crate::decl_parser::{DeclarationType, TypeUsage};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExpandedManifest {
@@ -23,4 +23,5 @@ pub struct ExpandedFileEntry {
     pub layer: u32,
     pub file_size: u64,
     pub declaration_counts: HashMap<DeclarationType, usize>,
+    pub type_usages: HashMap<String, TypeUsage>,
 }

@@ -1,7 +1,8 @@
-use syn::{self, Item, spanned::Spanned};
+use syn::{spanned::Spanned, Item};
 use quote::ToTokens;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use syn::visit::{self, Visit, visit_type, visit_item_mod, visit_item_fn, visit_item_struct, visit_item_enum, visit_item_trait, visit_item_const, visit_item_static, visit_item_macro, visit_item_use, visit_item_impl, visit_item_foreign_mod, visit_item_type};
 
 #[derive(Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Clone)]
 pub enum DeclarationType {
@@ -20,53 +21,295 @@ pub enum DeclarationType {
     Other,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Declaration {
     pub decl_type: DeclarationType,
     pub name: String,
     pub span_start: usize,
     pub span_end: usize,
+    pub level: usize,
 }
 
-pub fn parse_declarations(code: &str) -> (Vec<Declaration>, HashMap<DeclarationType, usize>) {
-    let mut declarations = Vec::new();
-    let mut counts: HashMap<DeclarationType, usize> = HashMap::new();
-    let syntax_tree = syn::parse_file(code).expect("Failed to parse Rust code");
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct TypeUsage {
+    pub type_name: String,
+    pub function_count: usize,
+    pub struct_count: usize,
+    pub enum_count: usize,
+    pub trait_count: usize,
+    pub module_count: usize,
+    pub constant_count: usize,
+    pub static_count: usize,
+    pub macro_count: usize,
+    pub use_count: usize,
+    pub impl_count: usize,
+    pub foreign_mod_count: usize,
+    pub type_alias_count: usize,
+    pub other_count: usize,
+}
 
-    for item in syntax_tree.items {
-        let (decl_type, name, span_start, span_end) = match item {
-            Item::Fn(item_fn) => (DeclarationType::Function, item_fn.sig.ident.to_string(), item_fn.span().start().line, item_fn.span().end().line),
-            Item::Struct(item_struct) => (DeclarationType::Struct, item_struct.ident.to_string(), item_struct.span().start().line, item_struct.span().end().line),
-            Item::Enum(item_enum) => (DeclarationType::Enum, item_enum.ident.to_string(), item_enum.span().start().line, item_enum.span().end().line),
-            Item::Trait(item_trait) => (DeclarationType::Trait, item_trait.ident.to_string(), item_trait.span().start().line, item_trait.span().end().line),
-            Item::Mod(item_mod) => (DeclarationType::Module, item_mod.ident.to_string(), item_mod.span().start().line, item_mod.span().end().line),
-            Item::Const(item_const) => (DeclarationType::Constant, item_const.ident.to_string(), item_const.span().start().line, item_const.span().end().line),
-            Item::Static(item_static) => (DeclarationType::Static, item_static.ident.to_string(), item_static.span().start().line, item_static.span().end().line),
-            Item::Macro(item_macro) => (DeclarationType::Macro, item_macro.mac.path.segments.last().map_or("unknown".to_string(), |s| s.ident.to_string()), item_macro.span().start().line, item_macro.span().end().line),
-            Item::Use(item_use) => (DeclarationType::Use, item_use.to_token_stream().to_string(), item_use.span().start().line, item_use.span().end().line),
-            Item::Impl(item_impl) => {
-                let mut name = String::from("impl ");
-                if let Some((_, path, _)) = &item_impl.trait_ {
-                    name.push_str(&format!("{} for ", path.to_token_stream().to_string()));
-                }
-                name.push_str(&item_impl.self_ty.to_token_stream().to_string());
-                (DeclarationType::Impl, name, item_impl.span().start().line, item_impl.span().end().line)
-            },
-            Item::ForeignMod(item_foreign_mod) => (DeclarationType::ForeignMod, quote::quote!(#item_foreign_mod).to_string(), item_foreign_mod.span().start().line, item_foreign_mod.span().end().line),
-            Item::Type(item_type) => (DeclarationType::TypeAlias, item_type.ident.to_string(), item_type.span().start().line, item_type.span().end().line),
-            Item::Verbatim(item_verbatim) => {
-                let verbatim_str = item_verbatim.to_token_stream().to_string();
-                if verbatim_str.starts_with("#!") || verbatim_str.starts_with("#[") {
-                    (DeclarationType::Other, format!("Attribute: {}", &verbatim_str[..verbatim_str.find('(').unwrap_or(verbatim_str.len())]), item_verbatim.span().start().line, item_verbatim.span().end().line)
-                } else {
-                    (DeclarationType::Other, verbatim_str, item_verbatim.span().start().line, item_verbatim.span().end().line)
-                }
-            },
-            _ => (DeclarationType::Other, "unknown".to_string(), item.span().start().line, item.span().end().line),
-        };
-        *counts.entry(decl_type.clone()).or_insert(0) += 1;
-        declarations.push(Declaration { decl_type, name, span_start, span_end });
+#[derive(Debug, Default)]
+struct DeclarationCollector<'ast> {
+    pub declarations: Vec<Declaration>,
+    pub type_usages: HashMap<String, TypeUsage>,
+    pub nesting_matrix: HashMap<(DeclarationType, DeclarationType, usize), usize>, // New field
+    current_level: usize,
+    current_decl_type: Option<DeclarationType>,
+}
+
+impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_level += 1;
+        self.current_decl_type = Some(DeclarationType::Module);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Module,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level - 1, // Module itself is at current_level - 1
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Module, self.current_level - 1)).or_insert(0) += 1;
+        }
+        visit_item_mod(self, i);
+        self.current_level -= 1;
+        self.current_decl_type = None;
     }
 
-    (declarations, counts)
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Function);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Function,
+            name: i.sig.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Function, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_fn(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Struct);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Struct,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Struct, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_struct(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Enum);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Enum,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Enum, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_enum(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Trait);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Trait,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Trait, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_trait(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Constant);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Constant,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Constant, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_const(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Static);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Static,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Static, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_static(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Macro);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Macro,
+            name: i.mac.path.segments.last().map_or("unknown".to_string(), |s| s.ident.to_string()),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Macro, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_macro(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Use);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Use,
+            name: i.to_token_stream().to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Use, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_use(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::Impl);
+        let mut name = String::from("impl ");
+        if let Some((_, path, _)) = &i.trait_ {
+            name.push_str(&format!("{} for ", path.to_token_stream().to_string()));
+        }
+        name.push_str(&i.self_ty.to_token_stream().to_string());
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::Impl,
+            name,
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::Impl, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_impl(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_foreign_mod(&mut self, i: &'ast syn::ItemForeignMod) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::ForeignMod);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::ForeignMod,
+            name: quote::quote!(#i).to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::ForeignMod, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_foreign_mod(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+        let parent_decl_type = self.current_decl_type.clone();
+        self.current_decl_type = Some(DeclarationType::TypeAlias);
+        self.declarations.push(Declaration {
+            decl_type: DeclarationType::TypeAlias,
+            name: i.ident.to_string(),
+            span_start: i.span().start().line,
+            span_end: i.span().end().line,
+            level: self.current_level,
+        });
+        if let Some(p_type) = parent_decl_type {
+            *self.nesting_matrix.entry((p_type, DeclarationType::TypeAlias, self.current_level)).or_insert(0) += 1;
+        }
+        visit_item_type(self, i);
+        self.current_decl_type = None;
+    }
+
+    fn visit_type(&mut self, i: &'ast syn::Type) {
+        let type_name = quote::quote!(#i).to_string();
+        let entry = self.type_usages.entry(type_name.clone()).or_insert_with(|| TypeUsage { type_name, ..Default::default() });
+
+        if let Some(decl_type) = &self.current_decl_type {
+            match decl_type {
+                DeclarationType::Function => entry.function_count += 1,
+                DeclarationType::Struct => entry.struct_count += 1,
+                DeclarationType::Enum => entry.enum_count += 1,
+                DeclarationType::Trait => entry.trait_count += 1,
+                DeclarationType::Module => entry.module_count += 1,
+                DeclarationType::Constant => entry.constant_count += 1,
+                DeclarationType::Static => entry.static_count += 1,
+                DeclarationType::Macro => entry.macro_count += 1,
+                DeclarationType::Use => entry.use_count += 1,
+                DeclarationType::Impl => entry.impl_count += 1,
+                DeclarationType::ForeignMod => entry.foreign_mod_count += 1,
+                DeclarationType::TypeAlias => entry.type_alias_count += 1,
+                DeclarationType::Other => entry.other_count += 1,
+            }
+        }
+        visit_type(self, i);
+    }
+}
+
+pub fn parse_declarations(code: &str) -> (Vec<Declaration>, HashMap<DeclarationType, usize>, HashMap<String, TypeUsage>, HashMap<(DeclarationType, DeclarationType, usize), usize>) {
+    let syntax_tree = syn::parse_file(code).expect("Failed to parse Rust code");
+
+    let mut collector = DeclarationCollector {
+        declarations: Vec::new(),
+        type_usages: HashMap::new(),
+        nesting_matrix: HashMap::new(),
+        current_level: 0,
+        current_decl_type: None,
+    };
+    collector.visit_file(&syntax_tree);
+
+    let mut counts: HashMap<DeclarationType, usize> = HashMap::new();
+    for decl in &collector.declarations {
+        *counts.entry(decl.decl_type.clone()).or_insert(0) += 1;
+    }
+
+    (collector.declarations, counts, collector.type_usages, collector.nesting_matrix)
 }
