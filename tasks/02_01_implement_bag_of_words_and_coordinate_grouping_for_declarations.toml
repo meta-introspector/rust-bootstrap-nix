@@ -1,8 +1,8 @@
 title = "Implement Bag of Words and Coordinate Grouping for Declarations"
-description = "Immediately implement the logic to enhance `DeclsVisitor` to collect the \"bag of words\" (all referenced identifiers, types, and external items) for each declaration (`syn::Item`). Store this BoW within the generic `Declaration` struct. This is the foundation for calculating the **8D embedding/coordinate** of the declaration, defining its position within the lattice structure for optimal grouping (e.g., into **~4KB chunks**)."
-status = "TODO"
+description = "This implements the core mechanism for converting a declaration into a quantifiable lattice node. The BoW (referenced identifiers/types) is the **foundation for calculating the declaration's 8D coordinate** and grouping declarations into highly efficient, dependency-optimized **~4KB chunks**."
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
-parent_task = "plan.md"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 1
-step_id = "1"
+step_id = "2"
 name = "Implement Bag of Words and Coordinate Grouping for Declarations"

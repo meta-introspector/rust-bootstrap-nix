@@ -42,47 +42,42 @@ This section details observations and actionable items for the `prelude-generato
 *   **`generated_test_runner`**: The `generated_test_runner` is currently broken. It has a number of compilation errors that need to be fixed. Additionally, the approach of generating a single `main.rs` file that calls all the tests is not ideal. It would be better to use a test runner that can discover and run the tests automatically.
 *   **Test Coverage**: While the project has a good number of tests, there are still some areas that are not well-tested. For example, the `hf_dataset_reader.rs` module has no tests.
 
-## 2. High-Level Plan for `prelude-generator` and Refactoring (Roadmap)
+### Phase I: Enabling the Lattice Infrastructure (P1/P2 Blocking Tasks)
 
-This section outlines the next steps for improving the `prelude-generator` and integrating it into the broader Rust project refactoring pipeline, leading to the self-hosting bootstrap process.
+These initial steps resolve the critical blocking issues (P1) and implement the core structural logic (P2) required to define and process a Level 0 node.
 
-### 2.1. Generate `prelude-generator` Report
-*   Process the `prelude_generator_output.txt` to identify:
-    *   Successfully parsed files.
-    *   Files with parsing warnings (e.g., "expected square brackets", "cannot parse string into token stream").
-    *   Skipped files (e.g., procedural macro crates, explicitly excluded crates, files with no `use` statements).
-*   Create a summary report (`prelude_generator_summary.md`) detailing these findings.
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **1** | **Resolve `rust-system-composer` `main()` location (Task 02\_06)**. | **Status:** **Critical Blocking Issue.** The `rust-system-composer` acts as the orchestrator for the entire pipeline. Resolving its main function location is necessary to **unblock the batch processing pipeline** required to analyze the full codebase and extract declarations. |
+| **2** | **Implement Bag of Words (BoW) and Coordinate Grouping logic (Task 02\_01)**. | **Contribution:** **Defines the Node Structure.** This implements the core mechanism for converting a declaration into a quantifiable lattice node. The BoW (referenced identifiers/types) is the **foundation for calculating the declaration's 8D coordinate** and grouping declarations into highly efficient, dependency-optimized **~4KB chunks**. |
 
-### 2.2. Address `prelude.rs` Circular Imports
-*   **Problem:** The current `prelude-generator` output shows `pub use crate::prelude::*;` in the generated `prelude.rs` files, leading to circular imports. This occurs because existing `prelude.rs` files (from previous incorrect runs) are being parsed by `prelude-collector`.
-*   **Action:** Implement a step to delete all existing `prelude.rs` files in the workspace *before* running `prelude-generator`. This will ensure that `prelude-collector` only processes original source files and generates correct `prelude.rs` content.
+---
 
-### 2.3. Refine `prelude-collector` for `use` Statement Flattening
-*   **Goal:** Ensure that grouped `use` statements are correctly flattened into individual `use` statements.
-    *   **Example:** `use syn::{parse_macro_input, Ident};` should become `use syn::parse_macro_input;` and `use syn::Ident;`.
-*   **Action:** Verify the output of `prelude-generator` after addressing step 2. If flattening is not as expected, adjust the `flatten_use_tree` logic in `crates/prelude-collector/src/lib.rs`.
+### Phase II: Constructing Canonical Layer 0 (Foundation)
 
-### 2.4. Investigate and Mitigate `syn` Parsing Errors
-*   **Problem:** Many files within the `standalonex/src/bootstrap/` directory are failing to parse with `syn` (e.g., "expected square brackets", "cannot parse string into token stream"). This is likely due to heavy use of custom macros, generated code, or non-standard syntax.
-*   **Action:**
-    *   Analyze the specific files causing these errors.
-    *   Determine if these files can be safely excluded from `prelude-generator` processing without impacting the overall refactoring goal.
-    *   If exclusion is not feasible, explore more advanced parsing strategies (e.g., using `rustc -Zunpretty=expanded` to pre-process files, or identifying specific macro patterns to ignore within `prelude-collector`). Prioritize files critical for the `bootstrap` build.
+With the infrastructure running and the node definition finalized, we proceed to extract and index the most basic, atomic units, specifically constants, which form the base of the lattice.
 
-### 2.5. Integrate `prelude-generator` into the Refactoring Pipeline
-*   Once `prelude-generator` is reliably generating correct `prelude.rs` files and modifying source files as intended, integrate it as a foundational step in the automated refactoring pipeline.
-*   This pipeline will eventually involve other tools like `rust-decl-splitter`, `rust-system-composer`, and `flake-template-generator`.
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **3** | **Extract Base-Level 0 Declarations (Task 05\_08 / 01\_10)**. | **Component Added: The first content layer (Level 0 Declarations, initially `const` items).** This task involves completing the extraction and **isolation of atomic units without internal dependencies**. These extracted declarations must be placed in **layer-specific directories** (e.g., `generated_declarations/0/`) and structured according to the **4KB file blocking** constraint. |
+| **4** | **Implement global index and 8D embedding for all constants (Task 02\_04)**. | **Contribution: Indexed Lattice Coordinates.** This step takes the raw Level 0 declarations from Step 3 and **maps them into the 8-dimensional conceptual space**. This creates a central index (e.g., TOML/JSON) linking constant names/paths to their canonical **8D coordinates**, moving beyond hardcoded values and formally defining their verifiable position within the lattice. |
 
-### 2.6. Address `bootstrap` Build Failures
-*   After `prelude-generator` is working correctly and has modified the necessary files, re-attempt building the `bootstrap` crate.
-*   Address any remaining compilation errors. These errors should now be related to actual type/resolution issues or other build-system configurations, rather than incorrect `prelude.rs` generation.
+---
 
-### 2.7. Overall Bootstrap Roadmap
-1.  **Fix the `generated_test_runner`**: The first step is to fix the `generated_test_runner` so that all the tests can be run. This will provide a solid foundation for the rest of the development work.
-2.  **Implement `reconstruct_ast_from_hf_dataset`**: The next step is to implement the `reconstruct_ast_from_hf_dataset` function. This is the core of the bootstrap process, and it will require a significant amount of work.
-3.  **Refactor the `prelude-generator`**: Once the bootstrap process is working, the `prelude-generator` should be refactored to improve its code quality and to make it more robust and extensible.
-4.  **Create the "standalone atomic wrapper"**: The final step is to create the "standalone atomic wrapper" that encapsulates the entire project. This will involve creating a Git repository with submodules, a Nix flake, and all the other components described in `bootstrap.md`.
+### Phase III: Enabling Self-Reflection and Topological Ordering
 
+Once Level 0 is indexed, the subsequent high-priority steps focus on establishing the system's ability to self-host and then decomposing the dependent code units (Level 1 and above).
+
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **5** | **Implement `reconstruct_ast_from_hf_dataset` (Task P3 / 05\_04)**. | **Contribution: The Self-Hosting Loop.** This implements the core bootstrap placeholder necessary to realize the goal of the **Self-Hosting Prelude Generator**. It allows the system to use its own structured, analyzed data (AST and UseStatement metadata saved to Hugging Face) to **generate a new version of itself**, ensuring reflexivity and data-driven improvement. |
+| **6** | **Decompose codebase into granular components (Task 06\_01)**. | **Contribution: All Lattice Nodes.** This executes the large-scale splitting using `rust-decl-splitter` to break the rest of the monolithic files into **single declaration units**. This process creates the comprehensive set of individual **"nodes"** (Level 1+) needed for the full topological sort, where their dependencies (mapped via BoW in Step 2) rely on the foundational Level 0 nodes established in Step 3. |
+
+This planned reconstruction ensures that architectural stability (Steps 1-2) is achieved before the fundamental data is defined (Steps 3-4), allowing the system to verify and utilize its newly generated structure (Step 5) before undertaking the full decomposition of all higher layers (Step 6).
+
+***
+
+**Analogy:** This plan is structured like building a massive, self-aware library. First, you must fix the **central control system** (Step 1) and implement the **cataloging standards** (Step 2: the 8D coordinate/4KB rule). Only then can you find and precisely label the **most atomic, fundamental axioms** (Steps 3-4: Level 0 Constants). Once those axioms are perfectly cataloged, the library learns to read and organize **its own catalog** (Step 5: Self-Reconstruction), finally allowing the automatic, rigorous breakdown of all complex papers and treatises that rely on those axioms (Step 6: Decomposition of all remaining Levels).
 ## Further Documentation
 
 For more detailed information on specific aspects of the project, please refer to the following documents:

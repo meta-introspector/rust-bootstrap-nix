@@ -1,8 +1,8 @@
 title = "Decompose codebase into granular components using rust-decl-splitter"
-description = "Utilize tools like `rust-decl-splitter` to break down the initial codebase into its most granular components."
-status = "TODO"
+description = "This executes the large-scale splitting using `rust-decl-splitter` to break the rest of the monolithic files into **single declaration units**. This process creates the comprehensive set of individual **\"nodes\"** (Level 1+) needed for the full topological sort, where their dependencies (mapped via BoW in Step 2) rely on the foundational Level 0 nodes established in Step 3."
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
-parent_task = "lattice.md"
-stage_id = 0
-step_id = "LT_01"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 3
+step_id = "6"
 name = "Decompose codebase into granular components using rust-decl-splitter"

@@ -1,8 +1,8 @@
 title = "Define Canonical Lib Layer 0"
-description = "Establish 'canonical lib layer 0' as a new standard library containing all items with zero external dependencies. This layer will be physically split into 4KB disk file chunks for efficient management."
-status = "TODO"
+description = "This task involves completing the extraction and **isolation of atomic units without internal dependencies**. These extracted declarations must be placed in **layer-specific directories** (e.g., `generated_declarations/0/`) and structured according to the **4KB file blocking** constraint."
+status = "IN_PROGRESS"
 created_at = "2025-11-01T12:00:00Z"
-parent_task = "01_flake_lattice_plan.toml"
-stage_id = 5
-step_id = "5.1"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 2
+step_id = "3"
 name = "Define Canonical Lib Layer 0"
