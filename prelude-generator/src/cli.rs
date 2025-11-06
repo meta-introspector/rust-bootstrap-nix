@@ -1,13 +1,15 @@
-
+//use crate::external_interfaces::IoInterface;
 use std::path::PathBuf;
 use clap::Parser;
 use crate::args::Args;
 use crate::config_parser::Config;
+//use crate::external_interfaces::ExternalInterfaceGateway;
+//use crate::external_interfaces::ExternalInterfaceGateway;
 
 pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
-
+    //pub async fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     let args = Args::parse();
-
+    
     // Determine the project root. If args.path is ".", resolve it to the actual current directory.
     // Then, find the parent directory that contains the Cargo.toml for the workspace.
     // For now, we'll assume args.path is the project root if it's explicitly set,
@@ -18,17 +20,23 @@ pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
         PathBuf::from(&args.path)
     };
 
-
+    //    let gateway = ExternalInterfaceGateway::default();
     let config = if let Some(config_file_path) = &args.config_file_path {
         Some(crate::config_parser::read_config(config_file_path, &project_root)?)
-    } else {
+    }
+    else
+    {
         // If config_file_path is not provided, try to read from the default location
         let default_config_path = project_root.join("config.toml");
         if default_config_path.exists() {
-            Some(crate::config_parser::read_config(&default_config_path, &project_root)?)
+            Some(crate::config_parser::read_config(default_config_file_path, &project_root)?)
+	    //let config = if let Some(config_file_path) = config_file_path {
+	    //..Some(crate::config_parser::read_config(config_file_path, &project_root, &gateway.iointerface).await?)
+            //} else if gateway.iointerface.path_exists(&default_config_path).await {
+            //Some(crate::config_parser::read_config(&default_config_path, &project_root, &gateway.iointerface).await?)
         } else {
-            None
-        }
+	    None
+        };
+	Ok((args, config))
     };
-    Ok((args, config))
 }

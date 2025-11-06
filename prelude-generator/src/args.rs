@@ -200,4 +200,12 @@ pub struct Args {
     /// Path to output all collected analysis data (expressions, lattices) to a TOML file.
     #[arg(long)]
     pub output_toml_report: Option<PathBuf>,
+
+    /// Enable planning mode, which lists available tasks and their estimated sizes.
+    #[arg(long, default_value_t = false)]
+    pub plan: bool,
+
+    /// Commit a specific task by its ID, as listed by the --plan mode.
+    #[arg(long)]
+    pub commit: Option<String>,
 }
