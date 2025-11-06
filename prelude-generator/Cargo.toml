@@ -38,4 +38,8 @@ path = "src/bin/module-exporter-cli.rs"
 name = "interface-generator"
 path = "src/bin/interface-generator.rs"
 
+[[bin]]
+name = "prelude-generator"
+path = "src/main.rs"
+
 [dev-dependencies]

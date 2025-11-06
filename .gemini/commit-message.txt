@@ -1,20 +1,4 @@
-feat: Integrate split-expanded-bin into prelude-generator and update task workflow
+fix: Resolve build errors in prelude-generator
 
-This commit integrates the functionality of `split-expanded-bin` directly into the `prelude-generator` crate.
-
-Key changes include:
-- `prelude-generator`:
-  - Merged `split-expanded-bin` logic into `prelude-generator/src/command_handlers/split_expanded_bin_handler.rs`.
-  - Refactored `extract_declarations_for_composer` to use `DeclarationExtractionArgs` struct for better argument management.
-  - Exposed `Declaration` and `ErrorCollection` publicly.
-  - Corrected `pub use` statements and function call paths.
-- `rust-system-composer`:
-  - Updated to use the refactored `prelude-generator` functions and types.
-  - Modified `Cargo.toml` to depend on `prelude-generator` and remove `split-expanded-lib`.
-  - Adjusted error handling and type conversions for `FileMetadata` fields.
-- `tasks/01_09_rebuild_lattice_with_split_dependencies.toml`:
-  - Updated status to "IN_QA" and added notes reflecting the integration work.
-- `docs/task_states.md`:
-  - Created a new document outlining the task state workflow (TODO, IN_PROGRESS, IN_REVIEW, IN_QA, DONE, BLOCKED, ARCHIVED).
-
-This work moves towards a more consolidated and maintainable codebase by centralizing declaration extraction logic.
+- Fixed `toml::from_str` type mismatch in `prelude-generator/src/config_parser.rs`.
+- Added placeholder binary files (`interface-generator.rs` and `module-exporter-cli.rs`) to `prelude-generator/src/bin/` to resolve 'No such file or directory' errors during build.

@@ -14,10 +14,10 @@ pub async fn handle_plan_mode(_args: &Args, config: &Config) -> Result<()> {
     println!("Planning mode activated. This will list available tasks and their estimated sizes.");
     // TODO: Implement task discovery and size estimation
 
-    let generated_exports = crate::module_exporter::generate_module_exports(config);
-    println!("\n--- Generated Module Exports ---");
-    println!("{}", generated_exports);
-    println!("--------------------------------");
+    // let generated_exports = crate::module_exporter::generate_module_exports(config);
+    // println!("\n--- Generated Module Exports ---");
+    // println!("{}", generated_exports);
+    // println!("--------------------------------");
 
     Ok(())
 }
