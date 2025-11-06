@@ -111,8 +111,11 @@ pub struct Config {
     pub module_exports: Option<ModuleExportsConfig>,
 }
 
-pub async fn read_config(config_path: &PathBuf, project_root: &PathBuf, io_interface: &crate::external_interfaces::io_impl::IoInterfaceImpl) -> Result<Config> {
-    let config_content = io_interface.read_file(config_path).await
+pub fn read_config(config_path: &PathBuf, project_root: &PathBuf) -> Result<Config> {
+//pub async fn read_config(config_path: &PathBuf, project_root: &PathBuf, io_interface: &crate::external_interfaces::io_impl::IoInterfaceImpl) -> Result<Config> {
+//    let config_content = io_interface.read_file(config_path).await
+//        .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
+    let config_content = std::fs::read_to_string(config_path)
         .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
     let mut config: Config = toml::from_str(&config_content)
         .with_context(|| format!("Failed to parse config file: {}", config_path.display()))?;
