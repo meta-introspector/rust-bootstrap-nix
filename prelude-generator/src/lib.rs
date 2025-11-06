@@ -48,6 +48,7 @@ pub use test_extractor::{collect_all_test_cases, generate_test_report_json, gene
 pub use pipeline_traits::{AstStatistics, VariableInfo, FunctionInfo, ImportInfo};
 pub use ast_decoder::AstTraversalFunctor;
 pub use bag_of_words_visitor::{BagOfWordsVisitor, tokenize_ident_to_subwords};
+pub mod constant_reporting;
 pub mod types;
 pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo};
 pub use split_expanded_lib::{Declaration, ErrorSample, RustcInfo, FileMetadata as SplitExpandedFileMetadata, SerializableDeclaration, PublicSymbol};

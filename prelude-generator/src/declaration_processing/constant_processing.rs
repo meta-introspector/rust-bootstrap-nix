@@ -19,21 +19,42 @@ pub async fn process_constants(
         project_root.join("generated/level0_decls")
     });
 
-    let numerical_output_dir = project_root.join("generated/numerical_numerical_constants");
+    let numerical_output_dir = project_root.join("generated/numerical_constants");
     println!("Attempting to create numerical constants output directory: {}", numerical_output_dir.display());
     tokio::fs::create_dir_all(&numerical_output_dir).await?;
-
 
     let string_output_dir = project_root.join("generated/string_constants");
     println!("Attempting to create string constants output directory: {}", string_output_dir.display());
     tokio::fs::create_dir_all(&string_output_dir).await?;
 
+    let mut numerical_constants: Vec<syn::ItemConst> = Vec::new();
+    let mut string_constants: Vec<syn::ItemConst> = Vec::new();
+
+    for constant in all_constants {
+        if let syn::Expr::Lit(expr_lit) = &*constant.expr {
+            match &expr_lit.lit {
+                syn::Lit::Int(_) | syn::Lit::Float(_) => numerical_constants.push(constant),
+                syn::Lit::Str(_) => string_constants.push(constant),
+                _ => { /* Handle other literal types or ignore */ }
+            }
+        } else { /* Handle non-literal expressions or ignore */ }
+    }
+
+    crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure(
+        &numerical_constants,
+        &numerical_output_dir,
+    ).await?;
+
+    crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure(
+        &string_constants,
+        &string_output_dir,
+    ).await?;
 
     println!("  -> Generated constants will be written to layer-specific directories.");
 
     let mut errors: Vec<anyhow::Error> = Vec::new();
 
-    for constant in &all_constants {
+    for constant in numerical_constants.iter().chain(string_constants.iter()) {
         let const_name = constant.ident.to_string();
         let layer = type_map.get(&const_name).and_then(|info| info.layer).unwrap_or(0);
         let consts_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("const");
@@ -82,6 +103,7 @@ pub async fn process_constants(
         return Err(anyhow::anyhow!("Constant processing completed with errors."));
     } else {
         println!(r"Declaration processing completed successfully.");
+        crate::constant_reporting::generate_numerical_constants_report(&numerical_output_dir).await?;
         return Ok(())
     }
 }

@@ -84,7 +84,7 @@ async fn main() -> Result<()> {
         println!("\n--- Declarations for {} ({}) ---", entry.package_name, entry.target_name);
         let (declarations, counts, type_usages, nesting_matrix) = decl_parser::parse_declarations(&content);
         for decl in &declarations {
-            println!("  {:?} {} (lines {}-{})", decl.decl_type, decl.name, decl.span_start, decl.span_end);
+            println!("  {:?} {} (lines {}-{}) Attributes: {:?}", decl.decl_type, decl.name, decl.span_start, decl.span_end, decl.attributes);
         }
         println!("  --- Declaration Counts ---");
         for (decl_type, count) in &counts {

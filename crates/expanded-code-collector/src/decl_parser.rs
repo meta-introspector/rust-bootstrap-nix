@@ -1,4 +1,4 @@
-use syn::{spanned::Spanned, Item};
+use syn::{spanned::Spanned, Item, Attribute};
 use quote::ToTokens;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,7 @@ pub struct Declaration {
     pub span_start: usize,
     pub span_end: usize,
     pub level: usize,
+    pub attributes: Vec<String>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -48,18 +49,35 @@ pub struct TypeUsage {
     pub other_count: usize,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct DeclarationCollector {
     pub declarations: Vec<Declaration>,
     pub type_usages: HashMap<String, TypeUsage>,
     pub nesting_matrix: HashMap<(DeclarationType, DeclarationType, usize), usize>, // New field
     current_level: usize,
     current_decl_type: Option<DeclarationType>,
+    current_attributes: Vec<String>,
+}
+
+impl Default for DeclarationCollector {
+    fn default() -> Self {
+        DeclarationCollector {
+            declarations: Vec::new(),
+            type_usages: HashMap::new(),
+            nesting_matrix: HashMap::new(),
+            current_level: 0,
+            current_decl_type: None,
+            current_attributes: Vec::new(),
+        }
+    }
 }
 
 impl Visit<'_> for DeclarationCollector {
     fn visit_item_mod(&mut self, i: &'_ syn::ItemMod) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_level += 1;
         self.current_decl_type = Some(DeclarationType::Module);
         self.declarations.push(Declaration {
@@ -68,6 +86,7 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level - 1, // Module itself is at current_level - 1
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Module, self.current_level - 1)).or_insert(0) += 1;
@@ -75,10 +94,14 @@ impl Visit<'_> for DeclarationCollector {
         visit_item_mod(self, i);
         self.current_level -= 1;
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_fn(&mut self, i: &'_ syn::ItemFn) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Function);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Function,
@@ -86,16 +109,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Function, self.current_level)).or_insert(0) += 1;
         }
         visit_item_fn(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_struct(&mut self, i: &'_ syn::ItemStruct) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Struct);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Struct,
@@ -103,16 +131,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Struct, self.current_level)).or_insert(0) += 1;
         }
         visit_item_struct(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_enum(&mut self, i: &'_ syn::ItemEnum) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Enum);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Enum,
@@ -120,16 +153,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Enum, self.current_level)).or_insert(0) += 1;
         }
         visit_item_enum(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_trait(&mut self, i: &'_ syn::ItemTrait) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Trait);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Trait,
@@ -137,16 +175,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Trait, self.current_level)).or_insert(0) += 1;
         }
         visit_item_trait(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_const(&mut self, i: &'_ syn::ItemConst) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Constant);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Constant,
@@ -154,16 +197,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Constant, self.current_level)).or_insert(0) += 1;
         }
         visit_item_const(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_static(&mut self, i: &'_ syn::ItemStatic) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Static);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Static,
@@ -171,16 +219,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Static, self.current_level)).or_insert(0) += 1;
         }
         visit_item_static(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_macro(&mut self, i: &'_ syn::ItemMacro) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Macro);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Macro,
@@ -188,16 +241,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Macro, self.current_level)).or_insert(0) += 1;
         }
         visit_item_macro(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_use(&mut self, i: &'_ syn::ItemUse) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Use);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::Use,
@@ -205,16 +263,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Use, self.current_level)).or_insert(0) += 1;
         }
         visit_item_use(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_impl(&mut self, i: &'_ syn::ItemImpl) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::Impl);
         let mut name = String::from("impl ");
         if let Some((_, path, _)) = &i.trait_ {
@@ -227,16 +290,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::Impl, self.current_level)).or_insert(0) += 1;
         }
         visit_item_impl(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_foreign_mod(&mut self, i: &'_ syn::ItemForeignMod) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::ForeignMod);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::ForeignMod,
@@ -244,16 +312,21 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::ForeignMod, self.current_level)).or_insert(0) += 1;
         }
         visit_item_foreign_mod(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_item_type(&mut self, i: &'_ syn::ItemType) {
         let parent_decl_type = self.current_decl_type.clone();
+        let item_attributes = extract_attributes(&i.attrs);
+        self.current_attributes.extend(item_attributes.clone());
+
         self.current_decl_type = Some(DeclarationType::TypeAlias);
         self.declarations.push(Declaration {
             decl_type: DeclarationType::TypeAlias,
@@ -261,12 +334,14 @@ impl Visit<'_> for DeclarationCollector {
             span_start: i.span().start().line,
             span_end: i.span().end().line,
             level: self.current_level,
+            attributes: self.current_attributes.clone(),
         });
         if let Some(p_type) = parent_decl_type {
             *self.nesting_matrix.entry((p_type, DeclarationType::TypeAlias, self.current_level)).or_insert(0) += 1;
         }
         visit_item_type(self, i);
         self.current_decl_type = None;
+        self.current_attributes.retain(|attr| !item_attributes.contains(attr));
     }
 
     fn visit_type(&mut self, i: &'_ syn::Type) {
@@ -294,15 +369,25 @@ impl Visit<'_> for DeclarationCollector {
     }
 }
 
+fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<String> {
+    attrs.iter()
+        .map(|attr| attr.path().to_token_stream().to_string())
+        .collect()
+}
+
 pub fn parse_declarations(code: &str) -> (Vec<Declaration>, HashMap<DeclarationType, usize>, HashMap<String, TypeUsage>, HashMap<(DeclarationType, DeclarationType, usize), usize>) {
+    // Debug print the code that is being parsed
+    eprintln!("Attempting to parse code:\n---\n{}\n---", code);
     let syntax_tree = syn::parse_file(code).expect("Failed to parse Rust code");
 
+    let crate_attributes: Vec<String> = syntax_tree.attrs.iter()
+        .filter(|attr: &&syn::Attribute| matches!(attr.style, syn::AttrStyle::Inner(_)))
+        .map(|attr| attr.path().to_token_stream().to_string())
+        .collect();
+
     let mut collector = DeclarationCollector {
-        declarations: Vec::new(),
-        type_usages: HashMap::new(),
-        nesting_matrix: HashMap::new(),
-        current_level: 0,
-        current_decl_type: None,
+        current_attributes: crate_attributes,
+        ..Default::default()
     };
     collector.visit_file(&syntax_tree);
 

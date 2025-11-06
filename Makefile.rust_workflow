@@ -52,6 +52,39 @@ split-step-1: $(METADATA_FILE)
 		--package autocfg \
 		--dry-run
 
+expanded-code-collector-self-report: deps-all
+	@echo "Running expanded-code-collector on itself in dry-run mode..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--project-root $(PROJECT_ROOT) \
+		--layer 0 \
+		--package expanded-code-collector \
+		--dry-run
+
+	@echo "Running prelude-generator to generate constant report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--generated-decls-output-dir $(EXPANDED_DIR) # Note: expanded-code-collector was run in dry-run mode, so this report will be empty.
+
+expanded-code-collector-self-report-full: deps-all
+	@echo "Running expanded-code-collector on itself (full run)..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--project-root $(PROJECT_ROOT) \
+		--layer 0 \
+		--package expanded-code-collector
+
+	@echo "Running prelude-generator to generate constant report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--generated-decls-output-dir $(EXPANDED_DIR)
+
 # --- Clean Target ---
 clean:
 	@echo "Cleaning generated files..."
