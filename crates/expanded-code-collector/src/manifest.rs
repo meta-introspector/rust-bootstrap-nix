@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::collections::HashMap;
+use crate::decl_parser::DeclarationType;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExpandedManifest {
@@ -19,4 +21,6 @@ pub struct ExpandedFileEntry {
     pub timestamp: u64,
     pub flake_lock_details: serde_json::Value,
     pub layer: u32,
+    pub file_size: u64,
+    pub declaration_counts: HashMap<DeclarationType, usize>,
 }

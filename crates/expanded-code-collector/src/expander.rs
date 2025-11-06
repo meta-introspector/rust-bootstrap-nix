@@ -133,7 +133,9 @@ pub async fn expand_code(
     output_dir: &Path,
     flake_lock_json: &serde_json::Value,
     layer: Option<u32>,
-) -> Result<Vec<ExpandedFileEntry>> {
+    package_filter: Option<String>,
+    dry_run: bool,
+) -> Result<Vec<(ExpandedFileEntry, String)>> {
     let mut expanded_files_entries = Vec::new();
 
     // Read cargo metadata
@@ -145,10 +147,15 @@ pub async fn expand_code(
     let package_layers = calculate_package_layers(&cargo_metadata);
 
     for package in cargo_metadata.packages {
+        if let Some(ref filter_name) = package_filter {
+            if package.name != *filter_name {
+                continue; // Skip this package if it doesn't match the filter
+            }
+        }
         if let Some(requested_layer) = layer {
             if let Some(package_layer) = package_layers.get(&package.id) {
                 if *package_layer != requested_layer {
-                    println!("Skipping package {} (layer {}), not in requested layer {}.", package.name, package_layer, requested_layer);
+                    // println!("Skipping package {} (layer {}), not in requested layer {}.", package.name, package_layer, requested_layer);
                     continue; // Skip this package if it's not in the requested layer
                 }
             } else {
@@ -157,11 +164,11 @@ pub async fn expand_code(
             }
         }
 
-        println!("Processing package: {}", package.name);
+        // println!("Processing package: {}", package.name);
 
 
         for target in package.targets {
-            println!("  Processing target: {} (kind: {:?})", target.name, target.kind);
+            // println!("  Processing target: {} (kind: {:?})", target.name, target.kind);
             let target_type = if target.kind.contains(&"lib".to_string()) {
                 "lib"
             } else if target.kind.contains(&"bin".to_string()) {
@@ -182,60 +189,145 @@ pub async fn expand_code(
             if expanded_rs_path.exists() {
                 println!("Expanded file for {} ({}) is up to date.", package.name, target_type);
                 let timestamp = expanded_rs_path.metadata()?.modified()?.duration_since(std::time::UNIX_EPOCH)?.as_secs();
-                expanded_files_entries.push(ExpandedFileEntry {
-                    package_name: package.name.clone(),
-                    target_type: target_type.to_string(),
-                    target_name: target.name.clone(),
-                    expanded_rs_path: expanded_rs_path.clone(),
-                    cargo_expand_command: "".to_string(), // Command not stored if skipped
-                    timestamp,
-                    flake_lock_details: flake_lock_json.clone(),
-                    layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
-                });
+                let file_content = fs::read_to_string(&expanded_rs_path)
+                    .context(format!("Failed to read existing expanded RS file {}", expanded_rs_path.display()))?;
+                expanded_files_entries.push((
+                    ExpandedFileEntry {
+                        package_name: package.name.clone(),
+                        target_type: target_type.to_string(),
+                        target_name: target.name.clone(),
+                        expanded_rs_path: expanded_rs_path.clone(),
+                        cargo_expand_command: "".to_string(), // Command not stored if skipped
+                        timestamp,
+                        flake_lock_details: flake_lock_json.clone(),
+                        layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
+                        file_size: expanded_rs_path.metadata()?.len(),
+                        declaration_counts: HashMap::new(),
+                    },
+                    file_content,
+                ));
                 continue;
             }
 
-            println!("Running cargo expand for {} ({})...", package.name, target_type);
+            let cargo_expand_command = if target_type == "lib" {
+                format!("cargo expand --manifest-path {} --lib --all-features --color=never --verbose",
+                    package.manifest_path.display()
+                )
+            } else {
+                format!("cargo expand --manifest-path {} --{} {} --all-features --color=never --verbose",
+                    package.manifest_path.display(),
+                    target_type,
+                    target.name
+                )
+            };
 
-            let cargo_expand_command = format!("cargo expand --manifest-path {} --{} {} --all-features --color=always --verbose",
-                package.manifest_path.display(),
-                target_type,
-                target.name
-            );
-            println!("  Command: {}", cargo_expand_command);
+            if dry_run {
+                println!("Dry run: Would process package '{}' (layer {}), target '{}' (kind: {}). Command: {}",
+                    package.name,
+                    package_layers.get(&package.id).unwrap_or(&u32::MAX),
+                    target.name,
+                    target_type,
+                    cargo_expand_command
+                );
 
-            let output = Command::new("cargo")
-                .arg("expand")
+                // In dry-run, execute cargo expand to get output size, but don't write to disk.
+                let mut command = Command::new("cargo");
+                command.arg("expand")
+                    .arg("--manifest-path")
+                    .arg(&package.manifest_path)
+                    .arg(format!("--{}", target_type));
+
+                if target_type != "lib" {
+                    command.arg(&target.name);
+                }
+
+                let output = command
+                    .arg("--all-features")
+                    .arg("--color=never")
+                    .arg("--verbose")
+                    .env("RUSTFLAGS", "--cfg=clippy --sysroot /nix/store/mycvvd0d9ih11ybr7q6iqbfy0wppgj24-rust-default-1.92.0-nightly-2025-09-16")
+                    .env("RUST_BACKTRACE", "1")
+                    .output()
+                    .await
+                    .context(format!("Failed to execute cargo expand for {} ({}) in dry-run mode", package.name, target.name))?;
+
+                let calculated_size = if output.status.success() {
+                    output.stdout.len() as u64
+                } else {
+                    eprintln!("Error during dry-run cargo expand for {} ({} {}):\nStdout: {}\nStderr: {}",
+                        package.name,
+                        target_type,
+                        target.name,
+                        String::from_utf8_lossy(&output.stdout),
+                        String::from_utf8_lossy(&output.stderr)
+                    );
+                    0 // Report 0 size on error
+                };
+                let expanded_code_content = String::from_utf8_lossy(&output.stdout).to_string();
+
+                expanded_files_entries.push((
+                    ExpandedFileEntry {
+                        package_name: package.name.clone(),
+                        target_type: target_type.to_string(),
+                        target_name: target.name.clone(),
+                        expanded_rs_path: expanded_rs_path.clone(),
+                        cargo_expand_command: cargo_expand_command.clone(),
+                        timestamp: 0, // Placeholder for dry run
+                        flake_lock_details: flake_lock_json.clone(),
+                        layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
+                        file_size: calculated_size,
+                        declaration_counts: HashMap::new(),
+                    },
+                    expanded_code_content,
+                ));
+                continue;
+            }
+
+            let mut command = Command::new("cargo");
+            command.arg("expand")
                 .arg("--manifest-path")
                 .arg(&package.manifest_path)
-                .arg(format!("--{}", target_type))
-                .arg(&target.name)
+                .arg(format!("--{}", target_type));
+
+            if target_type != "lib" {
+                command.arg(&target.name);
+            }
+
+            let output = command
                 .arg("--all-features")
-                .arg("--color=always")
+                .arg("--color=never")
                 .arg("--verbose")
+                .env("RUSTFLAGS", "--cfg=clippy --sysroot /nix/store/mycvvd0d9ih11ybr7q6iqbfy0wppgj24-rust-default-1.92.0-nightly-2025-09-16")
+                .env("RUST_BACKTRACE", "1")
                 .output()
                 .await
                 .context(format!("Failed to execute cargo expand for {} ({})", package.name, target.name))?;
 
             if output.status.success() {
-                println!("  cargo expand successful for {} ({}).", package.name, target_type);
-                fs::write(&expanded_rs_path, &output.stdout)
+                // println!("  cargo expand successful for {} ({}).", package.name, target_type);
+                let expanded_code_content = String::from_utf8_lossy(&output.stdout).to_string();
+                fs::write(&expanded_rs_path, &expanded_code_content)
                     .context(format!("Failed to write expanded RS file for {} ({})", package.name, target.name))?;
 
                 let timestamp = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)?
                     .as_secs();
 
-                expanded_files_entries.push(ExpandedFileEntry {
-                    package_name: package.name.clone(),
-                    target_type: target_type.to_string(),
-                    target_name: target.name.clone(),
-                    expanded_rs_path: expanded_rs_path.clone(),
-                    cargo_expand_command: cargo_expand_command.clone(),
-                    timestamp,
-                    flake_lock_details: flake_lock_json.clone(),
-                    layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
-                });
+                expanded_files_entries.push((
+                    ExpandedFileEntry {
+                        package_name: package.name.clone(),
+                        target_type: target_type.to_string(),
+                        target_name: target.name.clone(),
+                        expanded_rs_path: expanded_rs_path.clone(),
+                        cargo_expand_command: cargo_expand_command.clone(),
+                        timestamp,
+                        flake_lock_details: flake_lock_json.clone(),
+                        layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
+                        file_size: expanded_code_content.len() as u64,
+                        declaration_counts: HashMap::new(),
+                    },
+                    expanded_code_content,
+                ));
             } else {
                 eprintln!("Error expanding {} ({} {}):\nStdout: {}\nStderr: {}",
                     package.name,

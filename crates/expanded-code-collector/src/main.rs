@@ -8,6 +8,7 @@ mod metadata;
 mod flake_lock;
 mod expander;
 mod manifest;
+mod decl_parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -39,6 +40,14 @@ struct Args {
     /// Optional: Process only crates at a specific dependency layer.
     #[arg(long)]
     layer: Option<u32>,
+
+    /// Optional: Process only a specific package by name.
+    #[arg(long)]
+    package: Option<String>,
+
+    /// If true, print commands and actions without executing them.
+    #[arg(long, default_value_t = false)]
+    dry_run: bool,
 }
 
 #[tokio::main]
@@ -59,18 +68,36 @@ async fn main() -> Result<()> {
 
     let flake_lock_json = flake_lock::get_flake_lock_json().await?;
 
-    let expanded_files = expander::expand_code(
+    let expanded_files_with_content = expander::expand_code(
         &args.metadata_path,
         &args.output_dir,
         &flake_lock_json,
         args.layer,
+        args.package,
+        args.dry_run,
     ).await?;
+
+    let mut expanded_files_entries = Vec::new();
+
+    for (mut entry, content) in expanded_files_with_content {
+        println!("\n--- Declarations for {} ({}) ---", entry.package_name, entry.target_name);
+        let (declarations, counts) = decl_parser::parse_declarations(&content);
+        for decl in declarations {
+            println!("  {:?} {} (lines {}-{})", decl.decl_type, decl.name, decl.span_start, decl.span_end);
+        }
+        println!("  --- Declaration Counts ---");
+        for (decl_type, count) in &counts {
+            println!("    {:?}: {}", decl_type, count);
+        }
+        entry.declaration_counts = counts;
+        expanded_files_entries.push(entry);
+    }
 
     let manifest = manifest::ExpandedManifest {
         rustc_version: args.rustc_version,
         rustc_host: args.rustc_host,
         project_root: args.project_root,
-        expanded_files,
+        expanded_files: expanded_files_entries,
     };
 
     let manifest_path = args.output_dir.join("expanded_manifest.json");
@@ -81,5 +108,22 @@ async fn main() -> Result<()> {
 
     println!("Generated expanded manifest: {}", manifest_path.display());
 
+    // Call the new function to print the table
+    print_expanded_files_table(&manifest);
+
     Ok(())
+}
+
+fn print_expanded_files_table(manifest: &manifest::ExpandedManifest) {
+    println!("\n| ID | Type | Size (bytes) | Filename | Level |");
+    println!("|---|---|---|---|---|");
+
+    for entry in &manifest.expanded_files {
+        let file_id = format!("{}-{}-{}", entry.package_name, entry.target_name, entry.target_type);
+        let file_type = &entry.target_type;
+        let file_size = entry.file_size;
+        let filename = entry.expanded_rs_path.display();
+        let level = entry.layer;
+        println!("| {} | {} | {} | {} | {} |", file_id, file_type, file_size, filename, level);
+    }
 }

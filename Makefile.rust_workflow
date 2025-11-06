@@ -22,8 +22,7 @@ expand-all: $(METADATA_FILE)
 	cargo run --bin expanded-code-collector -- \
 		--metadata-path $(METADATA_FILE) \
 		--output-dir $(EXPANDED_DIR) \
-		--clean \
-		--rustc-version "1.89.0" \
+--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
 		--rustc-host "aarch64-unknown-linux-gnu" \
 		--project-root $(PROJECT_ROOT) \
 		--layer 0
@@ -40,6 +39,18 @@ split-all: expand-all
 		--layer 0
 # --- All Workflow ---
 all: deps-all expand-all split-all
+
+split-step-1: $(METADATA_FILE)
+	@echo "Running expanded-code-collector for smallest file (autocfg) in dry-run mode..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--project-root $(PROJECT_ROOT) \
+		--layer 0 \
+		--package autocfg \
+		--dry-run
 
 # --- Clean Target ---
 clean:
