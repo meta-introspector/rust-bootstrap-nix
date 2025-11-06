@@ -5,6 +5,7 @@ use split_expanded_lib::{extract_declarations_from_single_file, RustcInfo, Decla
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::Write;
+use std::fmt::Write as FmtWrite;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use toml; // Added this line
@@ -331,16 +332,20 @@ async fn main() -> anyhow::Result<()> {
             DeclarationItem::TraitAlias(_) => "trait_alias",
             DeclarationItem::Type(_) => "type",
             DeclarationItem::Union(_) => "union",
-            DeclarationItem::Other(item) => {
-                // Handle the case where 'Other' might contain a proc macro
-                if let syn::Item::Macro(mac) = item {
-                    if mac.mac.path.segments.last().map_or(false, |s| s.ident == "proc_macro") {
-                        "proc_macro"
+            DeclarationItem::Other(item_str) => {
+                // Attempt to parse the string into a syn::Item to check for proc macros
+                if let Ok(parsed_item) = syn::parse_str::<syn::Item>(item_str) {
+                    if let syn::Item::Macro(mac) = parsed_item {
+                        if mac.mac.path.segments.last().map_or(false, |s| s.ident == "proc_macro") {
+                            "proc_macro"
+                        } else {
+                            "other"
+                        }
                     } else {
                         "other"
                     }
                 } else {
-                    "other"
+                    "other" // If parsing fails, treat it as a generic "other"
                 }
             },
         };
