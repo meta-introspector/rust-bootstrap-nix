@@ -49,7 +49,7 @@ pub struct TypeUsage {
 }
 
 #[derive(Debug, Default)]
-struct DeclarationCollector<'ast> {
+struct DeclarationCollector {
     pub declarations: Vec<Declaration>,
     pub type_usages: HashMap<String, TypeUsage>,
     pub nesting_matrix: HashMap<(DeclarationType, DeclarationType, usize), usize>, // New field
@@ -57,8 +57,8 @@ struct DeclarationCollector<'ast> {
     current_decl_type: Option<DeclarationType>,
 }
 
-impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
-    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+impl Visit<'_> for DeclarationCollector {
+    fn visit_item_mod(&mut self, i: &'_ syn::ItemMod) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_level += 1;
         self.current_decl_type = Some(DeclarationType::Module);
@@ -77,7 +77,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+    fn visit_item_fn(&mut self, i: &'_ syn::ItemFn) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Function);
         self.declarations.push(Declaration {
@@ -94,7 +94,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+    fn visit_item_struct(&mut self, i: &'_ syn::ItemStruct) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Struct);
         self.declarations.push(Declaration {
@@ -111,7 +111,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+    fn visit_item_enum(&mut self, i: &'_ syn::ItemEnum) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Enum);
         self.declarations.push(Declaration {
@@ -128,7 +128,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+    fn visit_item_trait(&mut self, i: &'_ syn::ItemTrait) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Trait);
         self.declarations.push(Declaration {
@@ -145,7 +145,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+    fn visit_item_const(&mut self, i: &'_ syn::ItemConst) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Constant);
         self.declarations.push(Declaration {
@@ -162,7 +162,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+    fn visit_item_static(&mut self, i: &'_ syn::ItemStatic) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Static);
         self.declarations.push(Declaration {
@@ -179,7 +179,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
+    fn visit_item_macro(&mut self, i: &'_ syn::ItemMacro) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Macro);
         self.declarations.push(Declaration {
@@ -196,7 +196,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
+    fn visit_item_use(&mut self, i: &'_ syn::ItemUse) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Use);
         self.declarations.push(Declaration {
@@ -213,7 +213,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+    fn visit_item_impl(&mut self, i: &'_ syn::ItemImpl) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::Impl);
         let mut name = String::from("impl ");
@@ -235,7 +235,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_foreign_mod(&mut self, i: &'ast syn::ItemForeignMod) {
+    fn visit_item_foreign_mod(&mut self, i: &'_ syn::ItemForeignMod) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::ForeignMod);
         self.declarations.push(Declaration {
@@ -252,7 +252,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+    fn visit_item_type(&mut self, i: &'_ syn::ItemType) {
         let parent_decl_type = self.current_decl_type.clone();
         self.current_decl_type = Some(DeclarationType::TypeAlias);
         self.declarations.push(Declaration {
@@ -269,7 +269,7 @@ impl<'ast> Visit<'ast> for DeclarationCollector<'ast> {
         self.current_decl_type = None;
     }
 
-    fn visit_type(&mut self, i: &'ast syn::Type) {
+    fn visit_type(&mut self, i: &'_ syn::Type) {
         let type_name = quote::quote!(#i).to_string();
         let entry = self.type_usages.entry(type_name.clone()).or_insert_with(|| TypeUsage { type_name, ..Default::default() });
 

@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::path::PathBuf;
 use std::fs;
+use std::collections::HashMap;
 
 mod metadata;
 
@@ -81,8 +82,8 @@ async fn main() -> Result<()> {
 
     for (mut entry, content) in expanded_files_with_content {
         println!("\n--- Declarations for {} ({}) ---", entry.package_name, entry.target_name);
-        let (declarations, counts, type_usages) = decl_parser::parse_declarations(&content);
-        for decl in declarations {
+        let (declarations, counts, type_usages, nesting_matrix) = decl_parser::parse_declarations(&content);
+        for decl in &declarations {
             println!("  {:?} {} (lines {}-{})", decl.decl_type, decl.name, decl.span_start, decl.span_end);
         }
         println!("  --- Declaration Counts ---");
@@ -163,7 +164,7 @@ async fn main() -> Result<()> {
         for level in &all_levels {
             println!("\n    Level: {}", level);
             // Print header for this level
-            print!("        | Parent Type \ Child Type | ");
+            print!(r"        | Parent Type \ Child Type | ");
             for c_type in &all_child_types {
                 print!("{:?} | ", c_type);
             }
@@ -180,7 +181,7 @@ async fn main() -> Result<()> {
             for p_type in &all_parent_types {
                 print!("        | {:<24} | ", format!("{:?}", p_type));
                 for c_type in &all_child_types {
-                    let count = nesting_matrix.get(&(*p_type.clone(), *c_type.clone(), *level)).unwrap_or(&0);
+                    let count = nesting_matrix.get(&((*p_type).clone(), (*c_type).clone(), *level)).unwrap_or(&0);
                     print!("{:<7} | ", count);
                 }
                 println!();
