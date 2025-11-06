@@ -1,0 +1,41 @@
+[[interface]]
+name = "SynInterface"
+methods = [
+    { name = "parse_file", args = ["content: &str"], return_type = "Result<syn::File>" },
+    { name = "parse_str", args = ["s: &str"], return_type = "Result<T>", generics = ["T: syn::parse::Parse"] },
+]
+
+[[interface]]
+name = "CargoInterface"
+methods = [
+    { name = "run_command", args = ["args: &[&str]", "current_dir: Option<&PathBuf>"], return_type = "Result<String>" },
+    { name = "metadata", args = ["manifest_path: &PathBuf"], return_type = "Result<cargo_metadata::Metadata>" },
+    { name = "expand_macro", args = ["manifest_path: &PathBuf", "lib_name: &str"], return_type = "Result<String>" },
+]
+
+[[interface]]
+name = "GitInterface"
+methods = [
+    { name = "run_command", args = ["args: &[&str]", "current_dir: Option<&PathBuf>"], return_type = "Result<String>" },
+    { name = "get_current_branch", args = ["current_dir: Option<&PathBuf>"], return_type = "Result<String>" },
+    { name = "get_last_commit_hash", args = ["current_dir: Option<&PathBuf>"], return_type = "Result<String>" },
+]
+
+[[interface]]
+name = "RustcInterface"
+methods = [
+    { name = "run_command", args = ["args: &[&str]", "current_dir: Option<&PathBuf>"], return_type = "Result<String>" },
+    { name = "get_version_verbose", args = [], return_type = "Result<String>" },
+    { name = "get_sysroot", args = [], return_type = "Result<PathBuf>" },
+]
+
+[[interface]]
+name = "IoInterface"
+methods = [
+    { name = "read_file", args = ["path: &PathBuf"], return_type = "impl std::future::Future<Output = Result<String>> + Send" },
+    { name = "write_file", args = ["path: &PathBuf", "content: &str"], return_type = "impl std::future::Future<Output = Result<()>> + Send" },
+    { name = "create_dir_all", args = ["path: &PathBuf"], return_type = "impl std::future::Future<Output = Result<()>> + Send" },
+    { name = "remove_dir_all", args = ["path: &PathBuf"], return_type = "impl std::future::Future<Output = Result<()>> + Send" },
+    { name = "path_exists", args = ["path: &PathBuf"], return_type = "impl std::future::Future<Output = bool> + Send" },
+    { name = "run_command", args = ["program: &str", "args: &[&str]", "current_dir: Option<&PathBuf>"], return_type = "impl std::future::Future<Output = Result<String>> + Send" },
+]
