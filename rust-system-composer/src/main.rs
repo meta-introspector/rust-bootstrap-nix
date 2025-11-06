@@ -79,7 +79,7 @@ async fn main() -> anyhow::Result<()> {
                 .context(format!("Failed to write flake.nix for project {}", project_name))?;
 
             // Extract declarations using split-expanded-lib
-            let (declarations, _symbol_map, errors, file_metadata) = extract_all_declarations_from_file(
+            let (declarations, _symbol_map, errors, file_metadata, _public_symbols) = extract_all_declarations_from_file(
                 &file_path,
                 &PathBuf::new(), // output_dir is not directly used by new function
                 false, // dry_run is not directly used by new function

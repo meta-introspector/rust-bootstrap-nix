@@ -35,6 +35,10 @@ struct Args {
     /// Project root directory.
     #[arg(long)]
     project_root: PathBuf,
+
+    /// Optional: Process only crates at a specific dependency layer.
+    #[arg(long)]
+    layer: Option<u32>,
 }
 
 #[tokio::main]
@@ -59,6 +63,7 @@ async fn main() -> Result<()> {
         &args.metadata_path,
         &args.output_dir,
         &flake_lock_json,
+        args.layer,
     ).await?;
 
     let manifest = manifest::ExpandedManifest {

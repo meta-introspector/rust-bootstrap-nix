@@ -18,4 +18,5 @@ pub struct ExpandedFileEntry {
     pub cargo_expand_command: String,
     pub timestamp: u64,
     pub flake_lock_details: serde_json::Value,
+    pub layer: u32,
 }

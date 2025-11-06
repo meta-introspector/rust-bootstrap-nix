@@ -27,6 +27,7 @@ pub struct ExpandedFileEntry {
     pub cargo_expand_command: String,
     pub timestamp: u64,
     pub flake_lock_details: serde_json::Value,
+    pub layer: u32,
 }
 
 #[derive(Parser, Debug)]
@@ -51,6 +52,10 @@ pub struct Args {
     /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu").
     #[arg(long)]
     pub rustc_host: String,
+
+    /// Optional: Process only crates at a specific dependency layer.
+    #[arg(long)]
+    layer: Option<u32>,
 }
 
 #[tokio::main]
@@ -90,6 +95,19 @@ async fn main() -> anyhow::Result<()> {
     let mut all_errors: Vec<ErrorSample> = Vec::new();
 
     for expanded_file_entry in expanded_manifest.expanded_files {
+        if let Some(requested_layer) = args.layer {
+            if expanded_file_entry.layer != requested_layer {
+                if args.verbosity >= 1 {
+                    println!("Skipping expanded file for package {} (layer {}), not in requested layer {}.",
+                        expanded_file_entry.package_name,
+                        expanded_file_entry.layer,
+                        requested_layer
+                    );
+                }
+                continue; // Skip this file if it's not in the requested layer
+            }
+        }
+
         if args.verbosity >= 1 {
             println!("Processing expanded RS file: {}", expanded_file_entry.expanded_rs_path.display());
             std::io::stdout().flush().unwrap();
@@ -104,7 +122,7 @@ async fn main() -> anyhow::Result<()> {
             std::io::stdout().flush().unwrap();
         }
 
-        let (declarations, errors, _file_metadata) = extract_declarations_from_single_file(
+        let (declarations, errors, _file_metadata, _public_symbols) = extract_declarations_from_single_file(
             &expanded_rs_file_path,
             &rustc_info,
             crate_name,
