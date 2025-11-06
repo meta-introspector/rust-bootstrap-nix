@@ -67,7 +67,13 @@ expanded-code-collector-self-report: deps-all
 	@echo "Running prelude-generator to generate constant report..."
 	cargo run --bin prelude-generator -- \
 		--path $(EXPANDED_DIR) \
-		--generated-decls-output-dir $(EXPANDED_DIR) # Note: expanded-code-collector was run in dry-run mode, so this report will be empty.
+		--generated-decls-output-dir $(EXPANDED_DIR)
+
+generate-analysis-report: deps-all expand-all
+	@echo "Running prelude-generator to generate comprehensive analysis report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--output-toml-report $(EXPANDED_DIR)/analysis_report.toml
 
 expanded-code-collector-self-report-full: deps-all
 	@echo "Running expanded-code-collector on itself (full run)..."

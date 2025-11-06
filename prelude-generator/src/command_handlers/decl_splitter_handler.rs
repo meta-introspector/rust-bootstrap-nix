@@ -4,17 +4,18 @@ use walkdir;
 
 use split_expanded_lib::Declaration;
 use crate::Args; // Use prelude_generator's Args
-
+use crate::use_extractor::RustcInfo;
+use crate::symbol_map::SymbolMap;
 
 
 pub async fn handle_run_decl_splitter(
     args: &Args,
     project_root: &PathBuf,
-    rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
+    rustc_info: &RustcInfo,
 ) -> anyhow::Result<()> {
     println!("Running declaration splitter functionality...");
 
-    let input_path = args.path.clone(); // This will now be the path to the expanded .rs file
+    let _input_path = args.path.clone(); // This will now be the path to the expanded .rs file
 
     let output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| PathBuf::from("./generated_declarations"));
 
@@ -29,7 +30,7 @@ pub async fn handle_run_decl_splitter(
 
     let mut all_declarations_aggregated: Vec<Declaration> = Vec::new();
     let mut all_collected_errors_aggregated: Vec<split_expanded_lib::ErrorSample> = Vec::new();
-    let symbol_map_aggregated = crate::symbol_map::SymbolMap::new();
+    let _symbol_map_aggregated = SymbolMap::new();
     let mut all_public_symbols_aggregated: Vec<split_expanded_lib::PublicSymbol> = Vec::new();
 
     let rustc_info_for_split_expanded_lib = split_expanded_lib::RustcInfo {

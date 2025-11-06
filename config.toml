@@ -56,7 +56,7 @@ id = ""
 [bins]
 bootstrap_config_generator = "target/release/bootstrap-config-generator"
 configuration_nix = "target/release/configuration-nix"
-flake_step_manager = "target/release/flake-step-manager"
+flake_step_manager = "target/release/flake-step_manager"
 flake_template_generator = "target/release/flake-template-generator"
 hf_validator = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/target/debug/hf-validator"
 metrics_reporter = "target/release/metrics-reporter"
@@ -64,3 +64,9 @@ nix_dir = "target/release/nix-dir"
 prelude_generator = "target/release/prelude-generator"
 rust_decl_splitter = "target/release/rust-decl-splitter"
 rust_system_composer = "target/release/rust-system-composer"
+
+[module_exports]
+modules = [
+    "my_crate::dummy_module_a",
+    "my_crate::another_dummy_module::sub_dummy_module",
+]

@@ -2,7 +2,8 @@ use serde::Deserialize;
 use std::path::PathBuf;
 use anyhow::{Result, Context};
 use std::collections::HashMap;
-
+//use crate::external_interfaces::IoInterface;
+//use crate::external_interfaces::io_impl::IoInterfaceImpl;
 #[derive(Debug, Deserialize, Clone)]
 pub struct NixConfig {
     pub nixpkgs_path: Option<String>,
@@ -82,6 +83,11 @@ pub struct BinsConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct ModuleExportsConfig {
+    pub modules: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     #[serde(default)]
     pub nix: Option<NixConfig>,
@@ -101,10 +107,12 @@ pub struct Config {
     pub change_id: Option<ChangeIdConfig>,
     #[serde(default)]
     pub bins: Option<BinsConfig>,
+    #[serde(default, rename = "module_exports")]
+    pub module_exports: Option<ModuleExportsConfig>,
 }
 
-pub fn read_config(config_path: &PathBuf, project_root: &PathBuf) -> Result<Config> {
-    let config_content = std::fs::read_to_string(config_path)
+pub async fn read_config(config_path: &PathBuf, project_root: &PathBuf, io_interface: &crate::external_interfaces::io_impl::IoInterfaceImpl) -> Result<Config> {
+    let config_content = io_interface.read_file(config_path).await
         .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
     let mut config: Config = toml::from_str(&config_content)
         .with_context(|| format!("Failed to parse config file: {}", config_path.display()))?;

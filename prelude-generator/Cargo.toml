@@ -30,4 +30,12 @@ pipeline-traits = { path = "../pipeline-traits" }
 ast-decoder = { path = "../ast-decoder" }
 split-expanded-lib = { path = "../split-expanded-lib" }
 
+[[bin]]
+name = "module-exporter-cli"
+path = "src/bin/module-exporter-cli.rs"
+
+[[bin]]
+name = "interface-generator"
+path = "src/bin/interface-generator.rs"
+
 [dev-dependencies]

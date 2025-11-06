@@ -1,0 +1,14 @@
+title = "Implement Lattice Placement Logic"
+description = "Implement the logic for determining a function's optimal Lattice placement. This involves: (1) performing a Level 0 check based on `CargoDetails` and `RustDetails` to identify functions exclusively referencing primitives or internal `prelude` items, and (2) for non-Level 0 functions, identifying all referenced external identifiers (from the Bag of Words report) to determine the optimal 8D coordinate grouping (targeting ~4KB size)."
+status = "TODO"
+created_at = "2025-11-06T13:10:00Z"
+parent_task = "02_01_implement_bag_of_words_and_coordinate_grouping_for_declarations.toml"
+stage_id = 12
+step_id = "2"
+name = "Implement Lattice Placement Logic"
+related_files = [
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/command_handlers/mod.rs",
+    "prelude-generator/src/bag_of_words_visitor.rs",
+    "prelude-generator/src/type_extractor.rs",
+]

@@ -1,0 +1,13 @@
+title = "Verify and update onboarding guide"
+description = "Verify that the `Onboarding Guide for N00bs` (`docs/tutorials/`) is fully integrated with the current Nix shell setup and includes links to Git best practices, specifically advising against `git --force` and `git rebase` for new contributors."
+status = "TODO"
+created_at = "2025-11-06T11:30:00Z"
+parent_task = "09_01_maintain_core_vision_docs.toml"
+stage_id = 9
+step_id = "2"
+name = "Verify onboarding guide"
+related_files = [
+    "docs/tutorials/Contributing_with_CRQs_and_SOPs.md",
+    "docs/tutorials/",
+    "docs/Nix_and_Precommit_Setup.md",
+]

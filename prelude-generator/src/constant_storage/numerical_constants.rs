@@ -1,7 +1,6 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::path::PathBuf;
 use quote::quote;
-use tokio::fs;
 use syn::ItemConst;
 
 const MAX_FILE_SIZE: usize = 4 * 1024; // 4KB
@@ -16,7 +15,7 @@ pub async fn write_numerical_constants_to_hierarchical_structure(
     let mut current_file_content = String::new();
 
     for constant in constants {
-        let const_name = constant.ident.to_string();
+        let _const_name = constant.ident.to_string();
         let const_code = quote! { #constant }.to_string();
         let line = format!("{}\n", const_code);
 

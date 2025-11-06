@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
 
     let flake_lock_json = flake_lock::get_flake_lock_json().await?;
 
-    let expanded_files_with_content = expander::expand_code(
+    let expanded_files_with_content = expander::expand_all_packages(
         &args.metadata_path,
         &args.output_dir,
         &flake_lock_json,
@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
 
     for (mut entry, content) in expanded_files_with_content {
         println!("\n--- Declarations for {} ({}) ---", entry.package_name, entry.target_name);
-        let (declarations, counts, type_usages, nesting_matrix) = decl_parser::parse_declarations(&content);
+        let (declarations, counts, type_usages, nesting_matrix) = decl_parser::parse_declarations(content.as_str());
         for decl in &declarations {
             println!("  {:?} {} (lines {}-{}) Attributes: {:?}", decl.decl_type, decl.name, decl.span_start, decl.span_end, decl.attributes);
         }

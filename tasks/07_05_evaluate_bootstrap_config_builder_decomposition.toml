@@ -1,0 +1,13 @@
+title = "Evaluate bootstrap-config-builder-core for modular decomposition"
+description = "Evaluate `bootstrap-config-builder-core/src/lib.rs` for further modular decomposition based on topological dependencies and logical grouping. This should be performed once current import issues are fully resolved to ensure a stable base."
+status = "TODO"
+created_at = "2025-11-06T10:30:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 7
+step_id = "5"
+name = "Evaluate bootstrap-config-builder-core decomposition"
+related_files = [
+    "bootstrap-config-builder/src/lib.rs",
+    "bootstrap-config-builder/src/config.rs",
+    "bootstrap-config-builder/src/utils/mod.rs",
+]

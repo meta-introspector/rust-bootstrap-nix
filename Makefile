@@ -80,13 +80,7 @@ clean-shear:
 	@echo "Cleaning shear processed stamps via Makefile.shear..."
 	$(MAKE) -f Makefile.shear clean-shear
 
-expand-all:
-	@echo "Running cargo expand on all packages via Makefile.expand..."
-	$(MAKE) -f Makefile.expand expand-all
 
-clean-expand:
-	@echo "Cleaning expand processed stamps and output files via Makefile.expand..."
-	$(MAKE) -f Makefile.expand clean-expand
 
 generate-use-statements-test-file: generated/use_statement_tests/.all-use-statements-generated-stamp
 
@@ -103,6 +97,7 @@ check-rust-decl-splitter:
 
 include Makefile.prelude
 include generated_projects.mk
+include Makefile.rust_workflow
 
 .PHONY: generate-workspace clean-workspace update-all-flakes update-flake-lock
 

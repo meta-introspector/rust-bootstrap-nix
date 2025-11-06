@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tokio::fs;
 use walkdir::WalkDir;
-use syn::{ItemConst, Lit, Type};
+use syn::{Lit, Type};
 
 pub async fn generate_numerical_constants_report(
     output_dir: &PathBuf,

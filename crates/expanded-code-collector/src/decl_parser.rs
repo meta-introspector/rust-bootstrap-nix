@@ -1,8 +1,9 @@
-use syn::{spanned::Spanned, Item, Attribute};
+#![allow(unused_imports)]
+use syn::{spanned::Spanned, Attribute};
 use quote::ToTokens;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use syn::visit::{self, Visit, visit_type, visit_item_mod, visit_item_fn, visit_item_struct, visit_item_enum, visit_item_trait, visit_item_const, visit_item_static, visit_item_macro, visit_item_use, visit_item_impl, visit_item_foreign_mod, visit_item_type};
+use syn::visit::{Visit, visit_type, visit_item_mod, visit_item_fn, visit_item_struct, visit_item_enum, visit_item_trait, visit_item_const, visit_item_static, visit_item_macro, visit_item_use, visit_item_impl, visit_item_foreign_mod, visit_item_type};
 
 #[derive(Debug, Eq, Hash, PartialEq, Serialize, Deserialize, Clone)]
 pub enum DeclarationType {
@@ -378,7 +379,14 @@ fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<String> {
 pub fn parse_declarations(code: &str) -> (Vec<Declaration>, HashMap<DeclarationType, usize>, HashMap<String, TypeUsage>, HashMap<(DeclarationType, DeclarationType, usize), usize>) {
     // Debug print the code that is being parsed
     eprintln!("Attempting to parse code:\n---\n{}\n---", code);
-    let syntax_tree = syn::parse_file(code).expect("Failed to parse Rust code");
+    let syntax_tree = match syn::parse_file(code) {
+        Ok(tree) => tree,
+        Err(e) => {
+            eprintln!("Error parsing Rust code: {}", e);
+            eprintln!("Problematic code:\n---\n{}\n---", code);
+            return (Vec::new(), HashMap::new(), HashMap::new(), HashMap::new());
+        }
+    };
 
     let crate_attributes: Vec<String> = syntax_tree.attrs.iter()
         .filter(|attr: &&syn::Attribute| matches!(attr.style, syn::AttrStyle::Inner(_)))

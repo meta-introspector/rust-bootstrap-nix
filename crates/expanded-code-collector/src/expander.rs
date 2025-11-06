@@ -19,6 +19,7 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
 
     let mut assigned_count = 0;
     let total_packages = cargo_metadata.packages.len();
+    #[allow(unused_variables)]
     let mut current_layer = 0;
 
     // First pass: assign layer 0 to packages with no dependencies
@@ -128,7 +129,8 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
     package_layers
 }
 
-pub async fn expand_code(
+#[allow(unused_variables)]
+pub async fn expand_all_packages(
     metadata_path: &Path,
     output_dir: &Path,
     flake_lock_json: &serde_json::Value,
@@ -252,7 +254,7 @@ pub async fn expand_code(
                     .await
                     .context(format!("Failed to execute cargo expand for {} ({}) in dry-run mode", package.name, target.name))?;
 
-                let calculated_size = if output.status.success() {
+                let _calculated_size = if output.status.success() {
                     output.stdout.len() as u64
                 } else {
                     eprintln!("Error during dry-run cargo expand for {} ({} {}):\nStdout: {}\nStderr: {}",
