@@ -28,4 +28,5 @@ related_files = [
     "Makefile.rust_workflow",
     "Cargo.lock",
     "Cargo.toml",
+    "scripts/expand_rust_compiler_crates.sh",
 ]

@@ -25,4 +25,5 @@ related_files = [
     "scripts/generate_package_lists.sh",
     "syn-usage-collector/src/lib.rs",
     "syn-usage-collector/src/main.rs",
+    "scripts/expand_rust_compiler_crates.sh",
 ]

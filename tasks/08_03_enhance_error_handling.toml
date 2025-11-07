@@ -14,4 +14,7 @@ related_files = [
     "bootstrap-config-builder/src/lib.rs",
     "rust-system-composer/src/lib.rs",
     "split-expanded-bin/src/lib.rs",
+    "crates/expanded-code-collector/src/lib.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
 ]

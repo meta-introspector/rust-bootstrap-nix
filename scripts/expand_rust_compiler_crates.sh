@@ -35,6 +35,18 @@ while IFS= read -r CARGO_TOML_PATH; do
         continue
     fi
 
+    # Check if the expanded output file already exists
+    # Assuming the output file name starts with .expand_output_${PACKAGE_NAME}_ and ends with .rs
+    OUTPUT_FILE_GLOB="${EXPANDED_DIR}/.expand_output_${PACKAGE_NAME}_*.rs"
+    shopt -s nullglob # Enable nullglob to make globs that match nothing expand to nothing
+    files=( ${OUTPUT_FILE_GLOB} )
+    if [ ${#files[@]} -gt 0 ]; then
+        echo "Skipping expansion for ${CARGO_TOML_PATH} (output file exists)."
+        shopt -u nullglob # Disable nullglob
+        continue
+    fi
+    shopt -u nullglob # Disable nullglob
+
     echo "  - Package Name: ${PACKAGE_NAME}"
     echo "  - Running expanded-code-collector for layer 0..."
 

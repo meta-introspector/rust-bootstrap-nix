@@ -24,4 +24,5 @@ related_files = [
     "Makefile.expand",
     "Makefile.rust_workflow",
     "scripts/generate_package_lists.sh",
+    "scripts/expand_rust_compiler_crates.sh",
 ]

@@ -15,4 +15,7 @@ related_files = [
     "rust-system-composer/src/main.rs",
     "split-expanded-bin/src/lib.rs",
     "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/lib.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
 ]

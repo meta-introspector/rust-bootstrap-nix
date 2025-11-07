@@ -13,4 +13,5 @@ related_files = [
     "rust-system-composer/src/main.rs",
     "split-expanded-bin/src/main.rs",
     "vendor/rust/hugging-face-dataset-validator-rust/src/main.rs",
+    "crates/expanded-code-collector/src/main.rs",
 ]
