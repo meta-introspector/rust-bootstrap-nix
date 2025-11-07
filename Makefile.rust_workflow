@@ -8,6 +8,11 @@ METADATA_FILE := rust-bootstrap-core/full_metadata.json
 EXPANDED_DIR := expanded
 PROJECT_ROOT := .
 
+# Paths for Rust compiler source expansion
+RUST_SRC_PATH := /data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
+RUST_SRC_METADATA_FILE := $(RUST_SRC_PATH)/full_metadata.json
+RUST_SRC_EXPANDED_DIR := $(RUST_SRC_PATH)/expanded
+
 # --- Dependency Collection (from Makefile.deps) ---
 deps-all: $(METADATA_FILE)
 
@@ -16,13 +21,36 @@ $(METADATA_FILE):
 	mkdir -p $(@D) # Ensure the directory exists
 	cargo metadata --format-version 1 > $@
 
+# --- Dependency Collection for Rust Compiler Source ---
+deps-rust-compiler-src: $(RUST_SRC_METADATA_FILE)
+
+$(RUST_SRC_METADATA_FILE):
+	@echo "Collecting full workspace metadata for Rust compiler source using cargo metadata..."
+	mkdir -p $(@D) # Ensure the directory exists
+	cargo metadata --format-version 1 --manifest-path $(RUST_SRC_PATH)/Cargo.toml > $@
+
 # --- Expanded Code Collection (using expanded-code-collector) ---
 expand-all: $(METADATA_FILE)
-	@echo "Running expanded-code-collector..."
-	cargo run --bin expanded-code-collector -- \
-		--metadata-path $(METADATA_FILE) \
-		--output-dir $(EXPANDED_DIR) \
-		--layer 0
+	@echo "Running expanded-code-collector for all layers..."
+	for i in $(shell seq 0 10); do \
+		echo "Processing layer $$i..."; \
+		cargo run --bin expanded-code-collector -- \
+			--metadata-path $(METADATA_FILE) \
+			--output-dir $(EXPANDED_DIR) \
+			--layer $$i; \
+	done
+
+# --- Expanded Code Collection for Rust Compiler Source ---
+expand-rust-compiler-src: deps-rust-compiler-src
+	@echo "Running expanded-code-collector for Rust compiler source..."
+	mkdir -p $(RUST_SRC_EXPANDED_DIR) # Ensure the directory exists
+	for i in $(shell seq 0 10); do \
+		echo "Processing layer $$i..."; \
+		cargo run --bin expanded-code-collector -- \
+			--metadata-path $(RUST_SRC_METADATA_FILE) \
+			--output-dir $(RUST_SRC_EXPANDED_DIR) \
+			--layer $$i; \
+	done
 
 # --- Split and Organize Declarations (using split-expanded-bin) ---
 split-all: expand-all
@@ -79,11 +107,15 @@ expanded-code-collector-self-report-full: deps-all
 		--path $(EXPANDED_DIR) \
 		--generated-decls-output-dir $(EXPANDED_DIR)
 
-# --- Clean Target ---
-clean:
-	@echo "Cleaning generated files..."
-	rm -rf $(METADATA_FILE)
-	rm -rf $(EXPANDED_DIR)
-	rm -rf src/level_*
-	rm -f scripts/packages.list
-	rm -f scripts/binary_packages.list
+
+# --- Test Target to Reproduce Rust Compiler Metadata Failure ---
+test-rust-compiler-metadata-fail:
+	@echo "Attempting to generate metadata for the Rust compiler source to reproduce failure..."
+	mkdir -p $(RUST_SRC_PATH) # Ensure the directory exists, though it should already
+	if cargo metadata --format-version 1 --manifest-path $(RUST_SRC_PATH)/Cargo.toml > /dev/null 2>&1; then \
+		echo "Unexpected success: cargo metadata for Rust compiler source did NOT fail."; \
+		exit 1; \
+	else \
+		echo "Expected failure: cargo metadata for Rust compiler source failed as expected."; \
+		exit 0; \
+	fi

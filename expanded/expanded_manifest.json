@@ -1,623 +1,65 @@
 [
   {
-    "package_name": "anstyle",
-    "file_path": "expanded/.expand_output_anstyle_anstyle_lib.rs",
-    "expanded_path": "expanded/.expand_output_anstyle_anstyle_lib.rs",
+    "package_name": "camino",
+    "file_path": "expanded/.expand_output_camino_camino_lib.rs",
+    "expanded_path": "expanded/.expand_output_camino_camino_lib.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "anyhow",
-    "file_path": "expanded/.expand_output_anyhow_anyhow_lib.rs",
-    "expanded_path": "expanded/.expand_output_anyhow_anyhow_lib.rs",
+    "package_name": "clap",
+    "file_path": "expanded/.expand_output_clap_clap_lib.rs",
+    "expanded_path": "expanded/.expand_output_clap_clap_lib.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "autocfg",
-    "file_path": "expanded/.expand_output_autocfg_autocfg_lib.rs",
-    "expanded_path": "expanded/.expand_output_autocfg_autocfg_lib.rs",
+    "package_name": "clap",
+    "file_path": "expanded/.expand_output_clap_stdio_fixture_bin.rs",
+    "expanded_path": "expanded/.expand_output_clap_stdio_fixture_bin.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "base64",
-    "file_path": "expanded/.expand_output_base64_base64_lib.rs",
-    "expanded_path": "expanded/.expand_output_base64_base64_lib.rs",
+    "package_name": "serde",
+    "file_path": "expanded/.expand_output_serde_serde_lib.rs",
+    "expanded_path": "expanded/.expand_output_serde_serde_lib.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "bitflags",
-    "file_path": "expanded/.expand_output_bitflags_bitflags_lib.rs",
-    "expanded_path": "expanded/.expand_output_bitflags_bitflags_lib.rs",
+    "package_name": "test-openssl-sys",
+    "file_path": "expanded/.expand_output_test_openssl_sys_test_openssl_sys_bin.rs",
+    "expanded_path": "expanded/.expand_output_test_openssl_sys_test_openssl_sys_bin.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "bootstrap-config",
-    "file_path": "expanded/.expand_output_bootstrap_config_bootstrap_config_lib.rs",
-    "expanded_path": "expanded/.expand_output_bootstrap_config_bootstrap_config_lib.rs",
+    "package_name": "wasm-bindgen",
+    "file_path": "expanded/.expand_output_wasm_bindgen_wasm_bindgen_lib.rs",
+    "expanded_path": "expanded/.expand_output_wasm_bindgen_wasm_bindgen_lib.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   },
   {
-    "package_name": "bootstrap-test-utils",
-    "file_path": "expanded/.expand_output_bootstrap_test_utils_bootstrap_test_utils_lib.rs",
-    "expanded_path": "expanded/.expand_output_bootstrap_test_utils_bootstrap_test_utils_lib.rs",
+    "package_name": "zerofrom",
+    "file_path": "expanded/.expand_output_zerofrom_zerofrom_lib.rs",
+    "expanded_path": "expanded/.expand_output_zerofrom_zerofrom_lib.rs",
     "original_path": "unknown",
     "rustc_version": "unknown",
     "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "bumpalo",
-    "file_path": "expanded/.expand_output_bumpalo_bumpalo_lib.rs",
-    "expanded_path": "expanded/.expand_output_bumpalo_bumpalo_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "bytes",
-    "file_path": "expanded/.expand_output_bytes_bytes_lib.rs",
-    "expanded_path": "expanded/.expand_output_bytes_bytes_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "cfg-if",
-    "file_path": "expanded/.expand_output_cfg_if_cfg_if_lib.rs",
-    "expanded_path": "expanded/.expand_output_cfg_if_cfg_if_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "clap_lex",
-    "file_path": "expanded/.expand_output_clap_lex_clap_lex_lib.rs",
-    "expanded_path": "expanded/.expand_output_clap_lex_clap_lex_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "colorchoice",
-    "file_path": "expanded/.expand_output_colorchoice_colorchoice_lib.rs",
-    "expanded_path": "expanded/.expand_output_colorchoice_colorchoice_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "config_core",
-    "file_path": "expanded/.expand_output_config_core_config_core_lib.rs",
-    "expanded_path": "expanded/.expand_output_config_core_config_core_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "core-foundation-sys",
-    "file_path": "expanded/.expand_output_core_foundation_sys_core_foundation_sys_lib.rs",
-    "expanded_path": "expanded/.expand_output_core_foundation_sys_core_foundation_sys_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "either",
-    "file_path": "expanded/.expand_output_either_either_lib.rs",
-    "expanded_path": "expanded/.expand_output_either_either_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "equivalent",
-    "file_path": "expanded/.expand_output_equivalent_equivalent_lib.rs",
-    "expanded_path": "expanded/.expand_output_equivalent_equivalent_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "fastrand",
-    "file_path": "expanded/.expand_output_fastrand_fastrand_lib.rs",
-    "expanded_path": "expanded/.expand_output_fastrand_fastrand_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "fixedbitset",
-    "file_path": "expanded/.expand_output_fixedbitset_fixedbitset_lib.rs",
-    "expanded_path": "expanded/.expand_output_fixedbitset_fixedbitset_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "fs_extra",
-    "file_path": "expanded/.expand_output_fs_extra_fs_extra_lib.rs",
-    "expanded_path": "expanded/.expand_output_fs_extra_fs_extra_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "glob",
-    "file_path": "expanded/.expand_output_glob_glob_lib.rs",
-    "expanded_path": "expanded/.expand_output_glob_glob_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "hashbrown",
-    "file_path": "expanded/.expand_output_hashbrown_hashbrown_lib.rs",
-    "expanded_path": "expanded/.expand_output_hashbrown_hashbrown_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "heck",
-    "file_path": "expanded/.expand_output_heck_heck_lib.rs",
-    "expanded_path": "expanded/.expand_output_heck_heck_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "icu_normalizer_data",
-    "file_path": "expanded/.expand_output_icu_normalizer_data_icu_normalizer_data_lib.rs",
-    "expanded_path": "expanded/.expand_output_icu_normalizer_data_icu_normalizer_data_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "icu_properties_data",
-    "file_path": "expanded/.expand_output_icu_properties_data_icu_properties_data_lib.rs",
-    "expanded_path": "expanded/.expand_output_icu_properties_data_icu_properties_data_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "is_terminal_polyfill",
-    "file_path": "expanded/.expand_output_is_terminal_polyfill_is_terminal_polyfill_lib.rs",
-    "expanded_path": "expanded/.expand_output_is_terminal_polyfill_is_terminal_polyfill_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "itoa",
-    "file_path": "expanded/.expand_output_itoa_itoa_lib.rs",
-    "expanded_path": "expanded/.expand_output_itoa_itoa_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "lazy_static",
-    "file_path": "expanded/.expand_output_lazy_static_lazy_static_lib.rs",
-    "expanded_path": "expanded/.expand_output_lazy_static_lazy_static_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "libc",
-    "file_path": "expanded/.expand_output_libc_libc_lib.rs",
-    "expanded_path": "expanded/.expand_output_libc_libc_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "linux-raw-sys",
-    "file_path": "expanded/.expand_output_linux_raw_sys_linux_raw_sys_lib.rs",
-    "expanded_path": "expanded/.expand_output_linux_raw_sys_linux_raw_sys_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "litemap",
-    "file_path": "expanded/.expand_output_litemap_litemap_lib.rs",
-    "expanded_path": "expanded/.expand_output_litemap_litemap_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "log",
-    "file_path": "expanded/.expand_output_log_log_lib.rs",
-    "expanded_path": "expanded/.expand_output_log_log_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "memchr",
-    "file_path": "expanded/.expand_output_memchr_memchr_lib.rs",
-    "expanded_path": "expanded/.expand_output_memchr_memchr_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "min_test_project",
-    "file_path": "expanded/.expand_output_min_test_project_min_test_project_lib.rs",
-    "expanded_path": "expanded/.expand_output_min_test_project_min_test_project_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "once_cell",
-    "file_path": "expanded/.expand_output_once_cell_once_cell_lib.rs",
-    "expanded_path": "expanded/.expand_output_once_cell_once_cell_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "once_cell_polyfill",
-    "file_path": "expanded/.expand_output_once_cell_polyfill_once_cell_polyfill_lib.rs",
-    "expanded_path": "expanded/.expand_output_once_cell_polyfill_once_cell_polyfill_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "openssl-probe",
-    "file_path": "expanded/.expand_output_openssl_probe_openssl_probe_lib.rs",
-    "expanded_path": "expanded/.expand_output_openssl_probe_openssl_probe_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "percent-encoding",
-    "file_path": "expanded/.expand_output_percent_encoding_percent_encoding_lib.rs",
-    "expanded_path": "expanded/.expand_output_percent_encoding_percent_encoding_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "pin-project-lite",
-    "file_path": "expanded/.expand_output_pin_project_lite_pin_project_lite_lib.rs",
-    "expanded_path": "expanded/.expand_output_pin_project_lite_pin_project_lite_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "pkg-config",
-    "file_path": "expanded/.expand_output_pkg_config_pkg_config_lib.rs",
-    "expanded_path": "expanded/.expand_output_pkg_config_pkg_config_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "portable-atomic",
-    "file_path": "expanded/.expand_output_portable_atomic_portable_atomic_lib.rs",
-    "expanded_path": "expanded/.expand_output_portable_atomic_portable_atomic_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "r-efi",
-    "file_path": "expanded/.expand_output_r_efi_r_efi_lib.rs",
-    "expanded_path": "expanded/.expand_output_r_efi_r_efi_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "regex-syntax",
-    "file_path": "expanded/.expand_output_regex_syntax_regex_syntax_lib.rs",
-    "expanded_path": "expanded/.expand_output_regex_syntax_regex_syntax_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "ryu",
-    "file_path": "expanded/.expand_output_ryu_ryu_lib.rs",
-    "expanded_path": "expanded/.expand_output_ryu_ryu_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "scopeguard",
-    "file_path": "expanded/.expand_output_scopeguard_scopeguard_lib.rs",
-    "expanded_path": "expanded/.expand_output_scopeguard_scopeguard_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "shlex",
-    "file_path": "expanded/.expand_output_shlex_shlex_lib.rs",
-    "expanded_path": "expanded/.expand_output_shlex_shlex_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "smallvec",
-    "file_path": "expanded/.expand_output_smallvec_smallvec_lib.rs",
-    "expanded_path": "expanded/.expand_output_smallvec_smallvec_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "stable_deref_trait",
-    "file_path": "expanded/.expand_output_stable_deref_trait_stable_deref_trait_lib.rs",
-    "expanded_path": "expanded/.expand_output_stable_deref_trait_stable_deref_trait_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "stage0_parser_crate",
-    "file_path": "expanded/.expand_output_stage0_parser_crate_stage0_parser_crate_lib.rs",
-    "expanded_path": "expanded/.expand_output_stage0_parser_crate_stage0_parser_crate_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "strsim",
-    "file_path": "expanded/.expand_output_strsim_strsim_lib.rs",
-    "expanded_path": "expanded/.expand_output_strsim_strsim_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "test_definitions_lib",
-    "file_path": "expanded/.expand_output_test_definitions_lib_test_definitions_lib_lib.rs",
-    "expanded_path": "expanded/.expand_output_test_definitions_lib_test_definitions_lib_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "toml_write",
-    "file_path": "expanded/.expand_output_toml_write_toml_write_lib.rs",
-    "expanded_path": "expanded/.expand_output_toml_write_toml_write_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "typenum",
-    "file_path": "expanded/.expand_output_typenum_typenum_lib.rs",
-    "expanded_path": "expanded/.expand_output_typenum_typenum_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "unicode-ident",
-    "file_path": "expanded/.expand_output_unicode_ident_unicode_ident_lib.rs",
-    "expanded_path": "expanded/.expand_output_unicode_ident_unicode_ident_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "utf8_iter",
-    "file_path": "expanded/.expand_output_utf8_iter_utf8_iter_lib.rs",
-    "expanded_path": "expanded/.expand_output_utf8_iter_utf8_iter_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "utf8parse",
-    "file_path": "expanded/.expand_output_utf8parse_utf8parse_lib.rs",
-    "expanded_path": "expanded/.expand_output_utf8parse_utf8parse_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "vcpkg",
-    "file_path": "expanded/.expand_output_vcpkg_vcpkg_lib.rs",
-    "expanded_path": "expanded/.expand_output_vcpkg_vcpkg_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "version_check",
-    "file_path": "expanded/.expand_output_version_check_version_check_lib.rs",
-    "expanded_path": "expanded/.expand_output_version_check_version_check_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "wasi",
-    "file_path": "expanded/.expand_output_wasi_wasi_lib.rs",
-    "expanded_path": "expanded/.expand_output_wasi_wasi_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows-link",
-    "file_path": "expanded/.expand_output_windows_link_windows_link_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_link_windows_link_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_aarch64_gnullvm",
-    "file_path": "expanded/.expand_output_windows_aarch64_gnullvm_windows_aarch64_gnullvm_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_aarch64_gnullvm_windows_aarch64_gnullvm_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_aarch64_msvc",
-    "file_path": "expanded/.expand_output_windows_aarch64_msvc_windows_aarch64_msvc_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_aarch64_msvc_windows_aarch64_msvc_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_i686_gnu",
-    "file_path": "expanded/.expand_output_windows_i686_gnu_windows_i686_gnu_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_i686_gnu_windows_i686_gnu_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_i686_gnullvm",
-    "file_path": "expanded/.expand_output_windows_i686_gnullvm_windows_i686_gnullvm_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_i686_gnullvm_windows_i686_gnullvm_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_i686_msvc",
-    "file_path": "expanded/.expand_output_windows_i686_msvc_windows_i686_msvc_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_i686_msvc_windows_i686_msvc_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_x86_64_gnu",
-    "file_path": "expanded/.expand_output_windows_x86_64_gnu_windows_x86_64_gnu_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_x86_64_gnu_windows_x86_64_gnu_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_x86_64_gnullvm",
-    "file_path": "expanded/.expand_output_windows_x86_64_gnullvm_windows_x86_64_gnullvm_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_x86_64_gnullvm_windows_x86_64_gnullvm_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "windows_x86_64_msvc",
-    "file_path": "expanded/.expand_output_windows_x86_64_msvc_windows_x86_64_msvc_lib.rs",
-    "expanded_path": "expanded/.expand_output_windows_x86_64_msvc_windows_x86_64_msvc_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "wit-bindgen",
-    "file_path": "expanded/.expand_output_wit_bindgen_wit_bindgen_lib.rs",
-    "expanded_path": "expanded/.expand_output_wit_bindgen_wit_bindgen_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
-  },
-  {
-    "package_name": "writeable",
-    "file_path": "expanded/.expand_output_writeable_writeable_lib.rs",
-    "expanded_path": "expanded/.expand_output_writeable_writeable_lib.rs",
-    "original_path": "unknown",
-    "rustc_version": "unknown",
-    "rustc_host": "unknown",
-    "layer": 0
+    "layer": 6
   }
 ]
