@@ -5,9 +5,11 @@ set -euo pipefail
 RUST_SRC_PATH="/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"
 EXPANDED_DIR="${RUST_SRC_PATH}/expanded_crates"
 METADATA_DIR="${RUST_SRC_PATH}/metadata_cache"
+LOG_DIR="${PWD}/logs/expand_rust_compiler_crates"
 
 mkdir -p "${EXPANDED_DIR}"
 mkdir -p "${METADATA_DIR}"
+mkdir -p "${LOG_DIR}"
 
 # Read each Cargo.toml path from targets.txt
 while IFS= read -r CARGO_TOML_PATH; do
@@ -20,10 +22,13 @@ while IFS= read -r CARGO_TOML_PATH; do
     CRATE_DIR=$(dirname "${CARGO_TOML_PATH}")
     CRATE_NAME=$(basename "${CRATE_DIR}") # Simple heuristic, might need refinement for complex cases
 
+    METADATA_LOG="${LOG_DIR}/${CRATE_NAME}_metadata.log"
+    COLLECTOR_LOG="${LOG_DIR}/${CRATE_NAME}_collector.log"
+
     # Generate metadata for the individual crate
     METADATA_FILE="${METADATA_DIR}/${CRATE_NAME}_metadata.json"
-    if ! cargo metadata --format-version 1 --manifest-path "${CARGO_TOML_PATH}" > "${METADATA_FILE}"; then
-        echo "WARNING: Failed to generate metadata for ${CARGO_TOML_PATH}. Skipping."
+    if ! cargo metadata --format-version 1 --manifest-path "${CARGO_TOML_PATH}" > "${METADATA_FILE}" 2> "${METADATA_LOG}"; then
+        echo "WARNING: Failed to generate metadata for ${CARGO_TOML_PATH}. See ${METADATA_LOG} for details. Skipping."
         continue
     fi
 
@@ -55,10 +60,10 @@ while IFS= read -r CARGO_TOML_PATH; do
         --metadata-path "${METADATA_FILE}" \
         --output-dir "${EXPANDED_DIR}" \
         --layer 0 \
-        --package "${PACKAGE_NAME}"; then
-        echo "ERROR: expanded-code-collector failed for package ${PACKAGE_NAME} (${CARGO_TOML_PATH})."
+        --package "${PACKAGE_NAME}" > "${COLLECTOR_LOG}" 2>&1; then
+        echo "ERROR: expanded-code-collector failed for package ${PACKAGE_NAME} (${CARGO_TOML_PATH}). See ${COLLECTOR_LOG} for details."
     fi
     echo ""
-done < "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/targets.txt"
+done < "${PWD}/priority_cargos.txt"
 
 echo "Expansion process complete. Expanded code is in ${EXPANDED_DIR}"

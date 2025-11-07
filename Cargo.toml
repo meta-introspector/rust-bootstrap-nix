@@ -14,6 +14,7 @@ members = [
     "split-expanded-lib",
     "split-expanded-bin",
     "standalonex/min_test_project",
+    "standalonex/src/bootstrap-config-builder-core",
 #    "standalonex/src",
 #    "standalonex/src/bootstrap",
     "standalonex/src/bootstrap-config",

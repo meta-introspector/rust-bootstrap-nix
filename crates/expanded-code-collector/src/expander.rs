@@ -3,19 +3,88 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
+use toml::Value;
 
 use super::metadata::{CargoMetadata, PackageId};
 use super::manifest::ExpandedFileEntry;
 use super::decl_parser::parse_declarations_full;
 
+#[derive(Debug, Default)]
+struct ParsedDependencies {
+    has_regular_deps: bool,
+    has_dev_deps: bool,
+    has_build_deps: bool,
+}
+
+#[derive(Debug, Default)]
+struct DetailedPackageDeps {
+    regular_deps: Vec<PackageId>,
+    dev_deps: Vec<PackageId>,
+    build_deps: Vec<PackageId>,
+}
+
+fn parse_cargo_toml_dependencies(manifest_path: &PathBuf, target_package_id: &PackageId) -> Result<ParsedDependencies> {
+    let cargo_toml_content = fs::read_to_string(manifest_path)
+        .context(format!("Failed to read Cargo.toml for package {:?}", target_package_id.repr))?;
+    let value = cargo_toml_content.parse::<Value>()
+        .context(format!("Failed to parse Cargo.toml for package {:?}", target_package_id.repr))?;
+
+    let mut parsed_deps = ParsedDependencies::default();
+
+    if let Some(table) = value.get("dependencies").and_then(|v| v.as_table()) {
+        parsed_deps.has_regular_deps = !table.is_empty();
+    }
+    if let Some(table) = value.get("dev-dependencies").and_then(|v| v.as_table()) {
+        parsed_deps.has_dev_deps = !table.is_empty();
+    }
+    if let Some(table) = value.get("build-dependencies").and_then(|v| v.as_table()) {
+        parsed_deps.has_build_deps = !table.is_empty();
+    }
+
+    Ok(parsed_deps)
+}
+
 fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId, u32> {
     let mut package_layers: HashMap<PackageId, u32> = HashMap::new();
     let mut package_id_to_name: HashMap<PackageId, String> = HashMap::new();
+    let mut detailed_deps_map: HashMap<PackageId, DetailedPackageDeps> = HashMap::new();
 
     // Initialize all packages with an unassigned layer and populate id-to-name map
     for pkg in &cargo_metadata.packages {
         package_id_to_name.insert(pkg.id.clone(), pkg.name.clone());
         package_layers.insert(pkg.id.clone(), u32::MAX); // u32::MAX signifies unassigned
+
+        // Populate detailed_deps_map
+        let mut current_package_detailed_deps = DetailedPackageDeps::default();
+        if let Ok(cargo_toml_content) = fs::read_to_string(&pkg.manifest_path) {
+            if let Ok(value) = cargo_toml_content.parse::<Value>() {
+                // Helper to extract dependencies from a given section
+                let extract_deps = |section_name: &str| -> Vec<PackageId> {
+                    let mut deps = Vec::new();
+                    if let Some(table) = value.get(section_name).and_then(|v| v.as_table()) {
+                        for (dep_name, _dep_info) in table {
+                            // Find the PackageId for this dependency name
+                            if let Some(dep_pkg) = cargo_metadata.packages.iter().find(|p| &p.name == dep_name) {
+                                deps.push(dep_pkg.id.clone());
+                            } else {
+                                // For external dependencies not in our workspace, we need to find them in resolve.nodes
+                                if let Some(resolved_node) = cargo_metadata.resolve.nodes.iter().find(|node| {
+                                    node.id.repr.contains(&format!("/{}", dep_name)) || node.id.repr.starts_with(&format!("{}", dep_name))
+                                }) {
+                                    deps.push(resolved_node.id.clone());
+                                }
+                            }
+                        }
+                    }
+                    deps
+                };
+
+                current_package_detailed_deps.regular_deps = extract_deps("dependencies");
+                current_package_detailed_deps.dev_deps = extract_deps("dev-dependencies");
+                current_package_detailed_deps.build_deps = extract_deps("build-dependencies");
+            }
+        }
+        detailed_deps_map.insert(pkg.id.clone(), current_package_detailed_deps);
     }
 
     let mut assigned_count = 0;
@@ -23,19 +92,21 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
     #[allow(unused_variables)]
     let mut current_layer = 0;
 
-    // First pass: assign layer 0 to packages with no dependencies
-    for node in &cargo_metadata.resolve.nodes {
-        if node.dependencies.is_empty() {
-            if let Some(layer_entry) = package_layers.get_mut(&node.id) {
-                if *layer_entry == u32::MAX { // Only assign if not already assigned
-                    *layer_entry = 0;
-                    assigned_count += 1;
+    // First pass: assign layer 0 to packages with no regular dependencies
+    for pkg in &cargo_metadata.packages {
+        if let Some(detailed_deps) = detailed_deps_map.get(&pkg.id) {
+            if detailed_deps.regular_deps.is_empty() {
+                if let Some(layer_entry) = package_layers.get_mut(&pkg.id) {
+                    if *layer_entry == u32::MAX { // Only assign if not already assigned
+                        *layer_entry = 0;
+                        assigned_count += 1;
+                    }
                 }
             }
         }
     }
 
-    // Iteratively assign layers
+    // Iteratively assign layers based on regular dependencies first
     while assigned_count < total_packages {
         let mut newly_assigned_in_this_iteration = 0;
         let mut made_progress = false;
@@ -45,33 +116,28 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
                 continue; // Already assigned
             }
 
-            let mut all_deps_resolved = true;
-            let mut max_dep_layer = 0;
+            let mut all_regular_deps_resolved = true;
+            let mut max_regular_dep_layer = 0;
 
-            for dep_id in &node.dependencies {
-                if let Some(&dep_layer) = package_layers.get(dep_id) {
-                    if dep_layer == u32::MAX {
-                        all_deps_resolved = false;
-                        break;
+            if let Some(detailed_deps) = detailed_deps_map.get(&node.id) {
+                for dep_id in &detailed_deps.regular_deps {
+                    if let Some(&dep_layer) = package_layers.get(dep_id) {
+                        if dep_layer == u32::MAX {
+                            all_regular_deps_resolved = false;
+                            break;
+                        }
+                        max_regular_dep_layer = max_regular_dep_layer.max(dep_layer);
+                    } else {
+                        // Regular dependency is not in our detailed map (e.g., external), assume layer 0
+                        max_regular_dep_layer = max_regular_dep_layer.max(0);
                     }
-                    max_dep_layer = max_dep_layer.max(dep_layer);
-                } else {
-                    // Dependency is not in the workspace, assume it's a base dependency (layer -1 conceptually)
-                    // or handle as already resolved if it's an external crate that cargo metadata resolved.
-                    // For simplicity, if it's not in our package_layers map, we consider it resolved
-                    // and not contributing to a higher layer for *our* packages, unless it's a direct dependency
-                    // that needs to be expanded. For layer calculation, we treat external dependencies as resolved
-                    // and potentially contributing to the current package's layer if they are not layer 0.
-                    // This part needs careful consideration based on how 'layer' is truly defined.
-                    // For now, let's assume external dependencies are 'resolved' and don't block layer assignment.
-                    // If an external dependency is truly layer 0, it should have no dependencies itself.
                 }
             }
 
-            if all_deps_resolved {
+            if all_regular_deps_resolved {
                 if let Some(layer_entry) = package_layers.get_mut(&node.id) {
                     if *layer_entry == u32::MAX { // Only assign if not already assigned
-                        *layer_entry = max_dep_layer + 1;
+                        *layer_entry = max_regular_dep_layer + 1;
                         newly_assigned_in_this_iteration += 1;
                         made_progress = true;
                     }
@@ -80,42 +146,96 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
         }
 
         if newly_assigned_in_this_iteration == 0 && assigned_count < total_packages {
-            eprintln!("Warning: Could not assign layers to all packages. Possible circular dependencies or unresolvable graph. Unassigned packages: ");
-            for (pkg_id, layer) in &package_layers {
-                if *layer == u32::MAX {
-                    if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
-                        eprintln!("- {}", pkg_name);
-                    }
-                }
-            }
+            // No more progress with regular dependencies, break to handle remaining with all deps
             break;
         }
         if !made_progress && assigned_count < total_packages {
-            eprintln!("Warning: No progress made in assigning layers in this iteration. Possible circular dependencies or unresolvable graph. Unassigned packages: ");
-            for (pkg_id, layer) in &package_layers {
-                if *layer == u32::MAX {
-                    if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
-                        eprintln!("- {}", pkg_name);
-                    }
-                }
-            }
+            // No progress made in this iteration, even with regular deps. This indicates a cycle in regular deps.
             break;
         }
         assigned_count += newly_assigned_in_this_iteration;
         current_layer += 1;
     }
 
+    // Secondary pass: assign layers considering all dependencies (including dev/build) for remaining unassigned packages
+    // This also handles cycles that were only resolvable by considering dev-dependencies.
+    let mut assigned_in_secondary_pass = 0;
+    let initial_unassigned_count = total_packages - assigned_count;
+
+    if initial_unassigned_count > 0 {
+        let mut secondary_pass_made_progress = true;
+        while secondary_pass_made_progress && assigned_count < total_packages {
+            secondary_pass_made_progress = false;
+            let mut newly_assigned_in_this_iteration = 0;
+
+            for node in &cargo_metadata.resolve.nodes {
+                if package_layers.get(&node.id).map_or(false, |&layer| layer != u32::MAX) {
+                    continue; // Already assigned
+                }
+
+                let mut all_deps_resolved = true;
+                let mut max_dep_layer = 0;
+
+                if let Some(detailed_deps) = detailed_deps_map.get(&node.id) {
+                    let all_current_deps: Vec<&PackageId> = detailed_deps.regular_deps.iter()
+                        .chain(detailed_deps.dev_deps.iter())
+                        .chain(detailed_deps.build_deps.iter())
+                        .collect();
+
+                    for dep_id in all_current_deps {
+                        if let Some(&dep_layer) = package_layers.get(dep_id) {
+                            if dep_layer == u32::MAX {
+                                all_deps_resolved = false;
+                                break;
+                            }
+                            max_dep_layer = max_dep_layer.max(dep_layer);
+                        } else {
+                            // Dependency is not in the workspace, assume it's at layer 0.
+                            max_dep_layer = max_dep_layer.max(0);
+                        }
+                    }
+                }
+
+                if all_deps_resolved {
+                    if let Some(layer_entry) = package_layers.get_mut(&node.id) {
+                        if *layer_entry == u32::MAX { // Only assign if not already assigned
+                            *layer_entry = max_dep_layer + 1;
+                            newly_assigned_in_this_iteration += 1;
+                            secondary_pass_made_progress = true;
+                        }
+                    }
+                }
+            }
+            assigned_count += newly_assigned_in_this_iteration;
+            if newly_assigned_in_this_iteration > 0 { current_layer += 1; }
+        }
+    }
+
     // Ensure all packages are assigned a layer. If not, assign remaining to a high layer or error.
+    let final_unassigned_layer = current_layer + 1;
     for (pkg_id, layer) in package_layers.iter_mut() {
         if *layer == u32::MAX {
             // If a package remains unassigned, it means it has unresolved dependencies
-            // or is part of a circular dependency. For now, assign it to a very high layer
-            // so it's unlikely to be in a requested low layer.
-            *layer = u32::MAX - 1; // Assign a high layer to unresolvable packages
+            // or is part of a circular dependency. Assign it to the next available layer.
+            *layer = final_unassigned_layer;
             if let Some(pkg_name) = package_id_to_name.get(pkg_id) {
-                eprintln!("Warning: Package {} (ID: {}) could not be assigned a proper layer due to unresolved dependencies or circularity. Assigned to layer {}.\n", pkg_name, pkg_id.repr, u32::MAX - 1);
+                let mut dependency_info = String::new();
+                if let Some(package_info) = cargo_metadata.packages.iter().find(|p| p.id == *pkg_id) {
+                    if let Ok(parsed_deps) = parse_cargo_toml_dependencies(&package_info.manifest_path, pkg_id) {
+                        let mut deps_vec = Vec::new();
+                        if parsed_deps.has_regular_deps { deps_vec.push("regular"); }
+                        if parsed_deps.has_dev_deps { deps_vec.push("dev"); }
+                        if parsed_deps.has_build_deps { deps_vec.push("build"); }
+                        if !deps_vec.is_empty() {
+                            dependency_info = format!(" (involving {} dependencies)", deps_vec.join(", "));
+                        }
+                    }
+                }
+                eprintln!("Warning: Package {} (ID: {}) could not be assigned a proper layer due to unresolved dependencies or circularity{}. Assigned to layer {}.\n", pkg_name, pkg_id.repr, dependency_info, final_unassigned_layer);
             }
         }
+        // Apply the hard cap of 128 layers
+        *layer = (*layer).min(127);
     }
 
     // Debug print assigned layers
@@ -210,6 +330,9 @@ pub async fn expand_all_packages(
                         file_size: expanded_rs_path.metadata()?.len(),
                         declaration_counts,
                         type_usages,
+                        original_path: PathBuf::from("unknown"), // Placeholder
+                        rustc_version: "unknown".to_string(), // Placeholder
+                        rustc_host: "unknown".to_string(), // Placeholder
                     },
                     file_content,
                 ));
@@ -284,9 +407,12 @@ pub async fn expand_all_packages(
                         timestamp: 0, // Placeholder for dry run
                         flake_lock_details: flake_lock_json.clone(),
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
-                        file_size: expanded_rs_path.metadata()?.len(),
                         declaration_counts,
                         type_usages,
+                        file_size: _calculated_size,
+                        original_path: PathBuf::from("unknown"), // Placeholder for dry run
+                        rustc_version: "unknown".to_string(), // Placeholder for dry run
+                        rustc_host: "unknown".to_string(), // Placeholder for dry run
                     },
                     expanded_code_content,
                 ));
@@ -338,6 +464,9 @@ pub async fn expand_all_packages(
                         file_size: expanded_code_content.len() as u64,
                         declaration_counts,
                         type_usages,
+                        original_path: PathBuf::from("unknown"), // Placeholder
+                        rustc_version: "unknown".to_string(), // Placeholder
+                        rustc_host: "unknown".to_string(), // Placeholder
                     },
                     expanded_code_content,
                 ));

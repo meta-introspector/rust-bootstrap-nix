@@ -46,35 +46,7 @@ impl ErrorCollection {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ExpandedManifestEntry {
-    pub package_name: String,
-    pub file_path: PathBuf,
-    pub expanded_path: PathBuf,
-    pub original_path: PathBuf,
-    pub rustc_version: String,
-    pub rustc_host: String,
-    pub layer: u32,
-}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ExpandedManifest {
-    pub entries: Vec<ExpandedManifestEntry>,
-}
-
-impl ExpandedManifest {
-    pub fn add_entry(&mut self, entry: ExpandedManifestEntry) {
-        self.entries.push(entry);
-    }
-
-    pub async fn write_to_file(&self, path: &Path) -> Result<()> {
-        let json_content = serde_json::to_string_pretty(&self.entries)
-            .context("Failed to serialize expanded manifest to JSON")?;
-        fs::write(path, json_content).await
-            .context(format!("Failed to write expanded manifest to file: {}", path.display()))?;
-        Ok(())
-    }
-}
 
 // The expand_macros function has been moved to expander.rs
 
@@ -104,17 +76,24 @@ pub async fn collect_expanded_code(
         force,
     ).await?;
 
-    let mut expanded_manifest = ExpandedManifest::default();
+    let mut expanded_manifest = manifest::ExpandedManifest::default();
 
     for (entry, _content) in expanded_files_entries {
-        expanded_manifest.add_entry(ExpandedManifestEntry {
+        expanded_manifest.add_entry(manifest::ExpandedFileEntry {
             package_name: entry.package_name,
-            file_path: entry.expanded_rs_path.clone(), // Using expanded_rs_path as file_path for now
-            expanded_path: entry.expanded_rs_path,
-            original_path: PathBuf::from("unknown"), // Original path is not directly available here
-            rustc_version: "unknown".to_string(), // Not directly available from ExpandedFileEntry
-            rustc_host: "unknown".to_string(), // Not directly available from ExpandedFileEntry
+            target_type: entry.target_type,
+            target_name: entry.target_name,
+            expanded_rs_path: entry.expanded_rs_path,
+            cargo_expand_command: entry.cargo_expand_command,
+            timestamp: entry.timestamp,
+            flake_lock_details: entry.flake_lock_details,
             layer: entry.layer,
+            file_size: entry.file_size,
+            declaration_counts: entry.declaration_counts,
+            type_usages: entry.type_usages,
+            original_path: PathBuf::from("unknown"), // Placeholder
+            rustc_version: "unknown".to_string(), // Placeholder
+            rustc_host: "unknown".to_string(), // Placeholder
         });
     }
 
