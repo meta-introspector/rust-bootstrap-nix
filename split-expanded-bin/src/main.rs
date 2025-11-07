@@ -1,3 +1,42 @@
+//! # `split-expanded-bin` Crate Overview
+//!
+//! This binary processes an `expanded_manifest.json` file, which describes expanded Rust code files.
+//! Its primary function is to extract individual declarations (like structs, enums, functions, etc.)
+//! from these expanded files, resolve their dependencies, assign them to dependency layers,
+//! and then write each declaration into its own `.rs` file within a structured directory hierarchy.
+//!
+//! ## `Cargo.toml` Review
+//!
+//! - **`name = "split-expanded-bin"`**: Clearly indicates its purpose.
+//! - **`split-expanded-lib`**: Core logic is delegated to this library crate for reusability.
+//! - **Key Dependencies**: `clap` for CLI arguments, `tokio` for async operations, `anyhow` for error handling,
+//!   `chrono` for timestamps, `quote` and `syn` for Rust code generation/parsing, and `serde` family for (de)serialization.
+//!
+//! ## `src/main.rs` Functionality
+//!
+//! The `main.rs` orchestrates the entire process:
+//!
+//! 1.  **Argument Parsing**: Uses `clap` to define and parse command-line arguments.
+//! 2.  **Manifest Reading**: Reads and deserializes the `expanded_manifest.json` file.
+//! 3.  **Declaration Extraction**: Iterates through expanded files, calling `split-expanded-lib` to parse and extract `Declaration` objects.
+//! 4.  **Error Reporting**: Collects and reports any parsing errors.
+//! 5.  **Dependency Resolution**: Identifies and resolves internal/external dependencies for each declaration.
+//! 6.  **Layering Algorithm**: Assigns a "level" to each declaration based on its dependencies, ensuring a structured output.
+//!     A `max_iterations_limit` (8) is used as a safeguard against infinite loops.
+//! 7.  **Declaration Writing**: Writes each declaration to a new `.rs` file within a specific directory structure
+//!     (e.g., `rust-bootstrap-core/src/level_00/src/fn_t/my_crate/my_function.rs`).
+//!     Each file includes `DECLARATION_METADATA` (TOML comments), `use` statements, and the actual Rust code.
+//! 8.  **Final Output**: Prints `GENERATED_MODULE_NAMES` and `HAS_PROC_MACROS` to `stdout` for orchestration.
+//!
+//! ## Considerations
+//!
+//! - **Output Path Structure**: The hardcoded output path implies a very specific target directory structure,
+//!   where the `project_root` argument is expected to be the parent of `rust-bootstrap-core`.
+//! - **Layering Limit**: The `max_iterations_limit` of 8 might truncate layering for very deep dependency graphs.
+//! - **`tokio` Features**: `features = ["full"]` might be more than strictly necessary.
+//!
+//! Overall, `split-expanded-bin` is a sophisticated tool for disaggregating expanded Rust code into a highly organized,
+//! layered structure, crucial for managing and analyzing large Rust codebases within a Nix-based build system.
 use clap::Parser;
 use anyhow::Context;
 use std::path::{PathBuf};
@@ -365,11 +404,11 @@ async fn main() -> anyhow::Result<()> {
         if args.verbosity >= 2 {
             if declaration_dir.exists() {
                 println!("  Declaration directory already exists or was created: {}", declaration_dir.display());
-            } else {
-                println!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display());
             }
-            std::io::stdout().flush().unwrap();
+        } else {
+            println!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display());
         }
+        std::io::stdout().flush().unwrap();
 
         let output_file_path = declaration_dir.join(format!("{}.rs", identifier));
 

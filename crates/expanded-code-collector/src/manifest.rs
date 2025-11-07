@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::collections::HashMap;
-use crate::decl_parser::{DeclarationType, TypeUsage};
+use super::decl_parser::{DeclarationType, TypeUsage};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExpandedManifest {
@@ -11,7 +11,7 @@ pub struct ExpandedManifest {
     pub expanded_files: Vec<ExpandedFileEntry>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExpandedFileEntry {
     pub package_name: String,
     pub target_type: String,

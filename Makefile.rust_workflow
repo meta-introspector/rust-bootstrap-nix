@@ -22,9 +22,6 @@ expand-all: $(METADATA_FILE)
 	cargo run --bin expanded-code-collector -- \
 		--metadata-path $(METADATA_FILE) \
 		--output-dir $(EXPANDED_DIR) \
---rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
-		--rustc-host "aarch64-unknown-linux-gnu" \
-		--project-root $(PROJECT_ROOT) \
 		--layer 0
 
 # --- Split and Organize Declarations (using split-expanded-bin) ---
@@ -45,9 +42,6 @@ split-step-1: $(METADATA_FILE)
 	cargo run --bin expanded-code-collector -- \
 		--metadata-path $(METADATA_FILE) \
 		--output-dir $(EXPANDED_DIR) \
-		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
-		--rustc-host "aarch64-unknown-linux-gnu" \
-		--project-root $(PROJECT_ROOT) \
 		--layer 0 \
 		--package autocfg \
 		--dry-run
@@ -57,9 +51,6 @@ expanded-code-collector-self-report: deps-all
 	cargo run --bin expanded-code-collector -- \
 		--metadata-path $(METADATA_FILE) \
 		--output-dir $(EXPANDED_DIR) \
-		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
-		--rustc-host "aarch64-unknown-linux-gnu" \
-		--project-root $(PROJECT_ROOT) \
 		--layer 0 \
 		--package expanded-code-collector \
 		--dry-run
@@ -80,9 +71,6 @@ expanded-code-collector-self-report-full: deps-all
 	cargo run --bin expanded-code-collector -- \
 		--metadata-path $(METADATA_FILE) \
 		--output-dir $(EXPANDED_DIR) \
-		--rustc-version "1.92.0-nightly (a454fccb0 2025-09-15)" \
-		--rustc-host "aarch64-unknown-linux-gnu" \
-		--project-root $(PROJECT_ROOT) \
 		--layer 0 \
 		--package expanded-code-collector
 

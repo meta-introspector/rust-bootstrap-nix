@@ -13,10 +13,12 @@ rust_bootstrap_nix_flake_ref = "github:meta-introspector/rust-bootstrap-nix?ref=
 rust_src_flake_ref = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
 
 [rust]
-rustc = "/nix/store/yxh9cs2lshqgk6h0kp256yms3w8qwmsz-rustc-wrapper-1.89.0/bin/rustc"
+rustc = "/nix/store/mycvvd0d9ih11ybr7q6iqbfy0wppgj24-rust-default-1.92.0-nightly-2025-09-16/bin/rustc"
 cargo = "/nix/store/ahyjafkgyn6zji9qlvv92z8gxmcmaky4-cargo-1.89.0/bin/cargo"
 rustc_source = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/"
-channel = "stable"
+channel = "nightly"
+rustc_version = "1.92.0-nightly (2025-09-16)"
+rustc_host = "aarch64-unknown-linux-gnu"
 download-rustc = false
 parallel-compiler = false
 llvm-tools = false
@@ -65,6 +67,8 @@ nix_dir = "target/release/nix-dir"
 prelude_generator = "target/release/prelude-generator"
 rust_decl_splitter = "target/release/rust-decl-splitter"
 rust_system_composer = "target/release/rust-system-composer"
+expanded_code_collector = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/target/debug/expanded-code-collector"
+split_expanded_bin = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/target/debug/split-expanded-bin"
 
 [module_exports]
 modules = [

@@ -4,8 +4,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
-use crate::metadata::{CargoMetadata, PackageId};
-use crate::manifest::ExpandedFileEntry;
+use super::metadata::{CargoMetadata, PackageId};
+use super::manifest::ExpandedFileEntry;
+use super::decl_parser::parse_declarations_full;
 
 fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId, u32> {
     let mut package_layers: HashMap<PackageId, u32> = HashMap::new();
@@ -193,6 +194,8 @@ pub async fn expand_all_packages(
                 let timestamp = expanded_rs_path.metadata()?.modified()?.duration_since(std::time::UNIX_EPOCH)?.as_secs();
                 let file_content = fs::read_to_string(&expanded_rs_path)
                     .context(format!("Failed to read existing expanded RS file {}", expanded_rs_path.display()))?;
+                let (declarations, declaration_counts, type_usages, _) = parse_declarations_full(&file_content);
+
                 expanded_files_entries.push((
                     ExpandedFileEntry {
                         package_name: package.name.clone(),
@@ -204,8 +207,8 @@ pub async fn expand_all_packages(
                         flake_lock_details: flake_lock_json.clone(),
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
                         file_size: expanded_rs_path.metadata()?.len(),
-                        declaration_counts: HashMap::new(),
-                        type_usages: HashMap::new(),
+                        declaration_counts,
+                        type_usages,
                     },
                     file_content,
                 ));
@@ -268,6 +271,8 @@ pub async fn expand_all_packages(
                 };
                 let expanded_code_content = String::from_utf8_lossy(&output.stdout).to_string();
 
+                let (declarations, declaration_counts, type_usages, _) = parse_declarations_full(&expanded_code_content);
+
                 expanded_files_entries.push((
                     ExpandedFileEntry {
                         package_name: package.name.clone(),
@@ -279,8 +284,8 @@ pub async fn expand_all_packages(
                         flake_lock_details: flake_lock_json.clone(),
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
                         file_size: expanded_rs_path.metadata()?.len(),
-                        declaration_counts: HashMap::new(),
-                        type_usages: HashMap::new(),
+                        declaration_counts,
+                        type_usages,
                     },
                     expanded_code_content,
                 ));
@@ -317,6 +322,8 @@ pub async fn expand_all_packages(
                     .duration_since(std::time::UNIX_EPOCH)?
                     .as_secs();
 
+                let (declarations, declaration_counts, type_usages, _) = parse_declarations_full(&expanded_code_content);
+
                 expanded_files_entries.push((
                     ExpandedFileEntry {
                         package_name: package.name.clone(),
@@ -328,8 +335,8 @@ pub async fn expand_all_packages(
                         flake_lock_details: flake_lock_json.clone(),
                         layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
                         file_size: expanded_code_content.len() as u64,
-                        declaration_counts: HashMap::new(),
-                        type_usages: HashMap::new(),
+                        declaration_counts,
+                        type_usages,
                     },
                     expanded_code_content,
                 ));
