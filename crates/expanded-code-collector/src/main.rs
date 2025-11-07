@@ -25,6 +25,10 @@ struct Args {
     /// If true, no files will be written to disk.
     #[clap(long)]
     dry_run: bool,
+
+    /// If true, overwrite existing expanded code files.
+    #[clap(long)]
+    force: bool,
 }
 
 #[tokio::main]
@@ -37,6 +41,7 @@ async fn main() -> Result<()> {
         args.layer,
         args.package,
         args.dry_run,
+        args.force,
     ).await?;
 
     Ok(())

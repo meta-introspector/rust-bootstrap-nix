@@ -138,6 +138,7 @@ pub async fn expand_all_packages(
     layer: Option<u32>,
     package_filter: Option<String>,
     dry_run: bool,
+    force: bool,
 ) -> Result<Vec<(ExpandedFileEntry, String)>> {
     let mut expanded_files_entries = Vec::new();
 
@@ -189,8 +190,8 @@ pub async fn expand_all_packages(
             let expanded_rs_path = PathBuf::from(format!("{}_{}.rs", output_file_prefix, target_type));
 
             // Check if expanded file already exists and is up to date (simple check for now)
-            if expanded_rs_path.exists() {
-                println!("Expanded file for {} ({}) is up to date.", package.name, target_type);
+            if expanded_rs_path.exists() && !force {
+                println!("Skipping expansion for {} ({}) as file exists and --force was not used.", package.name, target_type);
                 let timestamp = expanded_rs_path.metadata()?.modified()?.duration_since(std::time::UNIX_EPOCH)?.as_secs();
                 let file_content = fs::read_to_string(&expanded_rs_path)
                     .context(format!("Failed to read existing expanded RS file {}", expanded_rs_path.display()))?;

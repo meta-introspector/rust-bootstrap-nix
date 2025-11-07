@@ -18,4 +18,5 @@ related_files = [
     "crates/expanded-code-collector/Cargo.toml",
     "split-expanded-bin/src/main.rs",
     "split-expanded-bin/Cargo.toml",
+    "scripts/expand_rust_compiler_crates.sh",
 ]

@@ -84,6 +84,7 @@ pub async fn collect_expanded_code(
     layer: Option<u32>,
     package_filter: Option<String>,
     dry_run: bool,
+    force: bool,
 ) -> Result<()> {
     println!("Collecting expanded code...");
 
@@ -100,6 +101,7 @@ pub async fn collect_expanded_code(
         layer,
         package_filter,
         dry_run,
+        force,
     ).await?;
 
     let mut expanded_manifest = ExpandedManifest::default();
