@@ -1,5 +1,5 @@
 use anyhow::Context;
-use std::path::{PathBuf, Path};
+use std::path::Path;
 use std::io::Write; // For stdout().flush()
 use std::fmt::Write as FmtWrite; // For writeln! into String
 use tokio;
@@ -10,9 +10,8 @@ use std::collections::{HashSet, HashMap}; // For HashMap and HashSet
 use serde_json; // For serde_json::from_str
 use toml; // For toml::to_string_pretty
 use syn::{self, visit::Visit};
-use chrono::{DateTime, Utc};
 
-use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
+use crate::types::{ExpandedManifest, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
 use crate::visitors::DeclsVisitor; // Assuming visitors are re-exported from lib.rs
 
 pub async fn process_expanded_manifest(

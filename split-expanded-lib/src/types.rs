@@ -2,8 +2,7 @@ use std::path::PathBuf;
 use std::collections::HashSet;
 use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
-use syn::{self, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic, ItemMacro, ItemMod, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, Item};
-use quote::ToTokens;
+use syn::{self, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 use anyhow::Context;
 use std::path::Path;
 

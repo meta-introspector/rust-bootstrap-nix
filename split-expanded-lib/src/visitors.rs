@@ -1,6 +1,6 @@
 use std::collections::{HashSet, HashMap};
 use std::path::PathBuf;
-use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic, ItemMacro, ItemMod, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, Item};
+use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 use quote::{quote, ToTokens};
 
 use crate::types::{Declaration, DeclarationItem}; // Assuming types are re-exported from lib.rs
