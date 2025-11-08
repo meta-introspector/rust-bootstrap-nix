@@ -314,32 +314,39 @@ pub async fn expand_all_packages(
 
             // Check if expanded file already exists and is up to date (simple check for now)
             if expanded_rs_path.exists() && !force {
-                println!("Skipping expansion for {} ({}) as file exists and --force was not used.", package.name, target_type);
-                let timestamp = expanded_rs_path.metadata()?.modified()?.duration_since(std::time::UNIX_EPOCH)?.as_secs();
-                let file_content = fs::read_to_string(&expanded_rs_path)
-                    .context(format!("Failed to read existing expanded RS file {}", expanded_rs_path.display()))?;
-                let (declarations, declaration_counts, type_usages, _) = parse_declarations_full(&file_content);
+                let expanded_modified_time = expanded_rs_path.metadata()?.modified()?;
+                let manifest_modified_time = fs::metadata(&package.manifest_path)?.modified()?;
 
-                expanded_files_entries.push((
-                    ExpandedFileEntry {
-                        package_name: package.name.clone(),
-                        target_type: target_type.to_string(),
-                        target_name: target.name.clone(),
-                        expanded_rs_path: expanded_rs_path.clone(),
-                        cargo_expand_command: "".to_string(), // Command not stored if skipped
-                        timestamp,
-                        flake_lock_details: flake_lock_json.clone(),
-                        layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
-                        file_size: expanded_rs_path.metadata()?.len(),
-                        declaration_counts,
-                        type_usages,
-                        original_path: PathBuf::from("unknown"), // Placeholder
-                        rustc_version: "unknown".to_string(), // Placeholder
-                        rustc_host: "unknown".to_string(), // Placeholder
-                    },
-                    file_content,
-                ));
-                continue;
+                if expanded_modified_time > manifest_modified_time {
+                    println!("Skipping expansion for {} ({}) as expanded file is up to date.", package.name, target_type);
+                    let timestamp = expanded_modified_time.duration_since(std::time::UNIX_EPOCH)?.as_secs();
+                    let file_content = fs::read_to_string(&expanded_rs_path)
+                        .context(format!("Failed to read existing expanded RS file {}", expanded_rs_path.display()))?;
+                    let (declarations, declaration_counts, type_usages, _) = parse_declarations_full(&file_content);
+
+                    expanded_files_entries.push((
+                        ExpandedFileEntry {
+                            package_name: package.name.clone(),
+                            target_type: target_type.to_string(),
+                            target_name: target.name.clone(),
+                            expanded_rs_path: expanded_rs_path.clone(),
+                            cargo_expand_command: "".to_string(), // Command not stored if skipped
+                            timestamp,
+                            flake_lock_details: flake_lock_json.clone(),
+                            layer: *package_layers.get(&package.id).unwrap_or(&u32::MAX),
+                            file_size: expanded_rs_path.metadata()?.len(),
+                            declaration_counts,
+                            type_usages,
+                            original_path: PathBuf::from("unknown"), // Placeholder
+                            rustc_version: "unknown".to_string(), // Placeholder
+                            rustc_host: "unknown".to_string(), // Placeholder
+                        },
+                        file_content,
+                    ));
+                    continue;
+                } else {
+                    println!("Re-expanding {} ({}) as source (Cargo.toml) is newer than expanded file.", package.name, target_type);
+                }
             }
 
             let cargo_expand_command = if target_type == "lib" {
