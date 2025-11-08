@@ -1,59 +1,23 @@
-/build/
-/standalonex/build/
-/standalonex/result
-logs/
-Makefile~
-*.log
-*~
-*#
-.#*
-*.elc
-*.fasl
-/prelude-generator/.prelude_cache/
-/prelude-generator/prelude_processing_results.json
-/.prelude_cache/
-/prelude-generator/generated/
+# Generated files
+expanded/expanded_manifest.json
+expanded/ast-decoder__data_data_com_termux_nix_files_home_pick-up-nix2_vendor_rust_platform-tools-agave-rust-solana_vendor_rust-src_vendor_rust_rust-bootstrap-nix_ast-decoder_src_lib_rs.rs
+expanded/bootstrap-config__data_data_com_termux_nix_files_home_pick-up-nix2_vendor_rust_platform-tools-agave-rust-solana_vendor_rust-src_vendor_rust_rust-bootstrap-nix_standalonex_src_bootstrap-config_src_lib_rs.rs
+expanded/collected_errors.json
+expanded/expanded_963e7b97de9292712e1ea1290a0dc75250cbec0e9182ec5bd2f396d516b9d841_1.92.0-nightly (a454fccb0 2025-09-15)_aarch64-unknown-linux-gnu_cargo_expand_2021
+expanded/expanded_d4bcad2e11c9292712e1ea1290a0dc75250cbec0e9182ec5bd2f396d516b9d841_1.92.0-nightly (a454fccb0 2025-09-15)_aarch64-unknown-linux-gnu_cargo_expand_2021
 
-# Environment files
-.env
-.env.sh
-
-# Nix build outputs
-result
-*.nix-build-scripts-result
-*.nix-deps-result
-flakes/*/aarch64-linux/stage0/step1-configure/result
-flakes/bootstrap-builder/cc-flake/result
-nix-build-scripts/result
-nix/rust-deps/result
-
-# Generated files and directories
-generated/hf_dataset_output/
-generated/hf_validator_projects/
-prelude-generator/generated_test_runner/target/
-prelude-generator/self_rebuild_output.txt
-
-# Rust build outputs
-target/
-standalonex/src/bootstrap/src/core/config_utils/src/target/
-standalonex/src/target/
-standalonex/test_minimal/result
-/standalonex/libglobal_level0_decls.rmeta
-/standalonex/libself_generated_code.rmeta
-*.rmeta
-
-# Ignore prelude-generator cache files
-standalonex/min_test_project/.prelude_cache/
-
-# Cargo expand output files
-.expand_output_*.rs
-.expand_processed_*
-
-# Cargo shear output files
-.shear_processed_*
-Makefile.shear
-files.txt
-prelude-generator/.shear-fixed-stamp
-standalonex/.shear_processed_bootstrap-config
-standalonex/.shear_processed_bootstrap-config-types
-standalonex/min_test_project/.prelude_cache/
+# Log files
+crash.txt
+error_report.txt
+failed_metadata_cargos.txt
+generate_error_report.sh
+layers.txt
+log.txt
+log2.txt
+logs.txt
+prelude-generator/type_usage_report.txt
+prelude_generator_workspace_type_usage_report.txt
+priority_cargos.txt
+targets.txt
+task.md
+task.txt
