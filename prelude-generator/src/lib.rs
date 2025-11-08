@@ -53,16 +53,15 @@ pub mod types;
 pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo};
 pub use split_expanded_lib::{Declaration, ErrorSample, RustcInfo, FileMetadata as SplitExpandedFileMetadata, SerializableDeclaration, PublicSymbol};
 
-use crate::symbol_map::SymbolMap;
-
 pub async fn extract_declarations_for_composer(
     file_path: &std::path::Path,
     rustc_info: &RustcInfo,
     crate_name: &str,
     verbose: u8,
     warnings: &mut Vec<String>,
-) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, SplitExpandedFileMetadata, Vec<PublicSymbol>)> {
-            let (declarations, symbol_map, errors, file_metadata, public_symbols) = crate::declaration_processing::extract_all_declarations_from_file(
+    canonical_output_root: &std::path::Path,
+) -> anyhow::Result<crate::types::AllDeclarationsExtractionResult> {
+            let extraction_result = crate::declaration_processing::extract_all_declarations_from_file(
                 file_path,
                 &std::path::PathBuf::new(), // Placeholder for output_dir, not used by new function
                 false, // Placeholder for dry_run, not used by new function
@@ -70,6 +69,7 @@ pub async fn extract_declarations_for_composer(
                 &rustc_info,
                 crate_name,
                 warnings,
+                canonical_output_root,
             ).await?;
-        Ok((declarations, symbol_map, errors, file_metadata, public_symbols))
+        Ok(extraction_result)
 }

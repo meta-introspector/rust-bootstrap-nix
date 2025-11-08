@@ -39,7 +39,7 @@ impl<'ast> Visit<'ast> for DependencyVisitor {
     }
 }
 
-pub struct DeclsVisitor {
+pub struct DeclsVisitor<'a> {
     pub declarations: HashMap<String, Declaration>,
     pub fn_count: usize,
     pub struct_count: usize,
@@ -57,10 +57,11 @@ pub struct DeclsVisitor {
     pub crate_name: String,
     pub verbosity: u8,
     pub file_extern_crates: HashSet<String>,
+    pub warnings: &'a mut Vec<String>,
 }
 
-impl DeclsVisitor {
-    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8, file_extern_crates: HashSet<String>) -> Self {
+impl<'a> DeclsVisitor<'a> {
+    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8, file_extern_crates: HashSet<String>, warnings: &'a mut Vec<String>) -> Self {
         DeclsVisitor {
             declarations: HashMap::new(),
             fn_count: 0,
@@ -79,6 +80,7 @@ impl DeclsVisitor {
             crate_name,
             verbosity,
             file_extern_crates,
+            warnings,
         }
     }
 
@@ -124,7 +126,7 @@ impl DeclsVisitor {
     }
 }
 
-impl<'ast> Visit<'ast> for DeclsVisitor {
+impl<'ast, 'a> Visit<'ast> for DeclsVisitor<'a> {
     fn visit_item_const(&mut self, i: &'ast ItemConst) {
         let is_public = matches!(i.vis, syn::Visibility::Public(_));
 
@@ -225,13 +227,13 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
             referenced_types.extend(self.extract_identifiers_from_type(ty));
         }
 
-        struct FunctionBodyVisitor<'b> {
-            parent: &'b mut DeclsVisitor,
+        struct FunctionBodyVisitor<'b, 'a> {
+            parent: &'b mut DeclsVisitor<'a>,
             referenced_types: &'b mut HashSet<String>,
             referenced_functions: &'b mut HashSet<String>,
         }
 
-        impl<'ast, 'b> Visit<'ast> for FunctionBodyVisitor<'b> {
+        impl<'ast, 'b, 'a> Visit<'ast> for FunctionBodyVisitor<'b, 'a> {
             fn visit_expr(&mut self, i: &'ast syn::Expr) {
                 self.referenced_types.extend(self.parent.extract_identifiers_from_expr(i));
                 self.referenced_functions.extend(self.parent.extract_identifiers_from_expr(i));
@@ -360,7 +362,7 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
         );
         let identifier = decl.get_identifier();
         if !identifier.is_empty() && self.verbosity >= 2 {
-            println!("  [split-expanded-lib] DeclsVisitor: Visiting module '{}'. Required imports for module: {:?}", identifier, decl.required_imports);
+            self.warnings.push(format!("  [split-expanded-lib] DeclsVisitor: Visiting module '{}'. Required imports for module: {:?}", identifier, decl.required_imports));
         }
         self.declarations.insert(identifier, decl);
         self.mod_count += 1;
@@ -462,6 +464,10 @@ impl<'ast> Visit<'ast> for DeclsVisitor {
     }
 
     fn visit_item(&mut self, i: &'ast syn::Item) {
+        if self.verbosity >= 2 {
+            self.warnings.push(format!("  [split-expanded-lib] DeclsVisitor: Visiting item of type: {:?}", i));
+        }
+
         let is_public = match i {
             syn::Item::Const(item_const) => matches!(item_const.vis, syn::Visibility::Public(_)),
             syn::Item::Enum(item_enum) => matches!(item_enum.vis, syn::Visibility::Public(_)),

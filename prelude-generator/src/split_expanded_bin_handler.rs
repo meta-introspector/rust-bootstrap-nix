@@ -2,7 +2,6 @@ use anyhow::Context;
 use std::path::{PathBuf};
 use std::fs;
 
-use crate::Args;
 use split_expanded_lib::ErrorCollection;
 use split_expanded_lib::{Declaration, RustcInfo};
 use crate::gem_parser::GemConfig;
@@ -12,16 +11,18 @@ use crate::validation::{DeclarationValidator, DependencyValidator};
 use crate::symbol_map::SymbolMap;
 use crate::reference_visitor::ReferenceVisitor;
 
-pub async fn handle_split_expanded_bin(args: &Args, warnings: &mut Vec<String>) -> anyhow::Result<()> {
+pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInputs<'_>) -> anyhow::Result<()> {
     println!("Running split-expanded-bin functionality...");
 
-    let files_to_process = args.split_expanded_files.clone(); // This is already a Vec<PathBuf>
-    let project_root = args.split_expanded_project_root.clone().unwrap_or_else(|| PathBuf::from("generated_workspace"));
-    let rustc_version = args.split_expanded_rustc_version.clone().unwrap_or_else(|| "1.89.0".to_string());
-    let rustc_host = args.split_expanded_rustc_host.clone().unwrap_or_else(|| "aarch64-unknown-linux-gnu".to_string());
-    let verbose = args.verbose;
-    let _output_global_toml = args.split_expanded_output_global_toml.clone();
-    let _output_symbol_map = args.output_symbol_map.clone();
+    let files_to_process = inputs.files_to_process;
+    let project_root = inputs.project_root;
+    let rustc_version = inputs.rustc_version;
+    let rustc_host = inputs.rustc_host;
+    let verbose = inputs.verbose;
+    let _output_global_toml = inputs.output_global_toml;
+    let _output_symbol_map = inputs.output_symbol_map;
+    let warnings = inputs.warnings;
+    let canonical_output_root = inputs.canonical_output_root;
 
     if project_root.exists() {
         fs::remove_dir_all(&project_root).context(format!("Failed to remove existing project root: {:?}", project_root))?;
@@ -70,8 +71,16 @@ pub async fn handle_split_expanded_bin(args: &Args, warnings: &mut Vec<String>) 
             &current_crate_name,
             verbose,
             warnings,
+            canonical_output_root,
         ).await {
-            Ok((declarations, errors, _file_metadata, _public_symbols)) => {
+            Ok(extraction_result) => {
+                let declarations = extraction_result.declarations;
+                let errors = extraction_result.errors;
+                // _file_metadata and _public_symbols are not directly used here,
+                // but can be accessed if needed:
+                // let _file_metadata = extraction_result.file_metadata;
+                // let _public_symbols = extraction_result.public_symbols;
+
                 // Store the parsed file for Pass 2 if parsing was successful
                 let file_content = fs::read_to_string(&file_path)
                     .context(format!("Failed to read file: {:?}", file_path))?;
@@ -114,7 +123,7 @@ pub async fn handle_split_expanded_bin(args: &Args, warnings: &mut Vec<String>) 
             &mut all_declarations, // Pass all_declarations for potential future updates
             current_crate_name,
             current_module_path,
-            args.verbose,
+            verbose,
         );
         syn::visit::Visit::visit_file(&mut visitor, &file);
     }

@@ -6,6 +6,15 @@ use std::path::Path;
 use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 
+#[derive(Debug)]
+pub struct OrganizeLayeredDeclarationsInputs<'a> {
+    pub project_root: &'a Path,
+    pub verbosity: u8,
+    pub compile_flag: &'a str,
+    pub canonical_output_root: &'a Path,
+    pub top_level_cargo_toml_path: &'a Path,
+}
+
 /// Organizes the layered declarations into new Rust crates.
 ///
 /// This function performs the following steps:
@@ -13,12 +22,12 @@ use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 /// 2. For each `level_XX` directory, creates a `Cargo.toml` and `lib.rs` file to define it as a crate.
 /// 3. The `lib.rs` will re-export the modules within that layer.
 /// 4. Updates the `rust-bootstrap-core/Cargo.toml` to include these new `level_XX` crates as members of its workspace.
-pub async fn organize_layered_declarations(project_root: &Path, verbosity: u8) -> Result<()> {
-    if verbosity >= 1 {
+pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsInputs<'_>) -> Result<()> {
+    if inputs.verbosity >= 1 {
         println!("Starting organization of layered declarations into crates.");
     }
 
-    let rust_bootstrap_core_path = project_root.join("rust-bootstrap-core");
+    let rust_bootstrap_core_path = inputs.canonical_output_root.join("rust-bootstrap-core");
     let rust_bootstrap_core_src_path = rust_bootstrap_core_path.join("src");
 
     // Step 1: Find all level_XX directories
@@ -74,7 +83,7 @@ edition = "2021"
         fs::write(&cargo_toml_path, cargo_toml_content)
             .await
             .context(format!("Failed to write Cargo.toml for {}: {}", crate_name, cargo_toml_path.display()))?;
-        if verbosity >= 2 {
+        if inputs.verbosity >= 2 {
             println!("  Created Cargo.toml for crate: {}", crate_name);
         }
 
@@ -152,19 +161,41 @@ edition = "2021"
         fs::write(&lib_rs_path, lib_rs_content)
             .await
             .context(format!("Failed to write lib.rs for {}: {}", crate_name, lib_rs_path.display()))?;
-        if verbosity >= 2 {
+        if inputs.verbosity >= 2 {
             println!("  Created lib.rs for crate: {}", crate_name);
+        }
+
+        // Compile the generated crate
+        if inputs.verbosity >= 1 {
+            println!("  Compiling crate: {}", crate_name);
+        }
+        let output = tokio::process::Command::new("cargo")
+            .arg("check") // Or "build"
+            .current_dir(level_dir)
+            .output()
+            .await
+            .context(format!("Failed to run cargo check for crate: {}", crate_name))?;
+
+        if !output.status.success() {
+            eprintln!("Compilation failed for crate: {}", crate_name);
+            eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+            eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+
+            if inputs.compile_flag == "fail" {
+                return Err(anyhow::anyhow!("Compilation failed for crate: {}", crate_name));
+            }
+        } else if inputs.verbosity >= 1 {
+            println!("  Compilation successful for crate: {}", crate_name);
         }
     }
 
-    // Step 4: Update the top-level rust-bootstrap-core Cargo.toml
-    let rust_bootstrap_core_cargo_toml_path = rust_bootstrap_core_path.join("Cargo.toml");
-    let cargo_toml_content = fs::read_to_string(&rust_bootstrap_core_cargo_toml_path)
+    // Step 4: Update the top-level Cargo.toml
+    let cargo_toml_content = fs::read_to_string(&inputs.top_level_cargo_toml_path)
         .await
-        .context(format!("Failed to read rust-bootstrap-core/Cargo.toml: {}", rust_bootstrap_core_cargo_toml_path.display()))?;
+        .context(format!("Failed to read top-level Cargo.toml: {}", inputs.top_level_cargo_toml_path.display()))?;
 
     let mut toml_doc = cargo_toml_content.parse::<toml_edit::DocumentMut>()
-        .context("Failed to parse rust-bootstrap-core/Cargo.toml")?;
+        .context("Failed to parse top-level Cargo.toml")?;
 
     let mut members_array = toml_edit::Array::new();
     for member in workspace_members.iter() {
@@ -179,14 +210,14 @@ edition = "2021"
         toml_doc["workspace"]["members"] = toml_edit::value(members_array);
     }
 
-    fs::write(&rust_bootstrap_core_cargo_toml_path, toml_doc.to_string())
+    fs::write(&inputs.top_level_cargo_toml_path, toml_doc.to_string())
         .await
-        .context(format!("Failed to write updated rust-bootstrap-core/Cargo.toml: {}", rust_bootstrap_core_cargo_toml_path.display()))?;
-    if verbosity >= 1 {
-        println!("Updated rust-bootstrap-core/Cargo.toml with new workspace members.");
+        .context(format!("Failed to write updated top-level Cargo.toml: {}", inputs.top_level_cargo_toml_path.display()))?;
+    if inputs.verbosity >= 1 {
+        println!("Updated top-level Cargo.toml with new workspace members.");
     }
 
-    if verbosity >= 1 {
+    if inputs.verbosity >= 1 {
         println!("Finished organizing layered declarations into crates.");
     }
 

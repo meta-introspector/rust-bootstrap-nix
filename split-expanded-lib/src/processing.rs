@@ -11,7 +11,7 @@ use toml; // For toml::to_string_pretty
 use syn::{self, visit::Visit};
 use regex::Regex;
 
-use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
+use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol, ExtractionResult};
 use crate::visitors::DeclsVisitor; // Assuming visitors are re-exported from lib.rs
 
 pub async fn process_expanded_manifest(
@@ -20,6 +20,7 @@ pub async fn process_expanded_manifest(
     rustc_info: &RustcInfo,
     verbosity: u8,
     layer: Option<u32>,
+    canonical_output_root: &Path,
 ) -> anyhow::Result<Vec<String>> {
     let mut warnings: Vec<String> = Vec::new();
 
@@ -89,13 +90,17 @@ pub async fn process_expanded_manifest(
             warnings.push(format!("  Associated expanded RS file: {}", expanded_rs_file_path.display()));
         }
 
-        let (declarations, errors, _file_metadata, _public_symbols) = extract_declarations_from_single_file(
+        let extraction_result = extract_declarations_from_single_file(
             &expanded_rs_file_path,
             &rustc_info,
             crate_name,
             verbosity,
             &mut warnings,
+            canonical_output_root,
         ).await?;
+
+        let declarations = extraction_result.declarations;
+        let errors = extraction_result.errors;
 
         if verbosity >= 2 {
             warnings.push(format!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), expanded_rs_file_path.display()));
@@ -291,7 +296,8 @@ pub async fn process_expanded_manifest(
             warnings.push(format!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level));
         }
 
-        let declaration_dir = project_root.join("rust-bootstrap-core")
+        let declaration_dir = canonical_output_root
+            .join("rust-bootstrap-core")
             .join("src")
             .join(format!("level_{:02}", level))
             .join("src")
@@ -381,7 +387,8 @@ pub async fn extract_declarations_from_single_file(
     crate_name: &str,
     verbosity: u8,
     warnings: &mut Vec<String>,
-) -> anyhow::Result<(HashMap<String, Declaration>, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
+    canonical_output_root: &Path,
+) -> anyhow::Result<ExtractionResult> {
     if verbosity >= 2 {
         warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}", file_path.display()));
     }
@@ -418,12 +425,23 @@ pub async fn extract_declarations_from_single_file(
         }
     }
 
-    let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity, file_metadata.extern_crates.clone());
-    visitor.visit_file(&syntax_tree);
+    let declarations;
+    let visitor_declarations_len;
+    { // New scope to limit the lifetime of `visitor`
+        let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity, file_metadata.extern_crates.clone(), warnings);
+        visitor.visit_file(&syntax_tree);
+        declarations = visitor.declarations;
+        visitor_declarations_len = declarations.len();
+    } // `visitor` goes out of scope here, releasing the mutable borrow on `warnings`
 
     if verbosity >= 2 {
-        warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Found {} declarations in {}", visitor.declarations.len(), file_path.display()));
+        warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Found {} declarations in {}", visitor_declarations_len, file_path.display()));
     }
 
-    Ok((visitor.declarations, errors, file_metadata, public_symbols))
+    Ok(ExtractionResult {
+        declarations,
+        errors,
+        file_metadata,
+        public_symbols,
+    })
 }

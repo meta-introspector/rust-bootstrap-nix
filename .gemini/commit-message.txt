@@ -1,4 +1,26 @@
-fix: Resolve build errors in prelude-generator
+feat: Refactor prelude-generator and rust-system-composer for improved error handling and layered crate organization
 
-- Fixed `toml::from_str` type mismatch in `prelude-generator/src/config_parser.rs`.
-- Added placeholder binary files (`interface-generator.rs` and `module-exporter-cli.rs`) to `prelude-generator/src/bin/` to resolve 'No such file or directory' errors during build.
+This commit introduces several enhancements to the prelude-generator and rust-system-composer crates:
+
+- **Improved Error Handling and Warnings:**
+  - Modified `split-expanded-lib/src/processing.rs` to return a `Vec<String>` of warnings from `process_expanded_manifest` and `extract_declarations_from_single_file`.
+  - Updated `rust-system-composer/src/system_config.rs` to include a `warnings: Option<Vec<String>>` field in `SystemConfig`.
+  - Updated `rust-system-composer/src/main.rs` to pass the collected warnings to `run_update_system_toml_workflow`.
+  - Propagated the `warnings` vector through relevant command handlers and `extract_declarations_for_composer` function in `prelude-generator`.
+  - Ensured all calls to `extract_declarations_from_single_file` in `prelude-generator` pass the `warnings` vector.
+  - Added printing of collected warnings in `prelude-generator/src/main.rs`.
+
+- **Enhanced Layered Crate Organization:**
+  - Introduced `OrganizeLayeredDeclarationsInputs` struct in `rust-system-composer/src/layered_crate_organizer.rs` for better parameter management.
+  - Modified `organize_layered_declarations` to accept `OrganizeLayeredDeclarationsInputs`, enabling more flexible control over the organization process, including a `compile_flag` to control compilation behavior for generated crates.
+  - Added compilation step for generated crates within `organize_layered_declarations`, allowing for immediate verification of generated code.
+
+- **New Structs for Clarity:**
+  - Introduced `ExtractionResult` struct in `split-expanded-lib/src/types.rs` to encapsulate declarations, errors, file metadata, and public symbols.
+  - Introduced `AllDeclarationsExtractionResult` and `SplitExpandedBinInputs` structs in `prelude-generator/src/types.rs` for better data structuring.
+
+- **Minor Fixes and Additions:**
+  - Added `temp_test_config_parser` binary target to `rust-system-composer/Cargo.toml`.
+  - Derived `Debug` for `SymbolMap` in `prelude-generator/src/symbol_map.rs` for easier debugging.
+
+These changes aim to make the code generation and organization process more robust, transparent, and easier to debug.

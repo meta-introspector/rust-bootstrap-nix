@@ -168,21 +168,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bootstrap-config-builder-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "build_helper",
- "clap",
- "clap_complete",
- "config_core",
- "config_macros",
- "semver",
- "serde",
- "toml 0.5.11",
-]
-
-[[package]]
 name = "bootstrap-config-macros"
 version = "0.1.0"
 
@@ -981,10 +966,6 @@ dependencies = [
  "syn",
  "tempfile",
 ]
-
-[[package]]
-name = "min_test_project"
-version = "0.1.0"
 
 [[package]]
 name = "minimal-lexical"

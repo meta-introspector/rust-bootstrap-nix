@@ -1,5 +1,5 @@
 use std::path::Path;
-use split_expanded_lib::{Declaration, ErrorSample, FileMetadata, RustcInfo, PublicSymbol};
+use split_expanded_lib::{Declaration, RustcInfo};
 use crate::symbol_map::SymbolMap;
 
 pub async fn extract_all_declarations_from_file(
@@ -10,14 +10,21 @@ pub async fn extract_all_declarations_from_file(
     rustc_info: &RustcInfo, // Pass RustcInfo to the new function
     crate_name: &str,       // Pass crate_name to the new function
     warnings: &mut Vec<String>,
-) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
-    let (declarations, errors, file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
+    canonical_output_root: &Path,
+) -> anyhow::Result<crate::types::AllDeclarationsExtractionResult> {
+    let extraction_result = split_expanded_lib::processing::extract_declarations_from_single_file(
         file_path,
         rustc_info,
         crate_name,
         verbose,
         warnings,
+        canonical_output_root,
     ).await?;
+
+    let declarations = extraction_result.declarations;
+    let errors = extraction_result.errors;
+    let file_metadata = extraction_result.file_metadata;
+    let public_symbols = extraction_result.public_symbols;
 
     let mut symbol_map = SymbolMap::new();
     for (identifier, decl) in &declarations {
@@ -44,5 +51,11 @@ pub async fn extract_all_declarations_from_file(
 
     let declarations_vec: Vec<Declaration> = declarations.into_values().collect();
 
-    Ok((declarations_vec, symbol_map, errors, file_metadata, public_symbols))
+    Ok(crate::types::AllDeclarationsExtractionResult {
+        declarations: declarations_vec,
+        symbol_map,
+        errors,
+        file_metadata,
+        public_symbols,
+    })
 }

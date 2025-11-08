@@ -26,6 +26,14 @@ struct Args {
 
     #[clap(subcommand)]
     command: Commands,
+
+    /// If set to 'fail', the process will stop on the first compilation error for each generated crate.
+    #[clap(long, value_parser, default_value = "continue")]
+    compile: String,
+
+    /// Verbosity level (0-3).
+    #[clap(short, long, action = clap::ArgAction::Count, default_value_t = 0)]
+    verbosity: u8,
 }
 
 #[derive(Subcommand, Debug)]
@@ -50,15 +58,15 @@ async fn main() -> anyhow::Result<()> {
     match &args.command {
         Commands::SelfCompose {} => {
             println!("Running self-composition workflow...");
-            run_self_composition_workflow(&config).await?;
+            run_self_composition_workflow(&config, &args).await?;
         }
         Commands::RustcCompose {} => {
             println!("Running rustc composition workflow...");
-            run_rustc_composition_workflow(&config).await?;
+            run_rustc_composition_workflow(&config, &args).await?;
         }
         Commands::StandaloneXCompose {} => {
             println!("Running standalonex composition workflow...");
-            run_standalonex_composition_workflow(&config).await?;
+            run_standalonex_composition_workflow(&config, &args).await?;
         }
         Commands::UpdateSystemToml {} => {
             println!("Updating system.toml with project configuration...");
@@ -160,10 +168,16 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     Ok(())
 }
 
-async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
+async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
+
+    let main_project_root = std::env::current_dir()?.parent().unwrap().to_path_buf();
+    let canonical_output_root = main_project_root.join("generated");
+    tokio::fs::create_dir_all(&canonical_output_root)
+        .await
+        .context(format!("Failed to create canonical output root directory: {}", canonical_output_root.display()))?;
 
     // 1. Run cargo metadata
     println!("Collecting full workspace metadata using cargo metadata...");
@@ -211,6 +225,7 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
         &rustc_info,
         3, // verbosity
         Some(0), // layer
+        &canonical_output_root,
     ).await?;
 
     // 4. Generate system.toml
@@ -220,10 +235,16 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result<()> {
+async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?.join("standalonex");
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
+
+    let main_project_root = std::env::current_dir()?.parent().unwrap().to_path_buf();
+    let canonical_output_root = main_project_root.join("generated");
+    tokio::fs::create_dir_all(&canonical_output_root)
+        .await
+        .context(format!("Failed to create canonical output root directory: {}", canonical_output_root.display()))?;
 
     // 1. Run cargo metadata for standalonex
     println!("Collecting full workspace metadata for standalonex using cargo metadata...");
@@ -271,14 +292,20 @@ async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result
         &rustc_info,
         3, // verbosity
         Some(0), // layer
+        &canonical_output_root,
     ).await?;
 
     // 4. Organize layered declarations into crates
     println!("Organizing layered declarations into crates...");
-    layered_crate_organizer::organize_layered_declarations(
-        &project_root,
-        3, // verbosity
-    ).await?;
+    let top_level_cargo_toml_path = main_project_root.join("Cargo.toml");
+    let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
+        project_root: &project_root,
+        verbosity: args.verbosity,
+        compile_flag: &args.compile,
+        canonical_output_root: &canonical_output_root,
+        top_level_cargo_toml_path: &top_level_cargo_toml_path,
+    };
+    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
     // 5. Generate system.toml
     println!("Generating system.toml after standalonex composition...");
@@ -287,10 +314,16 @@ async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result
     Ok(())
 }
 
-async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
+async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
     let rustc_project_root = PathBuf::from(&config.rust.rustc_source).join("vendor/rust/rust-bootstrap-nix");
     let metadata_file = rustc_project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = rustc_project_root.join("expanded");
+
+    let main_project_root = std::env::current_dir()?.parent().unwrap().to_path_buf();
+    let canonical_output_root = main_project_root.join("generated");
+    tokio::fs::create_dir_all(&canonical_output_root)
+        .await
+        .context(format!("Failed to create canonical output root directory: {}", canonical_output_root.display()))?;
 
     // 1. Run cargo metadata for rustc
     println!("Collecting full workspace metadata for rustc using cargo metadata...");
@@ -338,14 +371,20 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
         &rustc_info,
         3, // verbosity
         Some(0), // layer
+        &canonical_output_root,
     ).await?;
 
     // 4. Organize layered declarations into crates
     println!("Organizing layered declarations into crates...");
-    layered_crate_organizer::organize_layered_declarations(
-        &rustc_project_root,
-        3, // verbosity
-    ).await?;
+    let top_level_cargo_toml_path = main_project_root.join("Cargo.toml");
+    let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
+        project_root: &rustc_project_root,
+        verbosity: args.verbosity,
+        compile_flag: &args.compile,
+        canonical_output_root: &canonical_output_root,
+        top_level_cargo_toml_path: &top_level_cargo_toml_path,
+    };
+    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
     // 5. Generate system.toml
     println!("Generating system.toml after rustc composition...");

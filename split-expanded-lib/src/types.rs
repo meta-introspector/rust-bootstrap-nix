@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
 use syn::{self, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
@@ -89,6 +89,14 @@ pub struct PublicSymbol {
     pub signature: String,
     pub source_file: PathBuf,
     pub crate_name: String,
+}
+
+#[derive(Debug)]
+pub struct ExtractionResult {
+    pub declarations: HashMap<String, Declaration>,
+    pub errors: Vec<ErrorSample>,
+    pub file_metadata: FileMetadata,
+    pub public_symbols: Vec<PublicSymbol>,
 }
 
 impl From<Declaration> for SerializableDeclaration {

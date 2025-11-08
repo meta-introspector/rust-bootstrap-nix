@@ -2,7 +2,7 @@ use crate::type_extractor;
 use crate::BagOfWordsVisitor;
 use crate::config_parser::Config;
 use anyhow::{Context, Result};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use syn::visit::Visit;
 use crate::args::Args;
 use crate::pipeline;
@@ -97,6 +97,7 @@ pub async fn handle_extract_global_level0_decls(
     _cache_dir: &std::path::Path,
     crate_name: &str,
     warnings: &mut Vec<String>,
+    canonical_output_root: &Path,
 ) -> anyhow::Result<()> {
     let output_dir = args.generated_decls_output_dir.clone().ok_or_else(|| anyhow::anyhow!("generated_decls_output_dir is required"))?;
     tokio::fs::create_dir_all(&output_dir).await.context("Failed to create output directory")?;
@@ -123,13 +124,18 @@ pub async fn handle_extract_global_level0_decls(
         });
 
         if should_process_file {
-            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
+            let extraction_result = split_expanded_lib::processing::extract_declarations_from_single_file(
                 &file_path,
                 &rustc_info_for_split_expanded_lib,
                 &crate_name,
                 args.verbose,
                 warnings,
+                canonical_output_root,
             ).await?;
+
+            let declarations = extraction_result.declarations;
+            let errors = extraction_result.errors;
+            let public_symbols = extraction_result.public_symbols;
 
             all_collected_errors.extend(errors);
             all_public_symbols.extend(public_symbols);

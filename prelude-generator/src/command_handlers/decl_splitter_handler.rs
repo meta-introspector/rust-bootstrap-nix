@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use anyhow::Context;
 use walkdir;
 
@@ -13,6 +13,7 @@ pub async fn handle_run_decl_splitter(
     project_root: &PathBuf,
     rustc_info: &RustcInfo,
     warnings: &mut Vec<String>,
+    canonical_output_root: &Path,
 ) -> anyhow::Result<()> {
     println!("Running declaration splitter functionality...");
 
@@ -53,13 +54,18 @@ pub async fn handle_run_decl_splitter(
         });
 
         if should_process_file {
-            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
+            let extraction_result = split_expanded_lib::processing::extract_declarations_from_single_file(
                 &file_path,
                 &rustc_info_for_split_expanded_lib,
                 &current_crate_name,
                 args.verbose,
                 warnings,
+                canonical_output_root,
             ).await?;
+
+            let declarations = extraction_result.declarations;
+            let errors = extraction_result.errors;
+            let public_symbols = extraction_result.public_symbols;
 
             all_declarations_aggregated.extend(declarations.into_values());
             all_collected_errors_aggregated.extend(errors);

@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use split_expanded_lib::{Declaration};
 use std::collections::HashMap;
 use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo};
@@ -42,4 +42,26 @@ pub struct CollectedAnalysisData {
     pub struct_lattices: HashMap<String, StructLatticeInfo>,
     pub enum_lattices: HashMap<String, EnumLatticeInfo>,
     pub impl_lattices: HashMap<String, ImplLatticeInfo>,
+}
+
+#[derive(Debug)]
+pub struct AllDeclarationsExtractionResult {
+    pub declarations: Vec<split_expanded_lib::Declaration>,
+    pub symbol_map: crate::symbol_map::SymbolMap,
+    pub errors: Vec<split_expanded_lib::ErrorSample>,
+    pub file_metadata: split_expanded_lib::FileMetadata,
+    pub public_symbols: Vec<split_expanded_lib::PublicSymbol>,
+}
+
+#[derive(Debug)]
+pub struct SplitExpandedBinInputs<'a> {
+    pub files_to_process: Vec<PathBuf>,
+    pub project_root: PathBuf,
+    pub rustc_version: String,
+    pub rustc_host: String,
+    pub verbose: u8,
+    pub output_global_toml: Option<PathBuf>,
+    pub output_symbol_map: Option<PathBuf>,
+    pub warnings: &'a mut Vec<String>,
+    pub canonical_output_root: &'a Path,
 }

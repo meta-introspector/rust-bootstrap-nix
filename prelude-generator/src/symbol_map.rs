@@ -6,6 +6,7 @@ use split_expanded_lib::ResolvedDependency;
 
 
 
+#[derive(Debug)]
 pub struct SymbolMap {
     pub map: HashMap<String, ResolvedDependency>,
 }

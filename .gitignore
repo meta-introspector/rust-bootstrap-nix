@@ -149,7 +149,7 @@ tags
 # Generated files
 expanded/
 nix_json_output/
-rust-bootstrap-core/
+#rust-bootstrap-core/
 expanded/expanded_manifest.json
 
 # Log files
