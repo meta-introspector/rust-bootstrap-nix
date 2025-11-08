@@ -52,14 +52,14 @@ pub async fn handle_run_decl_splitter(
         });
 
         if should_process_file {
-            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::extract_declarations_from_single_file(
+            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
                 &file_path,
                 &rustc_info_for_split_expanded_lib,
                 &current_crate_name,
                 args.verbose,
             ).await?;
 
-            all_declarations_aggregated.extend(declarations);
+            all_declarations_aggregated.extend(declarations.into_values());
             all_collected_errors_aggregated.extend(errors);
             all_public_symbols_aggregated.extend(public_symbols);
         }

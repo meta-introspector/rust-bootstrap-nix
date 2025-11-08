@@ -3,6 +3,7 @@ use anyhow::Context;
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 use expanded_code_collector::collect_expanded_code;
+use split_expanded_lib::process_expanded_manifest;
 
 mod config;
 use config::Config;
@@ -73,39 +74,31 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
     }
 
     // 2. Run expanded-code-collector
-    println!("Running expanded-code-collector...");
     collect_expanded_code(
         &metadata_file,
         &expanded_dir,
-        &PathBuf::from(&config.rust.rustc),
+        &serde_json::json!({}), // flake_lock_json
+        Some(0), // layer
+        None,    // package_filter
+        false,   // dry_run
+        false,   // force
         config.rust.rustc_version.clone(),
         config.rust.rustc_host.clone(),
-        &project_root.parent().unwrap(),
-        0,
-        None,
-        false,
     ).await?;
 
     // 3. Run split-expanded-bin
     println!("Running split-expanded-bin...");
-    let expanded_manifest = expanded_dir.join("expanded_manifest.json");
-    execute_command(
-        &config.bins.split_expanded_bin,
-        &[
-            "--expanded-manifest",
-            &expanded_manifest.display().to_string(),
-            "--project-root",
-            &project_root.parent().unwrap().display().to_string(),
-            "--rustc-version",
-            &config.rust.rustc_version,
-            "--rustc-host",
-            &config.rust.rustc_host,
-            "--verbosity",
-            "3",
-            "--layer",
-            "0",
-        ],
-        Some(&project_root.parent().unwrap()), // Set current_dir to project root
+    let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
+    let rustc_info = split_expanded_lib::RustcInfo {
+        version: config.rust.rustc_version.clone(),
+        host: config.rust.rustc_host.clone(),
+    };
+    split_expanded_lib::process_expanded_manifest(
+        &expanded_manifest_path,
+        &project_root.parent().unwrap(), // project_root
+        &rustc_info,
+        3, // verbosity
+        Some(0), // layer
     ).await?;
 
     Ok(())
@@ -140,35 +133,28 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
     collect_expanded_code(
         &metadata_file,
         &expanded_dir,
-        &PathBuf::from(&config.rust.rustc),
+        &serde_json::json!({}), // flake_lock_json
+        Some(0), // layer
+        None,    // package_filter
+        false,   // dry_run
+        false,   // force
         config.rust.rustc_version.clone(),
         config.rust.rustc_host.clone(),
-        &rustc_project_root,
-        0,
-        None,
-        false,
     ).await?;
 
     // 3. Run split-expanded-bin for rustc
     println!("Running split-expanded-bin for rustc...");
-    let expanded_manifest = expanded_dir.join("expanded_manifest.json");
-    execute_command(
-        &config.bins.split_expanded_bin,
-        &[
-            "--expanded-manifest",
-            &expanded_manifest.display().to_string(),
-            "--project-root",
-            &rustc_project_root.display().to_string(),
-            "--rustc-version",
-            &config.rust.rustc_version,
-            "--rustc-host",
-            &config.rust.rustc_host,
-            "--verbosity",
-            "3",
-            "--layer",
-            "0",
-        ],
-        Some(&rustc_project_root), // Set current_dir to rustc project root
+    let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
+    let rustc_info = split_expanded_lib::RustcInfo {
+        version: config.rust.rustc_version.clone(),
+        host: config.rust.rustc_host.clone(),
+    };
+    split_expanded_lib::process_expanded_manifest(
+        &expanded_manifest_path,
+        &rustc_project_root, // project_root
+        &rustc_info,
+        3, // verbosity
+        Some(0), // layer
     ).await?;
 
     Ok(())

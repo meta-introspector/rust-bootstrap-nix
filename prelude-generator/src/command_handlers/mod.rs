@@ -122,7 +122,7 @@ pub async fn handle_extract_global_level0_decls(
         });
 
         if should_process_file {
-            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::extract_declarations_from_single_file(
+            let (declarations, errors, _file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
                 &file_path,
                 &rustc_info_for_split_expanded_lib,
                 &crate_name,
@@ -132,10 +132,10 @@ pub async fn handle_extract_global_level0_decls(
             all_collected_errors.extend(errors);
             all_public_symbols.extend(public_symbols);
 
-            for decl in declarations {
+            for (_identifier, decl) in declarations {
                 match &decl.item {
                     split_expanded_lib::DeclarationItem::Const(s) => {
-                        if let Ok(item_const) = syn::parse_str::<syn::ItemConst>(s) {
+                        if let Ok(item_const) = syn::parse_str::<syn::ItemConst>(&s) {
                             if item_const.ident.to_string().ends_with("_NUM") {
                                 all_numerical_constants.push(item_const);
                             } else {

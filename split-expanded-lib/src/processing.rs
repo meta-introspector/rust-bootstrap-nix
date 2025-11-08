@@ -11,14 +11,13 @@ use serde_json; // For serde_json::from_str
 use toml; // For toml::to_string_pretty
 use syn::{self, visit::Visit};
 
-use crate::types::{ExpandedManifest, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
+use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
 use crate::visitors::DeclsVisitor; // Assuming visitors are re-exported from lib.rs
 
 pub async fn process_expanded_manifest(
     expanded_manifest_path: &Path,
     project_root: &Path,
-    _rustc_version: String,
-    _rustc_host: String,
+    rustc_info: &RustcInfo,
     verbosity: u8,
     layer: Option<u32>,
 ) -> anyhow::Result<()> {
@@ -32,8 +31,15 @@ pub async fn process_expanded_manifest(
     let manifest_content = tokio::fs::read_to_string(expanded_manifest_path)
         .await
         .context(format!("Failed to read expanded manifest file: {}", expanded_manifest_path.display()))?;
-    let expanded_manifest: ExpandedManifest = serde_json::from_str(&manifest_content)
+    let expanded_files: Vec<ExpandedFileEntry> = serde_json::from_str(&manifest_content)
         .context(format!("Failed to parse expanded manifest JSON from: {}", expanded_manifest_path.display()))?;
+
+    let expanded_manifest = ExpandedManifest {
+        rustc_version: rustc_info.version.clone(), // Use the rustc_info passed to the function
+        rustc_host: rustc_info.host.clone(),       // Use the rustc_info passed to the function
+        project_root: project_root.to_path_buf(),  // Use the project_root passed to the function
+        expanded_files,
+    };
 
     // Create RustcInfo from manifest
     let rustc_info = RustcInfo {
@@ -404,7 +410,7 @@ pub async fn process_expanded_manifest(
     Ok(())
 }
 
-async fn extract_declarations_from_single_file(
+pub async fn extract_declarations_from_single_file(
     file_path: &Path,
     _rustc_info: &RustcInfo,
     crate_name: &str,

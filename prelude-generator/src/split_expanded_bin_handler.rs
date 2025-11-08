@@ -4,7 +4,8 @@ use std::fs;
 
 use crate::Args;
 use split_expanded_lib::ErrorCollection;
-use split_expanded_lib::{Declaration, RustcInfo, extract_declarations_from_single_file};
+use split_expanded_lib::{Declaration, RustcInfo};
+use split_expanded_lib::processing::extract_declarations_from_single_file;
 use crate::gem_parser::GemConfig;
 use toml;
 use split_expanded_lib::SerializableDeclaration;
@@ -64,7 +65,7 @@ pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
 
         let current_crate_name = project_root.file_name().and_then(|s| s.to_str()).unwrap_or("unknown_crate").to_string();
 
-        match extract_declarations_from_single_file(
+        match split_expanded_lib::processing::extract_declarations_from_single_file(
             file_path,
             &rustc_info,
             &current_crate_name,
@@ -82,11 +83,11 @@ pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
                     }
                 }
 
-                for decl in declarations {
+                for (identifier, decl) in declarations {
                     match dependency_validator.validate(&decl) {
                         Ok(_) => all_declarations.push(decl),
                         Err(e) => {
-                            eprintln!("Validation Error for declaration {:?}: {:?}", decl.get_identifier(), e);
+                            eprintln!("Validation Error for declaration {:?}: {:?}", identifier, e);
                             // Depending on desired behavior, you might want to stop here or collect errors
                         }
                     }

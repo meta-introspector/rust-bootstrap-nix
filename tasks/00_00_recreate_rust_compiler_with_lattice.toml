@@ -7,6 +7,9 @@ Recent progress includes:
 - Implemented idempotency and a --force flag in `expanded-code-collector` to efficiently process Rust compiler crates. 
 - Developed a shell script (`scripts/expand_rust_compiler_crates.sh`) to iterate through individual `Cargo.toml` files of the Rust compiler and expand them using `expanded-code-collector`.
 
+Current focus: Removing Linux syscalls.
+Future steps: Gradually consume `cargo` and `rustc` by cherry-picking essential functions into the lattice, eventually replacing their `main` functions with library calls within our system.
+
 This task encompasses the entire journey of:
 - Decomposing the Rust compiler's AST, HIR, MIR, and other intermediate representations.
 - Extracting canonical declarations and their dependencies.
