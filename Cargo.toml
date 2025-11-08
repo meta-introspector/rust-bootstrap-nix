@@ -13,12 +13,11 @@ members = [
     "rust-system-composer",
     "split-expanded-lib",
     "split-expanded-bin",
-    "standalonex/min_test_project",
-    "standalonex/src/bootstrap-config-builder-core",
+#    "standalonex/src/bootstrap-config-builder-core", # BROKEN FIXME LATER - See tasks/11_08_integrate_bootstrap_config_builder_core.toml
 #    "standalonex/src",
 #    "standalonex/src/bootstrap",
     "standalonex/src/bootstrap-config",
-#    "standalonex/src/bootstrap-config-builder-core",
+#    "standalonex/src/bootstrap-config-builder-core", # BROKEN FIXME LATER - See tasks/11_08_integrate_bootstrap_config_builder_core.toml
     "standalonex/src/bootstrap-config-types",
     "standalonex/src/bootstrap-config/config_macros",
     "standalonex/src/bootstrap/src/core/build_steps/test_utils",

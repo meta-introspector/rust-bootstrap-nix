@@ -1,0 +1,11 @@
+title = "Integrate bootstrap-config-builder-core into the main build"
+description = "Fully integrate the `bootstrap-config-builder-core` crate into the main build process. This involves ensuring all necessary dependencies are correctly configured, and that the crate can be built and utilized as intended within the overall project. Refer to the `standalonex/src/bootstrap-config-builder-core/Cargo.toml` for its dependencies and the `standalonex/src/bootstrap-config-builder-core/src/lib.rs` for its functionality."
+name = "Integrate bootstrap-config-builder-core"
+status = "on_hold"
+notes = "Integration of this crate is currently disabled in Cargo.toml as it's not a priority and needs further investigation. See Cargo.toml for details."
+priority = "high"
+created_date = "2025-11-08"
+due_date = "2025-11-15"
+assigned_to = "Gemini CLI"
+tags = ["integration", "rust", "bootstrap", "nix"]
+related_crqs = ["CRQ-016"]

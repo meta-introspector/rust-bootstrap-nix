@@ -26,6 +26,8 @@ enum Commands {
     SelfCompose {},
     /// Composes the rustc project.
     RustcCompose {},
+    /// Updates the system.toml file with project configuration.
+    UpdateSystemToml {},
 }
 
 #[tokio::main]
@@ -44,7 +46,57 @@ async fn main() -> anyhow::Result<()> {
             println!("Running rustc composition workflow...");
             run_rustc_composition_workflow(&config).await?;
         }
+        Commands::UpdateSystemToml {} => {
+            println!("Updating system.toml with project configuration...");
+            run_update_system_toml_workflow(&config).await?;
+        }
     }
+
+    Ok(())
+}
+
+async fn run_update_system_toml_workflow(config: &Config) -> anyhow::Result<()> {
+    use tokio::fs;
+    use toml_edit::{DocumentMut, value};
+
+    let project_root = std::env::current_dir()?;
+    let system_toml_path = project_root.join("rust-system-composer/system.toml");
+
+    // Read existing system.toml
+    let system_toml_content = fs::read_to_string(&system_toml_path)
+        .await
+        .context(format!("Failed to read system.toml at {}", system_toml_path.display()))?;
+    let mut system_toml_doc = system_toml_content.parse::<DocumentMut>()
+        .context("Failed to parse system.toml")?;
+
+    // Add project_info
+    system_toml_doc["project_info"]["name"] = value("rust-bootstrap-nix");
+    system_toml_doc["project_info"]["root_path"] = value(project_root.to_str().unwrap());
+
+    // Add project_config (embedding config.toml content)
+    let config_toml_path = project_root.join("config.toml");
+    let config_toml_content = fs::read_to_string(&config_toml_path)
+        .await
+        .context(format!("Failed to read config.toml at {}", config_toml_path.display()))?;
+    let config_toml_doc = config_toml_content.parse::<DocumentMut>()
+        .context("Failed to parse config.toml")?;
+
+    // If `system_toml_doc["project_config"]` doesn't exist, create it.
+    if system_toml_doc["project_config"].is_none() {
+        system_toml_doc["project_config"] = toml_edit::table();
+    }
+
+    // Iterate through config_toml_doc and add its items to system_toml_doc["project_config"]
+    for (key, item) in config_toml_doc.iter() {
+        system_toml_doc["project_config"][key] = item.clone();
+    }
+
+    // Write updated system.toml
+    fs::write(&system_toml_path, system_toml_doc.to_string())
+        .await
+        .context(format!("Failed to write updated system.toml to {}", system_toml_path.display()))?;
+
+    println!("system.toml updated successfully.");
 
     Ok(())
 }
@@ -95,11 +147,13 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
         host: config.rust.rustc_host.clone(),
     };
     split_expanded_lib::process_expanded_manifest(
-        &expanded_manifest_path,
-        &project_root.parent().unwrap(), // project_root
-        &rustc_info,
-        3, // verbosity
-        Some(0), // layer
+        split_expanded_lib::ProcessManifestParams {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &project_root.parent().unwrap(),
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+        },
     ).await?;
 
     Ok(())
@@ -151,11 +205,13 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
         host: config.rust.rustc_host.clone(),
     };
     split_expanded_lib::process_expanded_manifest(
-        &expanded_manifest_path,
-        &rustc_project_root, // project_root
-        &rustc_info,         // rustc_info
-        3,                   // verbosity
-        Some(0),             // layer
+        split_expanded_lib::ProcessManifestParams {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &rustc_project_root,
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+        },
     ).await?;
 
     // 4. Organize layered declarations into crates
