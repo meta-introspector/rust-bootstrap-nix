@@ -1,0 +1,92 @@
+[
+  {
+    "package_name": "bootstrap-config",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap-config/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/bootstrap-config_standalonex_src_bootstrap-config_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap-config/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "bootstrap-config-macros",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap-config/config_macros/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/bootstrap-config-macros_standalonex_src_bootstrap-config_config_macros_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap-config/config_macros/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "bootstrap-test-utils",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/build_steps/test_utils/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/bootstrap-test-utils_standalonex_src_bootstrap_src_core_build_steps_test_utils_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/build_steps/test_utils/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "config_core",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/config_core/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/config_core_standalonex_src_config_core_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/config_core/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "flake-template-generator",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/flake-template-generator/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/flake-template-generator_flake-template-generator_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/flake-template-generator/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "min_test_project",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/min_test_project/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/min_test_project_standalonex_min_test_project_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/min_test_project/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "prelude-generator",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/prelude-generator/src/bin/interface-generator.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/prelude-generator_prelude-generator_src_bin_interface-generator_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/prelude-generator/src/bin/interface-generator.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "prelude-generator",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/prelude-generator/src/bin/module-exporter-cli.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/prelude-generator_prelude-generator_src_bin_module-exporter-cli_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/prelude-generator/src/bin/module-exporter-cli.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "stage0_parser_crate",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/stage0_parser_crate/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/stage0_parser_crate_standalonex_src_stage0_parser_crate_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/stage0_parser_crate/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  },
+  {
+    "package_name": "test_definitions_lib",
+    "file_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/test_definitions_crates/test_definitions_lib/src/lib.rs",
+    "expanded_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-system-composer/expanded/test_definitions_lib_test_definitions_crates_test_definitions_lib_src_lib_rs.rs",
+    "original_path": "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/test_definitions_crates/test_definitions_lib/src/lib.rs",
+    "rustc_version": "1.92.0-nightly (2025-09-16)",
+    "rustc_host": "aarch64-unknown-linux-gnu",
+    "layer": 0
+  }
+]

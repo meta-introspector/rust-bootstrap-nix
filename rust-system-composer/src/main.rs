@@ -8,6 +8,8 @@ use split_expanded_lib::process_expanded_manifest;
 mod config;
 use config::Config;
 
+mod layered_crate_organizer;
+
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -151,10 +153,14 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
     };
     split_expanded_lib::process_expanded_manifest(
         &expanded_manifest_path,
-        &rustc_project_root, // project_root
-        &rustc_info,
-        3, // verbosity
         Some(0), // layer
+    ).await?;
+
+    // 4. Organize layered declarations into crates
+    println!("Organizing layered declarations into crates...");
+    layered_crate_organizer::organize_layered_declarations(
+        &rustc_project_root,
+        3, // verbosity
     ).await?;
 
     Ok(())
