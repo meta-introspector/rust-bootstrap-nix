@@ -62,14 +62,14 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::UpdateSystemToml {} => {
             println!("Updating system.toml with project configuration...");
-            run_update_system_toml_workflow(&config).await?;
+            run_update_system_toml_workflow(&config, None).await?;
         }
     }
 
     Ok(())
 }
 
-async fn run_update_system_toml_workflow(config: &Config) -> anyhow::Result<()> {
+async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<String>>) -> anyhow::Result<()> {
     use tokio::fs;
 
     let args = Args::parse(); // Re-parse args to get generated_declarations_root
@@ -136,7 +136,26 @@ async fn run_update_system_toml_workflow(config: &Config) -> anyhow::Result<()> 
             }
         }
     }
-    println!("Debug: Finished collecting generated projects.");
+    // Construct SystemConfig
+    let system_config = SystemConfig {
+        project_info,
+        project_config,
+        generated_projects,
+        warnings,
+    };
+
+    // Serialize to TOML
+    let toml_string = toml::to_string_pretty(&system_config)
+        .context("Failed to serialize SystemConfig to TOML")?;
+
+    // Write updated system.toml
+    fs::write(&system_toml_path, toml_string)
+        .await
+        .context(format!("Failed to write updated system.toml to {}", system_toml_path.display()))?;
+
+    println!("system.toml updated successfully.");
+    println!("Debug: system.toml written to: {:?}", system_toml_path);
+    println!("Debug: Does system.toml exist after write? {}", system_toml_path.exists());
 
     Ok(())
 }
@@ -186,15 +205,17 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
         version: config.rust.rustc_version.clone(),
         host: config.rust.rustc_host.clone(),
     };
-    split_expanded_lib::process_expanded_manifest(
-        split_expanded_lib::ProcessManifestParams {
-            expanded_manifest_path: &expanded_manifest_path,
-            project_root: &project_root.parent().unwrap(),
-            rustc_info: &rustc_info,
-            verbosity: 3,
-            layer: Some(0),
-        },
+    let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
+        &expanded_manifest_path,
+        project_root.parent().unwrap(),
+        &rustc_info,
+        3, // verbosity
+        Some(0), // layer
     ).await?;
+
+    // 4. Generate system.toml
+    println!("Generating system.toml after self-composition...");
+    run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
 
     Ok(())
 }
@@ -244,14 +265,12 @@ async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result
         version: config.rust.rustc_version.clone(),
         host: config.rust.rustc_host.clone(),
     };
-    split_expanded_lib::process_expanded_manifest(
-        split_expanded_lib::ProcessManifestParams {
-            expanded_manifest_path: &expanded_manifest_path,
-            project_root: &project_root,
-            rustc_info: &rustc_info,
-            verbosity: 3,
-            layer: Some(0),
-        },
+    let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
+        &expanded_manifest_path,
+        &project_root,
+        &rustc_info,
+        3, // verbosity
+        Some(0), // layer
     ).await?;
 
     // 4. Organize layered declarations into crates
@@ -260,6 +279,10 @@ async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result
         &project_root,
         3, // verbosity
     ).await?;
+
+    // 5. Generate system.toml
+    println!("Generating system.toml after standalonex composition...");
+    run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
 
     Ok(())
 }
@@ -309,14 +332,12 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
         version: config.rust.rustc_version.clone(),
         host: config.rust.rustc_host.clone(),
     };
-    split_expanded_lib::process_expanded_manifest(
-        split_expanded_lib::ProcessManifestParams {
-            expanded_manifest_path: &expanded_manifest_path,
-            project_root: &rustc_project_root,
-            rustc_info: &rustc_info,
-            verbosity: 3,
-            layer: Some(0),
-        },
+    let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
+        &expanded_manifest_path,
+        &rustc_project_root,
+        &rustc_info,
+        3, // verbosity
+        Some(0), // layer
     ).await?;
 
     // 4. Organize layered declarations into crates
@@ -325,6 +346,10 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
         &rustc_project_root,
         3, // verbosity
     ).await?;
+
+    // 5. Generate system.toml
+    println!("Generating system.toml after rustc composition...");
+    run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
 
     Ok(())
 }

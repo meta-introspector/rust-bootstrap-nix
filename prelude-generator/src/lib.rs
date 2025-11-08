@@ -60,6 +60,7 @@ pub async fn extract_declarations_for_composer(
     rustc_info: &RustcInfo,
     crate_name: &str,
     verbose: u8,
+    warnings: &mut Vec<String>,
 ) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, SplitExpandedFileMetadata, Vec<PublicSymbol>)> {
             let (declarations, symbol_map, errors, file_metadata, public_symbols) = crate::declaration_processing::extract_all_declarations_from_file(
                 file_path,
@@ -68,6 +69,7 @@ pub async fn extract_declarations_for_composer(
                 verbose,
                 &rustc_info,
                 crate_name,
+                warnings,
             ).await?;
         Ok((declarations, symbol_map, errors, file_metadata, public_symbols))
 }

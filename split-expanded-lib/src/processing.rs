@@ -1,6 +1,5 @@
 use anyhow::Context;
 use std::path::Path;
-use std::io::Write; // For stdout().flush()
 use std::fmt::Write as FmtWrite; // For writeln! into String
 use tokio;
 
@@ -21,11 +20,12 @@ pub async fn process_expanded_manifest(
     rustc_info: &RustcInfo,
     verbosity: u8,
     layer: Option<u32>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Vec<String>> {
+    let mut warnings: Vec<String> = Vec::new();
+
     if verbosity >= 1 {
-        println!("split-expanded-lib::process_expanded_manifest started.");
-        println!("Verbosity level: {}", verbosity);
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("split-expanded-lib::process_expanded_manifest started."));
+        warnings.push(format!("Verbosity level: {}", verbosity));
     }
 
     // Read expanded manifest
@@ -55,11 +55,10 @@ pub async fn process_expanded_manifest(
         .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
     if verbosity >= 2 {
         if src_dir.exists() {
-            println!("Created project src directory already exists or was created: {}", src_dir.display());
+            warnings.push(format!("Created project src directory already exists or was created: {}", src_dir.display()));
         } else {
-            println!("Failed to create project src directory (but context handled it): {}", src_dir.display());
+            warnings.push(format!("Failed to create project src directory (but context handled it): {}", src_dir.display()));
         }
-        std::io::stdout().flush().unwrap();
     }
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
     let mut all_errors: Vec<ErrorSample> = Vec::new();
@@ -68,28 +67,26 @@ pub async fn process_expanded_manifest(
         if let Some(requested_layer) = layer {
             if expanded_file_entry.layer != requested_layer {
                 if verbosity >= 1 {
-                    println!("Skipping expanded file for package {} (layer {}), not in requested layer {}.",
+                    warnings.push(format!("Skipping expanded file for package {} (layer {}), not in requested layer {}.",
                         expanded_file_entry.package_name,
                         expanded_file_entry.layer,
                         requested_layer
-                    );
+                    ));
                 }
                 continue; // Skip this file if it's not in the requested layer
             }
         }
 
         if verbosity >= 1 {
-            println!("Processing expanded RS file: {}", expanded_file_entry.expanded_rs_path.display());
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("Processing expanded RS file: {}", expanded_file_entry.expanded_rs_path.display()));
         }
 
         let crate_name = expanded_file_entry.package_name.as_str();
         let expanded_rs_file_path = expanded_file_entry.expanded_rs_path;
 
         if verbosity >= 2 {
-            println!("  Derived crate_name: {}", crate_name);
-            println!("  Associated expanded RS file: {}", expanded_rs_file_path.display());
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("  Derived crate_name: {}", crate_name));
+            warnings.push(format!("  Associated expanded RS file: {}", expanded_rs_file_path.display()));
         }
 
         let (declarations, errors, _file_metadata, _public_symbols) = extract_declarations_from_single_file(
@@ -97,41 +94,43 @@ pub async fn process_expanded_manifest(
             &rustc_info,
             crate_name,
             verbosity,
+            &mut warnings,
         ).await?;
 
         if verbosity >= 2 {
-            println!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), expanded_rs_file_path.display());
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), expanded_rs_file_path.display()));
         }
 
         for (identifier, decl) in declarations {
             if verbosity >= 3 {
-                println!("    Inserting declaration: {}", decl.get_identifier());
-                std::io::stdout().flush().unwrap();
+                warnings.push(format!("    Inserting declaration: {}", decl.get_identifier()));
             }
             global_declarations.insert(identifier, decl);
         }
         if !errors.is_empty() {
             if verbosity >= 2 {
-                println!("    Extending all_errors with {} new errors.", errors.len());
-                std::io::stdout().flush().unwrap();
+                warnings.push(format!("    Extending all_errors with {} new errors.", errors.len()));
             }
-            all_errors.extend(errors);
+            for error in errors {
+                warnings.push(format!("  Error in {}: {} - {}", error.file_path.display(), error.error_type, error.error_message));
+                if let Some(snippet) = error.code_snippet {
+                    warnings.push(format!("    Code Snippet:\n{}", snippet));
+                }
+            }
         }
     }
 
     if !all_errors.is_empty() {
         if verbosity >= 2 {
-            println!("Entering error reporting block.");
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("Entering error reporting block."));
         }
-        eprintln!("Errors encountered during parsing:");
+        warnings.push(format!("Errors encountered during parsing:"));
         for error in all_errors {
-            eprintln!("  File: {}", error.file_path.display());
-            eprintln!("  Error Type: {}", error.error_type);
-            eprintln!("  Message: {}", error.error_message);
+            warnings.push(format!("  File: {}", error.file_path.display()));
+            warnings.push(format!("  Error Type: {}", error.error_type));
+            warnings.push(format!("  Message: {}", error.error_message));
             if let Some(snippet) = error.code_snippet {
-                eprintln!("  Code Snippet:\n{}", snippet);
+                warnings.push(format!("  Code Snippet:\n{}", snippet));
             }
         }
     }
@@ -141,28 +140,24 @@ pub async fn process_expanded_manifest(
 
     // First pass: Collect all dependencies to resolve without mutating global_declarations
     if verbosity >= 2 {
-        println!("Starting first pass of dependency resolution.");
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("Starting first pass of dependency resolution."));
     }
     for (decl_id, decl) in &global_declarations {
         let mut current_resolved_dependencies = HashSet::new();
         if verbosity >= 3 {
-            println!("  Processing dependencies for declaration: {}", decl_id);
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("  Processing dependencies for declaration: {}", decl_id));
         }
 
         // Resolve referenced types (internal and external)
         for referenced_type in &decl.referenced_types {
             if let Some(resolved_decl) = global_declarations.get(referenced_type) {
                 if verbosity >= 3 {
-                    println!("    Resolved internal type dependency: {} -> {}", referenced_type, resolved_decl.get_identifier());
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Resolved internal type dependency: {} -> {}", referenced_type, resolved_decl.get_identifier()));
                 }
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
             } else {
                 if verbosity >= 3 {
-                    println!("    Identified external type dependency: {}", referenced_type);
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Identified external type dependency: {}", referenced_type));
                 }
                 // This is an external type dependency
                 current_resolved_dependencies.insert(referenced_type.clone());
@@ -173,14 +168,12 @@ pub async fn process_expanded_manifest(
         for referenced_fn in &decl.referenced_functions {
             if let Some(resolved_decl) = global_declarations.get(referenced_fn) {
                 if verbosity >= 3 {
-                    println!("    Resolved internal function dependency: {} -> {}", referenced_fn, resolved_decl.get_identifier());
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Resolved internal function dependency: {} -> {}", referenced_fn, resolved_decl.get_identifier()));
                 }
                 current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
             } else {
                 if verbosity >= 3 {
-                    println!("    Identified external function dependency: {}", referenced_fn);
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Identified external function dependency: {}", referenced_fn));
                 }
                 // This is an external function dependency
                 current_resolved_dependencies.insert(referenced_fn.clone());
@@ -191,8 +184,7 @@ pub async fn process_expanded_manifest(
         for import in &decl.required_imports {
             if !global_declarations.contains_key(import) {
                 if verbosity >= 3 {
-                    println!("    Identified external import dependency: {}", import);
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Identified external import dependency: {}", import));
                 }
                 current_resolved_dependencies.insert(import.clone());
             }
@@ -203,14 +195,12 @@ pub async fn process_expanded_manifest(
 
     // Second pass: Populate direct_dependencies and resolved_dependencies
     if verbosity >= 2 {
-        println!("Starting second pass of dependency resolution.");
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("Starting second pass of dependency resolution."));
     }
     for (decl_id, decl) in global_declarations.iter_mut() {
         if let Some(resolved_deps) = dependencies_to_resolve.remove(decl_id) {
             if verbosity >= 3 {
-                println!("  Populating dependencies for declaration: {}", decl_id);
-                std::io::stdout().flush().unwrap();
+                warnings.push(format!("  Populating dependencies for declaration: {}", decl_id));
             }
             decl.direct_dependencies = resolved_deps.iter().map(|s| s.split("::").last().unwrap_or(s).to_string()).collect();
             decl.resolved_dependencies = resolved_deps;
@@ -219,8 +209,7 @@ pub async fn process_expanded_manifest(
 
     // Phase 3: Implement Layering Algorithm
     if verbosity >= 2 {
-        println!("Starting layering algorithm.");
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("Starting layering algorithm."));
     }
     let mut declaration_levels: HashMap<String, usize> = HashMap::new();
     let mut changed = true;
@@ -236,8 +225,7 @@ pub async fn process_expanded_manifest(
     while changed && iteration_count < max_iterations_limit {
         iteration_count += 1;
         if verbosity >= 2 {
-            println!("  Layering algorithm iteration: {}", iteration_count);
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("  Layering algorithm iteration: {}", iteration_count));
         }
         changed = false;
         for (decl_id, decl) in &global_declarations {
@@ -259,8 +247,7 @@ pub async fn process_expanded_manifest(
 
             if new_level > current_level {
                 if verbosity >= 3 {
-                    println!("    Level changed for {}: {} -> {}", decl_id, current_level, new_level);
-                    std::io::stdout().flush().unwrap();
+                    warnings.push(format!("    Level changed for {}: {} -> {}", decl_id, current_level, new_level));
                 }
                 declaration_levels.insert(decl_id.clone(), new_level);
                 changed = true;
@@ -271,20 +258,18 @@ pub async fn process_expanded_manifest(
 
     if iteration_count >= max_iterations_limit {
         if verbosity >= 1 {
-            println!("Layering algorithm stopped after {} iterations due to reaching the limit.", max_iterations_limit);
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("Layering algorithm stopped after {} iterations due to reaching the limit.", max_iterations_limit));
         }
     }
 
-    println!("Max dependency level found: {}", max_level);
+    warnings.push(format!("Max dependency level found: {}", max_level));
 
     let mut generated_module_names: Vec<String> = Vec::new();
     let mut has_proc_macros = false;
 
     // Write all declarations to individual files in the src_dir
     if verbosity >= 2 {
-        println!("Starting declaration writing phase.");
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("Starting declaration writing phase."));
     }
     for (identifier, declaration) in global_declarations.into_iter() {
         let level = *declaration_levels.get(&identifier).unwrap_or(&0);
@@ -300,26 +285,10 @@ pub async fn process_expanded_manifest(
             DeclarationItem::TraitAlias(_) => "trait_alias",
             DeclarationItem::Type(_) => "type",
             DeclarationItem::Union(_) => "union",
-            DeclarationItem::Other(item_str) => {
-                // Attempt to parse the string into a syn::Item to check for proc macros
-                if let Ok(parsed_item) = syn::parse_str::<syn::Item>(item_str) {
-                    if let syn::Item::Macro(mac) = parsed_item {
-                        if mac.mac.path.segments.last().map_or(false, |s| s.ident == "proc_macro") {
-                            "proc_macro"
-                        } else {
-                            "other"
-                        }
-                    } else {
-                        "other"
-                    }
-                } else {
-                    "other" // If parsing fails, treat it as a generic "other"
-                }
-            },
+            DeclarationItem::Other(_) => "other",
         };
         if verbosity >= 2 {
-            println!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level);
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level));
         }
 
         let declaration_dir = project_root.join("rust-bootstrap-core")
@@ -333,12 +302,11 @@ pub async fn process_expanded_manifest(
             .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
         if verbosity >= 2 {
             if declaration_dir.exists() {
-                println!("  Declaration directory already exists or was created: {}", declaration_dir.display());
+                warnings.push(format!("  Declaration directory already exists or was created: {}", declaration_dir.display()));
+            } else {
+                warnings.push(format!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display()));
             }
-        } else {
-            println!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display());
         }
-        std::io::stdout().flush().unwrap();
 
         let output_file_path = declaration_dir.join(format!("{}.rs", identifier));
 
@@ -358,8 +326,7 @@ pub async fn process_expanded_manifest(
         // Add use statements
         for dep in &declaration.resolved_dependencies {
             if verbosity >= 3 {
-                println!("    Adding use statement: {}", dep);
-                std::io::stdout().flush().unwrap();
+                warnings.push(format!("    Adding use statement: {}", dep));
             }
             file_content.push_str(&format!("use {};\n", dep));
         }
@@ -381,8 +348,7 @@ pub async fn process_expanded_manifest(
             DeclarationItem::Other(item) => quote! { #item },
         };
         if verbosity >= 3 {
-            println!("    Converting item to token stream for '{}'.", identifier);
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("    Converting item to token stream for '{}'.", identifier));
         }
         file_content.push_str(&item_token_stream.to_string());
 
@@ -390,25 +356,23 @@ pub async fn process_expanded_manifest(
             .await
             .context(format!("Failed to write declaration to file: {}", output_file_path.display()))?;
         if verbosity >= 2 {
-            println!("Wrote declaration to file: {}", output_file_path.display());
-            std::io::stdout().flush().unwrap();
+            warnings.push(format!("Wrote declaration to file: {}", output_file_path.display()));
         }
 
         generated_module_names.push(identifier);
         if declaration.is_proc_macro {
             if verbosity >= 3 {
-                println!("  Declaration '{}' is a procedural macro.", declaration.get_identifier());
-                std::io::stdout().flush().unwrap();
+                warnings.push(format!("  Declaration '{}' is a procedural macro.", declaration.get_identifier()));
             }
             has_proc_macros = true;
         }
     }
 
     // Print generated module names and proc macro flag for the orchestrating script
-    println!("GENERATED_MODULE_NAMES: {}", generated_module_names.join(","));
-    println!("HAS_PROC_MACROS: {}", has_proc_macros);
+    warnings.push(format!("GENERATED_MODULE_NAMES: {}", generated_module_names.join(",")));
+    warnings.push(format!("HAS_PROC_MACROS: {}", has_proc_macros));
 
-    Ok(())
+    Ok(warnings)
 }
 
 pub async fn extract_declarations_from_single_file(
@@ -416,10 +380,10 @@ pub async fn extract_declarations_from_single_file(
     _rustc_info: &RustcInfo,
     crate_name: &str,
     verbosity: u8,
+    warnings: &mut Vec<String>,
 ) -> anyhow::Result<(HashMap<String, Declaration>, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
     if verbosity >= 2 {
-        println!("  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}", file_path.display());
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}", file_path.display()));
     }
 
     let mut file_content = tokio::fs::read_to_string(file_path)
@@ -458,8 +422,7 @@ pub async fn extract_declarations_from_single_file(
     visitor.visit_file(&syntax_tree);
 
     if verbosity >= 2 {
-        println!("  [split-expanded-lib] extract_declarations_from_single_file: Found {} declarations in {}", visitor.declarations.len(), file_path.display());
-        std::io::stdout().flush().unwrap();
+        warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Found {} declarations in {}", visitor.declarations.len(), file_path.display()));
     }
 
     Ok((visitor.declarations, errors, file_metadata, public_symbols))

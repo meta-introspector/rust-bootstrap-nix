@@ -96,6 +96,7 @@ pub async fn handle_extract_global_level0_decls(
     rustc_info: &crate::use_extractor::rustc_info::RustcInfo,
     _cache_dir: &std::path::Path,
     crate_name: &str,
+    warnings: &mut Vec<String>,
 ) -> anyhow::Result<()> {
     let output_dir = args.generated_decls_output_dir.clone().ok_or_else(|| anyhow::anyhow!("generated_decls_output_dir is required"))?;
     tokio::fs::create_dir_all(&output_dir).await.context("Failed to create output directory")?;
@@ -127,6 +128,7 @@ pub async fn handle_extract_global_level0_decls(
                 &rustc_info_for_split_expanded_lib,
                 &crate_name,
                 args.verbose,
+                warnings,
             ).await?;
 
             all_collected_errors.extend(errors);

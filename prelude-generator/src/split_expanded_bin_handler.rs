@@ -12,7 +12,7 @@ use crate::validation::{DeclarationValidator, DependencyValidator};
 use crate::symbol_map::SymbolMap;
 use crate::reference_visitor::ReferenceVisitor;
 
-pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
+pub async fn handle_split_expanded_bin(args: &Args, warnings: &mut Vec<String>) -> anyhow::Result<()> {
     println!("Running split-expanded-bin functionality...");
 
     let files_to_process = args.split_expanded_files.clone(); // This is already a Vec<PathBuf>
@@ -69,6 +69,7 @@ pub async fn handle_split_expanded_bin(args: &Args) -> anyhow::Result<()> {
             &rustc_info,
             &current_crate_name,
             verbose,
+            warnings,
         ).await {
             Ok((declarations, errors, _file_metadata, _public_symbols)) => {
                 // Store the parsed file for Pass 2 if parsing was successful

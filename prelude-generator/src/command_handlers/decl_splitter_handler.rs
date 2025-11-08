@@ -12,6 +12,7 @@ pub async fn handle_run_decl_splitter(
     args: &Args,
     project_root: &PathBuf,
     rustc_info: &RustcInfo,
+    warnings: &mut Vec<String>,
 ) -> anyhow::Result<()> {
     println!("Running declaration splitter functionality...");
 
@@ -57,6 +58,7 @@ pub async fn handle_run_decl_splitter(
                 &rustc_info_for_split_expanded_lib,
                 &current_crate_name,
                 args.verbose,
+                warnings,
             ).await?;
 
             all_declarations_aggregated.extend(declarations.into_values());

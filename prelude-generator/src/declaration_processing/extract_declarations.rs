@@ -9,12 +9,14 @@ pub async fn extract_all_declarations_from_file(
     verbose: u8,
     rustc_info: &RustcInfo, // Pass RustcInfo to the new function
     crate_name: &str,       // Pass crate_name to the new function
+    warnings: &mut Vec<String>,
 ) -> anyhow::Result<(Vec<Declaration>, SymbolMap, Vec<ErrorSample>, FileMetadata, Vec<PublicSymbol>)> {
     let (declarations, errors, file_metadata, public_symbols) = split_expanded_lib::processing::extract_declarations_from_single_file(
         file_path,
         rustc_info,
         crate_name,
         verbose,
+        warnings,
     ).await?;
 
     let mut symbol_map = SymbolMap::new();

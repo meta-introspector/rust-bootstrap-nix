@@ -7,6 +7,7 @@ pub struct SystemConfig {
     pub project_info: ProjectInfo,
     pub project_config: toml::Value, // Store the raw config.toml content
     pub generated_projects: HashMap<String, GeneratedProject>,
+    pub warnings: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
