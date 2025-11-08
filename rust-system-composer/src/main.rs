@@ -3,11 +3,15 @@ use anyhow::Context;
 use std::path::PathBuf;
 use tokio::process::Command;
 use expanded_code_collector::collect_expanded_code;
+use std::collections::HashMap;
+use walkdir::WalkDir;
 
 mod config;
 use config::Config;
 
 mod layered_crate_organizer;
+mod system_config;
+use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -15,6 +19,10 @@ struct Args {
     /// Path to the configuration file (config.toml).
     #[clap(short, long, value_parser, default_value = "config.toml")]
     config_file: PathBuf,
+
+    /// Root directory where generated declarations are located.
+    #[clap(long, value_parser)]
+    generated_declarations_root: Option<PathBuf>,
 
     #[clap(subcommand)]
     command: Commands,
@@ -26,6 +34,8 @@ enum Commands {
     SelfCompose {},
     /// Composes the rustc project.
     RustcCompose {},
+    /// Composes the standalonex project.
+    StandaloneXCompose {},
     /// Updates the system.toml file with project configuration.
     UpdateSystemToml {},
 }
@@ -46,6 +56,10 @@ async fn main() -> anyhow::Result<()> {
             println!("Running rustc composition workflow...");
             run_rustc_composition_workflow(&config).await?;
         }
+        Commands::StandaloneXCompose {} => {
+            println!("Running standalonex composition workflow...");
+            run_standalonex_composition_workflow(&config).await?;
+        }
         Commands::UpdateSystemToml {} => {
             println!("Updating system.toml with project configuration...");
             run_update_system_toml_workflow(&config).await?;
@@ -57,46 +71,72 @@ async fn main() -> anyhow::Result<()> {
 
 async fn run_update_system_toml_workflow(config: &Config) -> anyhow::Result<()> {
     use tokio::fs;
-    use toml_edit::{DocumentMut, value};
 
-    let project_root = std::env::current_dir()?;
-    let system_toml_path = project_root.join("rust-system-composer/system.toml");
+    let args = Args::parse(); // Re-parse args to get generated_declarations_root
 
-    // Read existing system.toml
-    let system_toml_content = fs::read_to_string(&system_toml_path)
-        .await
-        .context(format!("Failed to read system.toml at {}", system_toml_path.display()))?;
-    let mut system_toml_doc = system_toml_content.parse::<DocumentMut>()
-        .context("Failed to parse system.toml")?;
+    let rust_system_composer_root = std::env::current_dir()?;
+    let main_project_root = rust_system_composer_root.parent().unwrap(); // Assuming rust-system-composer is directly under the main project root
+    let system_toml_path = rust_system_composer_root.join("system.toml");
 
-    // Add project_info
-    system_toml_doc["project_info"]["name"] = value("rust-bootstrap-nix");
-    system_toml_doc["project_info"]["root_path"] = value(project_root.to_str().unwrap());
-
-    // Add project_config (embedding config.toml content)
-    let config_toml_path = project_root.join("config.toml");
+    // Load config.toml content
+    let config_toml_path = main_project_root.join("config.toml"); // config.toml is at the main project root
     let config_toml_content = fs::read_to_string(&config_toml_path)
         .await
         .context(format!("Failed to read config.toml at {}", config_toml_path.display()))?;
-    let config_toml_doc = config_toml_content.parse::<DocumentMut>()
-        .context("Failed to parse config.toml")?;
+    let project_config: toml::Value = toml::from_str(&config_toml_content)
+        .context("Failed to parse config.toml into toml::Value")?;
 
-    // If `system_toml_doc["project_config"]` doesn't exist, create it.
-    if system_toml_doc["project_config"].is_none() {
-        system_toml_doc["project_config"] = toml_edit::table();
+    // Create ProjectInfo
+    let project_info = ProjectInfo {
+        name: "rust-bootstrap-nix".to_string(),
+        root_path: main_project_root.to_path_buf(),
+    };
+
+    // Determine the generated_declarations_root
+    let generated_declarations_root = if let Some(ref path) = args.generated_declarations_root {
+        path.clone()
+    } else {
+        config.paths.generated_declarations_root.clone()
+    };
+
+    // Collect generated projects
+    let mut generated_projects: HashMap<String, GeneratedProject> = HashMap::new();
+
+    if generated_declarations_root.exists() && generated_declarations_root.is_dir() {
+        for entry in WalkDir::new(&generated_declarations_root)
+            .min_depth(1)
+            .max_depth(1)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            if entry.file_type().is_dir() {
+                let project_dir = entry.path();
+                let project_name = project_dir.file_name().unwrap().to_string_lossy().to_string();
+                let src_dir = project_dir.join("src");
+
+                let mut modules: Vec<PathBuf> = Vec::new();
+                if src_dir.exists() && src_dir.is_dir() {
+                    for rs_file_entry in WalkDir::new(&src_dir)
+                        .into_iter()
+                        .filter_map(|e| e.ok())
+                        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
+                    {
+                        modules.push(rs_file_entry.path().strip_prefix(&main_project_root)?.to_path_buf());
+                    }
+                }
+
+                generated_projects.insert(
+                    project_name.clone(),
+                    GeneratedProject {
+                        path: project_dir.strip_prefix(&main_project_root)?.to_path_buf(),
+                        modules,
+                        declarations: None, // This can be populated later if needed
+                    },
+                );
+            }
+        }
     }
-
-    // Iterate through config_toml_doc and add its items to system_toml_doc["project_config"]
-    for (key, item) in config_toml_doc.iter() {
-        system_toml_doc["project_config"][key] = item.clone();
-    }
-
-    // Write updated system.toml
-    fs::write(&system_toml_path, system_toml_doc.to_string())
-        .await
-        .context(format!("Failed to write updated system.toml to {}", system_toml_path.display()))?;
-
-    println!("system.toml updated successfully.");
+    println!("Debug: Finished collecting generated projects.");
 
     Ok(())
 }
@@ -154,6 +194,71 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
             verbosity: 3,
             layer: Some(0),
         },
+    ).await?;
+
+    Ok(())
+}
+
+async fn run_standalonex_composition_workflow(config: &Config) -> anyhow::Result<()> {
+    let project_root = std::env::current_dir()?.join("standalonex");
+    let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
+    let expanded_dir = project_root.join("expanded");
+
+    // 1. Run cargo metadata for standalonex
+    println!("Collecting full workspace metadata for standalonex using cargo metadata...");
+    std::fs::create_dir_all(metadata_file.parent().unwrap())?;
+    let output = Command::new(&config.rust.cargo)
+        .args(&["metadata", "--format-version", "1"])
+        .current_dir(&project_root) // Run cargo metadata in the standalonex project root
+        .output().await?;
+
+    if output.status.success() {
+        std::fs::write(&metadata_file, &output.stdout)
+            .context(format!("Failed to write metadata to {}", metadata_file.display()))?;
+        println!("Standalonex metadata collected to {}.", metadata_file.display());
+    } else {
+        eprintln!("cargo metadata for standalonex failed.");
+        eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+        return Err(anyhow::anyhow!("cargo metadata for standalonex failed"));
+    }
+
+    // 2. Run expanded-code-collector for standalonex
+    println!("Running expanded-code-collector for standalonex...");
+    collect_expanded_code(
+        &metadata_file,
+        &expanded_dir,
+        &serde_json::json!({}), // flake_lock_json
+        Some(0), // layer
+        None,    // package_filter
+        false,   // dry_run
+        false,   // force
+        config.rust.rustc_version.clone(),
+        config.rust.rustc_host.clone(),
+    ).await?;
+
+    // 3. Run split-expanded-bin for standalonex
+    println!("Running split-expanded-bin for standalonex...");
+    let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
+    let rustc_info = split_expanded_lib::RustcInfo {
+        version: config.rust.rustc_version.clone(),
+        host: config.rust.rustc_host.clone(),
+    };
+    split_expanded_lib::process_expanded_manifest(
+        split_expanded_lib::ProcessManifestParams {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &project_root,
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+        },
+    ).await?;
+
+    // 4. Organize layered declarations into crates
+    println!("Organizing layered declarations into crates...");
+    layered_crate_organizer::organize_layered_declarations(
+        &project_root,
+        3, // verbosity
     ).await?;
 
     Ok(())

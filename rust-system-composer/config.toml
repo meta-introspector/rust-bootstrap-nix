@@ -75,3 +75,6 @@ modules = [
     "my_crate::dummy_module_a",
     "my_crate::another_dummy_module::sub_dummy_module",
 ]
+
+[paths]
+generated_declarations_root = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-bootstrap-core/src"

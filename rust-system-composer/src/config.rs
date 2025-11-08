@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::path::Path;
 use anyhow::{Result, anyhow};
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -52,10 +53,17 @@ pub struct BinsConfig {
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
+pub struct PathsConfig {
+    pub generated_declarations_root: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Config {
     pub nix: NixConfig,
     pub rust: RustConfig,
     pub bins: BinsConfig,
+    pub paths: PathsConfig,
 }
 
 impl Config {
