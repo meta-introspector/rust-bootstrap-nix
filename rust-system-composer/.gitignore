@@ -150,6 +150,7 @@ tags
 ../expanded/
 ../nix_json_output/
 ../rust-bootstrap-core/
+../expanded/expanded_manifest.json
 
 # Log files
 ../crash.txt
@@ -166,6 +167,11 @@ tags
 ../targets.txt
 ../task.md
 ../task.txt
+../*.log
+../*.bin
+../*.rmeta
+../*.json
+../result
 
 # Temporary files
 *~
