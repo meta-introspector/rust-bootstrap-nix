@@ -1,0 +1,23 @@
+# Generated files
+../expanded/expanded_manifest.json
+../expanded/ast-decoder__data_data_com_termux_nix_files_home_pick-up-nix2_vendor_rust_platform-tools-agave-rust-solana_vendor_rust-src_vendor_rust_rust-bootstrap-nix_ast-decoder_src_lib_rs.rs
+../expanded/bootstrap-config__data_data_com_termux_nix_files_home_pick-up-nix2_vendor_rust_platform-tools-agave-rust-solana_vendor_rust-src_vendor_rust_rust-bootstrap-nix_standalonex_src_bootstrap-config_src_lib_rs.rs
+../expanded/collected_errors.json
+../expanded/expanded_963e7b97de9292712e1ea1290a0dc75250cbec0e9182ec5bd2f396d516b9d841_1.92.0-nightly (a454fccb0 2025-09-15)_aarch64-unknown-linux-gnu_cargo_expand_2021
+../expanded/expanded_d4bcad2e11c991626a4bb4af1c4afbbeaa64061deaa40af4ec896c5f13ef02e5_1.92.0-nightly (a454fccb0 2025-09-15)_aarch64-unknown-linux-gnu_cargo_expand_2021
+
+# Log files
+../crash.txt
+../error_report.txt
+../failed_metadata_cargos.txt
+../generate_error_report.sh
+../layers.txt
+../log.txt
+../log2.txt
+../logs.txt
+../prelude-generator/type_usage_report.txt
+../prelude_generator_workspace_type_usage_report.txt
+../priority_cargos.txt
+../targets.txt
+../task.md
+../task.txt
