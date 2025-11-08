@@ -12,7 +12,7 @@ pub mod code_generator;
 pub mod measurement;
 pub mod parser;
 pub mod bag_of_words_visitor;
-// pub mod config_parser; // Removed
+pub mod config_parser;
 pub mod cli;
 pub mod use_statements;
 pub mod utils;
