@@ -1,0 +1,24 @@
+[[tasks]]
+title = "Apply Introspective Rollup Workflow for AI analysis"
+description = "Apply the 'Introspective Rollup Workflow' to key functions and components to gather performance metrics and generate AI-driven summaries and suggestions."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "lattice.md"
+stage_id = 0
+step_id = "LT_06"
+name = "Apply Introspective Rollup Workflow for AI analysis"
+
+[[tasks]]
+title = "Ensure metrics-reporter generates rollup_report.md"
+description = "Ensure the `metrics-reporter` tool is fully functional and correctly generates the `rollup_report.md` file, including the wrapped function source code (`wrapped_code.rs`) and runtime performance data, in a structured format suitable for LLM consumption as part of the Godel Closure Loop."
+status = "TODO"
+created_at = "2025-11-06T13:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 12
+step_id = "1"
+name = "Metrics Reporter Rollup Report"
+related_files = [
+    "metrics-reporter/src/main.rs",
+    "rollup_report.md",
+    "wrapped_code.rs",
+]
