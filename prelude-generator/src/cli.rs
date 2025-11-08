@@ -2,8 +2,9 @@
 use std::path::PathBuf;
 use clap::Parser;
 use crate::args::Args;
-use crate::config_parser::Config;
-
+//use crate::config_parser::Config;
+use crate::Config;
+use pipeline_traits::read_config;
 pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
 
     let args = Args::parse();
@@ -20,12 +21,12 @@ pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
 
 
     let config = if let Some(config_file_path) = &args.config_file_path {
-        Some(crate::config_parser::read_config(config_file_path, &project_root)?)
+        Some(read_config(config_file_path, &project_root)?)
     } else {
         // If config_file_path is not provided, try to read from the default location
         let default_config_path = project_root.join("config.toml");
         if default_config_path.exists() {
-            Some(crate::config_parser::read_config(&default_config_path, &project_root)?)
+            Some(read_config(&default_config_path, &project_root)?)
         } else {
             None
         }

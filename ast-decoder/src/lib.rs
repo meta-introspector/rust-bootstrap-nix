@@ -9,6 +9,7 @@ use quote::quote;
 // Removed: use crate::measurement; as it's no longer in the same crate
 use pipeline_traits::{PipelineFunctor, ParsedFile};
 use pipeline_traits::{AstStatistics, VariableInfo, FunctionInfo};
+use pipeline_traits::Config; // Added this line
 
 /// Helper struct to traverse the AST and collect statistics
 struct AstVisitor {
@@ -130,11 +131,12 @@ impl <'ast> Visit<'ast> for AstVisitor {
 /// Functor to traverse the AST and collect statistics
 pub struct AstTraversalFunctor;
 
-impl PipelineFunctor<ParsedFile, AstStatistics> for AstTraversalFunctor {
+impl PipelineFunctor<ParsedFile, AstStatistics, Config> for AstTraversalFunctor {
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: ParsedFile,
+        _config: &'writer Option<Config>,
     ) -> Pin<Box<dyn Future<Output = Result<AstStatistics>> + Send + 'writer>> {
         Box::pin(async move {
             // Removed: measurement::record_function_entry("AstTraversalFunctor::map");

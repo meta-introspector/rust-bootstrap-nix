@@ -15,15 +15,13 @@ pub async fn process_constants(
     _all_string_constants: &mut Vec<syn::ItemConst>,
     type_map: &HashMap<String, type_extractor::TypeInfo>,
 ) -> anyhow::Result<()> {
-    let generated_decls_output_dir = _args.generated_decls_output_dir.clone().unwrap_or_else(|| {
-        project_root.join("generated/level0_decls")
-    });
+    let generated_decls_output_dir = _args.generated_decls_output_dir.clone().unwrap();
 
-    let numerical_output_dir = project_root.join("generated/numerical_constants");
+    let numerical_output_dir = generated_decls_output_dir.join("numerical_constants");
     println!("Attempting to create numerical constants output directory: {}", numerical_output_dir.display());
     tokio::fs::create_dir_all(&numerical_output_dir).await?;
 
-    let string_output_dir = project_root.join("generated/string_constants");
+    let string_output_dir = generated_decls_output_dir.join("string_constants");
     println!("Attempting to create string constants output directory: {}", string_output_dir.display());
     tokio::fs::create_dir_all(&string_output_dir).await?;
 

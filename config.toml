@@ -75,3 +75,7 @@ modules = [
     "my_crate::dummy_module_a",
     "my_crate::another_dummy_module::sub_dummy_module",
 ]
+
+[paths]
+generated_declarations_root = ".gemini/generated/"
+default_vendor_dir = "vendor/rustc_deps"

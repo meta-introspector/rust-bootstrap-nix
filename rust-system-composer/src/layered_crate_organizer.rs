@@ -8,6 +8,7 @@ use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 
 #[derive(Debug)]
 pub struct OrganizeLayeredDeclarationsInputs<'a> {
+    #[allow(dead_code)]
     pub project_root: &'a Path,
     pub verbosity: u8,
     pub compile_flag: &'a str,

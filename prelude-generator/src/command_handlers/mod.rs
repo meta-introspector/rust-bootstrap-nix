@@ -1,12 +1,14 @@
 use crate::type_extractor;
 use crate::BagOfWordsVisitor;
-use crate::config_parser::Config;
+use pipeline_traits::Config; // Use Config from pipeline_traits
 use anyhow::{Context, Result};
 use std::path::{PathBuf, Path};
 use syn::visit::Visit;
 use crate::args::Args;
 use crate::pipeline;
 use crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure;
+//use pipeline_traits::PipelineConfig; // Added this line
+//use crate::PipelineConfig; // Added this line
 pub mod decl_splitter_handler;
 pub use decl_splitter_handler::handle_run_decl_splitter;
 
@@ -183,7 +185,7 @@ pub async fn handle_extract_numerical_constants(    _project_root: &PathBuf,
     _args: &crate::Args,
     all_numerical_constants: &Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {
-    let numerical_output_dir = _project_root.join(r"generated/numerical_constants");
+    let numerical_output_dir = _args.generated_decls_output_dir.clone().unwrap().join("numerical_constants");
     tokio::fs::create_dir_all(&numerical_output_dir).await
         .context(format!("Failed to create output directory {:?}", numerical_output_dir))?;
     write_numerical_constants_to_hierarchical_structure(&all_numerical_constants, &numerical_output_dir).await?;
@@ -197,7 +199,7 @@ pub async fn handle_extract_string_constants(
     _args: &crate::Args,
     all_string_constants: &Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {
-    let string_output_dir = _project_root.join(r"generated/string_constants");
+    let string_output_dir = _args.generated_decls_output_dir.clone().unwrap().join("string_constants");
     tokio::fs::create_dir_all(&string_output_dir).await
         .context(format!("Failed to create output directory {:?}", string_output_dir))?;
     crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure(&all_string_constants, &string_output_dir).await?;

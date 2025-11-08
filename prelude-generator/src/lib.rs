@@ -12,7 +12,7 @@ pub mod code_generator;
 pub mod measurement;
 pub mod parser;
 pub mod bag_of_words_visitor;
-pub mod config_parser;
+// pub mod config_parser; // Removed
 pub mod cli;
 pub mod use_statements;
 pub mod utils;
@@ -52,6 +52,9 @@ pub mod constant_reporting;
 pub mod types;
 pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo};
 pub use split_expanded_lib::{Declaration, ErrorSample, RustcInfo, FileMetadata as SplitExpandedFileMetadata, SerializableDeclaration, PublicSymbol};
+
+pub type PipelineConfig = pipeline_traits::Config; // Updated to use pipeline_traits::Config
+pub use pipeline_traits::{Config, NixConfig, RustConfig, BuildConfig, EnvConfig, InstallConfig, DistConfig, LlvmConfig, ChangeIdConfig, BinsConfig, ModuleExportsConfig};
 
 pub async fn extract_declarations_for_composer(
     file_path: &std::path::Path,

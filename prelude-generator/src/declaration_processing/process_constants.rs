@@ -8,14 +8,12 @@ use crate::type_extractor;
 pub async fn process_constants(
     all_constants: Vec<syn::ItemConst>,
     args: &crate::Args,
-    project_root: &PathBuf,
+    _project_root: &PathBuf,
     all_numerical_constants: &mut Vec<syn::ItemConst>,
     all_string_constants: &mut Vec<syn::ItemConst>,
     _type_map: &HashMap<String, type_extractor::TypeInfo>,
 ) -> anyhow::Result<()> {
-    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
-        project_root.join("generated/level0_decls")
-    });
+    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap();
     let constants_output_dir = generated_decls_output_dir.join("constants");
     tokio::fs::create_dir_all(&constants_output_dir).await
         .context(format!("Failed to create output directory {:?}", constants_output_dir))?;

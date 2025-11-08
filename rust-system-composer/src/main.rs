@@ -34,6 +34,14 @@ struct Args {
     /// Verbosity level (0-3).
     #[clap(short, long, action = clap::ArgAction::Count, default_value_t = 0)]
     verbosity: u8,
+
+    /// Path to the project whose dependencies need to be vendored.
+    #[clap(long, value_parser)]
+    project_path: Option<PathBuf>,
+
+    /// The directory where the vendored crates should be placed.
+    #[clap(long, value_parser)]
+    output_vendor_dir: Option<PathBuf>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -46,6 +54,8 @@ enum Commands {
     StandaloneXCompose {},
     /// Updates the system.toml file with project configuration.
     UpdateSystemToml {},
+    /// Vendorizes dependencies for a specified project.
+    Vendorize {},
 }
 
 #[tokio::main]
@@ -71,6 +81,10 @@ async fn main() -> anyhow::Result<()> {
         Commands::UpdateSystemToml {} => {
             println!("Updating system.toml with project configuration...");
             run_update_system_toml_workflow(&config, None).await?;
+        }
+        Commands::Vendorize {} => {
+            println!("Running vendorization workflow...");
+            run_vendorize_workflow(&config, &args).await?;
         }
     }
 
@@ -168,7 +182,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     Ok(())
 }
 
-async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_self_composition_workflow(config: &Config, _args: &Args) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -389,6 +403,67 @@ async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow:
     // 5. Generate system.toml
     println!("Generating system.toml after rustc composition...");
     run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
+
+    Ok(())
+}
+
+async fn run_vendorize_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+    use tokio::fs;
+
+    let project_path = if let Some(path) = args.project_path.as_ref() {
+        path.clone()
+    } else {
+        PathBuf::from(&config.rust.rustc_source)
+    };
+
+    let output_vendor_dir = if let Some(path) = args.output_vendor_dir.as_ref() {
+        path.clone()
+    } else {
+        config.paths.default_vendor_dir.clone().unwrap_or_else(|| PathBuf::from("vendor/rustc_deps"))
+    };
+
+    println!("Vendorizing dependencies for project: {}", project_path.display());
+    println!("Output vendor directory: {}", output_vendor_dir.display());
+
+    // Ensure the output vendor directory exists
+    fs::create_dir_all(&output_vendor_dir).await?;
+
+    // Construct and execute the cargo vendor command
+    let output = Command::new(&config.rust.cargo)
+        .args(&["vendor", output_vendor_dir.to_str().unwrap()])
+        .current_dir(&project_path)
+        .output()
+        .await?;
+
+    if output.status.success() {
+        println!("Cargo vendor completed successfully.");
+        println!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+    } else {
+        eprintln!("Cargo vendor failed.");
+        eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+        return Err(anyhow::anyhow!("cargo vendor failed"));
+    }
+
+    // Generate or update .cargo/config.toml
+    let cargo_config_dir = project_path.join(".cargo");
+    fs::create_dir_all(&cargo_config_dir).await?;
+    let cargo_config_path = cargo_config_dir.join("config.toml");
+
+    let config_content = format!(
+        r#"[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "{}"
+"#,
+        output_vendor_dir.display()
+    );
+
+    fs::write(&cargo_config_path, config_content.as_bytes()).await
+        .context(format!("Failed to write .cargo/config.toml to {}", cargo_config_path.display()))?;
+
+    println!("Updated .cargo/config.toml at {} to use vendored sources.", cargo_config_path.display());
 
     Ok(())
 }

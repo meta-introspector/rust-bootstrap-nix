@@ -5,15 +5,16 @@ use std::boxed::Box;
 
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, ValidatedFile};
-
+use crate::PipelineConfig;
 // AstReconstructionFunctor
 pub struct AstReconstructionFunctor;
 
-impl PipelineFunctor<ValidatedFile, String> for AstReconstructionFunctor {
+impl PipelineFunctor<ValidatedFile, String, PipelineConfig> for AstReconstructionFunctor {
     fn map<'writer>(
         &'writer self,
         writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: ValidatedFile,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<String>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("AstReconstructionFunctor::map");

@@ -8,15 +8,16 @@ use syn; // Add this import
 use prettyplease; // Add this import
 
 use pipeline_traits::{PipelineFunctor, RawFile, ParsedFile};
-
+use crate::PipelineConfig;
 // ParseFunctor
 #[allow(dead_code)] // Suppress dead_code warning for ParseFunctor
 pub struct ParseFunctor;
-impl PipelineFunctor<RawFile, ParsedFile> for ParseFunctor {
+impl PipelineFunctor<RawFile, ParsedFile, PipelineConfig> for ParseFunctor {
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: RawFile,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<ParsedFile>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("ParseFunctor::map");

@@ -62,7 +62,7 @@ pub async fn process_expanded_manifest(
         }
     }
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
-    let mut all_errors: Vec<ErrorSample> = Vec::new();
+    let all_errors: Vec<ErrorSample> = Vec::new();
 
     for expanded_file_entry in expanded_manifest.expanded_files {
         if let Some(requested_layer) = layer {
@@ -387,7 +387,7 @@ pub async fn extract_declarations_from_single_file(
     crate_name: &str,
     verbosity: u8,
     warnings: &mut Vec<String>,
-    canonical_output_root: &Path,
+    _canonical_output_root: &Path,
 ) -> anyhow::Result<ExtractionResult> {
     if verbosity >= 2 {
         warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}", file_path.display()));

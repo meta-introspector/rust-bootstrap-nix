@@ -9,12 +9,13 @@ use pipeline_traits::{PipelineFunctor, ClassifiedUseStatements, UseStatement};
 
 // PreprocessFunctor
 pub struct PreprocessFunctor;
-
-impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements> for PreprocessFunctor {
+use crate::PipelineConfig;
+impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineConfig> for PreprocessFunctor {
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: ClassifiedUseStatements,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<ClassifiedUseStatements>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("PreprocessFunctor::map");

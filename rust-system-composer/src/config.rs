@@ -55,6 +55,7 @@ pub struct BinsConfig {
 #[allow(dead_code)]
 pub struct PathsConfig {
     pub generated_declarations_root: PathBuf,
+    pub default_vendor_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
