@@ -22,3 +22,81 @@ related_files = [
     "rollup_report.md",
     "wrapped_code.rs",
 ]
+
+[[tasks]]
+title = "Recreate Rust Compiler with Lattice System (Fungal Consumption)"
+status = "IN_PROGRESS"
+description = """
+The long-term goal of this project is to incrementally recreate the Rust compiler from scratch using our lattice system. This process will involve a "fungal consumption" approach, where the lattice system will slowly consume and break down the existing Rust compiler's components, replacing them with our own modular, lattice-structured implementations.
+
+Recent progress includes:
+- Implemented idempotency and a --force flag in `expanded-code-collector` to efficiently process Rust compiler crates.
+- Developed a shell script (`scripts/expand_rust_compiler_crates.sh`) to iterate through individual `Cargo.toml` files of the Rust compiler and expand them using `expanded-code-collector`.
+
+Current focus: Removing Linux syscalls.
+Future steps: Gradually consume `cargo` and `rustc` by cherry-picking essential functions into the lattice, eventually replacing their `main` functions with library calls within our system.
+
+This task encompasses the entire journey of:
+- Decomposing the Rust compiler's AST, HIR, MIR, and other intermediate representations.
+- Extracting canonical declarations and their dependencies.
+- Building a hierarchical lattice of functions and types.
+- Implementing precondition checks and rich metadata extraction.
+- Generating a global symbol table.
+- Ultimately, self-hosting and replacing parts of the Rust toolchain with our lattice-based system.
+"""
+created_at = "2025-11-04T12:00:00Z"
+parent_task = "plan.md"
+stage_id = 0
+step_id = "VISION"
+name = "Recreate Rust Compiler with Lattice System"
+related_files = [
+    "emergency_task_update_dump.md",
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "scripts/generate_package_lists.sh",
+    "scripts/expand_rust_compiler_crates.sh",
+]
+
+[[tasks]]
+title = "Generate new prelude-generator version from Hugging Face dataset"
+description = "This implements the core bootstrap placeholder necessary to realize the goal of the **Self-Hosting Prelude Generator**. It allows the system to use its own structured, analyzed data (AST and UseStatement metadata saved to Hugging Face) to **generate a new version of itself**, ensuring reflexivity and data-driven improvement."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 3
+step_id = "5"
+name = "Generate new prelude-generator version from Hugging Face dataset"
+
+[[tasks]]
+title = "Decompose codebase into granular components using rust-decl-splitter"
+description = "This executes the large-scale splitting using `rust-decl-splitter` to break the rest of the monolithic files into **single declaration units**. This process creates the comprehensive set of individual **\"nodes\"** (Level 1+) needed for the full topological sort, where their dependencies (mapped via BoW in Step 2) rely on the foundational Level 0 nodes established in Step 3."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 3
+step_id = "6"
+name = "Decompose codebase into granular components using rust-decl-splitter"
+
+[[tasks]]
+title = "Apply topological sorting to codebase components"
+description = "Apply topological sorting to establish a clear processing order based on dependencies."
+status = "TODO"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "06_02_map_internal_and_external_dependencies_for_lattice_construction.toml"
+stage_id = 0
+step_id = "LT_03"
+name = "Apply topological sorting to codebase components"
