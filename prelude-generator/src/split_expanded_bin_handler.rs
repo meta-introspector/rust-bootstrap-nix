@@ -5,7 +5,6 @@ use std::fs;
 use crate::Args;
 use split_expanded_lib::ErrorCollection;
 use split_expanded_lib::{Declaration, RustcInfo};
-use split_expanded_lib::processing::extract_declarations_from_single_file;
 use crate::gem_parser::GemConfig;
 use toml;
 use split_expanded_lib::SerializableDeclaration;

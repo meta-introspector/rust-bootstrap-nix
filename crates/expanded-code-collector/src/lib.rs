@@ -53,18 +53,20 @@ impl ErrorCollection {
 pub async fn collect_expanded_code(
     metadata_path: &Path,
     output_dir: &Path,
+    flake_lock_json: &serde_json::Value,
     layer: Option<u32>,
     package_filter: Option<String>,
     dry_run: bool,
     force: bool,
+    rustc_version: String,
+    rustc_host: String,
 ) -> Result<()> {
     println!("Collecting expanded code...");
 
     fs::create_dir_all(output_dir).await
         .context(format!("Failed to create output directory: {}", output_dir.display()))?;
 
-    // Dummy flake_lock_json for now, as collect_expanded_code doesn't have access to it.
-    let flake_lock_json = serde_json::json!({});
+    let mut error_collection = ErrorCollection::default();
 
     let expanded_files_entries = expander::expand_all_packages(
         metadata_path,
@@ -74,6 +76,9 @@ pub async fn collect_expanded_code(
         package_filter,
         dry_run,
         force,
+        &mut error_collection,
+        rustc_version.clone(),
+        rustc_host.clone(),
     ).await?;
 
     let mut expanded_manifest = manifest::ExpandedManifest::default();
@@ -91,17 +96,15 @@ pub async fn collect_expanded_code(
             file_size: entry.file_size,
             declaration_counts: entry.declaration_counts,
             type_usages: entry.type_usages,
-            original_path: PathBuf::from("unknown"), // Placeholder
-            rustc_version: "unknown".to_string(), // Placeholder
-            rustc_host: "unknown".to_string(), // Placeholder
+            original_path: entry.original_path, // Use the actual original_path
+            rustc_version: entry.rustc_version, // Use the actual rustc_version
+            rustc_host: entry.rustc_host,       // Use the actual rustc_host
         });
     }
 
     if !dry_run {
-        // ErrorCollection is not directly populated by expander::expand_all_packages
-        // For now, we will not write collected_errors.json
-        // let errors_path = output_dir.join("collected_errors.json");
-        // error_collection.write_to_file(&errors_path).await?;
+        let errors_path = output_dir.join("collected_errors.json");
+        error_collection.write_to_file(&errors_path).await?;
         let manifest_path = output_dir.join("expanded_manifest.json");
         expanded_manifest.write_to_file(&manifest_path).await?;
     }

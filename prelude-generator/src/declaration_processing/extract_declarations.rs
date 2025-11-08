@@ -1,6 +1,5 @@
 use std::path::Path;
 use split_expanded_lib::{Declaration, ErrorSample, FileMetadata, RustcInfo, PublicSymbol};
-use split_expanded_lib::processing::extract_declarations_from_single_file;
 use crate::symbol_map::SymbolMap;
 
 pub async fn extract_all_declarations_from_file(

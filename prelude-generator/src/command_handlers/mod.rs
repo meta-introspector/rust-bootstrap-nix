@@ -10,7 +10,7 @@ use crate::constant_storage::numerical_constants::write_numerical_constants_to_h
 pub mod decl_splitter_handler;
 pub use decl_splitter_handler::handle_run_decl_splitter;
 
-pub async fn handle_plan_mode(_args: &Args, config: &Config) -> Result<()> {
+pub async fn handle_plan_mode(_args: &Args, _config: &Config) -> Result<()> {
     println!("Planning mode activated. This will list available tasks and their estimated sizes.");
     // TODO: Implement task discovery and size estimation
 

@@ -1347,6 +1347,7 @@ dependencies = [
  "syn",
  "tokio",
  "toml 0.8.23",
+ "toml_edit",
  "walkdir",
 ]
 
@@ -1518,10 +1519,12 @@ dependencies = [
  "cargo_metadata",
  "chrono",
  "quote",
+ "regex",
  "serde",
  "serde_json",
  "syn",
  "tokio",
+ "toml 0.8.23",
  "walkdir",
 ]
 

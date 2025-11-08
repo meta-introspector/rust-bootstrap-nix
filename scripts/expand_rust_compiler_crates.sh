@@ -2,10 +2,14 @@
 
 set -euo pipefail
 
-RUST_SRC_PATH="/data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"
+RUST_SRC_PATH="/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src"
 EXPANDED_DIR="${RUST_SRC_PATH}/expanded_crates"
 METADATA_DIR="${RUST_SRC_PATH}/metadata_cache"
 LOG_DIR="${PWD}/logs/expand_rust_compiler_crates"
+
+FAILED_METADATA=()
+FAILED_PACKAGE_NAME=()
+FAILED_COLLECTOR=()
 
 mkdir -p "${EXPANDED_DIR}"
 mkdir -p "${METADATA_DIR}"
@@ -29,6 +33,7 @@ while IFS= read -r CARGO_TOML_PATH; do
     METADATA_FILE="${METADATA_DIR}/${CRATE_NAME}_metadata.json"
     if ! cargo metadata --format-version 1 --manifest-path "${CARGO_TOML_PATH}" > "${METADATA_FILE}" 2> "${METADATA_LOG}"; then
         echo "WARNING: Failed to generate metadata for ${CARGO_TOML_PATH}. See ${METADATA_LOG} for details. Skipping."
+        FAILED_METADATA+=("${CARGO_TOML_PATH}")
         continue
     fi
 
@@ -37,6 +42,7 @@ while IFS= read -r CARGO_TOML_PATH; do
 
     if [[ -z "$PACKAGE_NAME" ]]; then
         echo "WARNING: Could not determine package name for ${CARGO_TOML_PATH}. Skipping."
+        FAILED_PACKAGE_NAME+=("${CARGO_TOML_PATH}")
         continue
     fi
 
@@ -56,14 +62,36 @@ while IFS= read -r CARGO_TOML_PATH; do
     echo "  - Running expanded-code-collector for layer 0..."
 
     # Run expanded-code-collector for the specific package
-    if ! cargo run --bin expanded-code-collector -- \
+    if ! cargo run --manifest-path "${RUST_SRC_PATH}/vendor/rust/rust-bootstrap-nix/crates/expanded-code-collector/Cargo.toml" --bin expanded-code-collector -- \
         --metadata-path "${METADATA_FILE}" \
         --output-dir "${EXPANDED_DIR}" \
         --layer 0 \
         --package "${PACKAGE_NAME}" > "${COLLECTOR_LOG}" 2>&1; then
         echo "ERROR: expanded-code-collector failed for package ${PACKAGE_NAME} (${CARGO_TOML_PATH}). See ${COLLECTOR_LOG} for details."
+        FAILED_COLLECTOR+=("${CARGO_TOML_PATH}")
     fi
     echo ""
 done < "${PWD}/priority_cargos.txt"
 
 echo "Expansion process complete. Expanded code is in ${EXPANDED_DIR}"
+
+if [ ${#FAILED_METADATA[@]} -gt 0 ]; then
+    echo "--- Failed Metadata Generation ---"
+    for item in "${FAILED_METADATA[@]}"; do
+        echo "$item"
+    done
+fi
+
+if [ ${#FAILED_PACKAGE_NAME[@]} -gt 0 ]; then
+    echo "--- Failed Package Name Determination ---"
+    for item in "${FAILED_PACKAGE_NAME[@]}"; do
+        echo "$item"
+    done
+fi
+
+if [ ${#FAILED_COLLECTOR[@]} -gt 0 ]; then
+    echo "--- Failed Expanded-Code-Collector ---"
+    for item in "${FAILED_COLLECTOR[@]}"; do
+        echo "$item"
+    done
+fi

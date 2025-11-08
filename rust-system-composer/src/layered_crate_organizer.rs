@@ -2,7 +2,7 @@
 // This module will be responsible for organizing the layered declarations into actual Rust crates.
 
 use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 
@@ -113,7 +113,7 @@ edition = "2021"
             while let Some(entry) = decl_type_entries.next_entry().await? {
                 let path = entry.path();
                 if path.is_dir() {
-                    if let Some(dir_name) = path.file_name().and_then(|s| s.to_str()) {
+                if let Some(_dir_name) = path.file_name().and_then(|s| s.to_str()) {
                         crate_name_dirs.push(path);
                     }
                 }
@@ -159,11 +159,11 @@ edition = "2021"
 
     // Step 4: Update the top-level rust-bootstrap-core Cargo.toml
     let rust_bootstrap_core_cargo_toml_path = rust_bootstrap_core_path.join("Cargo.toml");
-    let mut cargo_toml_content = fs::read_to_string(&rust_bootstrap_core_cargo_toml_path)
+    let cargo_toml_content = fs::read_to_string(&rust_bootstrap_core_cargo_toml_path)
         .await
         .context(format!("Failed to read rust-bootstrap-core/Cargo.toml: {}", rust_bootstrap_core_cargo_toml_path.display()))?;
 
-    let mut toml_doc = cargo_toml_content.parse::<toml_edit::Document>()
+    let mut toml_doc = cargo_toml_content.parse::<toml_edit::DocumentMut>()
         .context("Failed to parse rust-bootstrap-core/Cargo.toml")?;
 
     let mut members_array = toml_edit::Array::new();

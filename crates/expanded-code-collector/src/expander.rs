@@ -159,7 +159,7 @@ fn calculate_package_layers(cargo_metadata: &CargoMetadata) -> HashMap<PackageId
 
     // Secondary pass: assign layers considering all dependencies (including dev/build) for remaining unassigned packages
     // This also handles cycles that were only resolvable by considering dev-dependencies.
-    let mut assigned_in_secondary_pass = 0;
+    let _assigned_in_secondary_pass = 0;
     let initial_unassigned_count = total_packages - assigned_count;
 
     if initial_unassigned_count > 0 {
@@ -259,6 +259,9 @@ pub async fn expand_all_packages(
     package_filter: Option<String>,
     dry_run: bool,
     force: bool,
+    error_collection: &mut super::ErrorCollection,
+    rustc_version: String,
+    rustc_host: String,
 ) -> Result<Vec<(ExpandedFileEntry, String)>> {
     let mut expanded_files_entries = Vec::new();
 

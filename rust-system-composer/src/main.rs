@@ -1,9 +1,8 @@
 use clap::{Parser, Subcommand};
 use anyhow::Context;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tokio::process::Command;
 use expanded_code_collector::collect_expanded_code;
-use split_expanded_lib::process_expanded_manifest;
 
 mod config;
 use config::Config;
@@ -107,7 +106,7 @@ async fn run_self_composition_workflow(config: &Config) -> anyhow::Result<()> {
 }
 
 async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
-    let rustc_project_root = PathBuf::from(&config.rust.rustc_source);
+    let rustc_project_root = PathBuf::from(&config.rust.rustc_source).join("vendor/rust/rust-bootstrap-nix");
     let metadata_file = rustc_project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = rustc_project_root.join("expanded");
 
@@ -153,7 +152,10 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
     };
     split_expanded_lib::process_expanded_manifest(
         &expanded_manifest_path,
-        Some(0), // layer
+        &rustc_project_root, // project_root
+        &rustc_info,         // rustc_info
+        3,                   // verbosity
+        Some(0),             // layer
     ).await?;
 
     // 4. Organize layered declarations into crates
@@ -163,27 +165,5 @@ async fn run_rustc_composition_workflow(config: &Config) -> anyhow::Result<()> {
         3, // verbosity
     ).await?;
 
-    Ok(())
-}
-
-// Helper function to execute external commands
-async fn execute_command(binary_path: &str, args: &[&str], current_dir: Option<&Path>) -> anyhow::Result<()> {
-    println!("Executing: {} {}", binary_path, args.join(" "));
-    let mut cmd = Command::new(binary_path);
-    cmd.args(args);
-    if let Some(dir) = current_dir {
-        cmd.current_dir(dir);
-    }
-    let output = cmd.output().await?;
-
-    if output.status.success() {
-        println!("Command successful.");
-        println!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-    } else {
-        eprintln!("Command failed.");
-        eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-        eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-        return Err(anyhow::anyhow!("Command failed: {}", binary_path));
-    }
     Ok(())
 }

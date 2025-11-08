@@ -10,6 +10,7 @@ use std::collections::{HashSet, HashMap}; // For HashMap and HashSet
 use serde_json; // For serde_json::from_str
 use toml; // For toml::to_string_pretty
 use syn::{self, visit::Visit};
+use regex::Regex;
 
 use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol};
 use crate::visitors::DeclsVisitor; // Assuming visitors are re-exported from lib.rs
@@ -421,9 +422,17 @@ pub async fn extract_declarations_from_single_file(
         std::io::stdout().flush().unwrap();
     }
 
-    let file_content = tokio::fs::read_to_string(file_path)
+    let mut file_content = tokio::fs::read_to_string(file_path)
         .await
         .context(format!("Failed to read file: {}", file_path.display()))?;
+
+    // Strip ANSI escape codes
+    let re_ansi = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
+    file_content = re_ansi.replace_all(&file_content, "").to_string();
+
+    // Strip documentation comments (lines starting with ///)
+    let re_docs = Regex::new(r"(?m)^\s*///.*$\n?").unwrap();
+    file_content = re_docs.replace_all(&file_content, "").to_string();
 
     let mut file_metadata = FileMetadata::default();
     let public_symbols: Vec<PublicSymbol> = Vec::new();

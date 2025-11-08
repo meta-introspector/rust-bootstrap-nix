@@ -3,6 +3,7 @@ use std::path::Path;
 use anyhow::{Result, anyhow};
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct NixConfig {
     pub nixpkgs_path: String,
     pub rust_overlay_path: String,
@@ -14,6 +15,7 @@ pub struct NixConfig {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct RustConfig {
     pub rustc: String,
     pub cargo: String,
@@ -32,6 +34,7 @@ pub struct RustConfig {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct BinsConfig {
     pub bootstrap_config_generator: String,
     pub configuration_nix: String,
@@ -48,6 +51,7 @@ pub struct BinsConfig {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Config {
     pub nix: NixConfig,
     pub rust: RustConfig,
