@@ -1,0 +1,15 @@
+# tasks/13_01_vendorize_all_rust_dependencies.toml
+title = "Vendorize All Rust Dependencies"
+description = "Ensure all dependencies for rustc, cargo, and helper tools are properly vendored into the project using rust-system-composer's run_vendorize_workflow. Verify the vendorization setup."
+status = "pending"
+priority = "high"
+assigned_to = "Gemini"
+tags = ["vendorization", "dependencies", "rust-system-composer"]
+dependencies = []
+sub_tasks = [
+    "Identify all direct and transitive dependencies of rustc, cargo, and helper tools.",
+    "Determine the optimal project_path and output_vendor_dir for cargo vendor.",
+    "Execute rust-system-composer with the Vendorize command.",
+    "Verify that the vendor/ directory is correctly populated.",
+    "Confirm that .cargo/config.toml is updated to use the vendored sources."
+]
