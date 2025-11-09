@@ -40,10 +40,13 @@ pub mod report_generator;
 pub mod processor_tests;
 pub mod trait_visitors;
 pub mod conceptual_traits;
+pub mod trait_generator; // Added
 pub use args::Args;
 pub use trait_visitors::vernacular_declaration_visitor::VernacularDeclarationVisitor;
 pub use trait_visitors::vernacular_walk::VernacularWalk;
-pub use trait_visitors::type_collector_visitor::TypeCollectorVisitor; // Added // Added // Added
+pub use trait_visitors::type_collector_visitor::TypeCollectorVisitor;
+pub use trait_generator::generate_traits; // Added
+pub use trait_generator::write_trait_to_file; // Added // Added // Added // Added
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;
 pub use modify_file::modify_file;
