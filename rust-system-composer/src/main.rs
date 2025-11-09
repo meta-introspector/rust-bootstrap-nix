@@ -301,6 +301,22 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
 
     println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
 
+    // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
+    println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
+
+    // Create a dummy Args for type usage analysis, as rust-system-composer's Args doesn't have these fields
+    let type_analysis_args = prelude_generator::Args {
+        path: generated_decls_root.clone(),
+        analyze_type_usage: true,
+        max_expression_depth: Some(8), // Hardcode for now, or make configurable
+        output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")),
+        ..Default::default()
+    };
+
+    prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
+
+    println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
+
     Ok(())
 }
 
