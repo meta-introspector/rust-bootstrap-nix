@@ -1,10 +1,8 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 use std::fs;
-use serde::{Serialize, Deserialize};
-use code_graph_flattener::{CodeGraph, GraphNode, GraphEdge};
-use petgraph::graph::{DiGraph, NodeIndex};
+use code_graph_flattener::CodeGraph;
 use std::collections::HashMap;
 
 #[derive(Parser, Debug)]
@@ -91,8 +89,6 @@ fn main() -> Result<()> {
 ");
             let mut type_counts: HashMap<String, usize> = HashMap::new();
 
-            let mut type_counts: HashMap<String, usize> = HashMap::new();
-
             for edge in &code_graph.edges {
                 if edge.edge_type == "UsesType" {
                     // The target of a "UsesType" edge is the ID of a Type node (e.g., "type_u32")
@@ -115,6 +111,88 @@ fn main() -> Result<()> {
                 report_content.push_str("Top 20 Most Used Types:\n");
                 for (type_name, count) in sorted_types.iter().take(20) {
                     report_content.push_str(&format!("  - {}: {}\n", type_name, count));
+                }
+            }
+        },
+        "type-definition-locations" => {
+            report_content.push_str("Type Definition Locations Report:
+
+");
+            let mut type_locations: HashMap<String, Vec<String>> = HashMap::new();
+
+            // First, collect all type nodes
+            let mut type_node_ids = HashMap::new();
+            for node in &code_graph.nodes {
+                if node.node_type == "Type" {
+                    type_node_ids.insert(node.id.clone(), node.id.strip_prefix("type_").unwrap_or(&node.id).to_string());
+                }
+            }
+
+            // Then, iterate through edges to find where these types are referenced
+            for edge in &code_graph.edges {
+                if let Some(type_name) = type_node_ids.get(&edge.target) {
+                    let location_description = format!("  - Referenced by '{}' ({} edge)", edge.source, edge.edge_type);
+                    type_locations.entry(type_name.clone()).or_insert_with(Vec::new).push(location_description);
+                }
+            }
+
+            if type_locations.is_empty() {
+                report_content.push_str("No type definitions or usages found in the graph.\n");
+            } else {
+                let mut sorted_types: Vec<(&String, &Vec<String>)> = type_locations.iter().collect();
+                sorted_types.sort_by_key(|a| a.0); // Sort by type name
+
+                for (type_name, locations) in sorted_types {
+                    report_content.push_str(&format!("Type: {}\n", type_name));
+                    for location in locations {
+                        report_content.push_str(&format!("{}\n", location));
+                    }
+                    report_content.push_str("\n");
+                }
+            }
+        },
+        "struct-field-access-frequency" => {
+            report_content.push_str("Struct Field Access Frequency Report:
+
+");
+            let mut struct_field_access: HashMap<String, HashMap<String, usize>> = HashMap::new();
+
+            for node in &code_graph.nodes {
+                if node.node_type == "StructFieldCoOccurrence" {
+                    if let Some(fields_str) = node.properties.get("fields") {
+                        if let Some(count_str) = node.properties.get("count") {
+                            if let Ok(count) = count_str.parse::<usize>() {
+                                // Extract struct name from node.id
+                                // node.id format: "struct_co_occurrence_{struct_name}_{field_types_str}"
+                                let parts: Vec<&str> = node.id.splitn(3, '_').collect();
+                                if parts.len() == 3 {
+                                    let struct_name = parts[1].to_string();
+                                    struct_field_access
+                                        .entry(struct_name)
+                                        .or_insert_with(HashMap::new)
+                                        .insert(fields_str.clone(), count);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if struct_field_access.is_empty() {
+                report_content.push_str("No struct field access data found in the graph.\n");
+            } else {
+                let mut sorted_structs: Vec<(&String, &HashMap<String, usize>)> = struct_field_access.iter().collect();
+                sorted_structs.sort_by_key(|a| a.0); // Sort by struct name
+
+                for (struct_name, field_accesses) in sorted_structs {
+                    report_content.push_str(&format!("Struct: {}\n", struct_name));
+                    let mut sorted_fields: Vec<(&String, &usize)> = field_accesses.iter().collect();
+                    sorted_fields.sort_by(|a, b| b.1.cmp(a.1)); // Sort by count, descending
+
+                    for (fields, count) in sorted_fields {
+                        report_content.push_str(&format!("  - Fields '{}': {} accesses\n", fields, count));
+                    }
+                    report_content.push_str("\n");
                 }
             }
         },
