@@ -32,6 +32,13 @@ pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsIn
         println!("Starting organization of layered declarations into crates.");
     }
 
+    // Print information about the CodeGraph
+    if inputs.verbosity >= 1 {
+        println!("CodeGraph received: {} nodes, {} edges",
+                 inputs.code_graph.nodes.len(),
+                 inputs.code_graph.edges.len());
+    }
+
     let rust_bootstrap_core_path = inputs.canonical_output_root.join("rust-bootstrap-core");
     let rust_bootstrap_core_src_path = rust_bootstrap_core_path.join("src");
 
