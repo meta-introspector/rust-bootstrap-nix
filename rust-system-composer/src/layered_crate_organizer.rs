@@ -7,6 +7,7 @@ use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 use prelude_generator::types::CollectedAnalysisData;
 use code_graph_flattener::CodeGraph; // Add this import
+use code_graph_flattener::perform_topological_sort; // Add this import
 
 #[derive(Debug)]
 pub struct OrganizeLayeredDeclarationsInputs<'a> {
@@ -37,6 +38,18 @@ pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsIn
         println!("CodeGraph received: {} nodes, {} edges",
                  inputs.code_graph.nodes.len(),
                  inputs.code_graph.edges.len());
+    }
+
+    // Perform topological sort
+    if inputs.verbosity >= 1 {
+        println!("Performing topological sort on the CodeGraph...");
+    }
+    let sorted_node_ids = perform_topological_sort(&inputs.code_graph)
+        .context("Failed to perform topological sort on the CodeGraph")?;
+
+    if inputs.verbosity >= 1 {
+        println!("Topologically sorted nodes (first 10): {:?}", &sorted_node_ids[..std::cmp::min(10, sorted_node_ids.len())]);
+        println!("Total sorted nodes: {}", sorted_node_ids.len());
     }
 
     let rust_bootstrap_core_path = inputs.canonical_output_root.join("rust-bootstrap-core");

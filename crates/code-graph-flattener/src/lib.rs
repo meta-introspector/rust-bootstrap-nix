@@ -2,6 +2,9 @@ use anyhow::Result;
 use prelude_generator::types::CollectedAnalysisData;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
+use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::algo::toposort;
+use petgraph::stable_graph::StableDiGraph; // Using StableDiGraph for potentially better performance with removals/additions
 
 // Define a generic GraphNode structure
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -234,4 +237,38 @@ pub fn flatten_analysis_data_to_graph(
     }
 
     Ok(CodeGraph { nodes, edges })
+}
+
+/// Performs a topological sort on the given CodeGraph.
+/// Returns a vector of node IDs in topological order.
+pub fn perform_topological_sort(code_graph: &CodeGraph) -> Result<Vec<String>> {
+    let mut graph = StableDiGraph::<String, ()>::new();
+    let mut node_map: HashMap<String, NodeIndex> = HashMap::new();
+
+    // Add nodes to the petgraph
+    for node in &code_graph.nodes {
+        let index = graph.add_node(node.id.clone());
+        node_map.insert(node.id.clone(), index);
+    }
+
+    // Add edges to the petgraph
+    for edge in &code_graph.edges {
+        if let (Some(&source_idx), Some(&target_idx)) = (node_map.get(&edge.source), node_map.get(&edge.target)) {
+            graph.add_edge(source_idx, target_idx, ());
+        } else {
+            // Handle cases where source or target node might not exist (e.g., due to filtering or incomplete graph)
+            eprintln!("Warning: Edge refers to non-existent node(s): {} -> {}", edge.source, edge.target);
+        }
+    }
+
+    // Perform topological sort
+    let sorted_nodes = toposort(&graph, None)
+        .map_err(|e| anyhow::anyhow!("Cycle detected in graph: {:?}", graph.node_weight(e.node_id())))?;
+
+    let mut result = Vec::with_capacity(sorted_nodes.len());
+    for node_idx in sorted_nodes {
+        result.push(graph[node_idx].clone());
+    }
+
+    Ok(result)
 }

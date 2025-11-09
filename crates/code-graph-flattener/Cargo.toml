@@ -12,3 +12,4 @@ quote = "1.0"
 prelude-generator = { path = "../../prelude-generator" }
 # Add other dependencies as needed, e.g., for graph representation
 # petgraph = "0.6"
+petgraph = "0.6"
