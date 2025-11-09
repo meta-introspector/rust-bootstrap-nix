@@ -87,3 +87,26 @@ For more detailed information on specific aspects of the project, please refer t
 *   [`docs/memos/Shellcheck_Always_After_Changes.md`](./docs/memos/Shellcheck_Always_After_Changes.md): Guidelines on using `Shellcheck` for shell script quality.
 *   [`qa_report.md`](./qa_report.md): Latest quality assurance report.
 *   [`lattice.md`](./lattice.md), [`rollup.md`](./rollup.md): Detailed explanation of the architectural vision, including the Introspective Rollup Workflow and Lattice of Functions.
+
+## Command Object Usage Reporting
+
+To facilitate the refactoring of external command execution (currently relying on `std::process::Command`) towards static Rust trait implementations, a new reporting feature has been introduced in `rust-system-composer`. This report identifies all instances where the `Command` object is used within the analyzed codebase.
+
+### How to Use
+
+To generate the `Command` object usage report, run `rust-system-composer` with the `layered-compose` subcommand and provide the `--command-report-output-path` argument:
+
+```bash
+cargo run -p rust-system-composer -- layered-compose --command-report-output-path command_usage_report.txt
+```
+
+Replace `command_usage_report.txt` with your desired output file path.
+
+### Report Content
+
+The generated report will list:
+- Nodes in the code graph that directly reference the `Command` type.
+- Expression nodes where the expression string contains "Command".
+- Edges in the code graph that connect to or from "Command" related nodes.
+
+This report is a crucial step towards identifying and systematically replacing `std::process::Command` calls with more controlled and statically verifiable trait-based program invocations.

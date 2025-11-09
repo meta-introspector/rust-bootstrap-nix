@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use anyhow::Context;
 use std::path::PathBuf;
 use tokio::process::Command;
@@ -15,56 +15,8 @@ mod layered_crate_organizer;
 mod system_config;
 use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    /// Path to the configuration file (config.toml).
-    #[clap(short, long, value_parser, default_value = "config.toml")]
-    config_file: PathBuf,
-
-    /// Root directory where generated declarations are located.
-    #[clap(long, value_parser)]
-    generated_declarations_root: Option<PathBuf>,
-
-    #[clap(subcommand)]
-    command: Commands,
-
-    /// If set to 'fail', the process will stop on the first compilation error for each generated crate.
-    #[clap(long, value_parser, default_value = "continue")]
-    compile: String,
-
-    /// Verbosity level (0-3).
-    #[clap(short, long, action = clap::ArgAction::Count, default_value_t = 0)]
-    verbosity: u8,
-
-    /// Path to the project whose dependencies need to be vendored.
-    #[clap(long, value_parser)]
-    project_path: Option<PathBuf>,
-
-    /// The directory where the vendored crates should be placed.
-    #[clap(long, value_parser)]
-    output_vendor_dir: Option<PathBuf>,
-
-    /// Filter for specific packages during composition workflows.
-    #[clap(long, value_parser)]
-    package_filter: Option<String>,
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands {
-    /// Composes the current project (rust-system-composer itself).
-    SelfCompose {},
-    /// Composes the rustc project.
-    RustcCompose {},
-    /// Composes the standalonex project.
-    StandaloneXCompose {},
-    /// Updates the system.toml file with project configuration.
-    UpdateSystemToml {},
-    /// Vendorizes dependencies for a specified project.
-    Vendorize {},
-    /// Composes projects layer by layer based on layers_list.txt.
-    LayeredCompose {},
-}
+mod cli;
+use cli::{Args, Commands};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -94,9 +46,9 @@ async fn main() -> anyhow::Result<()> {
             println!("Running vendorization workflow...");
             run_vendorize_workflow(&config, &args).await?;
         }
-        Commands::LayeredCompose {} => {
+        Commands::LayeredCompose(layered_compose_args) => {
             println!("Running layered composition workflow...");
-            run_layered_composition_workflow(&config, &args).await?;
+            run_layered_composition_workflow(&config, &args, layered_compose_args).await?;
         }
     }
 
@@ -282,7 +234,7 @@ async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::
     Ok(())
 }
 
-async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
     println!("Running layered composition workflow...");
     println!("Config: {:?}", config);
     println!("Args: {:?}", args);
@@ -310,6 +262,11 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
     println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
 
+    // Ensure the output directory for generated declarations exists
+    tokio::fs::create_dir_all(&generated_decls_root)
+        .await
+        .context(format!("Failed to create generated declarations root directory: {}", generated_decls_root.display()))?;
+
     // Create Args for type usage analysis
     let type_analysis_args = prelude_generator::Args {
         path: project_root.clone(), // Search the entire project
@@ -318,6 +275,7 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
         output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")), // Output to configurable generated root
         output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")), // Ensure TOML output is enabled
         exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
+        dry_run: args.dry_run, // Use the dry_run argument from rust-system-composer
         ..Default::default()
     };
 
@@ -325,8 +283,8 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     let collected_analysis_data = prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
 
     println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
-    println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
-    println!("Debug: collected_analysis_data before flattening: {:?}", collected_analysis_data);
+    // println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
+    // println!("Debug: collected_analysis_data before flattening: {:?}", collected_analysis_data);
 
     println!("Flattening CollectedAnalysisData into a CodeGraph...");
     let code_graph = code_graph_flattener::flatten_analysis_data_to_graph(
@@ -336,19 +294,87 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     println!("Successfully flattened CollectedAnalysisData into a CodeGraph with {} nodes and {} edges.",
              code_graph.nodes.len(), code_graph.edges.len());
 
+    // Determine CodeGraph output path and serialize
+    let code_graph_output_path = layered_compose_args.code_graph_output_path.clone().unwrap_or_else(|| {
+        println!("No --code-graph-output-path provided, using default from config: {}", config.paths.code_graph_output_path.display());
+        config.paths.code_graph_output_path.clone()
+    });
+
+    // Use the absolute path for the code-graph-query-tool
+    let code_graph_path_for_query_tool = code_graph_output_path.clone();
+
+    let serialized_graph = serde_json::to_string_pretty(&code_graph)
+        .context("Failed to serialize CodeGraph to JSON")?;
+    tokio::fs::create_dir_all(code_graph_output_path.parent().unwrap())
+        .await
+        .context(format!("Failed to create directory for CodeGraph output: {}", code_graph_output_path.display()))?;
+    tokio::fs::write(&code_graph_output_path, serialized_graph)
+        .await
+        .context(format!("Failed to write CodeGraph to {}", code_graph_output_path.display()))?;
+    println!("CodeGraph successfully written to {}", code_graph_output_path.display());
+
+    // If a command report output path is provided, call the code-graph-query-tool
+    let command_report_output_path = layered_compose_args.command_report_output_path.clone().unwrap_or_else(|| {
+        println!("No --command-report-output-path provided, using default from config: {}", config.paths.command_report_output_path.display());
+        config.paths.command_report_output_path.clone()
+    });
+
+    // Use the absolute path for the code-graph-query-tool
+    let command_report_path_for_query_tool = command_report_output_path.clone();
+
+    println!("Calling code-graph-query-tool to generate Command object usage report...");
+    let output = Command::new("cargo")
+        .arg("run")
+        .arg("--bin")
+        .arg("code-graph-query-tool")
+        .arg("--")
+        .arg("--graph-path")
+        .arg(&code_graph_path_for_query_tool)
+        .arg("--query-type")
+        .arg("command-usage")
+        .arg("--output-path")
+        .arg(&command_report_path_for_query_tool)
+        .current_dir(project_root.parent().unwrap().join("crates").join("code-graph-query-tool"))
+        .output()
+        .await
+        .context("Failed to execute code-graph-query-tool")?;
+
+    if output.status.success() {
+        println!("Command object usage report successfully generated by code-graph-query-tool and written to {}", command_report_output_path.display());
+    } else {
+        eprintln!("code-graph-query-tool failed.");
+        eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+        return Err(anyhow::anyhow!("code-graph-query-tool failed"));
+    }
     // 4. Organize layered declarations into crates using the collected analysis data
     println!("Organizing layered declarations into crates using CollectedAnalysisData...");
-    let top_level_cargo_toml_path = project_root.join("Cargo.toml");
+    let top_level_cargo_toml_path = project_root.parent().unwrap().join("rust-bootstrap-core").join("Cargo.toml");
     let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
         project_root: &project_root,
         verbosity: args.verbosity,
-        compile_flag: &args.compile,
+        compile_flag: args.compile,
         canonical_output_root: &generated_decls_root, // Use configurable generated root
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
         collected_analysis_data, // Pass the collected analysis data
         code_graph, // Pass the code graph
+        topological_sort_output_path: layered_compose_args.topological_sort_output_path.clone(),
+        per_file_report_dir: layered_compose_args.per_file_report_dir.clone(),
     };
-    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
+    let summaries = layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
+
+    println!("\n--- Layered Composition Summary ---");
+    for summary in summaries {
+        print!("Crate: {}, Status: {}", summary.crate_name, summary.status);
+        if let Some(report_file) = summary.report_file {
+            print!(", Report: {}", report_file.display());
+        }
+        if let Some(error_message) = summary.error_message {
+            print!(", Error: {}", error_message);
+        }
+        println!();
+    }
+    println!("-----------------------------------\n");
 
     Ok(())
 }
@@ -422,13 +448,15 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> a
     let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
         project_root: &project_root,
         verbosity: args.verbosity,
-        compile_flag: &args.compile,
+        compile_flag: args.compile,
         canonical_output_root: &canonical_output_root,
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
-        collected_analysis_data: CollectedAnalysisData::default(), // Pass default
-        code_graph: CodeGraph::default(), // Pass default
+        collected_analysis_data: CollectedAnalysisData::default(),
+        code_graph: CodeGraph::default(),
+        topological_sort_output_path: None,
+        per_file_report_dir: None,
     };
-    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
+    let _summaries = layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
     // 5. Generate system.toml
     println!("Generating system.toml after standalonex composition...");
@@ -506,13 +534,15 @@ async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow:
     let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
         project_root: &rustc_project_root,
         verbosity: args.verbosity,
-        compile_flag: &args.compile,
+        compile_flag: args.compile,
         canonical_output_root: &canonical_output_root,
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
-        collected_analysis_data: CollectedAnalysisData::default(), // Pass default
-        code_graph: CodeGraph::default(), // Pass default
+        collected_analysis_data: CollectedAnalysisData::default(),
+        code_graph: CodeGraph::default(),
+        topological_sort_output_path: None,
+        per_file_report_dir: None,
     };
-    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
+    let _summaries = layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
     // 5. Generate system.toml
     println!("Generating system.toml after rustc composition...");

@@ -1,6 +1,7 @@
 title = "Rebuild Lattice with Split Dependencies"
 description = "Reconstruct the flake lattice, potentially creating separate flakes or outputs for module dependencies and declaration dependencies, allowing for more granular control and optimization."
 status = "IN_QA"
+created_at = "2025-11-09T12:00:00Z"
 notes = "Merged split-expanded-bin functionality into prelude-generator. Refactored extract_declarations_for_composer to use a new argument type (DeclarationExtractionArgs). Updated rust-system-composer to utilize the refactored prelude-generator function. All compilation errors resolved. Awaiting QA."
 parent_task = "01_flake_lattice_plan.toml"
 stage_id = 4

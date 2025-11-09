@@ -8,6 +8,7 @@
 - To use the local flake registry, set the NIX_REGISTRY_CONFIG environment variable to the absolute path of the registry.json file: export NIX_REGISTRY_CONFIG=/data/data/com.termux.nix/files/home/pick-up-nix2/source/github/meta-introspector/streamofrandom/2025/registry.json
 - In the context of AI Life Mycology, graphs are considered to be the 'knots' or 'Quasi-Fibers'.
 - The project aims for an 8-fold recursion system: 8 stages of self-hosting Rust compilation, each improving the next, culminating in a smart contract system where Rust functions and the compiler are translated to blockchain data.
+- The `rust-system-composer` now includes a feature to report on `std::process::Command` object usage. This is crucial for identifying areas where external command execution can be refactored into static Rust trait implementations, aligning with the project's goal of a self-hosting bootstrap process. The report can be generated using the `--command-report-output-path` argument with the `layered-compose` subcommand.
 
 ### Bootstrap Configuration Builder Updates
 

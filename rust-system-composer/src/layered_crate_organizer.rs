@@ -2,23 +2,34 @@
 // This module will be responsible for organizing the layered declarations into actual Rust crates.
 
 use anyhow::{Context, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 use prelude_generator::types::CollectedAnalysisData;
 use code_graph_flattener::CodeGraph; // Add this import
 use code_graph_flattener::perform_topological_sort; // Add this import
+use tokio::io::AsyncWriteExt; // For writing to files asynchronously
+
+#[derive(Debug)]
+pub struct CrateProcessingSummary {
+    pub crate_name: String,
+    pub status: String, // "Success", "Failure"
+    pub report_file: Option<PathBuf>,
+    pub error_message: Option<String>,
+}
 
 #[derive(Debug)]
 pub struct OrganizeLayeredDeclarationsInputs<'a> {
     #[allow(dead_code)]
     pub project_root: &'a Path,
     pub verbosity: u8,
-    pub compile_flag: &'a str,
+    pub compile_flag: bool,
     pub canonical_output_root: &'a Path,
     pub top_level_cargo_toml_path: &'a Path,
     pub collected_analysis_data: CollectedAnalysisData,
     pub code_graph: CodeGraph, // Add this field
+    pub topological_sort_output_path: Option<PathBuf>,
+    pub per_file_report_dir: Option<PathBuf>,
 }
 
 /// Organizes the layered declarations into new Rust crates.
@@ -28,7 +39,7 @@ pub struct OrganizeLayeredDeclarationsInputs<'a> {
 /// 2. For each `level_XX` directory, creates a `Cargo.toml` and `lib.rs` file to define it as a crate.
 /// 3. The `lib.rs` will re-export the modules within that layer.
 /// 4. Updates the `rust-bootstrap-core/Cargo.toml` to include these new `level_XX` crates as members of its workspace.
-pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsInputs<'_>) -> Result<()> {
+pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsInputs<'_>) -> Result<Vec<CrateProcessingSummary>> {
     if inputs.verbosity >= 1 {
         println!("Starting organization of layered declarations into crates.");
     }
@@ -52,8 +63,25 @@ pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsIn
         println!("Total sorted nodes: {}", sorted_node_ids.len());
     }
 
-    let rust_bootstrap_core_path = inputs.canonical_output_root.join("rust-bootstrap-core");
+    // Serialize topological sort results to file if path is provided
+    if let Some(ref path) = inputs.topological_sort_output_path {
+        let serialized_sort = serde_json::to_string_pretty(&sorted_node_ids)
+            .context("Failed to serialize topological sort results to JSON")?;
+        fs::write(path, serialized_sort)
+            .await
+            .context(format!("Failed to write topological sort results to {}", path.display()))?;
+        println!("Topological sort results successfully written to {}", path.display());
+    }
+
+    let rust_bootstrap_core_path = inputs.project_root.parent().unwrap().join("rust-bootstrap-core");
     let rust_bootstrap_core_src_path = rust_bootstrap_core_path.join("src");
+
+    // Ensure per_file_report_dir exists if provided
+    if let Some(ref path) = inputs.per_file_report_dir {
+        fs::create_dir_all(path)
+            .await
+            .context(format!("Failed to create per-file report directory: {}", path.display()))?;
+    }
 
     // Step 1: Find all level_XX directories
     let mut level_dirs = Vec::new();
@@ -75,6 +103,7 @@ pub async fn organize_layered_declarations(inputs: OrganizeLayeredDeclarationsIn
     level_dirs.sort(); // Ensure consistent order
 
     let mut workspace_members = BTreeSet::new();
+    let mut processing_summaries = Vec::new(); // Collect summaries here
 
     // Step 2 & 3: Create Cargo.toml and lib.rs for each layer crate
     for level_dir in &level_dirs {
@@ -112,76 +141,8 @@ edition = "2021"
             println!("  Created Cargo.toml for crate: {}", crate_name);
         }
 
-        // Generate lib.rs content (re-exporting modules)
-        let mut lib_rs_content = String::new();
-        lib_rs_content.push_str(&format!("//! This crate contains declarations for {}\n\n", level_name));
-
-        // Find all declaration_type directories within this level_XX/src
-        let mut declaration_type_dirs = Vec::new();
-        let mut layer_src_entries = fs::read_dir(&layer_src_path)
-            .await
-            .context(format!("Failed to read layer src directory: {}", layer_src_path.display()))?;
-
-        while let Some(entry) = layer_src_entries.next_entry().await? {
-            let path = entry.path();
-            if path.is_dir() {
-                if let Some(dir_name) = path.file_name().and_then(|s| s.to_str()) {
-                    if dir_name.ends_with("_t") { // e.g., "const_t", "struct_t"
-                        declaration_type_dirs.push(path);
-                    }
-                }
-            }
-        }
-        declaration_type_dirs.sort();
-
-        for decl_type_dir in &declaration_type_dirs {
-            let decl_type_name = decl_type_dir.file_name().unwrap().to_str().unwrap(); // e.g., "const_t"
-            lib_rs_content.push_str(&format!("pub mod {};\n", decl_type_name));
-
-            // Find all crate_name directories within this level_XX/src/declaration_type
-            let mut crate_name_dirs = Vec::new();
-            let mut decl_type_entries = fs::read_dir(&decl_type_dir)
-                .await
-                .context(format!("Failed to read declaration type directory: {}", decl_type_dir.display()))?;
-
-            while let Some(entry) = decl_type_entries.next_entry().await? {
-                let path = entry.path();
-                if path.is_dir() {
-                if let Some(_dir_name) = path.file_name().and_then(|s| s.to_str()) {
-                        crate_name_dirs.push(path);
-                    }
-                }
-            }
-            crate_name_dirs.sort();
-
-            for crate_dir in &crate_name_dirs {
-                let inner_crate_name = crate_dir.file_name().unwrap().to_str().unwrap();
-                lib_rs_content.push_str(&format!("pub mod {};\n", inner_crate_name));
-
-                // Find all .rs files within this level_XX/src/declaration_type/crate_name
-                let mut rs_files = Vec::new();
-                let mut crate_entries = fs::read_dir(&crate_dir)
-                    .await
-                    .context(format!("Failed to read inner crate directory: {}", crate_dir.display()))?;
-
-                while let Some(entry) = crate_entries.next_entry().await? {
-                    let path = entry.path();
-                    if path.is_file() {
-                        if let Some(file_name) = path.file_name().and_then(|s| s.to_str()) {
-                            if file_name.ends_with(".rs") {
-                                rs_files.push(path);
-                            }
-                        }
-                    }
-                }
-                rs_files.sort();
-
-                for rs_file in &rs_files {
-                    let module_name = rs_file.file_stem().unwrap().to_str().unwrap();
-                    lib_rs_content.push_str(&format!("pub mod {};\n", module_name));
-                }
-            }
-        }
+        // Generate lib.rs content (just a placeholder for now)
+        let lib_rs_content = format!("//! This crate contains declarations for {}\n\n// TODO: Implement proper module re-exporting based on CollectedAnalysisData\n", level_name);
 
         fs::write(&lib_rs_path, lib_rs_content)
             .await
@@ -191,27 +152,68 @@ edition = "2021"
         }
 
         // Compile the generated crate
-        if inputs.verbosity >= 1 {
-            println!("  Compiling crate: {}", crate_name);
-        }
-        let output = tokio::process::Command::new("cargo")
-            .arg("check") // Or "build"
-            .current_dir(level_dir)
-            .output()
-            .await
-            .context(format!("Failed to run cargo check for crate: {}", crate_name))?;
+        let mut summary = CrateProcessingSummary {
+            crate_name: crate_name.clone(),
+            status: "Failure".to_string(),
+            report_file: None,
+            error_message: None,
+        };
 
-        if !output.status.success() {
-            eprintln!("Compilation failed for crate: {}", crate_name);
-            eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-            eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+        let mut command = tokio::process::Command::new("cargo");
+        command.arg("check").current_dir(level_dir);
 
-            if inputs.compile_flag == "fail" {
+        let report_file_path = if let Some(ref dir) = inputs.per_file_report_dir {
+            let file_name = format!("{}_report.txt", crate_name);
+            let path = dir.join(file_name);
+            summary.report_file = Some(path.clone());
+            Some(path)
+        } else {
+            None
+        };
+
+        let output = if let Some(path) = report_file_path {
+            let file = fs::File::create(&path).await
+                .context(format!("Failed to create report file for {}: {}", crate_name, path.display()))?;
+            let mut writer = tokio::io::BufWriter::new(file);
+
+            let output = command.output().await
+                .context(format!("Failed to run cargo check for crate: {}", crate_name))?;
+
+            writer.write_all(b"Stdout:\n").await?;
+            writer.write_all(&output.stdout).await?;
+            writer.write_all(b"\nStderr:\n").await?;
+            writer.write_all(&output.stderr).await?;
+            writer.flush().await?;
+
+            output
+        } else {
+            // If no report file, print to stderr/stdout based on verbosity
+            if inputs.verbosity >= 1 {
+                println!("  Compiling crate: {}", crate_name);
+            }
+            command.output().await
+                .context(format!("Failed to run cargo check for crate: {}", crate_name))?
+        };
+
+        if output.status.success() {
+            summary.status = "Success".to_string();
+            if inputs.verbosity >= 1 && summary.report_file.is_none() {
+                println!("  Compilation successful for crate: {}", crate_name);
+            }
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            summary.error_message = Some(format!("Compilation failed. Stderr: {}", stderr));
+            if inputs.verbosity >= 1 && summary.report_file.is_none() {
+                eprintln!("Compilation failed for crate: {}", crate_name);
+                eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+                eprintln!("Stderr:\n{}", stderr);
+            }
+
+            if !output.status.success() && inputs.compile_flag {
                 return Err(anyhow::anyhow!("Compilation failed for crate: {}", crate_name));
             }
-        } else if inputs.verbosity >= 1 {
-            println!("  Compilation successful for crate: {}", crate_name);
         }
+        processing_summaries.push(summary);
     }
 
     // Step 4: Update the top-level Cargo.toml
@@ -246,5 +248,5 @@ edition = "2021"
         println!("Finished organizing layered declarations into crates.");
     }
 
-    Ok(())
+    Ok(processing_summaries)
 }

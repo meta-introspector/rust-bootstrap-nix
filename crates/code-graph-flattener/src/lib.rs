@@ -2,7 +2,7 @@ use anyhow::Result;
 use prelude_generator::types::CollectedAnalysisData;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
-use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::graph::NodeIndex;
 use petgraph::algo::toposort;
 use petgraph::stable_graph::StableDiGraph; // Using StableDiGraph for potentially better performance with removals/additions
 
@@ -93,10 +93,10 @@ pub fn flatten_analysis_data_to_graph(
             struct_props,
         );
 
-        for (field_types_set, count) in struct_lattice.field_co_occurrences {
-            let co_occurrence_id = format!("struct_co_occurrence_{}_{:?}", struct_name, field_types_set);
+        for (field_types_str, count) in struct_lattice.field_co_occurrences {
+            let co_occurrence_id = format!("struct_co_occurrence_{}_{}", struct_name, field_types_str);
             let mut co_occurrence_props = HashMap::new();
-            co_occurrence_props.insert("fields".to_string(), format!("{:?}", field_types_set));
+            co_occurrence_props.insert("fields".to_string(), field_types_str.clone());
             co_occurrence_props.insert("count".to_string(), count.to_string());
 
             add_node_if_not_exists(
@@ -112,7 +112,8 @@ pub fn flatten_analysis_data_to_graph(
             });
 
             // Also add nodes for individual field types within the co-occurrence
-            for field_type in field_types_set {
+            for field_type in field_types_str.split("::") {
+                let field_type = field_type.to_string();
                 let field_node_id = format!("type_{}", field_type); // Assuming field_type is a type name
                 let mut field_props = HashMap::new();
                 field_props.insert("name".to_string(), field_type.clone());
@@ -145,10 +146,10 @@ pub fn flatten_analysis_data_to_graph(
             enum_props,
         );
 
-        for (variant_types_set, count) in enum_lattice.variant_type_co_occurrences {
-            let co_occurrence_id = format!("enum_co_occurrence_{}_{:?}", enum_name, variant_types_set);
+        for (variant_types_str, count) in enum_lattice.variant_type_co_occurrences {
+            let co_occurrence_id = format!("enum_co_occurrence_{}_{}", enum_name, variant_types_str);
             let mut co_occurrence_props = HashMap::new();
-            co_occurrence_props.insert("variants".to_string(), format!("{:?}", variant_types_set));
+            co_occurrence_props.insert("variants".to_string(), variant_types_str.clone());
             co_occurrence_props.insert("count".to_string(), count.to_string());
 
             add_node_if_not_exists(
@@ -164,7 +165,8 @@ pub fn flatten_analysis_data_to_graph(
             });
 
             // Also add nodes for individual variant types within the co-occurrence
-            for variant_type in variant_types_set {
+            for variant_type in variant_types_str.split("::") {
+                let variant_type = variant_type.to_string();
                 let type_node_id = format!("type_{}", variant_type); // Assuming variant_type is a type name
                 let mut type_props = HashMap::new();
                 type_props.insert("name".to_string(), variant_type.clone());
@@ -197,10 +199,10 @@ pub fn flatten_analysis_data_to_graph(
             impl_props,
         );
 
-        for (method_names_set, count) in impl_lattice.method_co_occurrences {
-            let co_occurrence_id = format!("impl_method_co_occurrence_{}_{:?}", impl_for_type, method_names_set);
+        for (method_names_str, count) in impl_lattice.method_co_occurrences {
+            let co_occurrence_id = format!("impl_method_co_occurrence_{}_{}", impl_for_type, method_names_str);
             let mut co_occurrence_props = HashMap::new();
-            co_occurrence_props.insert("methods".to_string(), format!("{:?}", method_names_set));
+            co_occurrence_props.insert("methods".to_string(), method_names_str.clone());
             co_occurrence_props.insert("count".to_string(), count.to_string());
 
             add_node_if_not_exists(
@@ -216,7 +218,8 @@ pub fn flatten_analysis_data_to_graph(
             });
 
             // Also add nodes for individual methods within the co-occurrence
-            for method_name in method_names_set {
+            for method_name in method_names_str.split("::") {
+                let method_name = method_name.to_string();
                 let method_node_id = format!("method_{}", method_name); // Assuming method_name is unique enough
                 let mut method_props = HashMap::new();
                 method_props.insert("name".to_string(), method_name.clone());

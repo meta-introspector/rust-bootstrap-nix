@@ -149,7 +149,7 @@ tags
 # Generated files
 expanded/
 nix_json_output/
-#rust-bootstrap-core/
+rust-bootstrap-core/
 expanded/expanded_manifest.json
 
 # Log files
@@ -252,6 +252,7 @@ standalonex/src/build_helper/src/llvm.rs~
 standalonex/src/config_tests/Cargo.toml~
 
 # Generated directories
+generated/
 expanded_crates/
 compiler/rustc_codegen_gcc/build_system/build_sysroot/logs/
 src/bootstrap/__pycache__/

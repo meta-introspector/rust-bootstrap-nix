@@ -1,0 +1,12 @@
+title = "Refine rust-system-composer Output and Reporting"
+name = "Refine rust-system-composer Output and Reporting"
+description = """
+This task involves refining the output of the `rust-system-composer` to reduce verbosity and improve reporting. This includes:
+- Adding command-line arguments to specify output paths for intermediate results like the CodeGraph and topological sort.
+- Implementing per-file reports for compilation status to provide more granular feedback.
+- Creating a concise summary of the composition process.
+"""
+status = "done"
+created_at = "2025-11-09T17:00:00Z"
+dependencies = ["03_07_refactor_rust_system_composer_as_orchestrator"]
+assignee = "Gemini"

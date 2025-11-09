@@ -1,5 +1,5 @@
 title = "Crash Report: Unspecified Issue"
-description = """
+description = '''
 A crash occurred, and the following `git diff HEAD` output captures the state of the repository at the time of the incident.
 
 ```diff
@@ -74,7 +74,7 @@ diff --git a/rust-bootstrap-core b/rust-bootstrap-core
 -Subproject commit 974fa6fc62b3d5faa353c7fe1faf215c6537dc01
 +Subproject commit 974fa6fc62b3d5faa353c7fe1faf215c6537dc01-dirty
 ```
-"""
+'''
 status = "DONE"
 notes = "The underlying issues that caused this crash report, related to the integration of `split-expanded-bin` into `prelude-generator`, were resolved as part of task `01_09_rebuild_lattice_with_split_dependencies.toml` reaching IN_QA status. All compilation errors were resolved during that process."
 created_at = "2025-11-04T12:00:00Z"

@@ -1,9 +1,9 @@
 title = "Create `syn-usage-collector` Crate for Type Usage Analysis"
-description = "Develop a new Rust crate, `syn-usage-collector`, dedicated to analyzing and reporting on type usage within the codebase. Initially, this crate will focus on collecting all usage of all types, with a specific emphasis on expressions that utilize `syn` types. The reporting mechanism will categorize usage based on: 
+description = '''Develop a new Rust crate, `syn-usage-collector`, dedicated to analyzing and reporting on type usage within the codebase. Initially, this crate will focus on collecting all usage of all types, with a specific emphasis on expressions that utilize `syn` types. The reporting mechanism will categorize usage based on: 
 - `typea`: The type being used. 
 - `usagetype(ast type)`: The AST node type where the usage occurs. 
 - `count of typeb`: The count of other types (`typeb`) co-occurring with `typea`. 
-- `split by group of type cooccuring`: Further splitting reports by groups of co-occurring types. This task is a direct implementation step for extracting `syn` usage into a dedicated lattice."
+- `split by group of type cooccuring`: Further splitting reports by groups of co-occurring types. This task is a direct implementation step for extracting `syn` usage into a dedicated lattice.'''
 status = "IN_PROGRESS"
 created_at = "2025-11-05T12:50:00Z"
 parent_task = "06_19_extract_syn_usage_into_syn_lattice.toml"

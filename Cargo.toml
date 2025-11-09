@@ -1,6 +1,6 @@
 [workspace]
 #resolver = "2"
 resolver = "3"
-members = ["rust-system-composer"]
+members = ["crates/code-graph-query-tool","rust-system-composer", "tools/task-graph-analyzer"]
 
 

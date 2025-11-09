@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ImplLatticeInfo {
     pub impl_for_type: String,
-    pub method_co_occurrences: HashMap<BTreeSet<String>, usize>,
+    pub method_co_occurrences: HashMap<String, usize>,
     // Key: set of co-occurring method names, Value: count of co-occurrence
     pub total_expressions_analyzed: usize,
 }
@@ -19,7 +19,8 @@ impl ImplLatticeInfo {
     }
 
     pub fn add_co_occurrence(&mut self, method_names: BTreeSet<String>) {
-        *self.method_co_occurrences.entry(method_names).or_insert(0) += 1;
+        let key = method_names.into_iter().collect::<Vec<String>>().join("::");
+        *self.method_co_occurrences.entry(key).or_insert(0) += 1;
         self.total_expressions_analyzed += 1;
     }
 }

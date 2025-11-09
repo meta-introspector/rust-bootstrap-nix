@@ -56,7 +56,9 @@ pub struct BinsConfig {
 pub struct PathsConfig {
     pub generated_declarations_root: PathBuf,
     pub default_vendor_dir: Option<PathBuf>,
-    pub exclude_paths: Option<Vec<PathBuf>>, // Add this field
+    pub code_graph_output_path: PathBuf,
+    pub command_report_output_path: PathBuf,
+    pub exclude_paths: Option<Vec<PathBuf>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -72,7 +74,12 @@ impl Config {
     pub fn load_from_file(path: &Path) -> Result<Self> {
         let config_content = std::fs::read_to_string(path)
             .map_err(|e| anyhow!("Failed to read config file at {:?}: {}", path, e))?;
-        toml::from_str(&config_content)
-            .map_err(|e| anyhow!("Failed to parse config file at {:?}: {}", path, e))
+        println!("--- Config File Content (from rust-system-composer) ---");
+        println!("{}", config_content);
+        println!("-------------------------------------------------------");
+        let config: Self = toml::from_str(&config_content)
+            .map_err(|e| anyhow!("Failed to parse config file at {:?}: {}", path, e))?;
+
+        Ok(config)
     }
 }

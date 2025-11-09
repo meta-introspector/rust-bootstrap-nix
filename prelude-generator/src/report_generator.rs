@@ -89,7 +89,7 @@ pub fn generate_report(
             if lattice_info.field_co_occurrences.is_empty() {
                 report_content.push_str("  No field co-occurrence data collected.\n");
             } else {
-                let mut sorted_co_occurrences: Vec<(&BTreeSet<String>, &usize)> = lattice_info.field_co_occurrences.iter().collect();
+                let mut sorted_co_occurrences: Vec<(&String, &usize)> = lattice_info.field_co_occurrences.iter().collect();
                 sorted_co_occurrences.sort_by_key(|&(_, count)| count);
                 for (field_types, count) in sorted_co_occurrences {
                     report_content.push_str(&format!("  - Co-occurring fields: {:?} (Count: {})\n", field_types, count));
@@ -108,7 +108,7 @@ pub fn generate_report(
             if lattice_info.variant_type_co_occurrences.is_empty() {
                 report_content.push_str("  No variant type co-occurrence data collected.\n");
             } else {
-                let mut sorted_co_occurrences: Vec<(&BTreeSet<String>, &usize)> = lattice_info.variant_type_co_occurrences.iter().collect();
+                let mut sorted_co_occurrences: Vec<(&String, &usize)> = lattice_info.variant_type_co_occurrences.iter().collect();
                 sorted_co_occurrences.sort_by_key(|&(_, count)| count);
                 for (variant_types, count) in sorted_co_occurrences {
                     report_content.push_str(&format!("  - Co-occurring variant types: {:?} (Count: {})\n", variant_types, count));
@@ -127,7 +127,7 @@ pub fn generate_report(
             if lattice_info.method_co_occurrences.is_empty() {
                 report_content.push_str("  No method co-occurrence data collected.\n");
             } else {
-                let mut sorted_co_occurrences: Vec<(&BTreeSet<String>, &usize)> = lattice_info.method_co_occurrences.iter().collect();
+                let mut sorted_co_occurrences: Vec<(&String, &usize)> = lattice_info.method_co_occurrences.iter().collect();
                 sorted_co_occurrences.sort_by_key(|&(_, count)| count);
                 for (method_names, count) in sorted_co_occurrences {
                     report_content.push_str(&format!("  - Co-occurring methods: {:?} (Count: {})\n", method_names, count));

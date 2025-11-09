@@ -1,0 +1,9 @@
+title = "Fix Workspace Build Failures"
+name = "Fix Workspace Build Failures"
+description = """
+This task addresses a build failure caused by including `src/level_00` as a workspace member in the root `Cargo.toml`. The `src/level_00` directory contains generated code and does not have its own `Cargo.toml`, leading to build errors. The fix involves removing this directory from the workspace members.
+"""
+status = "done"
+created_at = "2025-11-09T17:01:00Z"
+dependencies = []
+assignee = "Gemini"

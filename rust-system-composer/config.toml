@@ -77,4 +77,12 @@ modules = [
 ]
 
 [paths]
-generated_declarations_root = "/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/rust-bootstrap-core/src"
+generated_declarations_root = ".gemini/generated/"
+default_vendor_dir = "vendor/rustc_deps"
+code_graph_output_path = ".gemini/generated/code_graph.json"
+command_report_output_path = ".gemini/generated/command_usage_report.txt"
+exclude_paths = [
+    ".gemini/generated",
+    "rust-bootstrap-core/",
+    "rust-bootstrap-core/src/level_00/src/other_t/minimal-lexical/table_bellerophon.rs",
+]
