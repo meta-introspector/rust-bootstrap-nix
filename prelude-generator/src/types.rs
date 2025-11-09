@@ -20,6 +20,11 @@ pub struct FileProcessingResult {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CollectedPreludeInfo {
+    pub package_name: String, // Added
+    pub manifest_path: PathBuf, // Added
+    pub use_statements: std::collections::HashSet<String>, // Added
+    pub extern_crates: std::collections::HashSet<String>, // Added
+    pub feature_attributes: std::collections::HashSet<String>, // Added
     pub crate_name: String,
     pub crate_root: PathBuf,
     pub prelude_content: String,

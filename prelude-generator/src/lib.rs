@@ -1,3 +1,4 @@
+pub mod collect_prelude_info;
 pub mod args;
 pub mod report;
 pub mod generate_prelude;
@@ -40,13 +41,13 @@ pub mod report_generator;
 pub mod processor_tests;
 pub mod trait_visitors;
 pub mod conceptual_traits;
-pub mod trait_generator; // Added
+pub mod trait_generator;
 pub use args::Args;
 pub use trait_visitors::vernacular_declaration_visitor::VernacularDeclarationVisitor;
 pub use trait_visitors::vernacular_walk::VernacularWalk;
 pub use trait_visitors::type_collector_visitor::TypeCollectorVisitor;
-pub use trait_generator::generate_traits; // Added
-pub use trait_generator::write_trait_to_file; // Added // Added // Added // Added
+pub use trait_generator::generate_traits;
+pub use trait_generator::write_trait_to_file;
 pub use report::generate_report;
 pub use generate_prelude::generate_prelude;
 pub use modify_file::modify_file;
@@ -61,7 +62,7 @@ pub mod types;
 pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo};
 pub use split_expanded_lib::{Declaration, ErrorSample, RustcInfo, FileMetadata as SplitExpandedFileMetadata, SerializableDeclaration, PublicSymbol};
 
-pub type PipelineConfig = pipeline_traits::Config; // Updated to use pipeline_traits::Config
+pub type PipelineConfig = pipeline_traits::Config;
 pub use pipeline_traits::{Config, NixConfig, RustConfig, BuildConfig, EnvConfig, InstallConfig, DistConfig, LlvmConfig, ChangeIdConfig, BinsConfig, ModuleExportsConfig};
 
 pub async fn extract_declarations_for_composer(

@@ -9,19 +9,28 @@ use std::path::Path;
 use std::collections::HashSet;
 use std::fs;
 use anyhow::{Context, Result};
-use crate::types::{CollectedPreludeInfo, AllDeclarationsExtractionResult};
+use crate::types::CollectedPreludeInfo;
 use crate::use_extractor::get_rustc_info;
-use cargo_metadata::{Metadata, MetadataCommand};
+use cargo_metadata::{MetadataCommand};
 use walkdir::WalkDir;
 use crate::declaration_processing::extract_all_declarations_from_file;
-use split_expanded_lib::RustcInfo;
-use crate::trait_generator::generator::generate_traits; // Added
+use split_expanded_lib::RustcInfo as SplitExpandedRustcInfo; // Alias to avoid name collision
+use crate::trait_generator::generator::generate_traits;
+use crate::trait_generator::writer::write_trait_to_file;
+use crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure;
+use crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure;
+use split_expanded_lib::types::DeclarationItem;
+use syn::ItemConst;
 
 pub async fn collect_prelude_info(
     workspace_path: &Path,
     _exclude_crates: &HashSet<String>,
 ) -> Result<Vec<CollectedPreludeInfo>> {
     let rustc_info = get_rustc_info()?;
+    let split_expanded_rustc_info = SplitExpandedRustcInfo {
+        version: rustc_info.version,
+        host: rustc_info.host,
+    };
     let cache_dir = workspace_path.join(".prelude_cache");
     fs::create_dir_all(&cache_dir).context("Failed to create prelude cache directory")?;
 
@@ -36,11 +45,11 @@ pub async fn collect_prelude_info(
     for package in metadata.packages {
         let mut package_use_statements = HashSet::new();
         let mut package_extern_crates = HashSet::new();
-        let mut package_feature_attributes = HashSet::new(); // Assuming this will be collected later
+        let package_feature_attributes = HashSet::new(); // Assuming this will be collected later
 
         let package_src_dir = package.manifest_path.parent().unwrap().join("src");
 
-        let mut all_declarations_extraction_results: Vec<AllDeclarationsExtractionResult> = Vec::new();
+        let mut all_declarations_extraction_results: Vec<crate::types::AllDeclarationsExtractionResult> = Vec::new();
 
         if package_src_dir.exists() && package_src_dir.is_dir() {
             for entry in WalkDir::new(&package_src_dir)
@@ -58,14 +67,14 @@ pub async fn collect_prelude_info(
                     &Path::new("."), // Placeholder for output_dir
                     false, // Placeholder for dry_run
                     verbose,
-                    &rustc_info,
+                    &split_expanded_rustc_info, // Use the aliased RustcInfo
                     &package.name,
                     &mut Vec::new(), // Placeholder for warnings
                     canonical_output_root,
                 ).await?;
 
-                package_use_statements.extend(extraction_result.file_metadata.global_uses);
-                package_extern_crates.extend(extraction_result.file_metadata.extern_crates);
+                package_use_statements.extend(extraction_result.file_metadata.global_uses.clone());
+                package_extern_crates.extend(extraction_result.file_metadata.extern_crates.clone());
                 // package_feature_attributes.extend(extraction_result.file_metadata.feature_attributes); // Assuming this will be collected later
 
                 all_declarations_extraction_results.push(extraction_result);
@@ -87,15 +96,43 @@ pub async fn collect_prelude_info(
             for generated_trait in &generated_traits {
                 write_trait_to_file(&generated_traits_output_dir, generated_trait)?;
             }
+
+            // Collect ItemConsts and write them
+            let mut item_consts = Vec::new();
+            for declaration in &first_result.declarations {
+                if let DeclarationItem::Const(s) = &declaration.item {
+                    if let Ok(item_const) = syn::parse_str::<ItemConst>(s) {
+                        item_consts.push(item_const);
+                    }
+                }
+            }
+
+            if !item_consts.is_empty() {
+                let numerical_constants_output_dir = workspace_path.join("generated_numerical_constants");
+                fs::create_dir_all(&numerical_constants_output_dir)
+                    .context("Failed to create generated_numerical_constants output directory")?;
+                write_numerical_constants_to_hierarchical_structure(&item_consts, &numerical_constants_output_dir).await?;
+
+                let string_constants_output_dir = workspace_path.join("generated_string_constants");
+                fs::create_dir_all(&string_constants_output_dir)
+                    .context("Failed to create generated_string_constants output directory")?;
+                write_string_constants_to_hierarchical_structure(&item_consts, &string_constants_output_dir).await?;
+            }
         }
 
 
         collected_info_list.push(CollectedPreludeInfo {
-            package_name: package.name,
+            package_name: package.name.clone(),
             manifest_path: package.manifest_path.into_std_path_buf(),
             use_statements: package_use_statements,
             extern_crates: package_extern_crates,
             feature_attributes: package_feature_attributes,
+            crate_name: package.name, // Placeholder
+            crate_root: package_src_dir.parent().unwrap().to_path_buf().into(), // Placeholder
+            prelude_content: String::new(), // Placeholder
+            modified_files: Vec::new(), // Placeholder
+            crate_root_modified: false, // Placeholder
+            file_processing_results: Vec::new(), // Placeholder
         });
     }
 

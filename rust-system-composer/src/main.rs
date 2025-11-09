@@ -42,6 +42,10 @@ struct Args {
     /// The directory where the vendored crates should be placed.
     #[clap(long, value_parser)]
     output_vendor_dir: Option<PathBuf>,
+
+    /// Filter for specific packages during composition workflows.
+    #[clap(long, value_parser)]
+    package_filter: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -56,6 +60,8 @@ enum Commands {
     UpdateSystemToml {},
     /// Vendorizes dependencies for a specified project.
     Vendorize {},
+    /// Composes projects layer by layer based on layers_list.txt.
+    LayeredCompose {},
 }
 
 #[tokio::main]
@@ -86,6 +92,10 @@ async fn main() -> anyhow::Result<()> {
             println!("Running vendorization workflow...");
             run_vendorize_workflow(&config, &args).await?;
         }
+        Commands::LayeredCompose {} => {
+            println!("Running layered composition workflow...");
+            run_layered_composition_workflow(&config, &args).await?;
+        }
     }
 
     Ok(())
@@ -99,6 +109,24 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     let rust_system_composer_root = std::env::current_dir()?;
     let main_project_root = rust_system_composer_root.parent().unwrap(); // Assuming rust-system-composer is directly under the main project root
     let system_toml_path = rust_system_composer_root.join("system.toml");
+    let logs_dir = rust_system_composer_root.join("logs");
+    let warnings_log_path = logs_dir.join("self_compose_warnings.log");
+
+    // Create logs directory if it doesn't exist
+    fs::create_dir_all(&logs_dir)
+        .await
+        .context(format!("Failed to create logs directory: {}", logs_dir.display()))?;
+
+    // Write warnings to log file
+    if let Some(ref warnings_vec) = warnings {
+        if !warnings_vec.is_empty() {
+            let warnings_content = warnings_vec.join("\n");
+            fs::write(&warnings_log_path, warnings_content)
+                .await
+                .context(format!("Failed to write warnings to log file: {}", warnings_log_path.display()))?;
+            println!("Warnings written to: {}", warnings_log_path.display());
+        }
+    }
 
     // Load config.toml content
     let config_toml_path = main_project_root.join("config.toml"); // config.toml is at the main project root
@@ -163,7 +191,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
         project_info,
         project_config,
         generated_projects,
-        warnings,
+        warnings, // Pass warnings to SystemConfig
     };
 
     // Serialize to TOML
@@ -182,7 +210,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     Ok(())
 }
 
-async fn run_self_composition_workflow(config: &Config, _args: &Args) -> anyhow::Result<()> {
+async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -234,17 +262,44 @@ async fn run_self_composition_workflow(config: &Config, _args: &Args) -> anyhow:
         host: config.rust.rustc_host.clone(),
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
-        &expanded_manifest_path,
-        project_root.parent().unwrap(),
-        &rustc_info,
-        3, // verbosity
-        Some(0), // layer
-        &canonical_output_root,
+        split_expanded_lib::ProcessExpandedManifestInputs {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &project_root,
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+            canonical_output_root: &canonical_output_root,
+            package_filter: args.package_filter.clone(), // Pass the package filter here
+        }
     ).await?;
 
     // 4. Generate system.toml
     println!("Generating system.toml after self-composition...");
     run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
+
+    Ok(())
+}
+
+async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+    println!("Running layered composition workflow...");
+    println!("Config: {:?}", config);
+    println!("Args: {:?}", args);
+
+    let generated_decls_root = args.generated_declarations_root.clone().unwrap_or_else(|| {
+        config.paths.generated_declarations_root.clone()
+    });
+
+    // Call prelude-generator's collect_prelude_info directly
+    println!("Calling prelude-generator::collect_prelude_info to extract constants...");
+
+    let exclude_crates = std::collections::HashSet::new(); // No specific crates to exclude for now
+
+    prelude_generator::collect_prelude_info::collect_prelude_info(
+        &generated_decls_root,
+        &exclude_crates,
+    ).await?;
+
+    println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
 
     Ok(())
 }
@@ -301,12 +356,15 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> a
         host: config.rust.rustc_host.clone(),
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
-        &expanded_manifest_path,
-        &project_root,
-        &rustc_info,
-        3, // verbosity
-        Some(0), // layer
-        &canonical_output_root,
+        split_expanded_lib::ProcessExpandedManifestInputs {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &project_root,
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+            canonical_output_root: &canonical_output_root,
+            package_filter: None, // No package filter for standalonex composition
+        }
     ).await?;
 
     // 4. Organize layered declarations into crates
@@ -380,12 +438,15 @@ async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow:
         host: config.rust.rustc_host.clone(),
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
-        &expanded_manifest_path,
-        &rustc_project_root,
-        &rustc_info,
-        3, // verbosity
-        Some(0), // layer
-        &canonical_output_root,
+        split_expanded_lib::ProcessExpandedManifestInputs {
+            expanded_manifest_path: &expanded_manifest_path,
+            project_root: &rustc_project_root,
+            rustc_info: &rustc_info,
+            verbosity: 3,
+            layer: Some(0),
+            canonical_output_root: &canonical_output_root,
+            package_filter: args.package_filter.clone(), // Pass the package filter here
+        }
     ).await?;
 
     // 4. Organize layered declarations into crates

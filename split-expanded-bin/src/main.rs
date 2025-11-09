@@ -1,7 +1,7 @@
 use clap::Parser;
 use anyhow::Context;
 use std::path::{PathBuf};
-use split_expanded_lib::process_expanded_manifest;
+use split_expanded_lib::{process_expanded_manifest, ProcessExpandedManifestInputs, RustcInfo};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -29,20 +29,32 @@ pub struct Args {
     /// Optional: Process only crates at a specific dependency layer.
     #[arg(long)]
     layer: Option<u32>,
+
+    /// Optional: Filter by package name.
+    #[arg(long)]
+    package_filter: Option<String>,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    process_expanded_manifest(
-        &args.expanded_manifest,
-        &args.project_root,
-        args.rustc_version,
-        args.rustc_host,
-        args.verbosity,
-        args.layer,
-    ).await?;
+    let rustc_info = RustcInfo {
+        version: args.rustc_version,
+        host: args.rustc_host,
+    };
+
+    let inputs = ProcessExpandedManifestInputs {
+        expanded_manifest_path: &args.expanded_manifest,
+        project_root: &args.project_root,
+        rustc_info: &rustc_info,
+        verbosity: args.verbosity,
+        layer: args.layer,
+        canonical_output_root: &args.project_root,
+        package_filter: args.package_filter,
+    };
+
+    process_expanded_manifest(inputs).await?;
 
     Ok(())
 }
