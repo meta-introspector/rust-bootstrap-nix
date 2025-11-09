@@ -313,9 +313,24 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
         ..Default::default()
     };
 
-    prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
+    // Capture the returned CollectedAnalysisData
+    let collected_analysis_data = prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
 
     println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
+    println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
+
+    // 4. Organize layered declarations into crates using the collected analysis data
+    println!("Organizing layered declarations into crates using CollectedAnalysisData...");
+    let top_level_cargo_toml_path = std::env::current_dir()?.join("Cargo.toml"); // Assuming top-level Cargo.toml is in the current directory
+    let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
+        project_root: &std::env::current_dir()?, // This might need to be adjusted based on actual project structure
+        verbosity: args.verbosity,
+        compile_flag: &args.compile,
+        canonical_output_root: &generated_decls_root, // Assuming generated_decls_root is the canonical output root
+        top_level_cargo_toml_path: &top_level_cargo_toml_path,
+        collected_analysis_data, // Pass the collected analysis data
+    };
+    layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
     Ok(())
 }

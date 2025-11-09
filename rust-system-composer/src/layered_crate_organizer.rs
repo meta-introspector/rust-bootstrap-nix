@@ -5,6 +5,7 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
+use prelude_generator::types::CollectedAnalysisData;
 
 #[derive(Debug)]
 pub struct OrganizeLayeredDeclarationsInputs<'a> {
@@ -14,6 +15,7 @@ pub struct OrganizeLayeredDeclarationsInputs<'a> {
     pub compile_flag: &'a str,
     pub canonical_output_root: &'a Path,
     pub top_level_cargo_toml_path: &'a Path,
+    pub collected_analysis_data: CollectedAnalysisData,
 }
 
 /// Organizes the layered declarations into new Rust crates.

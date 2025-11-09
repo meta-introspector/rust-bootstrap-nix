@@ -11,7 +11,7 @@ use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatti
 use crate::types::CollectedAnalysisData;
 use toml;
 
-pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<()> {
+pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysisData> { // Modified return type
     println!("Running type usage analysis...");
 
     let max_expression_depth = args.max_expression_depth.context("Max expression depth must be specified for type usage analysis")?;
@@ -57,14 +57,14 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<()> {
 
     generate_report(&all_expression_info, max_expression_depth, output_path, &all_struct_lattices, &all_enum_lattices, &all_impl_lattices)?;
 
-    if let Some(toml_output_path) = &args.output_toml_report {
-        let collected_data = CollectedAnalysisData {
-            expressions: all_expression_info.clone(),
-            struct_lattices: all_struct_lattices.clone(),
-            enum_lattices: all_enum_lattices.clone(),
-            impl_lattices: all_impl_lattices.clone(),
-        };
+    let collected_data = CollectedAnalysisData { // Construct CollectedAnalysisData
+        expressions: all_expression_info,
+        struct_lattices: all_struct_lattices,
+        enum_lattices: all_enum_lattices,
+        impl_lattices: all_impl_lattices,
+    };
 
+    if let Some(toml_output_path) = &args.output_toml_report {
         let toml_content = toml::to_string_pretty(&collected_data)
             .context("Failed to serialize collected analysis data to TOML")?;
         fs::write(toml_output_path, toml_content)
@@ -73,5 +73,5 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<()> {
     }
 
     println!("Type usage analysis completed. Report saved to {:?}", output_path);
-    Ok(())
+    Ok(collected_data) // Return CollectedAnalysisData
 }
