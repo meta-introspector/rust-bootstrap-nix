@@ -1,6 +1,6 @@
 title = "Implement Stage 2: Preprocess SynError use statements"
 description = "Implement Stage 2 of the use statement processing pipeline: For each `SynError` statement, attempt to compile it in a temporary crate using `rustc`."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "lattice.md"
 stage_id = 2

@@ -1,6 +1,6 @@
 title = "Implement Stage 1: Classify use statements"
 description = "Implement Stage 1 of the use statement processing pipeline: Extract all unique `use` statements and attempt to parse them using `syn`."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "lattice.md"
 stage_id = 1

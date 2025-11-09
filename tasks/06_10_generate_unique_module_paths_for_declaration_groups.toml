@@ -1,6 +1,6 @@
 title = "Generate unique module paths for declaration groups"
 description = "Generate unique and descriptive module paths for each group of declarations (e.g., `prelude::group_hash_XXXX`)."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "lattice.md"
 stage_id = 0

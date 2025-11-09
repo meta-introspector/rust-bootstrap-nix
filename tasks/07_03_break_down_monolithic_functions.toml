@@ -1,6 +1,6 @@
 title = "Break down monolithic functions in prelude-generator"
 description = "Break down monolithic functions within `prelude-generator` (e.g., functors like `HuggingFaceValidatorFunctor`, `expand_macros_and_parse`) into smaller, more focused units. This adheres to the principle of 'extreme modularity' and facilitates their representation as nodes in the Lattice of Functions."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T10:10:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 7

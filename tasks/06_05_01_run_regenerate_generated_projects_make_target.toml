@@ -1,6 +1,6 @@
 title = "Run regenerate-generated-projects make target"
 description = "Execute the `regenerate-generated-projects` make target to build `rust-system-composer` and regenerate all generated projects."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "06_05_re_compose_transformed_components_into_lattice_structured_codebase.toml"
 stage_id = 0

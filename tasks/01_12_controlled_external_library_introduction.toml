@@ -1,6 +1,6 @@
 title = "Controlled External Library Introduction"
 description = "Integrate external libraries only at the latest possible layers within the architecture. This minimizes the attack surface and maintains a lean core, ensuring that external dependencies are introduced only when absolutely necessary and at a well-defined point in the dependency chain."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-01T12:00:00Z"
 parent_task = "01_flake_lattice_plan.toml"
 stage_id = 5

@@ -1,6 +1,6 @@
 title = "Apply prelude-generator to its own source code"
 description = "Apply the `prelude-generator`'s Rust and Cargo parsers to its own source code."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "bootstrap.md"
 stage_id = 0

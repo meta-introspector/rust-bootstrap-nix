@@ -1,6 +1,6 @@
 title = "Execute Instrumented Builds for All Projects"
 description = "Run instrumented builds for all identified Cargo projects, collecting all specified dumps and traces."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_project_analysis_plan.toml"
 stage_id = 4

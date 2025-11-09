@@ -1,6 +1,6 @@
 title = "Enhance End-to-End Scripts"
 description = "To cover the full build process and verify outputs."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "docs/QA_Plan.md"
 stage_id = 1

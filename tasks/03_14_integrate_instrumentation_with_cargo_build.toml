@@ -1,6 +1,6 @@
 title = "Integrate Instrumentation with Cargo Build"
 description = "Modify Cargo's build process (e.g., via RUSTFLAGS, custom build scripts, or a Cargo subcommand) to use the instrumentation tool during compilation of each crate."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_project_analysis_plan.toml"
 stage_id = 4

@@ -4,7 +4,7 @@ description = "Implement a specialized leveled report that analyzes the usage of
 - Expressions that use `type T` with exactly one other type. 
 - Expressions that use `type T` with N other types. 
 This task refines the layered usage reporting by providing a more granular view of type interactions and dependencies."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-05T12:30:00Z"
 parent_task = "02_10_implement_layered_usage_reporting.toml"
 stage_id = 1

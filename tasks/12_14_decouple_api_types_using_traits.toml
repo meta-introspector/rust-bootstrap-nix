@@ -1,6 +1,6 @@
 title = "Decouple API Types using Traits"
 description = "Mandate that consumption and modification of core types like `GitInfo`, `NixInfo`, `FunctionInfo`, and `AstStatistics` occur via their associated traits (`GitInfoTrait`, `NixInfoTrait`, etc.). This ensures that implementation details (struct fields) are decoupled from the API contract (trait methods), enforcing the principle of decoupling API types using traits."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T15:10:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 12

@@ -1,6 +1,6 @@
 title = "Maintain centralized binary documentation"
 description = "Maintain centralized documentation for all project binaries (e.g., `bootstrap-config-generator`, `hf-validator`), following the structure defined in `docs/binaries.md`. Ensure that the documented purpose and required parameters accurately reflect the latest operational arguments and functionality."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T11:50:00Z"
 parent_task = "09_01_maintain_core_vision_docs.toml"
 stage_id = 9

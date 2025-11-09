@@ -1,6 +1,6 @@
 title = "Implement structured logging framework"
 description = "Replace existing `println!` statements with a structured logging framework (e.g., `tracing` or `log`) to enable easier log control, filtering, and analysis. This will improve the observability and debuggability of the project."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T10:40:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 8

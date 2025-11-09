@@ -1,6 +1,6 @@
 title = "Implement ExtractUsesFunctor for parsed file to use statements extraction"
 description = "Implement the `ExtractUsesFunctor` that takes a `ParsedFile` and extracts all the `use` statements."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "lattice.md"
 stage_id = 0

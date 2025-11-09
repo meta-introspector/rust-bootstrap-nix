@@ -1,6 +1,6 @@
 title = "Resolve fn main() location for rust-system-composer"
-description = "Resolve the correct location and invocation of `fn main()` for `rust-system-composer`. This is a critical orchestration fix that is currently blocking the batch processing pipeline required to extract and analyze the full codebase into typed structures."
-status = "TODO"
+description = "Resolved the correct location and invocation of `fn main()` for `rust-system-composer`. This critical orchestration fix unblocks the batch processing pipeline, allowing extraction and analysis of the full codebase into typed structures. The invocation is now handled via Rust, not syscalls."
+status = "DONE"
 created_at = "2025-11-06T15:50:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 12

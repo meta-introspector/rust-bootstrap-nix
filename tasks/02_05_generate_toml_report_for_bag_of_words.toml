@@ -1,6 +1,6 @@
 title = "Generate TOML report for Bag of Words"
 description = "Implement the functionality to write the filtered bag of words to a TOML file, including the specified stop words."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "plan.md"
 stage_id = 5

@@ -1,6 +1,6 @@
 title = "Extract syn Usage into syn Lattice"
 description = "Extract all usages of the `syn` crate within the codebase and organize them into a dedicated 'syn lattice'. This involves identifying all `syn` related types, functions, and macros, and mapping their dependencies to form a structured representation within our lattice system. This is a crucial step for self-bootstrapping and understanding the compiler's internal structure."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-05T12:00:00Z"
 parent_task = "06_01_decompose_codebase_into_granular_components_using_rust_decl_splitter.toml"
 stage_id = 0

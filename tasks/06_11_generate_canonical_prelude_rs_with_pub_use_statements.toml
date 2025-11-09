@@ -1,6 +1,6 @@
 title = "Generate canonical prelude.rs with pub use statements"
 description = "Create a main `prelude.rs` file containing `pub use` statements for all generated group modules."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "lattice.md"
 stage_id = 0

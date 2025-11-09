@@ -1,6 +1,6 @@
 title = "Fix broken generated_test_runner"
 description = "Fix the broken `generated_test_runner` to re-establish a stable, automated test foundation for the overall project. This is a P2 task crucial for ensuring code correctness and enabling deeper refactoring with confidence."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T12:20:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 11

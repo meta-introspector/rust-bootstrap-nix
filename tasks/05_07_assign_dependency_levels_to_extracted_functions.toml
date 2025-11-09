@@ -1,6 +1,6 @@
 title = "Assign dependency levels to extracted functions"
 description = "Assign a dependency level to each extracted function."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "bootstrap.md"
 stage_id = 0

@@ -1,6 +1,6 @@
 title = "Refine PreprocessFunctor (if necessary)"
 description = "Review `PreprocessFunctor` to see if any preprocessing steps can be optimized or informed by the `AST_STATISTICS`."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "plan.md"
 stage_id = 8

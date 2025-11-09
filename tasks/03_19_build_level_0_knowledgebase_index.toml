@@ -1,6 +1,6 @@
 title = "Build Level 0 Knowledgebase Index"
 description = "Organize the extracted constants, names, and IDs into a tree structure of 4KB blocks, forming the Level 0 knowledgebase index."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_18_extract_constants_names_and_ids.toml"
 stage_id = 3

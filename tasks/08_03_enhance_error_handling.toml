@@ -1,6 +1,6 @@
 title = "Enhance error handling with richer detail"
 description = "Enhance error handling across the codebase (leveraging `anyhow::Result`) to include richer details, such as the command's exit code and full stderr output for external command failures. This will improve diagnostic capabilities."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T11:00:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 8

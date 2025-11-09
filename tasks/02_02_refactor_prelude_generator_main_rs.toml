@@ -1,6 +1,6 @@
 title = "Refactor prelude-generator/src/main.rs"
 description = "The constant extraction calls have been integrated into `prelude-generator/src/main.rs`. Split the `main.rs` file into separate functions for processing structs and constants to improve modularity and readability. Ensure all internal calls within the extracted functions and the `main` function use the `prelude_generator::` prefix where necessary."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "plan.md"
 stage_id = 2

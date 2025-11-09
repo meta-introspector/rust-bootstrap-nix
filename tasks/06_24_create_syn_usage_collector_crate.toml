@@ -4,7 +4,7 @@ description = "Develop a new Rust crate, `syn-usage-collector`, dedicated to ana
 - `usagetype(ast type)`: The AST node type where the usage occurs. 
 - `count of typeb`: The count of other types (`typeb`) co-occurring with `typea`. 
 - `split by group of type cooccuring`: Further splitting reports by groups of co-occurring types. This task is a direct implementation step for extracting `syn` usage into a dedicated lattice."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-05T12:50:00Z"
 parent_task = "06_19_extract_syn_usage_into_syn_lattice.toml"
 stage_id = 0

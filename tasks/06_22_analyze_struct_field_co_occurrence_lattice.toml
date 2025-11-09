@@ -1,6 +1,6 @@
 title = "Analyze and Report on Struct Field Co-occurrence Lattice"
 description = "Implement functionality to analyze large `structs`, such as configuration objects, as internal lattices. This involves identifying groups of fields (e.g., 3, 4, 5, or more) that are frequently used together within the codebase. The analysis should map these co-occurring field groups as nodes and their relationships as edges, forming a sub-lattice within the struct. The reporting should highlight these cohesive field groupings, their frequency, and their context of use, providing insights for refactoring and architectural understanding. This task builds upon the concepts outlined in `Lattice_Analysis_for_Large_Types.md` and the sub-lattice framework."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-05T12:25:00Z"
 parent_task = "06_20_sub_lattice_of_large_types.toml"
 stage_id = 0

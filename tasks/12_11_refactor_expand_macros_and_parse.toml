@@ -1,6 +1,6 @@
 title = "Refactor expand_macros_and_parse Function"
 description = "Split the `expand_macros_and_parse` function into distinct, testable units: (1) Temporary Crate Setup, (2) Macro Expansion Execution (`cargo rustc -Zunpretty=expanded`), and (3) AST parsing (`syn::parse_file`) and Error Collection (`ErrorCollection`). This isolates the non-deterministic `cargo rustc` call from pure parsing logic, simplifying analysis and error recovery."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T14:40:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 12

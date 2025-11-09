@@ -1,6 +1,6 @@
 title = "Format Knowledgebase for Minizinc"
 description = "Convert the Level 0 knowledgebase into a format suitable for input to a Minizinc solver."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_19_build_level_0_knowledgebase_index.toml"
 stage_id = 5

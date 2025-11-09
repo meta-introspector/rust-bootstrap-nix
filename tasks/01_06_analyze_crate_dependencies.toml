@@ -1,6 +1,6 @@
 title = "Analyze Crate Dependencies"
 description = "For each Cargo crate, determine its direct and transitive dependencies using `cargo metadata` or similar tools."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-01T12:00:00Z"
 parent_task = "01_flake_lattice_plan.toml"
 stage_id = 3

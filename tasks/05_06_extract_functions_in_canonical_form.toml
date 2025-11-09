@@ -1,6 +1,6 @@
 title = "Extract functions in canonical form"
 description = "Extract each function within the codebase in a canonical form."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "bootstrap.md"
 stage_id = 0

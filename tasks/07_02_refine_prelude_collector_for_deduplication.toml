@@ -1,6 +1,6 @@
 title = "Refine prelude-collector for use statement deduplication"
 description = "Refine the `prelude-collector` crate to ensure `pub use` statements are flattened and deduplicated before being written to `prelude.rs` or `project_prelude.rs`. This addresses the issue of highly redundant `pub use` statements observed in generated files."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-06T10:00:00Z"
 parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
 stage_id = 7

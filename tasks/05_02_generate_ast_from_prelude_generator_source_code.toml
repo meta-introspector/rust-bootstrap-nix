@@ -1,6 +1,6 @@
 title = "Generate AST from prelude-generator source code"
 description = "Generate an Abstract Syntax Tree (AST) from the `prelude-generator`'s source code."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "05_01_apply_prelude_generator_to_its_own_source_code.toml"
 stage_id = 0

@@ -1,6 +1,6 @@
 title = "Process Raw Dumps and Traces"
 description = "Develop parsers and processors for the various compiler dumps (ASTs, IRs) and execution traces to extract relevant data."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_project_analysis_plan.toml"
 stage_id = 3

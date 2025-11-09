@@ -1,6 +1,6 @@
 title = "Generate Projects with Monadic I/O Integration"
 description = "Ensure that the generated projects can easily integrate with the monadic I/O framework."
-status = "TODO"
+status = "IN_PROGRESS"
 created_at = "2025-11-03T00:00:00Z"
 parent_task = "03_project_analysis_plan.toml"
 stage_id = 3
