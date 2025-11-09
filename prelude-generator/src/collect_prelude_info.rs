@@ -24,7 +24,7 @@ use syn::ItemConst;
 
 pub async fn collect_prelude_info(
     workspace_path: &Path,
-    _exclude_crates: &HashSet<String>,
+    args: &crate::Args, // Add args here
 ) -> Result<Vec<CollectedPreludeInfo>> {
     let rustc_info = get_rustc_info()?;
     let split_expanded_rustc_info = SplitExpandedRustcInfo {
@@ -54,6 +54,10 @@ pub async fn collect_prelude_info(
         if package_src_dir.exists() && package_src_dir.is_dir() {
             for entry in WalkDir::new(&package_src_dir)
                 .into_iter()
+                .filter_entry(|e| {
+                    // Exclude paths specified in args.exclude_paths
+                    !args.exclude_paths.iter().any(|exclude_path| e.path().starts_with(exclude_path))
+                })
                 .filter_map(|e| e.ok())
                 .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
             {

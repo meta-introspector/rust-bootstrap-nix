@@ -287,18 +287,22 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     println!("Config: {:?}", config);
     println!("Args: {:?}", args);
 
-    let generated_decls_root = args.generated_declarations_root.clone().unwrap_or_else(|| {
-        config.paths.generated_declarations_root.clone()
-    });
+    let project_root = std::env::current_dir()?; // Get the actual project root
+    let generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
+    let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
 
-    // Call prelude-generator's collect_prelude_info directly
+    // Call prelude-generator's collect_prelude_info to extract constants...
     println!("Calling prelude-generator::collect_prelude_info to extract constants...");
 
-    let exclude_crates = std::collections::HashSet::new(); // No specific crates to exclude for now
+    let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
+        path: project_root.clone(), // Search the entire project
+        exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
+        ..Default::default()
+    };
 
     prelude_generator::collect_prelude_info::collect_prelude_info(
-        &generated_decls_root,
-        &exclude_crates,
+        &project_root, // Pass project root as workspace_path
+        &prelude_generator_args_for_collect_prelude, // Pass the args with exclusion
     ).await?;
 
     println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
@@ -306,12 +310,14 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
     println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
 
-    // Create a dummy Args for type usage analysis, as rust-system-composer's Args doesn't have these fields
+    // Create Args for type usage analysis
     let type_analysis_args = prelude_generator::Args {
-        path: generated_decls_root.clone(),
+        path: project_root.clone(), // Search the entire project
         analyze_type_usage: true,
         max_expression_depth: Some(8), // Hardcode for now, or make configurable
-        output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")),
+        output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")), // Output to configurable generated root
+        output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")), // Ensure TOML output is enabled
+        exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
         ..Default::default()
     };
 
@@ -320,6 +326,7 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
 
     println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
     println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
+    println!("Debug: collected_analysis_data before flattening: {:?}", collected_analysis_data);
 
     println!("Flattening CollectedAnalysisData into a CodeGraph...");
     let code_graph = code_graph_flattener::flatten_analysis_data_to_graph(
@@ -331,12 +338,12 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
 
     // 4. Organize layered declarations into crates using the collected analysis data
     println!("Organizing layered declarations into crates using CollectedAnalysisData...");
-    let top_level_cargo_toml_path = std::env::current_dir()?.join("Cargo.toml"); // Assuming top-level Cargo.toml is in the current directory
+    let top_level_cargo_toml_path = project_root.join("Cargo.toml");
     let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
-        project_root: &std::env::current_dir()?, // This might need to be adjusted based on actual project structure
+        project_root: &project_root,
         verbosity: args.verbosity,
         compile_flag: &args.compile,
-        canonical_output_root: &generated_decls_root, // Assuming generated_decls_root is the canonical output root
+        canonical_output_root: &generated_decls_root, // Use configurable generated root
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
         collected_analysis_data, // Pass the collected analysis data
         code_graph, // Pass the code graph

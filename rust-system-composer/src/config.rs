@@ -56,6 +56,7 @@ pub struct BinsConfig {
 pub struct PathsConfig {
     pub generated_declarations_root: PathBuf,
     pub default_vendor_dir: Option<PathBuf>,
+    pub exclude_paths: Option<Vec<PathBuf>>, // Add this field
 }
 
 #[derive(Debug, Deserialize)]

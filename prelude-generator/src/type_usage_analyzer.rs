@@ -25,7 +25,13 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
     let mut all_enum_lattices: HashMap<String, EnumLatticeInfo> = HashMap::new();
     let mut all_impl_lattices: HashMap<String, ImplLatticeInfo> = HashMap::new();
 
-    for entry in WalkDir::new(&args.path) {
+    for entry in WalkDir::new(&args.path)
+        .into_iter()
+        .filter_entry(|e| {
+            // Exclude paths specified in args.exclude_paths
+            !args.exclude_paths.iter().any(|exclude_path| e.path().starts_with(exclude_path))
+        })
+    {
         let entry = entry?;
         let file_path = entry.path();
 

@@ -79,3 +79,4 @@ modules = [
 [paths]
 generated_declarations_root = ".gemini/generated/"
 default_vendor_dir = "vendor/rustc_deps"
+exclude_paths = [".gemini/generated"]

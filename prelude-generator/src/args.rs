@@ -200,4 +200,8 @@ pub struct Args {
     /// Path to output all collected analysis data (expressions, lattices) to a TOML file.
     #[arg(long)]
     pub output_toml_report: Option<PathBuf>,
+
+    /// Paths to exclude from processing.
+    #[arg(long, value_delimiter = ',')]
+    pub exclude_paths: Vec<PathBuf>, // Add this field
 }
