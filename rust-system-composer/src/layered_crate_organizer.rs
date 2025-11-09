@@ -6,6 +6,7 @@ use std::path::Path;
 use tokio::fs;
 use std::collections::BTreeSet; // Use BTreeSet for sorted unique elements
 use prelude_generator::types::CollectedAnalysisData;
+use code_graph_flattener::CodeGraph; // Add this import
 
 #[derive(Debug)]
 pub struct OrganizeLayeredDeclarationsInputs<'a> {
@@ -16,6 +17,7 @@ pub struct OrganizeLayeredDeclarationsInputs<'a> {
     pub canonical_output_root: &'a Path,
     pub top_level_cargo_toml_path: &'a Path,
     pub collected_analysis_data: CollectedAnalysisData,
+    pub code_graph: CodeGraph, // Add this field
 }
 
 /// Organizes the layered declarations into new Rust crates.

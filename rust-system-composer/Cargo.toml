@@ -23,7 +23,4 @@ cargo-flake-generator = { path = "../tools/cargo-flake-generator" }
 flake-template-generator = { path = "../flake-template-generator" }
 split-expanded-lib = { path = "../split-expanded-lib" }
 expanded-code-collector = { path = "../crates/expanded-code-collector" }
-
-[[bin]]
-name = "temp_test_config_parser"
-path = "src/temp_test_config_parser.rs"
+code-graph-flattener = { path = "../crates/code-graph-flattener" }

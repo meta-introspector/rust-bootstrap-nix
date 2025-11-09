@@ -5,6 +5,8 @@ use tokio::process::Command;
 use expanded_code_collector::collect_expanded_code;
 use std::collections::HashMap;
 use walkdir::WalkDir;
+use prelude_generator::types::CollectedAnalysisData;
+use code_graph_flattener::CodeGraph;
 
 mod config;
 use config::Config;
@@ -319,6 +321,14 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
     println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
     println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
 
+    println!("Flattening CollectedAnalysisData into a CodeGraph...");
+    let code_graph = code_graph_flattener::flatten_analysis_data_to_graph(
+        collected_analysis_data.clone() // Clone because collected_analysis_data is moved into organize_inputs
+    ).context("Failed to flatten analysis data into a code graph")?;
+
+    println!("Successfully flattened CollectedAnalysisData into a CodeGraph with {} nodes and {} edges.",
+             code_graph.nodes.len(), code_graph.edges.len());
+
     // 4. Organize layered declarations into crates using the collected analysis data
     println!("Organizing layered declarations into crates using CollectedAnalysisData...");
     let top_level_cargo_toml_path = std::env::current_dir()?.join("Cargo.toml"); // Assuming top-level Cargo.toml is in the current directory
@@ -329,6 +339,7 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args) -> anyho
         canonical_output_root: &generated_decls_root, // Assuming generated_decls_root is the canonical output root
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
         collected_analysis_data, // Pass the collected analysis data
+        code_graph, // Pass the code graph
     };
     layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
@@ -407,6 +418,8 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> a
         compile_flag: &args.compile,
         canonical_output_root: &canonical_output_root,
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
+        collected_analysis_data: CollectedAnalysisData::default(), // Pass default
+        code_graph: CodeGraph::default(), // Pass default
     };
     layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 
@@ -489,6 +502,8 @@ async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow:
         compile_flag: &args.compile,
         canonical_output_root: &canonical_output_root,
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
+        collected_analysis_data: CollectedAnalysisData::default(), // Pass default
+        code_graph: CodeGraph::default(), // Pass default
     };
     layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
 

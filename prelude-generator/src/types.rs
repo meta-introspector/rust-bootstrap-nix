@@ -41,7 +41,7 @@ pub struct CollectedProjectInfo {
     pub crates: HashMap<String, split_expanded_lib::ResolvedDependency>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CollectedAnalysisData {
     pub expressions: HashMap<String, ExpressionInfo>,
     pub struct_lattices: HashMap<String, StructLatticeInfo>,
