@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::fs;
 use code_graph_flattener::CodeGraph;
 use std::collections::HashMap;
+use regex::Regex;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -44,42 +45,48 @@ fn main() -> Result<()> {
             report_content.push_str("Command Object Usage Report:
 
 ");
+            let command_new_regex = Regex::new(r#"Command::new\("([^"]+)"\)"#).unwrap();
+            let mut command_usages: Vec<(String, String, Option<String>, String)> = Vec::new(); // (node_id, expression_string, program_name, classification)
 
-            let mut command_related_nodes = Vec::new();
             for node in &code_graph.nodes {
-                if node.node_type == "Type" && node.id.contains("Command") {
-                    command_related_nodes.push(node);
-                } else if node.node_type == "Expression" {
+                if node.node_type == "Expression" {
                     if let Some(expr_str) = node.properties.get("expression_string") {
                         if expr_str.contains("Command") {
-                            command_related_nodes.push(node);
+                            let mut program_name: Option<String> = None;
+                            let mut classification = "External/Unknown".to_string();
+
+                            if let Some(captures) = command_new_regex.captures(expr_str) {
+                                if let Some(name) = captures.get(1) {
+                                    program_name = Some(name.as_str().to_string());
+                                    // Simple heuristic for local vs external
+                                    if name.as_str().starts_with("./") || name.as_str().contains("target/debug") || name.as_str().contains("target/release") {
+                                        classification = "Local (Heuristic)".to_string();
+                                    } else {
+                                        classification = "External (Heuristic)".to_string();
+                                    }
+                                }
+                            }
+
+                            command_usages.push((node.id.clone(), expr_str.clone(), program_name, classification));
                         }
                     }
                 }
             }
 
-            if command_related_nodes.is_empty() {
-                report_content.push_str("No direct Command object usage found in nodes.\n");
+            if command_usages.is_empty() {
+                report_content.push_str("No Command object usage found in expressions.\n");
             } else {
-                report_content.push_str("Nodes referencing 'Command':\n");
-                for node in command_related_nodes {
-                    report_content.push_str(&format!("  - ID: {}, Type: {}, Properties: {:?}\n", node.id, node.node_type, node.properties));
-                }
-            }
-
-            let mut command_related_edges = Vec::new();
-            for edge in &code_graph.edges {
-                if edge.source.contains("Command") || edge.target.contains("Command") {
-                    command_related_edges.push(edge);
-                }
-            }
-
-            if command_related_edges.is_empty() {
-                report_content.push_str("\nNo direct Command object usage found in edges.\n");
-            } else {
-                report_content.push_str("\nEdges referencing 'Command':\n");
-                for edge in command_related_edges {
-                    report_content.push_str(&format!("  - Source: {}, Target: {}, Type: {}, Properties: {:?}\n", edge.source, edge.target, edge.edge_type, edge.properties));
+                report_content.push_str("Detailed Command Usages:\n");
+                for (node_id, expr_str, prog_name_opt, classification) in command_usages {
+                    report_content.push_str(&format!("  - Node ID: {}\n", node_id));
+                    report_content.push_str(&format!("    Expression: {}\n", expr_str));
+                    if let Some(prog_name) = prog_name_opt {
+                        report_content.push_str(&format!("    Program Called: {}\n", prog_name));
+                    } else {
+                        report_content.push_str("    Program Called: (Not extracted)\n");
+                    }
+                    report_content.push_str(&format!("    Classification: {}\n", classification));
+                    report_content.push_str("\n");
                 }
             }
         },
