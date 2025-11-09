@@ -4,6 +4,6 @@
 [submodule "rust-bootstrap-core"]
 	path = rust-bootstrap-core
 	url = https://github.com/meta-introspector/rust-bootstrap-core
-[submodule "vendor/neo4j-labs/graph"]
-	path = vendor/neo4j-labs/graph
+[submodule "vendors/neo4j-labs/graph"]
+	path = vendors/neo4j-labs/graph
 	url = https://github.com/neo4j-labs/graph.git

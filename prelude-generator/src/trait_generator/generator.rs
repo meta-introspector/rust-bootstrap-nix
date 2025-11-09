@@ -3,6 +3,7 @@ use crate::types::{AllDeclarationsExtractionResult};
 use crate::trait_generator::{GeneratedTrait, GeneratedTraitMethod};
 use quote::quote;
 use std::collections::HashSet;
+use syn::Ident; // Add this import
 
 pub fn generate_traits(
     extraction_result: &AllDeclarationsExtractionResult,
@@ -10,31 +11,19 @@ pub fn generate_traits(
     let mut generated_traits = Vec::new();
 
     for declaration in &extraction_result.declarations {
-        let declaration_name = match &declaration.item {
-            split_expanded_lib::types::DeclarationItem::Fn(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Struct(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Enum(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Trait(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Type(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Union(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Const(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Static(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Macro(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Mod(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::TraitAlias(s) => s.clone(),
-            split_expanded_lib::types::DeclarationItem::Other(s) => s.clone(),
-        };
+        let declaration_name = declaration.get_identifier();
 
         // Generate IsX trait
         let is_trait_name = format!("Is{}", declaration_name);
-        let get_name_method_name = format!("get_{}_name", declaration_name.to_lowercase());
+        let get_name_method_name_str = format!("get_{}_name", declaration_name.to_lowercase());
+        let get_name_method_name = Ident::new(&get_name_method_name_str, proc_macro2::Span::call_site()); // Create Ident
 
         let get_name_method_signature = quote! {
-            fn #get_name_method_name(&self) -> &'static str;
+            fn #get_name_method_name(&self) -> &'static str; // Use Ident directly
         }.to_string();
 
         let is_trait_method = GeneratedTraitMethod {
-            name: get_name_method_name,
+            name: get_name_method_name_str, // Keep the string for the name field
             signature: get_name_method_signature,
             generics: None,
             where_clause: None,
@@ -60,14 +49,15 @@ pub fn generate_traits(
 
         for dependency_name in all_dependencies {
             let uses_trait_name = format!("Uses{}", dependency_name);
-            let get_dependency_method_name = format!("uses_{}", dependency_name.to_lowercase());
+            let get_dependency_method_name_str = format!("uses_{}", dependency_name.to_lowercase());
+            let get_dependency_method_name = Ident::new(&get_dependency_method_name_str, proc_macro2::Span::call_site()); // Create Ident
 
             let get_dependency_method_signature = quote! {
-                fn #get_dependency_method_name(&self);
+                fn #get_dependency_method_name(&self); // Use Ident directly
             }.to_string();
 
             let uses_trait_method = GeneratedTraitMethod {
-                name: get_dependency_method_name,
+                name: get_dependency_method_name_str, // Keep the string for the name field
                 signature: get_dependency_method_signature,
                 generics: None,
                 where_clause: None,

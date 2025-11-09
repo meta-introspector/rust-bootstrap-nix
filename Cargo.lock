@@ -352,6 +352,7 @@ name = "code-graph-flattener"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "petgraph",
  "prelude-generator",
  "quote",
  "serde",

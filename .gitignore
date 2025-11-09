@@ -281,3 +281,10 @@ build/
 logs/
 src/bootstrap/defaults/#config.dist.toml#
 rust-system-composer/rust-bootstrap-core/#full_metadata.json#
+vendor
+/.expand_processed_aho-corasick-wrapper_bin
+/tasks/fix_prelude_generator_invalid_code_gen.toml
+/prelude-generator/.shear-fixed-stamp
+/prelude-generator/self_rebuild_output.txt
+/standalonex/.shear_processed_bootstrap-config
+/standalonex/.shear_processed_bootstrap-config-types
