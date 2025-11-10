@@ -6,6 +6,10 @@ use code_graph_flattener::CodeGraph;
 use std::collections::HashMap;
 use regex::Regex;
 
+mod command_implementations;
+mod command_mocks;
+mod generated_command_traits;
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
