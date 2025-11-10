@@ -1,0 +1,19 @@
+.PHONY: test-cargo-run-temp-crate test-nix-develop-cargo-run-temp-crate collect-test-cargo-run-env-analysis-data
+
+test-cargo-run-temp-crate:
+	@echo "--- Running temp_test_crate directly with cargo run (outside nix develop context) ---"
+	cd temp_test_crate && cargo run --package temp_test_crate
+
+test-nix-develop-cargo-run-temp-crate:
+	@echo "--- Running temp_test_crate with cargo run (assuming already inside nix develop context) ---"
+	cd temp_test_crate && cargo run --package temp_test_crate
+
+collect-test-cargo-run-env-analysis-data:
+	@echo "--- Collecting CollectedAnalysisData for test_cargo_run_env ---"
+	cargo build --package rust-system-composer
+
+cargo run --package rust-system-composer -- \
+		layered-compose \
+		--project-root $(CURDIR)/test_cargo_run_env \
+		--output-analysis-data-json $(CURDIR)/test_cargo_run_env/collected_analysis_data.json
+	@echo "CollectedAnalysisData for test_cargo_run_env generated at $(CURDIR)/test_cargo_run_env/collected_analysis_data.json"
