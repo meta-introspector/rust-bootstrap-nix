@@ -1,4 +1,4 @@
-[workspace]
+
 
 [package]
 name = "test_cargo_run_env"
