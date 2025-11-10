@@ -202,6 +202,10 @@ pub struct Args {
     #[arg(long)]
     pub output_toml_report: Option<PathBuf>,
 
+    /// Path to output all collected analysis data (expressions, lattices) to a JSON file.
+    #[arg(long)]
+    pub output_analysis_data_json: Option<PathBuf>,
+
     /// Paths to exclude from processing.
     #[arg(long, value_delimiter = ',')]
     pub exclude_paths: Vec<PathBuf>,

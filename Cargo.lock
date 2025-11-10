@@ -276,10 +276,12 @@ name = "code-graph-flattener"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap",
  "petgraph",
  "prelude-generator",
  "quote",
  "serde",
+ "serde_json",
  "syn",
  "toml 0.8.23",
 ]
@@ -292,6 +294,7 @@ dependencies = [
  "clap",
  "code-graph-flattener",
  "petgraph",
+ "prelude-generator",
  "regex",
  "serde",
  "serde_json",

@@ -286,6 +286,19 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_
     // println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
     // println!("Debug: collected_analysis_data before flattening: {:?}", collected_analysis_data);
 
+    // Save CollectedAnalysisData to JSON if path is provided
+    if let Some(json_output_path) = &layered_compose_args.output_analysis_data_json {
+        let json_content = serde_json::to_string_pretty(&collected_analysis_data)
+            .context("Failed to serialize CollectedAnalysisData to JSON")?;
+        tokio::fs::create_dir_all(json_output_path.parent().unwrap())
+            .await
+            .context(format!("Failed to create directory for CollectedAnalysisData output: {}", json_output_path.display()))?;
+        tokio::fs::write(json_output_path, json_content)
+            .await
+            .context(format!("Failed to write CollectedAnalysisData to {}", json_output_path.display()))?;
+        println!("CollectedAnalysisData successfully written to {}", json_output_path.display());
+    }
+
     println!("Flattening CollectedAnalysisData into a CodeGraph...");
     let code_graph = code_graph_flattener::flatten_analysis_data_to_graph(
         collected_analysis_data.clone() // Clone because collected_analysis_data is moved into organize_inputs

@@ -78,6 +78,14 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         println!("TOML report saved to {:?}", toml_output_path);
     }
 
+    if let Some(json_output_path) = &args.output_analysis_data_json {
+        let json_content = serde_json::to_string_pretty(&collected_data)
+            .context("Failed to serialize collected analysis data to JSON")?;
+        fs::write(json_output_path, json_content)
+            .context(format!("Failed to write JSON report to {:?}", json_output_path))?;
+        println!("JSON report saved to {:?}", json_output_path);
+    }
+
     println!("Type usage analysis completed. Report saved to {:?}", output_path);
     Ok(collected_data) // Return CollectedAnalysisData
 }

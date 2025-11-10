@@ -11,3 +11,4 @@ serde_json = "1.0"
 petgraph = "0.6"
 code-graph-flattener = { path = "../code-graph-flattener" }
 regex = "1.5"
+prelude-generator = { path = "../../prelude-generator" }

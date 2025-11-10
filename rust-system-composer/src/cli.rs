@@ -73,4 +73,8 @@ pub struct LayeredComposeArgs {
     /// Path to output the Command object usage report.
     #[arg(long)]
     pub command_report_output_path: Option<PathBuf>,
+
+    /// Path to output the CollectedAnalysisData JSON file.
+    #[arg(long)]
+    pub output_analysis_data_json: Option<PathBuf>,
 }

@@ -134,3 +134,26 @@ The generated report will list:
 - Edges in the code graph that connect to or from "Command" related nodes.
 
 This report is a crucial step towards identifying and systematically replacing `std::process::Command` calls with more controlled and statically verifiable trait-based program invocations.
+
+## Trait Classification Reporting
+
+To facilitate the understanding of trait implementations and inherent methods within the codebase, a new reporting feature has been introduced. This report identifies all `impl` blocks, categorizes them as explicit trait implementations or inherent method implementations, and enriches the code graph with `TraitDefinition` nodes, `TypeDefinition` nodes, `Implements` edges, `MethodSignature` nodes, and `HasMethod` edges.
+
+### How to Use
+
+To generate the trait classification report, simply run the following Makefile target from the project root:
+
+```bash
+make generate-trait-classification-report
+```
+
+The report will be generated at `.gemini/generated/trait_classification_report.txt`.
+
+### Report Content
+
+The generated report will list:
+- A summary of explicit trait implementations found.
+- A summary of inherent method implementations found.
+- Detailed lists of which types implement which traits, and which types have which inherent methods.
+
+This report is crucial for understanding the structural contracts within the codebase and for future refactoring efforts towards a more trait-centric design.

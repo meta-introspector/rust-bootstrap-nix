@@ -74,26 +74,37 @@ clean-rustc-test-flakes:
 
 # --- Targets for Code Graph Analysis and Command Trait Generation ---
 
-RUST_SYSTEM_COMPOSER_BIN = $(CURDIR)/target/debug/rust-system-composer
-RUST_SYSTEM_COMPOSER_CONFIG = $(CURDIR)/rust-system-composer/config.toml
-CODE_GRAPH_OUTPUT_PATH = $(CURDIR)/rust-system-composer/.gemini/generated/code_graph.json
-COMMAND_REPORT_OUTPUT_PATH = $(CURDIR)/rust-system-composer/.gemini/generated/command_usage_report.txt
+CODE_GRAPH_OUTPUT_PATH = $(CURDIR)/.gemini/generated/code_graph.json
+COLLECTED_ANALYSIS_DATA_PATH = $(CURDIR)/.gemini/generated/collected_analysis_data.json
+COMMAND_REPORT_OUTPUT_PATH = $(CURDIR)/.gemini/generated/command_usage_report.txt
+TRAIT_CLASSIFICATION_REPORT_OUTPUT_PATH = $(CURDIR)/.gemini/generated/trait_classification_report.txt
 
-.PHONY: generate-command-usage-report build-rust-system-composer
+.PHONY: generate-command-usage-report build-rust-system-composer generate-trait-classification-report build-code-graph-query-tool
 
 build-rust-system-composer:
 	@echo "Building rust-system-composer..."
 	nix develop --command bash -c "cargo build --package rust-system-composer"
 
+build-code-graph-query-tool:
+	@echo "Building code-graph-query-tool..."
+	nix develop --command bash -c "cargo build --package code-graph-query-tool"
+
+RUST_SYSTEM_COMPOSER_CONFIG_PATH = $(shell realpath $(CURDIR)/rust-system-composer/config.toml)
+
 generate-command-usage-report: build-rust-system-composer
 	@echo "Generating CodeGraph and Command Usage Report using rust-system-composer..."
 	@mkdir -p $(dir $(CODE_GRAPH_OUTPUT_PATH))
-	@$(RUST_SYSTEM_COMPOSER_BIN) \
-		--config-file $(RUST_SYSTEM_COMPOSER_CONFIG) \
-		layered-compose \
-		--code-graph-output-path $(CODE_GRAPH_OUTPUT_PATH) \
-		--command-report-output-path $(COMMAND_REPORT_OUTPUT_PATH)
+	cargo run --package rust-system-composer -- --config-file $(RUST_SYSTEM_COMPOSER_CONFIG_PATH) layered-compose --code-graph-output-path $(CODE_GRAPH_OUTPUT_PATH) --command-report-output-path $(COMMAND_REPORT_OUTPUT_PATH)
 	@echo "Command Usage Report generated at $(COMMAND_REPORT_OUTPUT_PATH)"
+
+generate-trait-classification-report: build-rust-system-composer build-code-graph-query-tool
+	@echo "Generating CodeGraph, CollectedAnalysisData, and Trait Classification Report..."
+	@mkdir -p $(dir $(CODE_GRAPH_OUTPUT_PATH))
+	cargo run --package rust-system-composer -- --config-file $(RUST_SYSTEM_COMPOSER_CONFIG_PATH) layered-compose --code-graph-output-path $(CODE_GRAPH_OUTPUT_PATH) --output-analysis-data-json $(COLLECTED_ANALYSIS_DATA_PATH) --command-report-output-path $(COMMAND_REPORT_OUTPUT_PATH) # Run command usage report as well
+
+	@echo "Running code-graph-query-tool for trait classification..."
+	cargo run --package code-graph-query-tool -- --graph-path $(CODE_GRAPH_OUTPUT_PATH) --analysis-data-path $(COLLECTED_ANALYSIS_DATA_PATH) --query-type trait-classification --output-path $(TRAIT_CLASSIFICATION_REPORT_OUTPUT_PATH)
+	@echo "Trait Classification Report generated at $(TRAIT_CLASSIFICATION_REPORT_OUTPUT_PATH)"
 
 shear-all:
 	@echo "Running cargo shear on all packages via Makefile.shear..."

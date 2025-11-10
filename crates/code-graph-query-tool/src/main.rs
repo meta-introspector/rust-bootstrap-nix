@@ -2,9 +2,11 @@ use clap::Parser;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 use std::fs;
-use code_graph_flattener::CodeGraph;
+use code_graph_flattener::{CodeGraph, GraphNode, GraphEdge};
 use std::collections::HashMap;
 use regex::Regex;
+use prelude_generator::types::CollectedAnalysisData;
+use std::collections::HashSet;
 
 mod command_implementations;
 mod command_mocks;
@@ -16,6 +18,10 @@ struct Args {
     /// Path to the serialized CodeGraph JSON file.
     #[arg(long)]
     graph_path: PathBuf,
+
+    /// Path to the serialized CollectedAnalysisData JSON file.
+    #[arg(long)]
+    analysis_data_path: Option<PathBuf>,
 
     /// Type of query to perform (e.g., "command-usage").
     #[arg(long)]
@@ -32,10 +38,20 @@ fn main() -> Result<()> {
     println!("Loading CodeGraph from: {}", args.graph_path.display());
     let graph_content = fs::read_to_string(&args.graph_path)
         .context(format!("Failed to read CodeGraph file from {}", args.graph_path.display()))?;
-    let code_graph: CodeGraph = serde_json::from_str(&graph_content)
+    let mut code_graph: CodeGraph = serde_json::from_str(&graph_content)
         .context("Failed to deserialize CodeGraph from JSON")?;
 
     println!("CodeGraph loaded with {} nodes and {} edges.", code_graph.nodes.len(), code_graph.edges.len());
+
+    let collected_analysis_data: Option<CollectedAnalysisData> = if let Some(path) = &args.analysis_data_path {
+        println!("Loading CollectedAnalysisData from: {}", path.display());
+        let analysis_data_content = fs::read_to_string(path)
+            .context(format!("Failed to read CollectedAnalysisData file from {}", path.display()))?;
+        Some(serde_json::from_str(&analysis_data_content)
+            .context("Failed to deserialize CollectedAnalysisData from JSON")?)
+    } else {
+        None
+    };
 
     let mut report_content = String::new();
     report_content.push_str(&format!("Query Report for CodeGraph: {}
@@ -162,55 +178,206 @@ fn main() -> Result<()> {
                 }
             }
         },
-        "struct-field-access-frequency" => {
-            report_content.push_str("Struct Field Access Frequency Report:
+        "trait-classification" => {
+            report_content.push_str("Trait Classification Report:
 
 ");
-            let mut struct_field_access: HashMap<String, HashMap<String, usize>> = HashMap::new();
+            let analysis_data = collected_analysis_data.as_ref()
+                .context("CollectedAnalysisData is required for 'trait-classification' query.")?;
 
-            for node in &code_graph.nodes {
-                if node.node_type == "StructFieldCoOccurrence" {
-                    if let Some(fields_str) = node.properties.get("fields") {
-                        if let Some(count_str) = node.properties.get("count") {
-                            if let Ok(count) = count_str.parse::<usize>() {
-                                // Extract struct name from node.id
-                                // node.id format: "struct_co_occurrence_{struct_name}_{field_types_str}"
-                                let parts: Vec<&str> = node.id.splitn(3, '_').collect();
-                                if parts.len() == 3 {
-                                    let struct_name = parts[1].to_string();
-                                    struct_field_access
-                                        .entry(struct_name)
-                                        .or_insert_with(HashMap::new)
-                                        .insert(fields_str.clone(), count);
-                                }
+            let mut existing_node_ids: HashSet<String> = code_graph.nodes.iter().map(|n| n.id.clone()).collect();
+            let mut existing_edge_ids: HashSet<String> = code_graph.edges.iter().map(|e| format!("{}_{}_{}", e.source, e.edge_type, e.target)).collect();
+
+            // Regex to parse "Type for Trait" or "Type"
+            let impl_for_trait_regex = Regex::new(r"^(?P<implementing_type>[^ ]+) for (?P<implemented_trait>.*)$").unwrap();
+            let impl_inherent_regex = Regex::new(r"^(?P<implementing_type>[^ ]+)$").unwrap();
+
+            let mut trait_implementations_found = 0;
+            let mut inherent_impls_found = 0;
+
+            for (impl_for_type_str, impl_lattice) in &analysis_data.impl_lattices {
+                let mut implementing_type_name = String::new();
+                let mut implemented_trait_name: Option<String> = None;
+                let mut is_inherent_impl = false;
+
+                if let Some(captures) = impl_for_trait_regex.captures(impl_for_type_str) {
+                    implementing_type_name = captures["implementing_type"].to_string();
+                    implemented_trait_name = Some(captures["implemented_trait"].to_string());
+                } else if let Some(captures) = impl_inherent_regex.captures(impl_for_type_str) {
+                    implementing_type_name = captures["implementing_type"].to_string();
+                    is_inherent_impl = true;
+                } else {
+                    // Fallback for more complex impl_for_type_str, treat as inherent for now
+                    implementing_type_name = impl_for_type_str.to_string();
+                    is_inherent_impl = true;
+                }
+
+                let implementing_type_node_id = format!("type_{}", implementing_type_name);
+
+                // Ensure implementing type node exists
+                if !existing_node_ids.contains(&implementing_type_node_id) {
+                    code_graph.nodes.push(GraphNode {
+                        id: implementing_type_node_id.clone(),
+                        node_type: "TypeDefinition".to_string(),
+                        properties: HashMap::from([("name".to_string(), implementing_type_name.clone())]),
+                    });
+                    existing_node_ids.insert(implementing_type_node_id.clone());
+                }
+
+                if is_inherent_impl {
+                    let inherent_trait_name = format!("{}_InherentMethods", implementing_type_name);
+                    let inherent_trait_node_id = format!("trait_{}", inherent_trait_name);
+
+                    // Ensure inherent trait node exists
+                    if !existing_node_ids.contains(&inherent_trait_node_id) {
+                        code_graph.nodes.push(GraphNode {
+                            id: inherent_trait_node_id.clone(),
+                            node_type: "TraitDefinition".to_string(),
+                            properties: HashMap::from([("name".to_string(), inherent_trait_name.clone()), ("kind".to_string(), "Inherent".to_string())]),
+                        });
+                        existing_node_ids.insert(inherent_trait_node_id.clone());
+                    }
+
+                    // Add edge: ImplementingType -> Implements -> InherentTrait
+                    let impl_edge_id = format!("{}_implements_{}", implementing_type_node_id, inherent_trait_node_id);
+                    if !existing_edge_ids.contains(&impl_edge_id) {
+                        code_graph.edges.push(GraphEdge {
+                            source: implementing_type_node_id.clone(),
+                            target: inherent_trait_node_id.clone(),
+                            edge_type: "Implements".to_string(),
+                            properties: HashMap::new(),
+                        });
+                        existing_edge_ids.insert(impl_edge_id);
+                        inherent_impls_found += 1;
+                    }
+
+                    // Add methods to the inherent trait
+                    for (method_names_str, _count) in &impl_lattice.method_co_occurrences {
+                        for method_name in method_names_str.split("::") {
+                            let method_node_id = format!("method_{}_{}", inherent_trait_node_id, method_name);
+                            if !existing_node_ids.contains(&method_node_id) {
+                                code_graph.nodes.push(GraphNode {
+                                    id: method_node_id.clone(),
+                                    node_type: "MethodSignature".to_string(),
+                                    properties: HashMap::from([("name".to_string(), method_name.to_string())]),
+                                });
+                                existing_node_ids.insert(method_node_id.clone());
+                            }
+                            let has_method_edge_id = format!("{}_has_method_{}", inherent_trait_node_id, method_node_id);
+                            if !existing_edge_ids.contains(&has_method_edge_id) {
+                                code_graph.edges.push(GraphEdge {
+                                    source: inherent_trait_node_id.clone(),
+                                    target: method_node_id.clone(),
+                                    edge_type: "HasMethod".to_string(),
+                                    properties: HashMap::new(),
+                                });
+                                existing_edge_ids.insert(has_method_edge_id);
+                            }
+                        }
+                    }
+
+                } else if let Some(trait_name) = implemented_trait_name {
+                    let trait_node_id = format!("trait_{}", trait_name);
+
+                    // Ensure trait node exists
+                    if !existing_node_ids.contains(&trait_node_id) {
+                        code_graph.nodes.push(GraphNode {
+                            id: trait_node_id.clone(),
+                            node_type: "TraitDefinition".to_string(),
+                            properties: HashMap::from([("name".to_string(), trait_name.clone()), ("kind".to_string(), "Explicit".to_string())]),
+                        });
+                        existing_node_ids.insert(trait_node_id.clone());
+                    }
+
+                    // Add edge: ImplementingType -> Implements -> TraitDefinition
+                    let impl_edge_id = format!("{}_implements_{}", implementing_type_node_id, trait_node_id);
+                    if !existing_edge_ids.contains(&impl_edge_id) {
+                        code_graph.edges.push(GraphEdge {
+                            source: implementing_type_node_id.clone(),
+                            target: trait_node_id.clone(),
+                            edge_type: "Implements".to_string(),
+                            properties: HashMap::new(),
+                        });
+                        existing_edge_ids.insert(impl_edge_id);
+                        trait_implementations_found += 1;
+                    }
+
+                    // Add methods to the explicit trait
+                    for (method_names_str, _count) in &impl_lattice.method_co_occurrences {
+                        for method_name in method_names_str.split("::") {
+                            let method_node_id = format!("method_{}_{}", trait_node_id, method_name);
+                            if !existing_node_ids.contains(&method_node_id) {
+                                code_graph.nodes.push(GraphNode {
+                                    id: method_node_id.clone(),
+                                    node_type: "MethodSignature".to_string(),
+                                    properties: HashMap::from([("name".to_string(), method_name.to_string())]),
+                                });
+                                existing_node_ids.insert(method_node_id.clone());
+                            }
+                            let has_method_edge_id = format!("{}_has_method_{}", trait_node_id, method_node_id);
+                            if !existing_edge_ids.contains(&has_method_edge_id) {
+                                code_graph.edges.push(GraphEdge {
+                                    source: trait_node_id.clone(),
+                                    target: method_node_id.clone(),
+                                    edge_type: "HasMethod".to_string(),
+                                    properties: HashMap::new(),
+                                });
+                                existing_edge_ids.insert(has_method_edge_id);
                             }
                         }
                     }
                 }
             }
 
-            if struct_field_access.is_empty() {
-                report_content.push_str("No struct field access data found in the graph.\n");
-            } else {
-                let mut sorted_structs: Vec<(&String, &HashMap<String, usize>)> = struct_field_access.iter().collect();
-                sorted_structs.sort_by_key(|a| a.0); // Sort by struct name
+            report_content.push_str(&format!("Found {} explicit trait implementations.\n", trait_implementations_found));
+            report_content.push_str(&format!("Found {} inherent implementations.\n", inherent_impls_found));
+            report_content.push_str("\n--- Enriched Graph Summary ---\n");
+            report_content.push_str(&format!("Total Nodes: {}\n", code_graph.nodes.len()));
+            report_content.push_str(&format!("Total Edges: {}\n", code_graph.edges.len()));
 
-                for (struct_name, field_accesses) in sorted_structs {
-                    report_content.push_str(&format!("Struct: {}\n", struct_name));
-                    let mut sorted_fields: Vec<(&String, &usize)> = field_accesses.iter().collect();
-                    sorted_fields.sort_by(|a, b| b.1.cmp(a.1)); // Sort by count, descending
+            report_content.push_str("\nDetailed Trait Implementations:\n");
+            let mut trait_to_implementors: HashMap<String, Vec<String>> = HashMap::new();
+            let mut type_to_inherent_methods: HashMap<String, Vec<String>> = HashMap::new();
 
-                    for (fields, count) in sorted_fields {
-                        report_content.push_str(&format!("  - Fields '{}': {} accesses\n", fields, count));
+            for edge in &code_graph.edges {
+                if edge.edge_type == "Implements" {
+                    let implementor_name = edge.source.strip_prefix("type_").unwrap_or(&edge.source).to_string();
+                    let trait_id = edge.target.clone();
+                    if trait_id.contains("_InherentMethods") {
+                        let type_name = trait_id.strip_prefix("trait_").unwrap_or(&trait_id).strip_suffix("_InherentMethods").unwrap_or(&trait_id).to_string();
+                        // Collect methods for this inherent impl
+                        let methods: Vec<String> = code_graph.edges.iter()
+                            .filter(|e| e.source == trait_id && e.edge_type == "HasMethod")
+                            .map(|e| e.target.strip_prefix(&format!("method_{}_", trait_id)).unwrap_or(&e.target).to_string())
+                            .collect();
+                        type_to_inherent_methods.entry(type_name).or_insert_with(Vec::new).extend(methods);
+                    } else {
+                        let trait_name = trait_id.strip_prefix("trait_").unwrap_or(&trait_id).to_string();
+                        trait_to_implementors.entry(trait_name).or_insert_with(Vec::new).push(implementor_name);
                     }
-                    report_content.push_str("\n");
                 }
+            }
+
+            for (trait_name, implementors) in trait_to_implementors {
+                report_content.push_str(&format!("Trait '{}' implemented by:\n", trait_name));
+                for implementor in implementors {
+                    report_content.push_str(&format!("  - {}\n", implementor));
+                }
+                report_content.push_str("\n");
+            }
+
+            for (type_name, methods) in type_to_inherent_methods {
+                report_content.push_str(&format!("Type '{}' has inherent methods:\n", type_name));
+                for method in methods {
+                    report_content.push_str(&format!("  - {}\n", method));
+                }
+                report_content.push_str("\n");
             }
         },
         _ => {
             report_content.push_str(&format!("Error: Unknown query type '{}'\n", args.query_type));
         }
-    }
+    } // Closing brace for match statement
 
     fs::create_dir_all(args.output_path.parent().unwrap())
         .context(format!("Failed to create parent directory for query report: {}", args.output_path.display()))?;
@@ -219,4 +386,4 @@ fn main() -> Result<()> {
     println!("Query report successfully written to {}", args.output_path.display());
 
     Ok(())
-}
+} // Closing brace for main function
