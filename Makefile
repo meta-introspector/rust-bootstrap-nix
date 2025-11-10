@@ -72,6 +72,29 @@ clean-rustc-test-flakes:
 		echo "Cleaned flakes/$$version"; \
 	done
 
+# --- Targets for Code Graph Analysis and Command Trait Generation ---
+
+RUST_SYSTEM_COMPOSER_BIN = $(CURDIR)/target/debug/rust-system-composer
+RUST_SYSTEM_COMPOSER_CONFIG = $(CURDIR)/rust-system-composer/config.toml
+CODE_GRAPH_OUTPUT_PATH = $(CURDIR)/rust-system-composer/.gemini/generated/code_graph.json
+COMMAND_REPORT_OUTPUT_PATH = $(CURDIR)/rust-system-composer/.gemini/generated/command_usage_report.txt
+
+.PHONY: generate-command-usage-report build-rust-system-composer
+
+build-rust-system-composer:
+	@echo "Building rust-system-composer..."
+	nix develop --command bash -c "cargo build --package rust-system-composer"
+
+generate-command-usage-report: build-rust-system-composer
+	@echo "Generating CodeGraph and Command Usage Report using rust-system-composer..."
+	@mkdir -p $(dir $(CODE_GRAPH_OUTPUT_PATH))
+	@$(RUST_SYSTEM_COMPOSER_BIN) \
+		--config-file $(RUST_SYSTEM_COMPOSER_CONFIG) \
+		layered-compose \
+		--code-graph-output-path $(CODE_GRAPH_OUTPUT_PATH) \
+		--command-report-output-path $(COMMAND_REPORT_OUTPUT_PATH)
+	@echo "Command Usage Report generated at $(COMMAND_REPORT_OUTPUT_PATH)"
+
 shear-all:
 	@echo "Running cargo shear on all packages via Makefile.shear..."
 	$(MAKE) -f Makefile.shear shear-all

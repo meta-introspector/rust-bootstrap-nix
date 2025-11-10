@@ -90,6 +90,30 @@ For more detailed information on specific aspects of the project, please refer t
 
 ## Command Object Usage Reporting
 
+To facilitate the refactoring of external command execution (currently relying on `std::process::Command`) towards static Rust trait implementations, a new reporting feature has been introduced. This report identifies all instances where the `Command` object is used within the analyzed codebase.
+
+### How to Use
+
+To generate the `Command` object usage report, simply run the following Makefile target from the project root:
+
+```bash
+make generate-command-usage-report
+```
+
+The report will be generated at `rust-system-composer/.gemini/generated/command_usage_report.txt`.
+
+### Report Content
+
+The generated report will list:
+- Node ID: The identifier of the node in the code graph where `Command` usage was found.
+- Expression: The full expression string where `Command` was used.
+- Program Called: The name of the program being called (extracted using a heuristic).
+- Classification: A heuristic classification of whether the program is "Local" or "External".
+
+This report is a crucial step towards identifying and systematically replacing `std::process::Command` calls with more controlled and statically verifiable trait-based program invocations.
+
+## Command Object Usage Reporting
+
 To facilitate the refactoring of external command execution (currently relying on `std::process::Command`) towards static Rust trait implementations, a new reporting feature has been introduced in `rust-system-composer`. This report identifies all instances where the `Command` object is used within the analyzed codebase.
 
 ### How to Use
