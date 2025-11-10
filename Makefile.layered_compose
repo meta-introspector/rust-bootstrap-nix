@@ -1,0 +1,12 @@
+.PHONY: layered-compose-dry-run
+
+layered-compose-dry-run:
+	cargo run -p rust-system-composer -- \
+		--config-file $(CURDIR)/config.toml \
+		layered-compose \
+		--output-analysis-data-json $(CURDIR)/.gemini/generated/analysis_data.json \
+		--code-graph-output-path $(CURDIR)/.gemini/generated/code_graph.json \
+		--command-report-output-path $(CURDIR)/.gemini/generated/command_report.json \
+		--topological-sort-output-path $(CURDIR)/.gemini/generated/topological_sort.json \
+		--per-file-report-dir $(CURDIR)/.gemini/generated/per_file_reports \
+		--dry-run

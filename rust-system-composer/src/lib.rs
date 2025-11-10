@@ -1,5 +1,3 @@
-// rust-system-composer/src/lib.rs
-
 use anyhow::Context;
 use std::path::PathBuf;
 use tokio::process::Command; // Temporarily keep for cargo metadata/vendor until replaced
@@ -11,7 +9,8 @@ use code_graph_flattener::CodeGraph;
 use clap::Parser; // Add this import
 
 mod cli;
-use cli::{Args, LayeredComposeArgs}; // Add LayeredComposeArgs here
+use cli::{CliArgs}; // Correctly import Commands
+
 
 mod config;
 // use config::Config; // Remove this line
@@ -22,7 +21,9 @@ mod layered_crate_organizer;
 mod system_config;
 use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 
-pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, args: &Args) -> anyhow::Result<()> {
+mod traits; // Add this line
+
+pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -78,7 +79,7 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
             expanded_manifest_path: &expanded_manifest_path,
             project_root: &project_root,
             rustc_info: &rustc_info,
-            verbosity: 3,
+            verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
             package_filter: args.package_filter.clone(), // Pass the package filter here
@@ -92,14 +93,28 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
     Ok(())
 }
 
-pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config, args: &Args, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
+pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
+    println!("Debug: layered_compose_args.dry_run = {}", layered_compose_args.dry_run);
     println!("Running layered composition workflow...");
     println!("Config: {:?}", config);
     println!("Args: {:?}", args);
+    println!("LayeredComposeArgs: {:?}", layered_compose_args);
 
     let project_root = std::env::current_dir()?; // Get the actual project root
     let generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
     let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
+
+    if layered_compose_args.dry_run {
+        println!("DRY RUN: Layered composition workflow will simulate actions without execution.");
+        println!("DRY RUN: Would call prelude-generator::collect_prelude_info to extract constants from: {}", project_root.display());
+        println!("DRY RUN: Would call prelude-generator::type_usage_analyzer::analyze_type_usage for type analysis.");
+        println!("DRY RUN: Would ensure output directory for generated declarations exists: {}", generated_decls_root.display());
+        println!("DRY RUN: Would capture CollectedAnalysisData.");
+        println!("DRY RUN: Would flatten CollectedAnalysisData into a CodeGraph.");
+        println!("DRY RUN: Would serialize and write CodeGraph to: {}", layered_compose_args.code_graph_output_path.clone().unwrap_or_else(|| project_root.join(".gemini").join("generated").join("code_graph.json")).display());
+        println!("DRY RUN: Would organize layered declarations into crates using CollectedAnalysisData.");
+        return Ok(());
+    }
 
     // Call prelude-generator's collect_prelude_info to extract constants...
     println!("Calling prelude-generator::collect_prelude_info to extract constants...");
@@ -107,6 +122,8 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
         path: project_root.clone(), // Search the entire project
         exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
+        verbose: args.verbosity,
+        dry_run: layered_compose_args.dry_run,
         ..Default::default()
     };
 
@@ -133,7 +150,8 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
         output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")),
         output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")),
         exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
-        dry_run: args.dry_run, // Use the dry_run argument from rust-system-composer
+        dry_run: layered_compose_args.dry_run,
+        verbose: args.verbosity,
         ..Default::default()
     };
 
@@ -201,7 +219,7 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     Ok(())
 }
 
-pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Config, args: &Args) -> anyhow::Result<()> {
+pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?.join("standalonex");
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -257,10 +275,10 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
             expanded_manifest_path: &expanded_manifest_path,
             project_root: &project_root,
             rustc_info: &rustc_info,
-            verbosity: 3,
+            verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
-            package_filter: None, // No package filter for standalonex composition
+            package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;
 
@@ -287,7 +305,7 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
     Ok(())
 }
 
-pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, args: &Args) -> anyhow::Result<()> {
+pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     let rustc_project_root = PathBuf::from(&config.rust.rustc_source).join("vendor/rust/rust-bootstrap-nix");
     let metadata_file = rustc_project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = rustc_project_root.join("expanded");
@@ -343,7 +361,7 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
             expanded_manifest_path: &expanded_manifest_path,
             project_root: &rustc_project_root,
             rustc_info: &rustc_info,
-            verbosity: 3,
+            verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
             package_filter: args.package_filter.clone(), // Pass the package filter here
@@ -375,7 +393,7 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
 pub async fn run_update_system_toml_workflow_lib(config: &crate::config::Config, warnings: Option<Vec<String>>) -> anyhow::Result<()> {
     use tokio::fs;
 
-    let args = Args::parse(); // Re-parse args to get generated_declarations_root
+    let args = CliArgs::parse(); // Re-parse args to get generated_declarations_root
 
     let rust_system_composer_root = std::env::current_dir()?;
     let main_project_root = rust_system_composer_root.parent().unwrap(); // Assuming rust-system-composer is directly under the main project root
@@ -481,7 +499,7 @@ pub async fn run_update_system_toml_workflow_lib(config: &crate::config::Config,
     Ok(())
 }
 
-pub async fn run_vendorize_workflow_lib(config: &crate::config::Config, args: &Args) -> anyhow::Result<()> {
+pub async fn run_vendorize_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     use tokio::fs;
 
     let project_path = if let Some(path) = args.project_path.as_ref() {

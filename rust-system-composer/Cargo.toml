@@ -24,4 +24,5 @@ flake-template-generator = { path = "../flake-template-generator" }
 split-expanded-lib = { path = "../split-expanded-lib" }
 expanded-code-collector = { path = "../crates/expanded-code-collector" }
 code-graph-flattener = { path = "../crates/code-graph-flattener" }
+async-trait = "0.1"
 

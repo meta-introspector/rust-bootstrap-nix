@@ -891,6 +891,7 @@ name = "rust-system-composer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "cargo-flake-generator",
  "clap",
  "code-graph-flattener",

@@ -8,6 +8,9 @@ use walkdir::WalkDir;
 use prelude_generator::types::CollectedAnalysisData;
 use code_graph_flattener::CodeGraph;
 
+mod cli;
+use cli::{CliArgs, Commands};
+
 mod config;
 use config::Config;
 
@@ -15,15 +18,17 @@ mod layered_crate_organizer;
 mod system_config;
 use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 
-mod cli;
-use cli::{Args, Commands};
+mod traits; // Add this line
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
-
-    let config = Config::load_from_file(&args.config_file)
-        .context(format!("Failed to load configuration from {}", args.config_file.display()))?;
+    let args = CliArgs::parse();
+    let config = Config::load_from_file(
+        args.config_file
+            .as_ref()
+            .context("Config file path is required")?
+    )
+        .context(format!("Failed to load configuration from {}", args.config_file.as_ref().unwrap().display()))?;
 
     match &args.command {
         Commands::SelfCompose {} => {
@@ -50,6 +55,11 @@ async fn main() -> anyhow::Result<()> {
             println!("Running layered composition workflow...");
             run_layered_composition_workflow(&config, &args, layered_compose_args).await?;
         }
+        Commands::CommandReport { .. } => {
+            println!("Command report workflow not yet implemented.");
+            // This command is handled by the layered-compose workflow, which calls code-graph-query-tool
+            // This arm is just to satisfy the non-exhaustive patterns error.
+        }
     }
 
     Ok(())
@@ -58,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
 async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<String>>) -> anyhow::Result<()> {
     use tokio::fs;
 
-    let args = Args::parse(); // Re-parse args to get generated_declarations_root
+    let args = CliArgs::parse(); // Re-parse args to get generated_declarations_root
 
     let rust_system_composer_root = std::env::current_dir()?;
     let main_project_root = rust_system_composer_root.parent().unwrap(); // Assuming rust-system-composer is directly under the main project root
@@ -164,7 +174,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     Ok(())
 }
 
-async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -234,7 +244,7 @@ async fn run_self_composition_workflow(config: &Config, args: &Args) -> anyhow::
     Ok(())
 }
 
-async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
+async fn run_layered_composition_workflow(config: &Config, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
     println!("Running layered composition workflow...");
     println!("Config: {:?}", config);
     println!("Args: {:?}", args);
@@ -249,6 +259,9 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_
     let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
         path: project_root.clone(), // Search the entire project
         exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
+        verbose: args.verbosity,
+        dry_run: layered_compose_args.dry_run,
+        config_file_path: args.config_file.clone(), // Pass the config file path
         ..Default::default()
     };
 
@@ -275,7 +288,9 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_
         output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")), // Output to configurable generated root
         output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")), // Ensure TOML output is enabled
         exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
-        dry_run: args.dry_run, // Use the dry_run argument from rust-system-composer
+        dry_run: layered_compose_args.dry_run,
+        verbose: args.verbosity,
+        config_file_path: args.config_file.clone(), // Pass the config file path
         ..Default::default()
     };
 
@@ -286,18 +301,17 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_
     // println!("Successfully obtained CollectedAnalysisData directly: {:?}", collected_analysis_data);
     // println!("Debug: collected_analysis_data before flattening: {:?}", collected_analysis_data);
 
-    // Save CollectedAnalysisData to JSON if path is provided
-    if let Some(json_output_path) = &layered_compose_args.output_analysis_data_json {
-        let json_content = serde_json::to_string_pretty(&collected_analysis_data)
-            .context("Failed to serialize CollectedAnalysisData to JSON")?;
-        tokio::fs::create_dir_all(json_output_path.parent().unwrap())
-            .await
-            .context(format!("Failed to create directory for CollectedAnalysisData output: {}", json_output_path.display()))?;
-        tokio::fs::write(json_output_path, json_content)
-            .await
-            .context(format!("Failed to write CollectedAnalysisData to {}", json_output_path.display()))?;
-        println!("CollectedAnalysisData successfully written to {}", json_output_path.display());
-    }
+    // Save CollectedAnalysisData to JSON
+    let json_output_path = &layered_compose_args.output_analysis_data_json;
+    let json_content = serde_json::to_string_pretty(&collected_analysis_data)
+        .context("Failed to serialize CollectedAnalysisData to JSON")?;
+    tokio::fs::create_dir_all(json_output_path.parent().unwrap())
+        .await
+        .context(format!("Failed to create directory for CollectedAnalysisData output: {}", json_output_path.display()))?;
+    tokio::fs::write(json_output_path, json_content)
+        .await
+        .context(format!("Failed to write CollectedAnalysisData to {}", json_output_path.display()))?;
+    println!("CollectedAnalysisData successfully written to {}", json_output_path.display());
 
     println!("Flattening CollectedAnalysisData into a CodeGraph...");
     let code_graph = code_graph_flattener::flatten_analysis_data_to_graph(
@@ -392,7 +406,7 @@ async fn run_layered_composition_workflow(config: &Config, args: &Args, layered_
     Ok(())
 }
 
-async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?.join("standalonex");
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -478,7 +492,7 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &Args) -> a
     Ok(())
 }
 
-async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_rustc_composition_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
     let rustc_project_root = PathBuf::from(&config.rust.rustc_source).join("vendor/rust/rust-bootstrap-nix");
     let metadata_file = rustc_project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = rustc_project_root.join("expanded");
@@ -564,7 +578,7 @@ async fn run_rustc_composition_workflow(config: &Config, args: &Args) -> anyhow:
     Ok(())
 }
 
-async fn run_vendorize_workflow(config: &Config, args: &Args) -> anyhow::Result<()> {
+async fn run_vendorize_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
     use tokio::fs;
 
     let project_path = if let Some(path) = args.project_path.as_ref() {

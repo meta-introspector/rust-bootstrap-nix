@@ -85,4 +85,5 @@ exclude_paths = [
     ".gemini/generated",
     "rust-bootstrap-core/",
     "rust-bootstrap-core/src/level_00/src/other_t/minimal-lexical/table_bellerophon.rs",
+    "rust-src/vendor/newlib-src",
 ]

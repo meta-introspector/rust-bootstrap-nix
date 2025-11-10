@@ -24,8 +24,10 @@ pub struct OrganizeLayeredDeclarationsInputs<'a> {
     pub project_root: &'a Path,
     pub verbosity: u8,
     pub compile_flag: bool,
+    #[allow(dead_code)]
     pub canonical_output_root: &'a Path,
     pub top_level_cargo_toml_path: &'a Path,
+    #[allow(dead_code)]
     pub collected_analysis_data: CollectedAnalysisData,
     pub code_graph: CodeGraph, // Add this field
     pub topological_sort_output_path: Option<PathBuf>,

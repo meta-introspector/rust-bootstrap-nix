@@ -1,11 +1,5 @@
 
-//#![feature(prelude_import)]
-//#[macro_use]
-//extern crate std;
-//#[prelude_import]
-//use std::prelude::rust_2021::*;
-
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::collections::HashSet;
 use std::fs;
 use anyhow::{Context, Result};
@@ -22,25 +16,55 @@ use crate::constant_storage::string_constants::write_string_constants_to_hierarc
 use split_expanded_lib::types::DeclarationItem;
 use syn::ItemConst;
 
+// Helper function to canonicalize a single PathBuf
+fn canonicalize_path_buf(path: &Path) -> Result<PathBuf> {
+    path.canonicalize()
+        .with_context(|| format!("Failed to canonicalize path: {}", path.display()))
+}
+
+// Helper function to canonicalize a vector of exclude paths
+fn canonicalize_exclude_paths(
+    exclude_paths: &[PathBuf],
+    project_root: &Path,
+) -> Result<HashSet<PathBuf>> {
+    let mut canonicalized_set = HashSet::new();
+    for path in exclude_paths {
+        let absolute_path = if path.is_absolute() {
+            path.clone()
+        } else {
+            project_root.join(path)
+        };
+        canonicalized_set.insert(canonicalize_path_buf(&absolute_path)?);
+    }
+    Ok(canonicalized_set)
+}
+
 pub async fn collect_prelude_info(
     workspace_path: &Path,
     args: &crate::Args, // Add args here
 ) -> Result<Vec<CollectedPreludeInfo>> {
+    println!("Debug: collect_prelude_info received dry_run = {}", args.dry_run);
+    // Canonicalize workspace_path
+    let canonical_workspace_path = canonicalize_path_buf(workspace_path)?;
+
     let rustc_info = get_rustc_info()?;
     let split_expanded_rustc_info = SplitExpandedRustcInfo {
         version: rustc_info.version,
         host: rustc_info.host,
     };
-    let cache_dir = workspace_path.join(".prelude_cache");
+    let cache_dir = canonical_workspace_path.join(".prelude_cache");
     fs::create_dir_all(&cache_dir).context("Failed to create prelude cache directory")?;
 
     let metadata = MetadataCommand::new()
         .no_deps()
-        .current_dir(workspace_path)
+        .current_dir(&canonical_workspace_path)
         .exec()
         .context("Failed to run cargo metadata")?;
 
     let mut collected_info_list = Vec::new();
+
+    // Canonicalize exclude paths once
+    let canonical_exclude_paths = canonicalize_exclude_paths(&args.exclude_paths, &canonical_workspace_path)?;
 
     for package in metadata.packages {
         let mut package_use_statements = HashSet::new();
@@ -55,8 +79,15 @@ pub async fn collect_prelude_info(
             for entry in WalkDir::new(&package_src_dir)
                 .into_iter()
                 .filter_entry(|e| {
-                    // Exclude paths specified in args.exclude_paths
-                    !args.exclude_paths.iter().any(|exclude_path| e.path().starts_with(exclude_path))
+                    // Canonicalize entry path for comparison
+                    if let Ok(canonical_entry_path) = canonicalize_path_buf(e.path()) {
+                        !canonical_exclude_paths.iter().any(|exclude_path| {
+                            canonical_entry_path.starts_with(exclude_path)
+                        })
+                    } else {
+                        // If canonicalization fails, treat as not excluded (or handle error)
+                        true
+                    }
                 })
                 .filter_map(|e| e.ok())
                 .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
@@ -92,7 +123,7 @@ pub async fn collect_prelude_info(
             println!("Generated traits for package {}: {:?}", package.name, generated_traits);
 
             // Determine output directory for generated traits
-            let generated_traits_output_dir = workspace_path.join("generated_traits");
+            let generated_traits_output_dir = canonical_workspace_path.join("generated_traits");
             fs::create_dir_all(&generated_traits_output_dir)
                 .context("Failed to create generated_traits output directory")?;
 
@@ -112,12 +143,12 @@ pub async fn collect_prelude_info(
             }
 
             if !item_consts.is_empty() {
-                let numerical_constants_output_dir = workspace_path.join("generated_numerical_constants");
+                let numerical_constants_output_dir = canonical_workspace_path.join("generated_numerical_constants");
                 fs::create_dir_all(&numerical_constants_output_dir)
                     .context("Failed to create generated_numerical_constants output directory")?;
                 write_numerical_constants_to_hierarchical_structure(&item_consts, &numerical_constants_output_dir).await?;
 
-                let string_constants_output_dir = workspace_path.join("generated_string_constants");
+                let string_constants_output_dir = canonical_workspace_path.join("generated_string_constants");
                 fs::create_dir_all(&string_constants_output_dir)
                     .context("Failed to create generated_string_constants output directory")?;
                 write_string_constants_to_hierarchical_structure(&item_consts, &string_constants_output_dir).await?;

@@ -8,9 +8,9 @@ use regex::Regex;
 use prelude_generator::types::CollectedAnalysisData;
 use std::collections::HashSet;
 
-mod command_implementations;
-mod command_mocks;
-mod generated_command_traits;
+// mod command_implementations;
+// mod command_mocks;
+// mod generated_command_traits;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -196,7 +196,7 @@ fn main() -> Result<()> {
             let mut inherent_impls_found = 0;
 
             for (impl_for_type_str, impl_lattice) in &analysis_data.impl_lattices {
-                let mut implementing_type_name = String::new();
+                let implementing_type_name;
                 let mut implemented_trait_name: Option<String> = None;
                 let mut is_inherent_impl = false;
 
