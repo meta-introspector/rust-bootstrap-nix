@@ -1,9 +1,12 @@
-docs: Add Makefile target and documentation for command usage reporting
+feat: Introduce rust-system-builder for reproducible config.lock generation
 
-This commit introduces a new Makefile target `generate-command-usage-report` to automate the process of generating a report on `std::process::Command` object usages within the project.
+This commit introduces `rust-system-builder`, a new micro-composer responsible for generating reproducible `config.lock` files. This addresses the need for a lightweight and robust mechanism to track input file hashes and the builder's binary hash, ensuring content-addressable caching and build reproducibility.
 
-Additionally, this commit updates the documentation to reflect this new feature:
-- `README.md`: A new section "Command Object Usage Reporting" has been added, explaining how to use the new Makefile target and the content of the generated report.
-- `TODO.md`: A new task has been added to the "Next Steps" section, guiding the user to review the generated report and plan the refactoring of `Command` usages.
+Key changes include:
+- **New `rust-system-builder` crate:** A standalone binary for scanning project inputs, hashing them, and hashing itself to produce a `config.lock`.
+- **Updated `Makefile`:** Added a `generate-prelude-lock` target to simplify `config.lock` generation for `prelude-generator` using `rust-system-builder`.
+- **Updated `README.md`:** Added a new section detailing `rust-system-builder`'s purpose and updated the "Phase I" section to reflect its role in establishing `config.lock` generation.
+- **Updated `rust-system-composer`:** Fixed compilation errors related to `config.lock` and `StageOrchestrator` refactoring, preparing it for integration with `rust-system-builder`.
+- **New/Updated Tasks:** Created `00_04_integrate_rust_system_builder_into_composer.toml` and updated `00_03_implement_processing_hashes_and_zkp_vision.toml` to reflect progress and next steps.
 
-These changes facilitate the systematic identification and replacement of external command executions with static Rust trait implementations, supporting the project's self-hosting bootstrap goals.
+This is a foundational step towards a more robust and verifiable layered analysis workflow.

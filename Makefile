@@ -167,3 +167,14 @@ generate-single-workspace:
 		--split-expanded-rustc-host aarch64-unknown-linux-gnu \
 		--verbose 0 \
 		--split-expanded-output-global-toml $(GLOBAL_TOML_OUTPUT)"
+
+.PHONY: generate-prelude-lock
+generate-prelude-lock:
+	@echo "Generating config.lock for prelude-generator..."
+	@mkdir -p prelude-generator/.gemini/generated
+	timeout 30s cargo run -p rust-system-builder -- \
+		--config-file $(CURDIR)/config.toml \
+		--project-root $(CURDIR)/prelude-generator \
+		--config-lock-path $(CURDIR)/prelude-generator/.gemini/generated/config.lock \
+		> $(CURDIR)/.logs/prelude_generator_lock_generation.log 2>&1
+	@echo "Lock generation attempt finished. Check $(CURDIR)/.logs/prelude_generator_lock_generation.log for details."

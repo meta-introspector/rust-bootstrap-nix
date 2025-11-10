@@ -1,0 +1,36 @@
+# Task: Integrate rust-system-builder for config.lock generation in rust-system-composer
+# CRQ: [To be assigned]
+
+[task_info]
+id = "00_04_integrate_rust_system_builder_into_composer"
+name = "Integrate rust-system-builder for config.lock generation"
+description = """
+Replace the current `config.lock` generation logic within `rust-system-composer`'s
+`StageOrchestrator` and `PreludeInfoCollectionStage` with a call to the standalone
+`rust-system-builder` binary.
+
+This involves:
+1.  **Modifying `StageOrchestrator`:** Update `StageOrchestrator::run_stages` to invoke
+    `rust-system-builder` when `generate_lock_only` is true, passing the necessary
+    arguments (`--config-file`, `--project-root`, `--config-lock-path`).
+2.  **Removing Redundant Logic:** Remove the `config.lock` related logic from
+    `rust-system-composer/src/config_lock.rs` (or adapt it to load the lock generated
+    by `rust-system-builder`).
+3.  **Updating `PreludeInfoCollectionStage`:** Ensure `PreludeInfoCollectionStage::run`
+    no longer attempts to generate the lock file itself when `generate_lock_only` is true.
+4.  **Error Handling:** Implement robust error handling for the `rust-system-builder` invocation.
+"""
+status = "pending"
+priority = "high"
+assigned_to = "Gemini"
+created_at = "2025-11-10T00:00:00Z" # Placeholder, will be updated with actual date
+updated_at = "2025-11-10T00:00:00Z" # Placeholder, will be updated with actual date
+
+[dependencies]
+- "00_03_implement_processing_hashes_and_zkp_vision" # Specifically, the `rust-system-builder` part.
+
+[acceptance_criteria]
+- `rust-system-composer` can successfully generate a `config.lock` file by invoking `rust-system-builder`.
+- The generated `config.lock` contains input file hashes and the `rust-system-builder` binary hash.
+- `rust-system-composer`'s internal `config.lock` generation logic is removed or adapted.
+- The `generate_lock_only` flag in `rust-system-composer` correctly triggers the `rust-system-builder` invocation.

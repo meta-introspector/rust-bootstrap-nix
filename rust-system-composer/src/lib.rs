@@ -9,7 +9,7 @@ use code_graph_flattener::CodeGraph;
 use clap::Parser;
 use cli::{CliArgs};
 use serde::{Serialize, Deserialize}; // Added for caching
-use chrono::{DateTime, Utc}; // Added for timestamps in ConfigLock
+use chrono::Utc; // Added for timestamps in ConfigLock
 use sha2::{Sha256, Digest}; // Added for hashing config.toml
 
 mod cli;
@@ -20,6 +20,7 @@ use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 mod traits;
 mod config_lock; // Import the new module
 use config_lock::{ConfigLock, StageLock, StageStatus}; // Import the structs
+mod stages; // Declare the stages module
 
 // Generic function to load data from a cache file
 async fn load_from_cache<T: for<'de> Deserialize<'de>>(cache_path: &PathBuf) -> anyhow::Result<Option<T>> {
@@ -76,6 +77,7 @@ fn create_stage_lock(
     // Add other relevant parameters as needed
 
     StageLock {
+        name: stage_name.to_string(), // Initialize the name field
         status,
         input_hashes: HashMap::new(),
         output_hashes: HashMap::new(),
@@ -157,6 +159,8 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
     Ok(())
 }
 
+use stages::orchestrator::StageOrchestrator; // Import StageOrchestrator
+
 pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
     println!("Debug: layered_compose_args.dry_run = {}", layered_compose_args.dry_run);
     println!("Running layered composition workflow...");
@@ -174,19 +178,19 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     println!("-------------------------------------------\n");
 
     let project_root = std::env::current_dir()?; // Get the actual project root
-    let generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
-    let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
+    let _generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
+    let _exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
 
     // Define cache directories for intermediate results
-    let cache_dir = project_root.join(".gemini").join("cache").join("layered_compose");
-    tokio::fs::create_dir_all(&cache_dir).await.context("Failed to create layered_compose cache directory")?;
+    let _cache_dir = project_root.join(".gemini").join("cache").join("layered_compose");
+    tokio::fs::create_dir_all(&_cache_dir).await.context("Failed to create layered_compose cache directory")?;
 
-    let collected_analysis_data_cache_path = cache_dir.join("collected_analysis_data.json");
-    let code_graph_cache_path = cache_dir.join("code_graph.json");
-    let layered_crate_organizer_summaries_cache_path = cache_dir.join("layered_crate_organizer_summaries.json");
-    let command_report_cache_path = cache_dir.join("command_report.json");
+    let _collected_analysis_data_cache_path = _cache_dir.join("collected_analysis_data.json");
+    let _code_graph_cache_path = _cache_dir.join("code_graph.json");
+    let _layered_crate_organizer_summaries_cache_path = _cache_dir.join("layered_crate_organizer_summaries.json");
+    let _command_report_cache_path = _cache_dir.join("command_report.json");
 
-    if layered_compose_args.dry_run {
+    if layered_compose_args.dry_run && !layered_compose_args.generate_lock_only {
         println!("DRY RUN: Layered composition workflow will simulate actions without execution.");
         // The detailed DRY RUN messages for each stage will now be handled by their respective conditional blocks.
         return Ok(());
@@ -210,319 +214,20 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     config_lock.config_toml_hash = config_toml_hash;
     config_lock.generated_at = Utc::now();
 
-    // Prelude Info Collection Stage
-    let prelude_info_stage_name = "prelude_info_collection";
-    let mut prelude_info_stage_lock = create_stage_lock(
-        prelude_info_stage_name,
+    let orchestrator = StageOrchestrator::new();
+    orchestrator.run_stages(
+        &project_root,
+        config,
+        args, // Pass cli_args
         layered_compose_args,
-        StageStatus::Pending,
-    );
+        &mut config_lock,
+    )?;
 
-    if layered_compose_args.skip_prelude_info {
-        println!("Skipping prelude info collection stage.");
-        prelude_info_stage_lock.status = StageStatus::Skipped;
-    } else {
-        println!("Calling prelude-generator::collect_prelude_info to extract constants...");
+    // Save the updated ConfigLock
+    config_lock.save(&config_lock_path).await?;
+    println!("ConfigLock saved to: {:?}", config_lock_path);
 
-        let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
-            path: project_root.clone(), // Search the entire project
-            exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
-            verbose: args.verbosity,
-            dry_run: layered_compose_args.dry_run,
-            ..Default::default()
-        };
-
-        // TODO: Add input hashes for prelude_info_collection stage (e.g., source files)
-
-        match prelude_generator::collect_prelude_info::collect_prelude_info(
-            &project_root, // Pass project root as workspace_path
-            &prelude_generator_args_for_collect_prelude, // Pass the args with exclusion
-        ).await {
-            Ok(_) => {
-                println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
-                prelude_info_stage_lock.status = StageStatus::Executed;
-                // TODO: Add output hashes for prelude_info_collection stage (e.g., generated traits/constants)
-            }
-            Err(e) => {
-                eprintln!("Error in prelude info collection: {:?}", e);
-                prelude_info_stage_lock.status = StageStatus::Failed;
-                return Err(e);
-            }
-        }
-    }
-    config_lock.stages.insert(prelude_info_stage_name.to_string(), prelude_info_stage_lock);
-
-    // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
-    println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
-
-    // Ensure the output directory for generated declarations exists
-    tokio::fs::create_dir_all(&generated_decls_root)
-        .await
-        .context(format!("Failed to create generated declarations root directory: {}", generated_decls_root.display()))?;
-
-    let collected_analysis_data: CollectedAnalysisData;
-    if layered_compose_args.skip_type_analysis {
-        println!("Skipping type analysis stage.");
-        collected_analysis_data = CollectedAnalysisData::default(); // Provide a default or empty instance
-    } else {
-        if !layered_compose_args.force_type_analysis {
-            if let Some(cached_data) = load_from_cache(&collected_analysis_data_cache_path).await? {
-                println!("Loaded CollectedAnalysisData from cache: {}", collected_analysis_data_cache_path.display());
-                collected_analysis_data = cached_data;
-            } else {
-                println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
-                let type_analysis_args = prelude_generator::Args {
-                    path: project_root.clone(), // Search the entire project
-                    analyze_type_usage: true,
-                    max_expression_depth: Some(8), // Hardcode for now, or make configurable
-                    output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")),
-                    output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")),
-                    exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
-                    dry_run: layered_compose_args.dry_run,
-                    verbose: args.verbosity,
-                    ..Default::default()
-                };
-
-                let data = prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
-                println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
-                if !layered_compose_args.dry_run {
-                    save_to_cache(&collected_analysis_data_cache_path, &data).await?;
-                }
-                collected_analysis_data = data;
-            }
-        } else {
-            println!("Force re-running prelude-generator::type_usage_analyzer::analyze_type_usage...");
-            let type_analysis_args = prelude_generator::Args {
-                path: project_root.clone(), // Search the entire project
-                analyze_type_usage: true,
-                max_expression_depth: Some(8), // Hardcode for now, or make configurable
-                output_type_usage_report: Some(generated_decls_root.join("type_usage_report.toml")),
-                output_toml_report: Some(generated_decls_root.join("type_usage_report.toml")),
-                exclude_paths: exclude_paths.clone(), // Use configurable exclusion paths
-                dry_run: layered_compose_args.dry_run,
-                verbose: args.verbosity,
-                ..Default::default()
-            };
-
-            let data = prelude_generator::type_usage_analyzer::analyze_type_usage(&type_analysis_args).await?;
-            println!("prelude-generator::type_usage_analyzer::analyze_type_usage completed successfully.");
-            if !layered_compose_args.dry_run {
-                save_to_cache(&collected_analysis_data_cache_path, &data).await?;
-            }
-            collected_analysis_data = data;
-        }
-    }
-
-    let code_graph: CodeGraph;
-    if layered_compose_args.skip_graph_flattening {
-        println!("Skipping code graph flattening stage.");
-        code_graph = CodeGraph::default(); // Provide a default or empty instance
-    } else {
-        if !layered_compose_args.force_graph_flattening {
-            if let Some(cached_graph) = load_from_cache(&code_graph_cache_path).await? {
-                println!("Loaded CodeGraph from cache: {}", code_graph_cache_path.display());
-                code_graph = cached_graph;
-            } else {
-                println!("Flattening CollectedAnalysisData into a CodeGraph...");
-                let graph = code_graph_flattener::flatten_analysis_data_to_graph(
-                    collected_analysis_data.clone()
-                ).context("Failed to flatten analysis data into a code graph")?;
-
-                println!("Successfully flattened CollectedAnalysisData into a CodeGraph with {} nodes and {} edges.",
-                         graph.nodes.len(), graph.edges.len());
-
-                if !layered_compose_args.dry_run {
-                    save_to_cache(&code_graph_cache_path, &graph).await?;
-                }
-                code_graph = graph;
-            }
-        } else {
-            println!("Force re-running code graph flattening...");
-            let graph = code_graph_flattener::flatten_analysis_data_to_graph(
-                collected_analysis_data.clone()
-            ).context("Failed to flatten analysis data into a code graph")?;
-
-            println!("Successfully flattened CollectedAnalysisData into a CodeGraph with {} nodes and {} edges.",
-                     graph.nodes.len(), graph.edges.len());
-
-            if !layered_compose_args.dry_run {
-                save_to_cache(&code_graph_cache_path, &graph).await?;
-            }
-            code_graph = graph;
-        }
-    }
-
-    // Determine CodeGraph output path and serialize (always write if not dry run, for external tools)
-    let code_graph_output_path = layered_compose_args.code_graph_output_path.clone().unwrap_or_else(|| {
-        let default_path = project_root.join(".gemini").join("generated").join("code_graph.json");
-        println!("No --code-graph-output-path provided, using default: {}", default_path.display());
-        default_path
-    });
-
-    if layered_compose_args.dry_run {
-        println!("DRY RUN: Would write CodeGraph to {}", code_graph_output_path.display());
-    } else {
-        let serialized_graph = serde_json::to_string_pretty(&code_graph)
-            .context("Failed to serialize CodeGraph to JSON")?;
-        tokio::fs::create_dir_all(code_graph_output_path.parent().unwrap())
-            .await
-            .context(format!("Failed to create directory for CodeGraph output: {}", code_graph_output_path.display()))?;
-        tokio::fs::write(&code_graph_output_path, serialized_graph)
-            .await
-            .context(format!("Failed to write CodeGraph to {}", code_graph_output_path.display()))?;
-        println!("CodeGraph successfully written to {}", code_graph_output_path.display());
-    }
-
-    let summaries: Vec<layered_crate_organizer::CrateProcessingSummary>;
-    if layered_compose_args.skip_crate_organizer {
-        println!("Skipping layered crate organizer stage.");
-        summaries = Vec::new(); // Provide a default or empty instance
-    } else {
-        if !layered_compose_args.force_crate_organizer {
-            if let Some(cached_summaries) = load_from_cache(&layered_crate_organizer_summaries_cache_path).await? {
-                println!("Loaded Layered Crate Organizer summaries from cache: {}", layered_crate_organizer_summaries_cache_path.display());
-                summaries = cached_summaries;
-            } else {
-                println!("Organizing layered declarations into crates using CollectedAnalysisData...");
-                let top_level_cargo_toml_path = project_root.join("Cargo.toml");
-                let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
-                    project_root: &project_root,
-                    verbosity: args.verbosity,
-                    compile_flag: args.compile,
-                    canonical_output_root: &generated_decls_root, // Use configurable generated root
-                    top_level_cargo_toml_path: &top_level_cargo_toml_path,
-                    collected_analysis_data, // Pass the collected analysis data
-                    code_graph, // Pass the code graph
-                    topological_sort_output_path: layered_compose_args.topological_sort_output_path.clone(),
-                    per_file_report_dir: layered_compose_args.per_file_report_dir.clone(),
-                };
-                let s = layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
-                if !layered_compose_args.dry_run {
-                    save_to_cache(&layered_crate_organizer_summaries_cache_path, &s).await?;
-                }
-                summaries = s;
-            }
-        } else {
-            println!("Force re-running layered crate organizer stage.");
-            println!("Organizing layered declarations into crates using CollectedAnalysisData...");
-            let top_level_cargo_toml_path = project_root.join("Cargo.toml");
-            let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
-                project_root: &project_root,
-                verbosity: args.verbosity,
-                compile_flag: args.compile,
-                canonical_output_root: &generated_decls_root, // Use configurable generated root
-                top_level_cargo_toml_path: &top_level_cargo_toml_path,
-                collected_analysis_data, // Pass the collected analysis data
-                code_graph, // Pass the code graph
-                topological_sort_output_path: layered_compose_args.topological_sort_output_path.clone(),
-                per_file_report_dir: layered_compose_args.per_file_report_dir.clone(),
-            };
-            let s = layered_crate_organizer::organize_layered_declarations(organize_inputs).await?;
-            if !layered_compose_args.dry_run {
-                save_to_cache(&layered_crate_organizer_summaries_cache_path, &s).await?;
-            }
-            summaries = s;
-        }
-    }
-
-    println!("\n--- Layered Composition Summary ---");
-    for summary in summaries {
-        print!("Crate: {}, Status: {}", summary.crate_name, summary.status);
-        if let Some(report_file) = summary.report_file {
-            print!(", Report: {}", report_file.display());
-        }
-        if let Some(error_message) = summary.error_message {
-            print!(", Error: {}", error_message);
-        }
-        println!();
-    }
-    println!("-----------------------------------\n");
-
-    // Command Report Generation Stage
-    let command_report_output_path = layered_compose_args.command_report_output_path.clone().unwrap_or_else(|| {
-        let default_path = project_root.join(".gemini").join("generated").join("command_report.json");
-        println!("No --command-report-output-path provided, using default: {}", default_path.display());
-        default_path
-    });
-
-    let command_report_content: String;
-    if layered_compose_args.skip_command_report {
-        println!("Skipping command report generation stage.");
-        command_report_content = String::new(); // Provide a default or empty instance
-    } else {
-        if !layered_compose_args.force_command_report {
-            if let Some(cached_report) = load_from_cache(&command_report_cache_path).await? {
-                println!("Loaded command report from cache: {}", command_report_cache_path.display());
-                command_report_content = cached_report;
-            } else {
-                println!("Calling code-graph-query-tool to generate Command object usage report...");
-                let output = Command::new("cargo") // Assuming cargo is in PATH
-                    .arg("run")
-                    .arg("-p")
-                    .arg("code-graph-query-tool")
-                    .arg("--")
-                    .arg("--code-graph-path")
-                    .arg(&code_graph_output_path) // Use the path where CodeGraph was saved
-                    .output()
-                    .await
-                    .context("Failed to execute code-graph-query-tool")?;
-
-                if output.status.success() {
-                    command_report_content = String::from_utf8_lossy(&output.stdout).to_string();
-                    println!("Command report generated successfully.");
-                    if !layered_compose_args.dry_run {
-                        save_to_cache(&command_report_cache_path, &command_report_content).await?;
-                    }
-                } else {
-                    eprintln!("code-graph-query-tool failed.");
-                    eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-                    eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-                    return Err(anyhow::anyhow!("code-graph-query-tool failed"));
-                }
-            }
-        } else {
-            println!("Force re-running command report generation stage.");
-            println!("Calling code-graph-query-tool to generate Command object usage report...");
-            let output = Command::new("cargo") // Assuming cargo is in PATH
-                .arg("run")
-                .arg("-p")
-                .arg("code-graph-query-tool")
-                .arg("--")
-                .arg("--code-graph-path")
-                .arg(&code_graph_output_path) // Use the path where CodeGraph was saved
-                .output()
-                .await
-                .context("Failed to execute code-graph-query-tool")?;
-
-            if output.status.success() {
-                command_report_content = String::from_utf8_lossy(&output.stdout).to_string();
-                println!("Command report generated successfully.");
-                if !layered_compose_args.dry_run {
-                    save_to_cache(&command_report_cache_path, &command_report_content).await?;
-                }
-            } else {
-                eprintln!("code-graph-query-tool failed.");
-                eprintln!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-                eprintln!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-                return Err(anyhow::anyhow!("code-graph-query-tool failed"));
-            }
-        }
-    }
-
-    let command_report_write_result = if layered_compose_args.dry_run {
-        println!("DRY RUN: Would write command report to {}", command_report_output_path.display());
-        Ok(())
-    } else {
-        tokio::fs::create_dir_all(command_report_output_path.parent().unwrap())
-            .await
-            .context(format!("Failed to create directory for command report output: {}", command_report_output_path.display()))?;
-        tokio::fs::write(&command_report_output_path, &command_report_content)
-            .await
-            .context(format!("Failed to write command report to {}", command_report_output_path.display()))?;
-        println!("Command report successfully written to {}", command_report_output_path.display());
-        Ok(())
-    };
-    command_report_write_result // Propagate any errors from the block
+    Ok(())
 }
 
 pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {

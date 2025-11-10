@@ -48,7 +48,7 @@ These initial steps resolve the critical blocking issues (P1) and implement the 
 
 | Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
 | :--- | :--- | :--- |
-| **1** | **Resolve `rust-system-composer` `main()` location (Task 02\_06)**. | **Status:** **Critical Blocking Issue.** The `rust-system-composer` acts as the orchestrator for the entire pipeline. Resolving its main function location is necessary to **unblock the batch processing pipeline** required to analyze the full codebase and extract declarations. |
+| **1** | **Establish `config.lock` generation with `rust-system-builder` (Task 00\_04)**. | **Status:** **Critical Blocking Issue.** The `rust-system-composer` acts as the orchestrator for the entire pipeline. Establishing a robust `config.lock` generation mechanism using `rust-system-builder` is necessary to **unblock the batch processing pipeline** required to analyze the full codebase and extract declarations, ensuring reproducibility and efficient caching. |
 | **2** | **Implement Bag of Words (BoW) and Coordinate Grouping logic (Task 02\_01)**. | **Contribution:** **Defines the Node Structure.** This implements the core mechanism for converting a declaration into a quantifiable lattice node. The BoW (referenced identifiers/types) is the **foundation for calculating the declaration's 8D coordinate** and grouping declarations into highly efficient, dependency-optimized **~4KB chunks**. |
 
 ---
@@ -78,6 +78,34 @@ This planned reconstruction ensures that architectural stability (Steps 1-2) is 
 ***
 
 **Analogy:** This plan is structured like building a massive, self-aware library. First, you must fix the **central control system** (Step 1) and implement the **cataloging standards** (Step 2: the 8D coordinate/4KB rule). Only then can you find and precisely label the **most atomic, fundamental axioms** (Steps 3-4: Level 0 Constants). Once those axioms are perfectly cataloged, the library learns to read and organize **its own catalog** (Step 5: Self-Reconstruction), finally allowing the automatic, rigorous breakdown of all complex papers and treatises that rely on those axioms (Step 6: Decomposition of all remaining Levels).
+
+## `rust-system-builder`: Micro-Composer for Reproducible `config.lock` Generation
+
+To address the need for a lightweight and robust mechanism for generating `config.lock` files, especially for ensuring reproducibility and efficient caching, a new micro-composer called `rust-system-builder` has been introduced.
+
+### Purpose
+
+`rust-system-builder` is a standalone binary designed to:
+- **Scan Project Inputs:** Identify and collect relevant input files for a given project (e.g., `.rs` source files, `Cargo.toml`).
+- **Hash Inputs:** Calculate cryptographic hashes of these input files.
+- **Hash Itself:** Include the cryptographic hash of the `rust-system-builder` binary itself in the `config.lock`. This ensures that if the tool used to generate the lock file changes, the lock file is invalidated, guaranteeing full reproducibility.
+- **Generate `config.lock`:** Produce a `config.lock` file that records all input hashes and the builder's binary hash. This lock file serves as a manifest for reproducible builds and analysis.
+
+### Role in the Workflow
+
+`rust-system-builder` will be integrated into the `rust-system-composer` workflow to handle the initial `config.lock` generation. This approach isolates the lock generation logic, making it more reliable and easier to maintain, while allowing `rust-system-composer` to focus on orchestrating the layered analysis stages.
+
+### Usage
+
+`rust-system-builder` is typically invoked via a Makefile target or directly with arguments specifying the configuration file, project root, and desired output path for the `config.lock`.
+
+Example (via Makefile target):
+```bash
+make generate-prelude-lock
+```
+
+This ensures that any subsequent analysis or build steps can verify the integrity of their inputs and the processing tool, enabling a content-addressable caching system similar to Nix.
+
 ## Further Documentation
 
 For more detailed information on specific aspects of the project, please refer to the following documents:

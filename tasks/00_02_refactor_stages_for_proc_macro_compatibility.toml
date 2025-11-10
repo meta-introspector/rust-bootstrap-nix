@@ -1,0 +1,49 @@
+# tasks/00_02_refactor_stages_for_proc_macro_compatibility.toml
+#
+# This task addresses the compilation errors related to `proc_macro` types
+# and `async_trait`'s `Send` bounds when integrating `prelude-generator`
+# into the new `Stage` trait.
+
+[task]
+name = "Refactor Stages for Proc-Macro Compatibility"
+description = """
+Refactor the `Stage` trait and its implementations, specifically `PreludeInfoCollectionStage`,
+to correctly handle `proc_macro` types (e.g., `proc_macro::Span`, `proc_macro::TokenStream`)
+which are not `Send` or `Sync`. This issue arises when `async_trait` imposes `Send` bounds
+on `async fn` methods, and `prelude-generator`'s internal types or return values
+contain these non-`Send` `proc_macro` wrappers.
+
+The immediate solution is to make the `Stage::run` method synchronous and
+use `tokio::task::block_on` to execute the `prelude-generator`'s `async` functions.
+This allows us to proceed with the `StageOrchestrator` development while deferring
+a deeper refactoring of `prelude-generator`'s type system to ensure `Send + Sync`
+compatibility for its outputs.
+
+Long-term, this task will involve:
+1.  Investigating `prelude-generator`'s output types to ensure they are `Send + Sync`.
+2.  Potentially introducing serialization/deserialization steps to convert
+    non-`Send` types into `Send` compatible data structures at the boundary
+    between `prelude-generator` and `rust-system-composer`.
+3.  Re-evaluating the need for `async_trait` on the `Stage` trait's `run` method
+    once `prelude-generator`'s outputs are `Send + Sync`.
+"""
+status = "IN_PROGRESS"
+notes = "Encountered `proc_macro` type `Send` bound errors. Implementing a temporary workaround by making `Stage::run` synchronous and using `tokio::task::block_on`."
+priority = "high"
+assigned_to = "Gemini"
+created_date = "2025-11-10"
+due_date = "2025-11-17"
+tags = ["refactoring", "async", "proc-macro", "type-system", "compiler-stages"]
+dependencies = ["00_01_implement_config_lock_and_layered_analysis.toml"]
+sub_tasks = [
+    "Modify `Stage` trait's `run` method to be synchronous.",
+    "Modify `PreludeInfoCollectionStage::run` to use `tokio::task::block_on` for `prelude-generator` calls.",
+    "Ensure `tokio` is available in `prelude_info_collection.rs`.",
+    "Rebuild `rust-system-composer` and verify compilation.",
+    "Continue with `StageOrchestrator` development."
+]
+related_documents = [
+    "rust-system-composer/src/stages/mod.rs",
+    "rust-system-composer/src/stages/prelude_info_collection.rs",
+    "prelude-generator/src/collect_prelude_info.rs"
+]

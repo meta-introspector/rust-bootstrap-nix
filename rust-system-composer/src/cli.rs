@@ -85,14 +85,12 @@ pub struct LayeredComposeArgs {
     #[arg(long)]
     pub per_file_report_dir: Option<PathBuf>,
 
-    /// Perform a dry run, printing actions without executing them.
     #[arg(long)]
     pub dry_run: bool,
-
-    /// Skip the prelude info collection stage.
+    #[arg(long)]
+    pub generate_lock_only: bool, // New flag
     #[arg(long)]
     pub skip_prelude_info: bool,
-    /// Force re-run the prelude info collection stage, ignoring cache.
     #[arg(long)]
     pub force_prelude_info: bool,
 

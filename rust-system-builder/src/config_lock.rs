@@ -1,9 +1,10 @@
-// rust-system-composer/src/config_lock.rs
-
 use std::collections::HashMap;
-use std::path::PathBuf; // Added for PathBuf in StageLock
+use std::path::{Path, PathBuf};
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
+use anyhow::Result;
+use tokio::fs;
+use sha2::{Sha256, Digest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StageStatus {
@@ -15,7 +16,7 @@ pub enum StageStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageLock {
-    pub name: String, // Added name field
+    pub name: String,
     pub status: StageStatus,
     pub input_hashes: HashMap<String, String>,
     pub output_hashes: HashMap<String, String>,
@@ -30,18 +31,16 @@ pub struct StageLock {
 pub struct ConfigLock {
     pub generated_at: DateTime<Utc>,
     pub config_toml_hash: String,
+    pub builder_binary_hash: String, // New field for the builder binary's hash
     pub stages: HashMap<String, StageLock>,
 }
-
-use anyhow::Result;
-use std::path::Path;
-use tokio::fs;
 
 impl ConfigLock {
     pub fn new() -> Self {
         ConfigLock {
             generated_at: Utc::now(),
             config_toml_hash: String::new(),
+            builder_binary_hash: String::new(), // Initialize new field
             stages: HashMap::new(),
         }
     }
@@ -62,17 +61,17 @@ impl ConfigLock {
     pub fn get_or_create_stage_lock(&mut self, stage_name: &str) -> StageLock {
         self.stages.entry(stage_name.to_string()).or_insert_with(|| {
             StageLock {
-                name: stage_name.to_string(), // Set the name
+                name: stage_name.to_string(),
                 status: StageStatus::Pending,
                 input_hashes: HashMap::new(),
                 output_hashes: HashMap::new(),
-                parameters: HashMap::new(), // Will be populated by the stage itself
+                parameters: HashMap::new(),
                 dependencies: Vec::new(),
                 timestamp: Utc::now(),
                 log_path: None,
                 report_path: None,
             }
-        }).clone() // Clone to return an owned StageLock
+        }).clone()
     }
 
     pub fn update_stage_lock(&mut self, stage_lock: StageLock) {
@@ -85,3 +84,15 @@ impl Default for ConfigLock {
         Self::new()
     }
 }
+
+pub async fn calculate_file_hash(file_path: &Path) -> anyhow::Result<String> {
+    use tokio::io::AsyncReadExt;
+
+    let mut file = tokio::fs::File::open(file_path).await?;
+    let mut hasher = Sha256::new();
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).await?;
+    hasher.update(&buffer);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+    
