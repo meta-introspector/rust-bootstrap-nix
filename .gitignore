@@ -77,7 +77,7 @@ $RECYCLE.BIN/
 
 # -*- mode: gitignore; -*-
 *~
-\#*\#
+#*#
 /.emacs.desktop
 /.emacs.desktop.lock
 *.elc
@@ -202,7 +202,6 @@ prelude-generator/src/lib.rs~
 prelude-generator/src/module_verifier.rs~
 prelude-generator/src/parser.rs~
 prelude-generator/src/pipeline.rs~
-prelude-generator/src/prelude_category_pipeline.rs~
 prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/mod.rs~
 prelude-generator/src/processor.rs~
 prelude-generator/src/type_extractor.rs~
@@ -230,7 +229,6 @@ standalonex/src/bootstrap/src/core/config/debug_info_level.rs~
 standalonex/src/bootstrap/src/core/config/dry_run.rs~
 standalonex/src/bootstrap/src/core/config/mod.rs~
 standalonex/src/bootstrap/src/core/config/stringorbool.rs~
-standalonex/src/bootstrap/src/core/config/subcommand.rs~
 standalonex/src/bootstrap/src/core/config/tomltarget.rs~
 standalonex/src/bootstrap/src/core/config_utils/src/#parse_inner_src.rs#
 standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs~
@@ -289,3 +287,4 @@ vendor
 /prelude-generator/self_rebuild_output.txt
 /standalonex/.shear_processed_bootstrap-config
 /standalonex/.shear_processed_bootstrap-config-types
+temp_test_crate/src/main.rs
