@@ -163,7 +163,7 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         }
     }
 
-    generate_report(&all_expression_info, max_expression_depth, output_path, &all_struct_lattices, &all_enum_lattices, &all_impl_lattices)?;
+    generate_report(&all_expression_info, max_expression_depth, output_path, &all_struct_lattices, &all_enum_lattices, &all_impl_lattices, args.dry_run)?;
 
     let collected_data = CollectedAnalysisData { // Construct CollectedAnalysisData
         expressions: all_expression_info,
@@ -173,19 +173,27 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
     };
 
     if let Some(toml_output_path) = &args.output_toml_report {
-        let toml_content = toml::to_string_pretty(&collected_data)
-            .context("Failed to serialize collected analysis data to TOML")?;
-        fs::write(toml_output_path, toml_content)
-            .context(format!("Failed to write TOML report to {:?}", toml_output_path))?;
-        println!("TOML report saved to {:?}", toml_output_path);
+        if args.dry_run {
+            println!("DRY RUN: Would write TOML report to {:?}", toml_output_path);
+        } else {
+            let toml_content = toml::to_string_pretty(&collected_data)
+                .context("Failed to serialize collected analysis data to TOML")?;
+            fs::write(toml_output_path, toml_content)
+                .context(format!("Failed to write TOML report to {:?}", toml_output_path))?;
+            println!("TOML report saved to {:?}", toml_output_path);
+        }
     }
 
     if let Some(json_output_path) = &args.output_analysis_data_json {
-        let json_content = serde_json::to_string_pretty(&collected_data)
-            .context("Failed to serialize collected analysis data to JSON")?;
-        fs::write(json_output_path, json_content)
-            .context(format!("Failed to write JSON report to {:?}", json_output_path))?;
-        println!("JSON report saved to {:?}", json_output_path);
+        if args.dry_run {
+            println!("DRY RUN: Would write JSON report to {:?}", json_output_path);
+        } else {
+            let json_content = serde_json::to_string_pretty(&collected_data)
+                .context("Failed to serialize collected analysis data to JSON")?;
+            fs::write(json_output_path, json_content)
+                .context(format!("Failed to write JSON report to {:?}", json_output_path))?;
+            println!("JSON report saved to {:?}", json_output_path);
+        }
     }
 
     println!("Type usage analysis completed. Report saved to {:?}", output_path);

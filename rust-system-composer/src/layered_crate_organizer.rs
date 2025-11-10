@@ -10,7 +10,7 @@ use code_graph_flattener::CodeGraph; // Add this import
 use code_graph_flattener::perform_topological_sort; // Add this import
 use tokio::io::AsyncWriteExt; // For writing to files asynchronously
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CrateProcessingSummary {
     pub crate_name: String,
     pub status: String, // "Success", "Failure"

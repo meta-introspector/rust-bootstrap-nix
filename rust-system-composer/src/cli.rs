@@ -88,6 +88,49 @@ pub struct LayeredComposeArgs {
     /// Perform a dry run, printing actions without executing them.
     #[arg(long)]
     pub dry_run: bool,
+
+    /// Skip the prelude info collection stage.
+    #[arg(long)]
+    pub skip_prelude_info: bool,
+    /// Force re-run the prelude info collection stage, ignoring cache.
+    #[arg(long)]
+    pub force_prelude_info: bool,
+
+    /// Skip the type analysis stage.
+    #[arg(long)]
+    pub skip_type_analysis: bool,
+    /// Force re-run the type analysis stage, ignoring cache.
+    #[arg(long)]
+    pub force_type_analysis: bool,
+
+    /// Skip the code graph flattening stage.
+    #[arg(long)]
+    pub skip_graph_flattening: bool,
+    /// Force re-run the code graph flattening stage, ignoring cache.
+    #[arg(long)]
+    pub force_graph_flattening: bool,
+
+    /// Skip the layered crate organizer stage.
+    #[arg(long)]
+    pub skip_crate_organizer: bool,
+    /// Force re-run the layered crate organizer stage, ignoring cache.
+    #[arg(long)]
+    pub force_crate_organizer: bool,
+
+    /// Skip the command report generation stage.
+    #[arg(long)]
+    pub skip_command_report: bool,
+    /// Force re-run the command report generation stage, ignoring cache.
+    #[arg(long)]
+    pub force_command_report: bool,
+
+    /// Path to the config.lock file for caching and reproducibility.
+    #[arg(long)]
+    pub config_lock_path: Option<PathBuf>,
+    
+    
+
+
 }
 
 impl IsRunnable for LayeredComposeArgs {

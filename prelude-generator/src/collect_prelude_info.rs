@@ -129,7 +129,7 @@ pub async fn collect_prelude_info(
 
             // Write each generated trait to a file
             for generated_trait in &generated_traits {
-                write_trait_to_file(&generated_traits_output_dir, generated_trait)?;
+                write_trait_to_file(&generated_traits_output_dir, generated_trait, args.dry_run)?;
             }
 
             // Collect ItemConsts and write them

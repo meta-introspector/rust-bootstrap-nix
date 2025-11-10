@@ -25,4 +25,6 @@ split-expanded-lib = { path = "../split-expanded-lib" }
 expanded-code-collector = { path = "../crates/expanded-code-collector" }
 code-graph-flattener = { path = "../crates/code-graph-flattener" }
 async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
 

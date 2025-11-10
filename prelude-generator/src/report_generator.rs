@@ -12,6 +12,7 @@ pub fn generate_report(
     struct_lattices: &HashMap<String, StructLatticeInfo>,
     enum_lattices: &HashMap<String, EnumLatticeInfo>,
     impl_lattices: &HashMap<String, ImplLatticeInfo>,
+    dry_run: bool, // Add dry_run argument
 ) -> anyhow::Result<()> {
     let mut report_content = String::new();
     report_content.push_str(&format!("Type Usage Report (Max Depth: {})", max_expression_depth));
@@ -76,8 +77,12 @@ pub fn generate_report(
         }
     }
 
-    fs::write(output_path, &report_content)
-        .context(format!("Failed to write type usage report to {:?}", output_path))?;
+    if dry_run {
+        println!("DRY RUN: Would write type usage report to {:?}", output_path);
+    } else {
+        fs::write(output_path, &report_content)
+            .context(format!("Failed to write type usage report to {:?}", output_path))?;
+    }
 
     // --- Struct Lattice Information ---
     if !struct_lattices.is_empty() {
