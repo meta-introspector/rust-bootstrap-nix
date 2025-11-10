@@ -1,0 +1,61 @@
+# tasks/00_01_implement_config_lock_and_layered_analysis.toml
+#
+# This task defines the implementation of a `config.lock` file for reproducible
+# layered analysis, and outlines the initial layering strategy.
+
+[task]
+name = "Implement Config.lock and Layered Analysis"
+description = """
+Implement a `config.lock` file mechanism, analogous to `Cargo.lock`, to ensure
+reproducible and auditable layered analysis workflows. This involves:
+
+1.  **Defining `ConfigLock` structure:** Capture the state and outputs of each
+    analysis stage, including input/output hashes, parameters, dependencies,
+    timestamps, and log/report paths.
+2.  **Integrating `ConfigLock` into `rust-system-composer`:**
+    *   Load an existing `config.lock` at the start of a workflow.
+    *   Update the `ConfigLock` with the status and details of each executed stage.
+    *   Utilize `ConfigLock` to determine if stages can be skipped (due to caching)
+        or need to be re-executed (due to changes in inputs or forced re-run).
+    *   Save the updated `ConfigLock` at the end of the workflow.
+3.  **Hashing Mechanism:** Implement a robust file and data hashing system to
+    detect changes in inputs and outputs for cache invalidation.
+4.  **CLI Arguments:** Add command-line arguments to specify the `config.lock`
+    input/output paths.
+5.  **Initial Layering Strategy:** Define and implement the first set of layers
+    for analysis, focusing on structural and foundational elements:
+    *   Layer 1: `.git` repository state (e.g., commit hash, branch).
+    *   Layer 2: `flake.nix` (Nix flake configuration).
+    *   Layer 3: Top-level `Cargo.toml` with workspace definition.
+    *   Layer 4: `Cargo.toml` files within workspace members.
+    *   Layer 5: `lib.rs` files inside member crates.
+    *   Layer 6: `pub` (public) declarations within `lib.rs` files.
+    *   Layer 7: `private` expressions within declarations.
+    *   Layer 8: Constant values used within the code.
+
+This task aims to provide a solid foundation for reproducible, incremental, and
+deeply introspective analysis of the Rust codebase, enabling advanced AI-driven
+insights and optimizations.
+"""
+status = "IN_PROGRESS"
+notes = "Initial `ConfigLock` struct defined. Imports added to `lib.rs`. CLI arg for `config_lock_path` added. Currently fixing compilation errors related to `ConfigLock` integration."
+priority = "critical"
+assigned_to = "Gemini"
+created_date = "2025-11-10"
+due_date = "2025-11-24"
+tags = ["architecture", "refactoring", "reproducibility", "caching", "layered-analysis", "config-lock"]
+dependencies = ["00_00_define_reusable_args_and_traits.toml"]
+sub_tasks = [
+    "Define ConfigLock and StageLock structs.",
+    "Implement file hashing utility.",
+    "Integrate ConfigLock loading/saving into run_layered_composition_workflow_lib.",
+    "Update ConfigLock with stage status, inputs, outputs, and parameters for each stage.",
+    "Implement logic to use ConfigLock for skipping/re-executing stages.",
+    "Refine layering strategy and implement initial layer-specific analysis."
+]
+related_documents = [
+    "rust-system-composer/src/config_lock.rs",
+    "rust-system-composer/src/lib.rs",
+    "rust-system-composer/src/cli.rs",
+    "functional_arrow_best_practices.md"
+]
