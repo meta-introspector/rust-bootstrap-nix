@@ -1,0 +1,10 @@
+nix develop ~/pick-up-nix2/ -c bash -c "
+  mkdir -p .logs
+  strace_file=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  #strace -f -o logs/strace_${strace_file}.txt -s 9999
+  gemini.js --output-format json \
+			      --approval-mode yolo \
+			      --model gemini-2.5-flash \
+			      --checkpointing \
+			      --prompt-interactive \"$@\"
+"

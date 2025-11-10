@@ -54,6 +54,39 @@ async fn calculate_file_hash(file_path: &Path) -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+// Helper function to create a StageLock
+fn create_stage_lock(
+    stage_name: &str,
+    layered_compose_args: &cli::LayeredComposeArgs,
+    status: StageStatus,
+) -> StageLock {
+    let mut parameters = HashMap::new();
+    // Add relevant parameters from layered_compose_args to the StageLock
+    parameters.insert("dry_run".to_string(), layered_compose_args.dry_run.to_string());
+    parameters.insert("skip_prelude_info".to_string(), layered_compose_args.skip_prelude_info.to_string());
+    parameters.insert("force_prelude_info".to_string(), layered_compose_args.force_prelude_info.to_string());
+    parameters.insert("skip_type_analysis".to_string(), layered_compose_args.skip_type_analysis.to_string());
+    parameters.insert("force_type_analysis".to_string(), layered_compose_args.force_type_analysis.to_string());
+    parameters.insert("skip_graph_flattening".to_string(), layered_compose_args.skip_graph_flattening.to_string());
+    parameters.insert("force_graph_flattening".to_string(), layered_compose_args.force_graph_flattening.to_string());
+    parameters.insert("skip_crate_organizer".to_string(), layered_compose_args.skip_crate_organizer.to_string());
+    parameters.insert("force_crate_organizer".to_string(), layered_compose_args.force_crate_organizer.to_string());
+    parameters.insert("skip_command_report".to_string(), layered_compose_args.skip_command_report.to_string());
+    parameters.insert("force_command_report".to_string(), layered_compose_args.force_command_report.to_string());
+    // Add other relevant parameters as needed
+
+    StageLock {
+        status,
+        input_hashes: HashMap::new(),
+        output_hashes: HashMap::new(),
+        parameters,
+        dependencies: Vec::new(), // Will be populated later
+        timestamp: Utc::now(),
+        log_path: None,
+        report_path: None,
+    }
+}
+
 pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
@@ -177,9 +210,17 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     config_lock.config_toml_hash = config_toml_hash;
     config_lock.generated_at = Utc::now();
 
-    // Call prelude-generator's collect_prelude_info to extract constants...
+    // Prelude Info Collection Stage
+    let prelude_info_stage_name = "prelude_info_collection";
+    let mut prelude_info_stage_lock = create_stage_lock(
+        prelude_info_stage_name,
+        layered_compose_args,
+        StageStatus::Pending,
+    );
+
     if layered_compose_args.skip_prelude_info {
         println!("Skipping prelude info collection stage.");
+        prelude_info_stage_lock.status = StageStatus::Skipped;
     } else {
         println!("Calling prelude-generator::collect_prelude_info to extract constants...");
 
@@ -191,13 +232,25 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
             ..Default::default()
         };
 
-        prelude_generator::collect_prelude_info::collect_prelude_info(
+        // TODO: Add input hashes for prelude_info_collection stage (e.g., source files)
+
+        match prelude_generator::collect_prelude_info::collect_prelude_info(
             &project_root, // Pass project root as workspace_path
             &prelude_generator_args_for_collect_prelude, // Pass the args with exclusion
-        ).await?;
-
-        println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
+        ).await {
+            Ok(_) => {
+                println!("prelude-generator::collect_prelude_info for constant extraction completed successfully.");
+                prelude_info_stage_lock.status = StageStatus::Executed;
+                // TODO: Add output hashes for prelude_info_collection stage (e.g., generated traits/constants)
+            }
+            Err(e) => {
+                eprintln!("Error in prelude info collection: {:?}", e);
+                prelude_info_stage_lock.status = StageStatus::Failed;
+                return Err(e);
+            }
+        }
     }
+    config_lock.stages.insert(prelude_info_stage_name.to_string(), prelude_info_stage_lock);
 
     // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
     println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");

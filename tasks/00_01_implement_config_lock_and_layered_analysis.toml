@@ -38,7 +38,7 @@ deeply introspective analysis of the Rust codebase, enabling advanced AI-driven
 insights and optimizations.
 """
 status = "IN_PROGRESS"
-notes = "Initial `ConfigLock` struct defined. Imports added to `lib.rs`. CLI arg for `config_lock_path` added. Currently fixing compilation errors related to `ConfigLock` integration."
+notes = "Initial `ConfigLock` struct defined. Imports added to `lib.rs`. CLI arg for `config_lock_path` added. `calculate_file_hash` and `create_stage_lock` helper functions implemented. `ConfigLock` loading/saving integrated. `ConfigLock` updates for Prelude Info Collection Stage integrated. Currently integrating `ConfigLock` updates for the Type Usage Analysis Stage, including caching and status management."
 priority = "critical"
 assigned_to = "Gemini"
 created_date = "2025-11-10"
@@ -49,7 +49,9 @@ sub_tasks = [
     "Define ConfigLock and StageLock structs.",
     "Implement file hashing utility.",
     "Integrate ConfigLock loading/saving into run_layered_composition_workflow_lib.",
-    "Update ConfigLock with stage status, inputs, outputs, and parameters for each stage.",
+    "Integrate ConfigLock updates for Prelude Info Collection Stage.",
+    "Integrate ConfigLock updates for Type Usage Analysis Stage (including caching and status management).",
+    "Update ConfigLock with stage status, inputs, outputs, and parameters for each stage (general).",
     "Implement logic to use ConfigLock for skipping/re-executing stages.",
     "Refine layering strategy and implement initial layer-specific analysis."
 ]

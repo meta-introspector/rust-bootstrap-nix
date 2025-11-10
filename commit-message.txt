@@ -1,0 +1,9 @@
+docs: Add Makefile target and documentation for command usage reporting
+
+This commit introduces a new Makefile target `generate-command-usage-report` to automate the process of generating a report on `std::process::Command` object usages within the project.
+
+Additionally, this commit updates the documentation to reflect this new feature:
+- `README.md`: A new section "Command Object Usage Reporting" has been added, explaining how to use the new Makefile target and the content of the generated report.
+- `TODO.md`: A new task has been added to the "Next Steps" section, guiding the user to review the generated report and plan the refactoring of `Command` usages.
+
+These changes facilitate the systematic identification and replacement of external command executions with static Rust trait implementations, supporting the project's self-hosting bootstrap goals.
