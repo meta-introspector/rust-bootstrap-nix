@@ -117,7 +117,7 @@ path = "src/lib.rs"
 
     let cargo2nix_url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify".to_string(); // Use the correct URL
 
-    let flake_nix_content = flake_template_generator::generate_flake_nix_content(
+    let flake_nix_content = generate_flake_nix_content(
         &nixpkgs_url,
         &cargo2nix_url, // Pass the cargo2nix_url
         system_arch,
