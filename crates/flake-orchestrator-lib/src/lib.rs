@@ -70,11 +70,48 @@ pub async fn orchestrate_flake_generation(
 
     split_expanded_lib::process_expanded_manifest(process_inputs).await?;
 
-    // 3. Generate Nix flake
-    println!("Step 3: Generating Nix flake...");
-    fs::create_dir_all(flake_output_dir).await
-        .context(format!("Failed to create flake output directory: {}", flake_output_dir.display()))?;
+    // 3. Prepare the generated flake directory as a Rust crate
+    println!("Step 3: Preparing flake output directory as a Rust crate...");
+    let flake_src_dir = flake_output_dir.join("src");
+    fs::create_dir_all(&flake_src_dir).await
+        .context(format!("Failed to create flake src directory: {}", flake_src_dir.display()))?;
 
+    // Create Cargo.toml for the generated crate
+    let cargo_toml_content = format!(r#"
+[package]
+name = "{}"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+"#, flake_component); // Using flake_component as package name
+    fs::write(flake_output_dir.join("Cargo.toml"), cargo_toml_content.as_bytes()).await
+        .context(format!("Failed to write Cargo.toml to {}", flake_output_dir.display()))?;
+
+    // Copy generated .rs files and create lib.rs with mod statements
+    let mut lib_rs_content = String::new();
+    let mut read_dir = fs::read_dir(expanded_output_dir).await
+        .context(format!("Failed to read expanded output directory: {}", expanded_output_dir.display()))?;
+
+    while let Some(entry) = read_dir.next_entry().await? {
+        let path = entry.path();
+        if path.extension().map_or(false, |ext| ext == "rs") {
+            let file_name = path.file_name().unwrap().to_str().unwrap();
+            let module_name = file_name.trim_end_matches(".rs");
+            lib_rs_content.push_str(&format!("pub mod {};\n", module_name));
+            fs::copy(&path, flake_src_dir.join(file_name)).await
+                .context(format!("Failed to copy {} to {}", path.display(), flake_src_dir.join(file_name).display()))?;
+        }
+    }
+    fs::write(flake_src_dir.join("lib.rs"), lib_rs_content.as_bytes()).await
+        .context(format!("Failed to write lib.rs to {}", flake_src_dir.join("lib.rs").display()))?;
+
+
+    // 4. Generate Nix flake
+    println!("Step 4: Generating Nix flake...");
     let nixpkgs_url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify".to_string(); // Hardcoded for now
     let system_arch = "aarch64-linux"; // Hardcoded for now
 
@@ -82,7 +119,6 @@ pub async fn orchestrate_flake_generation(
         &nixpkgs_url,
         system_arch,
         use_rustc_wrapper,
-        // Removed `None` for `rustc_path_override` as it's not expected by the function
     );
 
     let output_flake_nix_path = flake_output_dir.join("flake.nix");
