@@ -28,7 +28,7 @@ build: build-bin
 FLAKE_OUTPUT_DIR ?= $(CURDIR)/generated_flake
 FLAKE_COMPONENT ?= split-expanded-lib
 FLAKE_ARCH ?= aarch64-linux
-FLAKE_PHASE ?= phase0
+export FLAKE_PHASE ?= phase0 # Export FLAKE_PHASE
 FLAKE_STEP ?= step1
 USE_RUSTC_WRAPPER ?= false
 
