@@ -35,7 +35,10 @@ USE_RUSTC_WRAPPER ?= false
 # Run split-expanded-bin with example arguments
 run: build expand-self
 	@echo "Running split-expanded-bin..."
+	@echo "Original PATH: $$PATH"
+	@echo "nix-build output: $(shell nix-build --no-out-link -A pkgs.cargo2nix)"
 	PATH=$(shell nix-build --no-out-link -A pkgs.cargo2nix)/bin:$$PATH \
+	@echo "Modified PATH: $$PATH"
 	cargo run -p split-expanded-bin -- \
 		--metadata-path $(CURDIR)/target/cargo_metadata.json \
 		--flake-lock-path $(CURDIR)/../flake.lock \
