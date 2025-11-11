@@ -1,19 +1,16 @@
 {
-  {
   description = "Dynamically generated flake for Rust crate";
 
   inputs = {
-    {
     nixpkgs.url = "NIXPKGS_URL_PLACEHOLDER";
     cargo2nix.url = "CARGO2NIX_URL_PLACEHOLDER";
-  }};
+  };
 
-  outputs = {
-    { self, nixpkgs, cargo2nix }}:
+  outputs = { self, nixpkgs, cargo2nix }@inputs:
     let
     system = "SYSTEM_ARCH_PLACEHOLDER";
     pkgs = import nixpkgs {
-      { inherit system; }};
+      inherit system; };
       rustPkgs = pkgs.rust-bin.stable.latest.default; # Use latest stable rust
 
       RUSTC_WRAPPER_DEFINITION_PLACEHOLDER
@@ -22,7 +19,6 @@
         # This assumes Cargo.nix is in the same directory as flake.nix
         cargoNix = import ./Cargo.nix
         {
-          {
           inherit pkgs rustPkgs cargo2nix;
           # Pass through other necessary arguments from the template
           # For simplicity, we're assuming a single crate build here
@@ -30,13 +26,12 @@
           workspaceSrc = ./.;
           # Override mkRustCrate to inject our rustc wrapper
           mkRustCrate = args: pkgs.rustPlatform.buildRustPackage (args // {
-            {
             RUSTC_ENV_VAR_PLACEHOLDER
               outputs = [ "/bin" RUSTC_CALLS_LOG_OUTPUT_PLACEHOLDER ]; # Capture rustc_calls.log if wrapper is used
-          }});
-        }};
+          });
+        };
       in
-      {{
-      packages.${{ system }}.default = cargoNix.workspace.default; # Assuming a default package
-      }};
-      }}
+      {
+      packages.${system}.default = cargoNix.workspace.default; # Assuming a default package
+      };
+}
