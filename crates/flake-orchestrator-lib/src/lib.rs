@@ -122,6 +122,7 @@ path = "src/lib.rs"
         &cargo2nix_url, // Pass the cargo2nix_url
         system_arch,
         use_rustc_wrapper,
+        None, // Pass None for _rustc_wrapper_path
     );
 
     let output_flake_nix_path = flake_output_dir.join("flake.nix");
