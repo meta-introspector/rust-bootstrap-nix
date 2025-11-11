@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.12.0"; # Temporarily use upstream cargo2nix
+    cargo2nix.url = "github:cargo2nix/cargo2nix/main"; # Use main branch of upstream cargo2nix
   };
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, cargo2nix, ... }@inputs:
