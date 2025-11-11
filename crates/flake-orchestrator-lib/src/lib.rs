@@ -1,6 +1,7 @@
 use anyhow::{Result, Context};
 use std::path::Path; // Keep Path, remove PathBuf
 use tokio::fs;
+use tokio::process::Command; // Add this import
 
 // Re-export necessary types from dependencies
 pub use expanded_code_collector::{collect_expanded_code, RustcInfo as ExpandedCodeCollectorRustcInfo};
