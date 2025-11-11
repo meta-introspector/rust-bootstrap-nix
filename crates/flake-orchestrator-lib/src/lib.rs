@@ -115,8 +115,11 @@ path = "src/lib.rs"
     let nixpkgs_url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify".to_string(); // Hardcoded for now
     let system_arch = "aarch64-linux"; // Hardcoded for now
 
+    let cargo2nix_url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify".to_string(); // Use the correct URL
+
     let flake_nix_content = flake_template_generator::generate_flake_nix_content(
         &nixpkgs_url,
+        &cargo2nix_url, // Pass the cargo2nix_url
         system_arch,
         use_rustc_wrapper,
     );
@@ -126,6 +129,20 @@ path = "src/lib.rs"
         .context(format!("Failed to write flake.nix to {}", output_flake_nix_path.display()))?;
 
     println!("Flake generated successfully at {}", flake_output_dir.display());
+
+    // 5. Initialize Git repository and commit generated files
+    println!("Step 5: Initializing Git repository and committing generated files...");
+    git_utils::init_repo(flake_output_dir)
+        .context(format!("Failed to initialize Git repository in {}", flake_output_dir.display()))?;
+    git_utils::add_all(flake_output_dir)
+        .context(format!("Failed to add all files to Git repository in {}", flake_output_dir.display()))?;
+    git_utils::commit_files(
+        flake_output_dir,
+        &format!("feat: Initial commit for generated flake for {}", flake_component),
+        "Gemini", // Author name
+        "gemini@google.com", // Author email
+    ).context(format!("Failed to commit files in {}", flake_output_dir.display()))?;
+    println!("Generated flake committed to its own Git repository.");
 
     Ok(())
 }
