@@ -35,6 +35,7 @@ USE_RUSTC_WRAPPER ?= false
 # Run split-expanded-bin with example arguments
 run: build expand-self
 	@echo "Running split-expanded-bin..."
+	PATH=$(shell nix-build --no-out-link -A pkgs.cargo2nix)/bin:$$PATH \
 	cargo run -p split-expanded-bin -- \
 		--metadata-path $(CURDIR)/target/cargo_metadata.json \
 		--flake-lock-path $(CURDIR)/../flake.lock \
@@ -49,7 +50,7 @@ run: build expand-self
 		--flake-output-dir $(FLAKE_OUTPUT_DIR) \
 		--flake-component $(FLAKE_COMPONENT) \
 		--flake-arch $(FLAKE_ARCH) \
-		--flake-phase $(FLAKE_PHASE) \
+		--flake-phase $(PHASE) \
 		--flake-step $(FLAKE_STEP) \
 		$(if $(USE_RUSTC_WRAPPER),--use-rustc-wrapper,)
 
