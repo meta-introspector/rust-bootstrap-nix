@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "NIXPKGS_URL_PLACEHOLDER";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.12.0";
+    cargo2nix.url = "github:cargo2nix/cargo2nix/main";
   };
 
   outputs = { self, nixpkgs, cargo2nix }@inputs:
