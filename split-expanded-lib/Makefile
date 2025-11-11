@@ -25,10 +25,10 @@ build-bin: build-lib
 build: build-bin
 
 # Run split-expanded-bin with example arguments
-run: build
+run: build expand-self
 	@echo "Running split-expanded-bin..."
 	cargo run --bin split-expanded-bin -- \
-		--expanded-manifest $(EXPANDED_DIR)/expanded_manifest.json \
+		--expanded-manifest $(LOCAL_EXPANDED_DIR)/expanded_manifest.json \
 		--project-root $(PROJECT_ROOT) \
 		--rustc-version $(RUSTC_VERSION) \
 		--rustc-host $(RUSTC_HOST) \
