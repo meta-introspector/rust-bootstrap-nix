@@ -33,7 +33,9 @@ run: build expand-self
 		--rustc-version $(RUSTC_VERSION) \
 		--rustc-host $(RUSTC_HOST) \
 		--verbosity $(VERBOSITY) \
-		--layer $(LAYER)
+		--layer $(LAYER) \
+		--json-summary-path $(LOCAL_EXPANDED_DIR)/declaration_summary.json \
+		--log-output-dir $(LOCAL_EXPANDED_DIR)/logs
 
 .PHONY: expand-self clean-expanded
 
