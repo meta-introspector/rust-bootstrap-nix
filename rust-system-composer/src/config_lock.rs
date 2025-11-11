@@ -53,6 +53,7 @@ impl ConfigLock {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn load(path: &Path) -> Result<Self> {
         let content = fs::read_to_string(path).await?;
         let config_lock: ConfigLock = serde_json::from_str(&content)?;

@@ -22,6 +22,8 @@ pub struct ProcessExpandedManifestInputs<'a> {
     pub layer: Option<u32>,
     pub canonical_output_root: &'a Path,
     pub package_filter: Option<String>,
+    pub log_output_dir: Option<&'a Path>,
+    pub json_summary_path: Option<&'a Path>,
 }
 
 pub async fn process_expanded_manifest(

@@ -230,9 +230,11 @@ async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyho
             expanded_manifest_path: &expanded_manifest_path,
             project_root: &project_root,
             rustc_info: &rustc_info,
-            verbosity: 3,
+            verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;
@@ -465,6 +467,8 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -
             verbosity: 3,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: None, // No package filter for standalonex composition
         }
     ).await?;
@@ -551,6 +555,8 @@ async fn run_rustc_composition_workflow(config: &Config, args: &CliArgs) -> anyh
             verbosity: 3,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;

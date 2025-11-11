@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::collections::HashMap;
 use walkdir::WalkDir;
 mod config_lock; // Declare the config_lock module
-use crate::config_lock::{ConfigLock, StageLock, StageStatus, calculate_file_hash};
+use crate::config_lock::{ConfigLock, StageStatus, calculate_file_hash};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

@@ -8,7 +8,7 @@ use prelude_generator::types::CollectedAnalysisData;
 use code_graph_flattener::CodeGraph;
 use clap::Parser;
 use cli::{CliArgs};
-use serde::{Serialize, Deserialize}; // Added for caching
+use serde::{Deserialize}; // Added for caching
 use chrono::Utc; // Added for timestamps in ConfigLock
 use sha2::{Sha256, Digest}; // Added for hashing config.toml
 
@@ -19,7 +19,7 @@ mod system_config;
 use system_config::{SystemConfig, ProjectInfo, GeneratedProject};
 mod traits;
 mod config_lock; // Import the new module
-use config_lock::{ConfigLock, StageLock, StageStatus}; // Import the structs
+use config_lock::{ConfigLock}; // Import the structs
 mod stages; // Declare the stages module
 
 // Generic function to load data from a cache file
@@ -35,13 +35,13 @@ async fn load_from_cache<T: for<'de> Deserialize<'de>>(cache_path: &PathBuf) -> 
 }
 
 // Generic function to save data to a cache file
-async fn save_to_cache<T: Serialize>(cache_path: &PathBuf, data: &T) -> anyhow::Result<()> {
-    tokio::fs::create_dir_all(cache_path.parent().unwrap()).await?;
-    let serialized_data = serde_json::to_string_pretty(data)?;
-    tokio::fs::write(cache_path, serialized_data).await?;
-    println!("Saved to cache: {}", cache_path.display());
-    Ok(())
-}
+// async fn save_to_cache<T: Serialize>(cache_path: &PathBuf, data: &T) -> anyhow::Result<()> {
+//     tokio::fs::create_dir_all(cache_path.parent().unwrap()).await?;
+//     let serialized_data = serde_json::to_string_pretty(data)?;
+//     tokio::fs::write(cache_path, serialized_data).await?;
+//     println!("Saved to cache: {}", cache_path.display());
+//     Ok(())
+// }
 
 // Helper function to calculate SHA256 hash of a file's content
 async fn calculate_file_hash(file_path: &Path) -> anyhow::Result<String> {
@@ -56,38 +56,38 @@ async fn calculate_file_hash(file_path: &Path) -> anyhow::Result<String> {
 }
 
 // Helper function to create a StageLock
-fn create_stage_lock(
-    stage_name: &str,
-    layered_compose_args: &cli::LayeredComposeArgs,
-    status: StageStatus,
-) -> StageLock {
-    let mut parameters = HashMap::new();
-    // Add relevant parameters from layered_compose_args to the StageLock
-    parameters.insert("dry_run".to_string(), layered_compose_args.dry_run.to_string());
-    parameters.insert("skip_prelude_info".to_string(), layered_compose_args.skip_prelude_info.to_string());
-    parameters.insert("force_prelude_info".to_string(), layered_compose_args.force_prelude_info.to_string());
-    parameters.insert("skip_type_analysis".to_string(), layered_compose_args.skip_type_analysis.to_string());
-    parameters.insert("force_type_analysis".to_string(), layered_compose_args.force_type_analysis.to_string());
-    parameters.insert("skip_graph_flattening".to_string(), layered_compose_args.skip_graph_flattening.to_string());
-    parameters.insert("force_graph_flattening".to_string(), layered_compose_args.force_graph_flattening.to_string());
-    parameters.insert("skip_crate_organizer".to_string(), layered_compose_args.skip_crate_organizer.to_string());
-    parameters.insert("force_crate_organizer".to_string(), layered_compose_args.force_crate_organizer.to_string());
-    parameters.insert("skip_command_report".to_string(), layered_compose_args.skip_command_report.to_string());
-    parameters.insert("force_command_report".to_string(), layered_compose_args.force_command_report.to_string());
-    // Add other relevant parameters as needed
+// fn create_stage_lock(
+//     stage_name: &str,
+//     layered_compose_args: &cli::LayeredComposeArgs,
+//     status: StageStatus,
+// ) -> StageLock {
+//     let mut parameters = HashMap::new();
+//     // Add relevant parameters from layered_compose_args to the StageLock
+//     parameters.insert("dry_run".to_string(), layered_compose_args.dry_run.to_string());
+//     parameters.insert("skip_prelude_info".to_string(), layered_compose_args.skip_prelude_info.to_string());
+//     parameters.insert("force_prelude_info".to_string(), layered_compose_args.force_prelude_info.to_string());
+//     parameters.insert("skip_type_analysis".to_string(), layered_compose_args.skip_type_analysis.to_string());
+//     parameters.insert("force_type_analysis".to_string(), layered_compose_args.force_type_analysis.to_string());
+//     parameters.insert("skip_graph_flattening".to_string(), layered_compose_args.skip_graph_flattening.to_string());
+//     parameters.insert("force_graph_flattening".to_string(), layered_compose_args.force_graph_flattening.to_string());
+//     parameters.insert("skip_crate_organizer".to_string(), layered_compose_args.skip_crate_organizer.to_string());
+//     parameters.insert("force_crate_organizer".to_string(), layered_compose_args.force_crate_organizer.to_string());
+//     parameters.insert("skip_command_report".to_string(), layered_compose_args.skip_command_report.to_string());
+//     parameters.insert("force_command_report".to_string(), layered_compose_args.force_command_report.to_string());
+//     // Add other relevant parameters as needed
 
-    StageLock {
-        name: stage_name.to_string(), // Initialize the name field
-        status,
-        input_hashes: HashMap::new(),
-        output_hashes: HashMap::new(),
-        parameters,
-        dependencies: Vec::new(), // Will be populated later
-        timestamp: Utc::now(),
-        log_path: None,
-        report_path: None,
-    }
-}
+//     StageLock {
+//         name: stage_name.to_string(), // Initialize the name field
+//         status,
+//         input_hashes: HashMap::new(),
+//         output_hashes: HashMap::new(),
+//         parameters,
+//         dependencies: Vec::new(), // Will be populated later
+//         timestamp: Utc::now(),
+//         log_path: None,
+//         report_path: None,
+//     }
+// }
 
 pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
@@ -148,6 +148,8 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
             verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;
@@ -289,6 +291,8 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
             verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;
@@ -375,6 +379,8 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
             verbosity: args.verbosity,
             layer: Some(0),
             canonical_output_root: &canonical_output_root,
+            log_output_dir: None,
+            json_summary_path: None,
             package_filter: args.package_filter.clone(), // Pass the package filter here
         }
     ).await?;

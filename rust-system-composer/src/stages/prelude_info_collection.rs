@@ -73,10 +73,10 @@ impl Stage for PreludeInfoCollectionStage {
                 .context(format!("Failed to create generated declarations root directory: {}", generated_decls_root.display()))
         })?;
 
-        let collected_analysis_data: CollectedAnalysisData;
+        let _collected_analysis_data: CollectedAnalysisData;
         if layered_compose_args.skip_type_analysis {
             println!("Skipping type analysis stage.");
-            collected_analysis_data = CollectedAnalysisData::default(); // Provide a default or empty instance
+            _collected_analysis_data = CollectedAnalysisData::default(); // Provide a default or empty instance
         } else {
             // ... (rest of type analysis logic)
         }

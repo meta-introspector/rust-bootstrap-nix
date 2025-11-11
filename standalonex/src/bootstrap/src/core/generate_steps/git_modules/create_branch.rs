@@ -1,5 +1,6 @@
 use crate::prelude::*;
-
+use git_utils;
+use anyhow::Result;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -38,7 +39,7 @@ pub fn create_and_push_branch(
     base_branch_name: &str,
     output_dir: &PathBuf,
     dry_run: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     println!("Performing Git operations...");
 
     // Explicitly checkout the base branch to ensure a stable HEAD
@@ -59,11 +60,20 @@ pub fn create_and_push_branch(
     }
 
     // Add generated files
-    run_git_command(repo_root, &["add", &output_dir.to_string_lossy()], "Failed to add generated files", dry_run)?;
+    if dry_run {
+        println!("Dry run: Would add all files in '{}'", repo_root.display());
+    } else {
+        git_utils::add_all(repo_root)?;
+    }
 
     // Commit changes
     let commit_message = format!("feat: Generated seed flake {}", branch_name);
-    run_git_command(repo_root, &["commit", "-m", &commit_message], "Failed to commit changes", dry_run)?;
+    if dry_run {
+        println!("Dry run: Would commit with message: '{}'", commit_message);
+    } else {
+        // Assuming a default author for now, this should ideally be configurable
+        git_utils::commit_files(repo_root, &commit_message, "Rust Bootstrap", "rust-bootstrap@example.com")?;
+    }
 
     // Push branch
     run_git_command(repo_root, &["push", "origin", branch_name], "Failed to push branch", dry_run)?;

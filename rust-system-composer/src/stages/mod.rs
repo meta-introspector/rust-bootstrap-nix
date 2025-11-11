@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::cli::{CliArgs, LayeredComposeArgs};
 use crate::config::Config;
-use crate::config_lock::{StageLock, StageStatus};
+use crate::config_lock::StageLock;
 
 // #[async_trait] // Temporarily remove async_trait
 pub trait Stage {
@@ -25,12 +25,15 @@ pub trait Stage {
 
     fn collect_input_hashes(&self, project_root: &Path) -> anyhow::Result<HashMap<String, String>>;
 
+    #[allow(dead_code)]
     fn collect_output_hashes(&self, project_root: &Path) -> anyhow::Result<HashMap<String, String>>;
 
+    #[allow(dead_code)]
     fn should_skip(&self, _layered_compose_args: &LayeredComposeArgs, _stage_lock: &StageLock) -> bool {
         _layered_compose_args.skip_prelude_info // Placeholder, needs to be dynamic
     }
 
+    #[allow(dead_code)]
     fn should_force_run(&self, _layered_compose_args: &LayeredComposeArgs) -> bool {
         _layered_compose_args.force_prelude_info // Placeholder, needs to be dynamic
     }
