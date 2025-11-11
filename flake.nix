@@ -89,6 +89,7 @@
           pkgs.cargo-watch
           pkgs.cargo-expand
           pkgs.rustfmt
+          cargo2nix-pkg # Add cargo2nix to devShell
         ] ++ commonRustDeps.commonBuildInputs;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
         OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
