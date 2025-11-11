@@ -35,8 +35,34 @@ run: build
 		--verbosity $(VERBOSITY) \
 		--layer $(LAYER)
 
+.PHONY: expand-self clean-expanded
+
+# Define paths for expanded-code-collector
+LOCAL_METADATA_FILE := target/cargo_metadata.json
+LOCAL_EXPANDED_DIR := expanded
+FLAKE_LOCK_PATH := ../flake.lock # Assuming flake.lock is in the root
+
+expand-self:
+	@echo "Building expanded-code-collector..."
+	cargo build --package expanded-code-collector
+
+	@echo "Collecting metadata for split-expanded-lib..."
+	cargo metadata --format-version 1 --manifest-path Cargo.toml > $(LOCAL_METADATA_FILE)
+
+	@echo "Running expanded-code-collector for split-expanded-lib..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(LOCAL_METADATA_FILE) \
+		--output-dir $(LOCAL_EXPANDED_DIR) \
+		--flake-lock-path $(FLAKE_LOCK_PATH) \
+		--layer 0 \
+		--package split-expanded-lib
+
+clean-expanded:
+	@echo "Cleaning local expanded directory..."
+	rm -rf $(LOCAL_EXPANDED_DIR)
+
 # Clean generated files and build artifacts
-clean:
+clean: clean-expanded
 	@echo "Cleaning build artifacts and generated files..."
 	cargo clean --package split-expanded-lib
 	cargo clean --package split-expanded-bin
