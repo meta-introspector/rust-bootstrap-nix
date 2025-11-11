@@ -5,7 +5,7 @@
   inputs = {
     {
     nixpkgs.url = "NIXPKGS_URL_PLACEHOLDER";
-    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify";
+    cargo2nix.url = "CARGO2NIX_URL_PLACEHOLDER";
   }};
 
   outputs = {
