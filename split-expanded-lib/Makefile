@@ -51,7 +51,7 @@ run: build expand-self
 		--flake-arch $(FLAKE_ARCH) \
 		--flake-phase $(FLAKE_PHASE) \
 		--flake-step $(FLAKE_STEP) \
-		--use-rustc-wrapper $(USE_RUSTC_WRAPPER)
+		$(if $(USE_RUSTC_WRAPPER),--use-rustc-wrapper,)
 
 .PHONY: expand-self clean-expanded
 
