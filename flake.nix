@@ -17,6 +17,9 @@
       };
       lib = nixpkgs.lib; # Define lib here
       commonRustDeps = import ./nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
+
+      # Explicitly define cargo2nix package
+      cargo2nix-pkg = pkgs.callPackage inputs.cargo2nix.packages.${system}.default { };
     in
     {
       packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
