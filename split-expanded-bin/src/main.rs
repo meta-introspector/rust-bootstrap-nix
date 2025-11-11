@@ -1,6 +1,6 @@
 use clap::Parser;
 use std::path::{PathBuf};
-use split_expanded_lib::{process_expanded_manifest, ProcessExpandedManifestInputs, RustcInfo};
+use flake_orchestrator_lib::orchestrate_flake_generation;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -9,13 +9,17 @@ pub struct Args {
     #[arg(short, long, default_value_t = 1)]
     pub verbosity: u8,
 
-    /// Path to the expanded_manifest.json file.
-    #[arg(long)]
-    pub expanded_manifest: PathBuf,
+    /// Path to the cargo metadata JSON file.
+    #[arg(long, required = true)]
+    pub metadata_path: PathBuf,
 
-    /// Directory to output the generated declaration files.
-    #[clap(short, long, value_parser, required = true)]
-    project_root: PathBuf,
+    /// Path to the flake.lock file.
+    #[arg(long, required = true)]
+    pub flake_lock_path: PathBuf,
+
+    /// Directory to output the expanded code.
+    #[arg(long, required = true)]
+    pub expanded_output_dir: PathBuf,
 
     /// Rustc version (e.g., "1.89.0").
     #[arg(long)]
@@ -40,30 +44,56 @@ pub struct Args {
     /// Directory for log output.
     #[arg(long, required = true)]
     log_output_dir: PathBuf,
+
+    /// Output directory for the generated flake.
+    #[arg(long, required = true)]
+    pub flake_output_dir: PathBuf,
+
+    /// Component for the branch name: e.g., solana-rust-1.83
+    #[arg(long, required = true)]
+    pub flake_component: String,
+
+    /// Architecture for the branch name: e.g., aarch64
+    #[arg(long, required = true)]
+    pub flake_arch: String,
+
+    /// Phase for the branch name: e.g., phase0
+    #[arg(long, required = true)]
+    pub flake_phase: String,
+
+    /// Step for the branch name: e.g., step1
+    #[arg(long, required = true)]
+    pub flake_step: String,
+
+    /// Enable rustc wrapper for logging calls
+    #[arg(long, default_value_t = false)]
+    pub use_rustc_wrapper: bool,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let rustc_info = RustcInfo {
-        version: args.rustc_version,
-        host: args.rustc_host,
-    };
-
-    let inputs = ProcessExpandedManifestInputs {
-        expanded_manifest_path: &args.expanded_manifest,
-        project_root: &args.project_root,
-        rustc_info: &rustc_info,
-        verbosity: args.verbosity,
-        layer: args.layer,
-        canonical_output_root: &args.project_root,
-        package_filter: args.package_filter,
-        json_summary_path: Some(&args.json_summary_path),
-        log_output_dir: Some(&args.log_output_dir),
-    };
-
-    process_expanded_manifest(inputs).await?;
+    orchestrate_flake_generation(
+        &args.metadata_path,
+        &args.expanded_output_dir,
+        &args.flake_lock_path,
+        args.layer,
+        args.package_filter,
+        false, // dry_run - hardcoded for now
+        false, // force - hardcoded for now
+        args.rustc_version,
+        args.rustc_host,
+        &args.project_root,
+        &args.json_summary_path,
+        &args.log_output_dir,
+        &args.flake_output_dir,
+        args.flake_component,
+        args.flake_arch,
+        args.flake_phase,
+        args.flake_step,
+        args.use_rustc_wrapper,
+    ).await?;
 
     Ok(())
 }
