@@ -8,21 +8,41 @@ pub fn commit_files(repo_path: &Path, message: &str, author_name: &str, author_e
     let mut index = repo.index().context("Failed to get index")?;
     let oid = index.write_tree().context("Failed to write tree")?;
     let signature = Signature::now(author_name, author_email).context("Failed to create signature")?;
-    let parent_commit = find_last_commit(&repo).context("Failed to find last commit")?;
-    repo.commit(
-        Some("HEAD"),
-        &signature,
-        &signature,
-        message,
-        &repo.find_tree(oid).context("Failed to find tree")?,
-        &[&parent_commit],
-    ).context("Failed to commit")?;
-    info!("Committed changes to '{}'", repo_path.display());
+
+    let tree = repo.find_tree(oid).context("Failed to find tree")?;
+
+    let parent_commit_opt = find_last_commit(&repo).ok(); // Try to find a parent commit
+
+    let commit_oid = match parent_commit_opt {
+        Some(parent_commit) => {
+            repo.commit(
+                Some("HEAD"),
+                &signature,
+                &signature,
+                message,
+                &tree,
+                &[&parent_commit],
+            ).context("Failed to commit with parent")?
+        },
+        None => {
+            // No parent commit, this is the first commit
+            repo.commit(
+                Some("HEAD"),
+                &signature,
+                &signature,
+                message,
+                &tree,
+                &[], // No parents for the initial commit
+            ).context("Failed to make initial commit")?
+        }
+    };
+
+    info!("Committed changes to '{}' with OID {}", repo_path.display(), commit_oid);
     Ok(())
 }
 
 fn find_last_commit(repo: &Repository) -> Result<git2::Commit<'_>> {
-    let obj = repo.head().context("Failed to get HEAD")?.resolve().context("Failed to resolve HEAD")?.peel(git2::ObjectType::Commit).context("Failed to peel HEAD to commit")?;
+    let obj = repo.head()?.resolve()?.peel(git2::ObjectType::Commit)?;
     obj.into_commit().map_err(|_| anyhow::anyhow!("Could not convert object to commit"))
 }
 
