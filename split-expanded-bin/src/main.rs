@@ -1,5 +1,3 @@
-use clap::Parser;
-use anyhow::Context;
 use std::path::{PathBuf};
 use split_expanded_lib::{process_expanded_manifest, ProcessExpandedManifestInputs, RustcInfo};
 
@@ -60,8 +58,8 @@ async fn main() -> anyhow::Result<()> {
         layer: args.layer,
         canonical_output_root: &args.project_root,
         package_filter: args.package_filter,
-        json_summary_path: &args.json_summary_path,
-        log_output_dir: &args.log_output_dir,
+        json_summary_path: Some(&args.json_summary_path),
+        log_output_dir: Some(&args.log_output_dir),
     };
 
     process_expanded_manifest(inputs).await?;
