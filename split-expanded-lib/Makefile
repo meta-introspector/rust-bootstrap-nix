@@ -47,6 +47,7 @@ expand-self:
 	cargo build --package expanded-code-collector
 
 	@echo "Collecting metadata for split-expanded-lib..."
+	mkdir -p $(dir $(LOCAL_METADATA_FILE))
 	cargo metadata --format-version 1 --manifest-path Cargo.toml > $(LOCAL_METADATA_FILE)
 
 	@echo "Running expanded-code-collector for split-expanded-lib..."
