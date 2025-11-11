@@ -84,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
         false, // force - hardcoded for now
         args.rustc_version,
         args.rustc_host,
-        &args.project_root,
+        &PathBuf::from("."), // Use current directory as project_root
         &args.json_summary_path,
         &args.log_output_dir,
         &args.flake_output_dir,
