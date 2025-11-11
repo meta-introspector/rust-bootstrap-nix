@@ -50,7 +50,7 @@ run: build expand-self
 		--flake-output-dir $(FLAKE_OUTPUT_DIR) \
 		--flake-component $(FLAKE_COMPONENT) \
 		--flake-arch $(FLAKE_ARCH) \
-		--flake-phase $(PHASE) \
+		--flake-phase phase0 \
 		--flake-step $(FLAKE_STEP) \
 		$(if $(USE_RUSTC_WRAPPER),--use-rustc-wrapper,)
 
