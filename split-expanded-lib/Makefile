@@ -18,8 +18,8 @@ build-lib:
 
 # Build split-expanded-bin (binary that uses the library)
 build-bin: build-lib
-	@echo "Building split-expanded-bin binary..."
-	cargo build --package split-expanded-bin
+	@echo "Building split-expanded-bin binary from workspace root..."
+	$(MAKE) -C .. build-split-expanded-bin
 
 # Alias for building both
 build: build-bin
