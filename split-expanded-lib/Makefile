@@ -27,15 +27,15 @@ build: build-bin
 # Run split-expanded-bin with example arguments
 run: build expand-self
 	@echo "Running split-expanded-bin..."
-	cargo run --bin split-expanded-bin -- \
-		--expanded-manifest $(LOCAL_EXPANDED_DIR)/expanded_manifest.json \
-		--project-root $(PROJECT_ROOT) \
+	cargo run -p split-expanded-bin -- \
+		--expanded-manifest $(CURDIR)/$(LOCAL_EXPANDED_DIR)/expanded_manifest.json \
+		--project-root $(CURDIR)/$(PROJECT_ROOT) \
 		--rustc-version $(RUSTC_VERSION) \
 		--rustc-host $(RUSTC_HOST) \
 		--verbosity $(VERBOSITY) \
 		--layer $(LAYER) \
-		--json-summary-path $(LOCAL_EXPANDED_DIR)/declaration_summary.json \
-		--log-output-dir $(LOCAL_EXPANDED_DIR)/logs
+		--json-summary-path $(CURDIR)/$(LOCAL_EXPANDED_DIR)/declaration_summary.json \
+		--log-output-dir $(CURDIR)/$(LOCAL_EXPANDED_DIR)/logs
 
 .PHONY: expand-self clean-expanded
 
