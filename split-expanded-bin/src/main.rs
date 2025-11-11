@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::path::{PathBuf};
 use split_expanded_lib::{process_expanded_manifest, ProcessExpandedManifestInputs, RustcInfo};
 
