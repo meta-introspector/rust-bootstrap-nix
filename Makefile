@@ -168,6 +168,11 @@ generate-single-workspace:
 		--verbose 0 \
 		--split-expanded-output-global-toml $(GLOBAL_TOML_OUTPUT)"
 
+.PHONY: build-split-expanded-bin
+build-split-expanded-bin:
+	@echo "Building split-expanded-bin binary..."
+	cargo build --package split-expanded-bin
+
 .PHONY: generate-prelude-lock
 generate-prelude-lock:
 	@echo "Generating config.lock for prelude-generator..."
