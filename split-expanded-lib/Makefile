@@ -24,18 +24,34 @@ build-bin: build-lib
 # Alias for building both
 build: build-bin
 
+# Define flake generation arguments
+FLAKE_OUTPUT_DIR ?= $(CURDIR)/generated_flake
+FLAKE_COMPONENT ?= split-expanded-lib
+FLAKE_ARCH ?= aarch64-linux
+FLAKE_PHASE ?= phase0
+FLAKE_STEP ?= step1
+USE_RUSTC_WRAPPER ?= false
+
 # Run split-expanded-bin with example arguments
 run: build expand-self
 	@echo "Running split-expanded-bin..."
 	cargo run -p split-expanded-bin -- \
-		--expanded-manifest $(CURDIR)/$(LOCAL_EXPANDED_DIR)/expanded_manifest.json \
-		--project-root $(CURDIR)/$(PROJECT_ROOT) \
+		--metadata-path $(CURDIR)/target/cargo_metadata.json \
+		--flake-lock-path $(CURDIR)/../flake.lock \
+		--expanded-output-dir $(CURDIR)/$(LOCAL_EXPANDED_DIR) \
 		--rustc-version $(RUSTC_VERSION) \
 		--rustc-host $(RUSTC_HOST) \
 		--verbosity $(VERBOSITY) \
 		--layer $(LAYER) \
+		--package-filter split-expanded-lib \
 		--json-summary-path $(CURDIR)/$(LOCAL_EXPANDED_DIR)/declaration_summary.json \
-		--log-output-dir $(CURDIR)/$(LOCAL_EXPANDED_DIR)/logs
+		--log-output-dir $(CURDIR)/$(LOCAL_EXPANDED_DIR)/logs \
+		--flake-output-dir $(FLAKE_OUTPUT_DIR) \
+		--flake-component $(FLAKE_COMPONENT) \
+		--flake-arch $(FLAKE_ARCH) \
+		--flake-phase $(FLAKE_PHASE) \
+		--flake-step $(FLAKE_STEP) \
+		--use-rustc-wrapper $(USE_RUSTC_WRAPPER)
 
 .PHONY: expand-self clean-expanded
 
