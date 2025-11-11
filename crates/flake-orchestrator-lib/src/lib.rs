@@ -5,7 +5,7 @@ use tokio::fs;
 // Re-export necessary types from dependencies
 pub use expanded_code_collector::{collect_expanded_code, RustcInfo as ExpandedCodeCollectorRustcInfo};
 pub use split_expanded_lib::{process_expanded_manifest, ProcessExpandedManifestInputs, RustcInfo as SplitExpandedLibRustcInfo};
-pub use flake_template_generator::generate_flake_nix_content; // Removed Args as it's not directly accessible
+pub use flake_template_generator::flake_generator::generate_flake_nix_content; // Import from flake_generator module
 
 pub async fn orchestrate_flake_generation(
     metadata_path: &Path,
