@@ -33,6 +33,14 @@ pub struct Args {
     /// Optional: Filter by package name.
     #[arg(long)]
     package_filter: Option<String>,
+
+    /// Path to the JSON summary file for declarations.
+    #[arg(long, required = true)]
+    json_summary_path: PathBuf,
+
+    /// Directory for log output.
+    #[arg(long, required = true)]
+    log_output_dir: PathBuf,
 }
 
 #[tokio::main]
@@ -52,6 +60,8 @@ async fn main() -> anyhow::Result<()> {
         layer: args.layer,
         canonical_output_root: &args.project_root,
         package_filter: args.package_filter,
+        json_summary_path: &args.json_summary_path,
+        log_output_dir: &args.log_output_dir,
     };
 
     process_expanded_manifest(inputs).await?;
