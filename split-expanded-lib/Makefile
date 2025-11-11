@@ -51,10 +51,10 @@ expand-self:
 	cargo metadata --format-version 1 --manifest-path Cargo.toml > $(LOCAL_METADATA_FILE)
 
 	@echo "Running expanded-code-collector for split-expanded-lib..."
-	cargo run --bin expanded-code-collector -- \
-		--metadata-path $(LOCAL_METADATA_FILE) \
-		--output-dir $(LOCAL_EXPANDED_DIR) \
-		--flake-lock-path $(FLAKE_LOCK_PATH) \
+	cargo run -p expanded-code-collector -- \
+		--metadata-path $(CURDIR)/$(LOCAL_METADATA_FILE) \
+		--output-dir $(CURDIR)/$(LOCAL_EXPANDED_DIR) \
+		--flake-lock-path $(CURDIR)/$(FLAKE_LOCK_PATH) \
 		--layer 0 \
 		--package split-expanded-lib
 
