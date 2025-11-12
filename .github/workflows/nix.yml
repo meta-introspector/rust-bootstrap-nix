@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ main, lattices/flakes ]
+  #  branches: [ "main" ]
   pull_request:
-    branches: [ main, lattices/flakes ]
-
+  #  branches: [ "main" ]
+  workflow_dispatch:
 jobs:
   build-test:
     runs-on: ubuntu-latest
