@@ -12,15 +12,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: meta-introspector/checkout@v4
 
       - name: Set up Rust
-        uses: actions/setup-rust@v1
+        uses: meta-introspector/setup-rust@v1
         with:
           rust-version: stable
 
       - name: Set up Nix
-        uses: cachix/install-nix-action@v27
+        uses: meta-introspector/install-nix-action@v27
 
       - name: Build with Nix
         run: |
