@@ -1,0 +1,21 @@
+title = "Refine .gitignore Strategy Across Repositories"
+description = """
+Formalize and apply a consistent .gitignore strategy across the main repository and all submodules. This includes:
+- Integrating global .gitignore templates (macOS, Windows, Linux, Emacs, Vim) to cover common temporary and system-generated files.
+- Ensuring specific project-generated files (e.g., expanded code, log files, build artifacts, Cargo.lock in test suites) are correctly ignored.
+- Addressing and untracking any previously committed generated files that should be ignored.
+- Documenting the .gitignore strategy and its rationale.
+"""
+status = "DONE"
+created_at = "2025-11-08T10:00:00Z"
+parent_task = "09_01_maintain_core_vision_docs.toml"
+stage_id = 9
+step_id = "5"
+name = "Refine .gitignore Strategy"
+related_files = [
+    ".gitignore",
+    "src/tools/cargo/.gitignore",
+    "src/tools/rustc-perf/.gitignore",
+    "vendor/rust/rust-bootstrap-nix/.gitignore",
+    "vendor/rust/rust-bootstrap-nix/rust-system-composer/.gitignore",
+]

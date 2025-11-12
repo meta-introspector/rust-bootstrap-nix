@@ -1,14 +1,17 @@
-//! Implementation of the install aspects of the compiler.
-//!
-//! This module is responsible for installing the standard library,
-//! compiler, and documentation.
+use crate::prelude::*;
+
+
+/// Implementation of the install aspects of the compiler.
+///
+/// This module is responsible for installing the standard library,
+/// compiler, and documentation.
 
 use std::path::{Component, Path, PathBuf};
 use std::{env, fs};
 
 use crate::core::build_steps::dist;
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 use crate::utils::exec::command;
 use crate::utils::helpers::t;
 use crate::utils::tarball::GeneratedTarball;

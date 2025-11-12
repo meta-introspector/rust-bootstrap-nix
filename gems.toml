@@ -1,0 +1,275 @@
+# Configuration for "gem" pattern modules.
+# Each entry defines a gem, its associated crate, and a list of identifiers
+# that belong to this gem.
+
+[[gem]]
+name = "serde"
+crate_name = "serde"
+identifiers = [
+    "Serialize",
+    "Deserialize",
+    "Serializer",
+    "Deserializer",
+    "ser",
+    "de",
+]
+
+[[gem]]
+name = "syn"
+crate_name = "syn"
+identifiers = [
+    "parse",
+    "parse_macro_input",
+    "parse_quote",
+    "Error",
+    "Result",
+    "Ident",
+    "Path",
+    "Type",
+    "Expr",
+    "Item",
+    "visit",
+    "Visit",
+]
+
+[[gem]]
+name = "std_collections_hashmap"
+crate_name = "std::collections"
+identifiers = [
+    "HashMap",
+    "BTreeMap",
+    "HashSet",
+    "BTreeSet",
+]
+
+# Add other gems as needed
+
+[[gem]]
+name = "ast-decoder"
+crate_name = "ast-decoder"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-builder"
+crate_name = "bootstrap-config-builder"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-generator"
+crate_name = "bootstrap-config-generator"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-macros"
+crate_name = "bootstrap-config-macros"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-processor"
+crate_name = "bootstrap-config-processor"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-types"
+crate_name = "bootstrap-config-types"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-config-utils"
+crate_name = "bootstrap-config-utils"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-macros"
+crate_name = "bootstrap-macros"
+identifiers = []
+
+[[gem]]
+name = "bootstrap-test-utils"
+crate_name = "bootstrap-test-utils"
+identifiers = []
+
+[[gem]]
+name = "build_helper"
+crate_name = "build_helper"
+identifiers = []
+
+[[gem]]
+name = "cargo-flake-generator"
+crate_name = "cargo-flake-generator"
+identifiers = []
+
+[[gem]]
+name = "category_theory"
+crate_name = "category_theory"
+identifiers = []
+
+[[gem]]
+name = "CatDB"
+crate_name = "CatDB"
+identifiers = []
+
+[[gem]]
+name = "config_core"
+crate_name = "config_core"
+identifiers = []
+
+[[gem]]
+name = "config_macros"
+crate_name = "config_macros"
+identifiers = []
+
+[[gem]]
+name = "config_tests"
+crate_name = "config_tests"
+identifiers = []
+
+[[gem]]
+name = "configuration-nix"
+crate_name = "configuration-nix"
+identifiers = []
+
+[[gem]]
+name = "dependency-analyzer"
+crate_name = "dependency-analyzer"
+identifiers = []
+
+[[gem]]
+name = "flake-orchestrator"
+crate_name = "flake-orchestrator"
+identifiers = []
+
+[[gem]]
+name = "flake-step-manager"
+crate_name = "flake-step-manager"
+identifiers = []
+
+[[gem]]
+name = "flake-template-generator"
+crate_name = "flake-template-generator"
+identifiers = []
+
+[[gem]]
+name = "generated-test-runner"
+crate_name = "generated-test-runner"
+identifiers = []
+
+[[gem]]
+name = "hf-dataset-validator"
+crate_name = "hf-dataset-validator"
+identifiers = []
+
+[[gem]]
+name = "hf_dataset_validator"
+crate_name = "hf_dataset_validator"
+identifiers = []
+
+[[gem]]
+name = "hf-validator"
+crate_name = "hf-validator"
+identifiers = []
+
+[[gem]]
+name = "metrics-reporter"
+crate_name = "metrics-reporter"
+identifiers = []
+
+[[gem]]
+name = "min_test_project"
+crate_name = "min_test_project"
+identifiers = []
+
+[[gem]]
+name = "nix-dir"
+crate_name = "nix-dir"
+identifiers = []
+
+[[gem]]
+name = "pipeline-traits"
+crate_name = "pipeline-traits"
+identifiers = []
+
+[[gem]]
+name = "prelude-collector"
+crate_name = "prelude-collector"
+identifiers = []
+
+[[gem]]
+name = "prelude-generator"
+crate_name = "prelude-generator"
+identifiers = []
+
+[[gem]]
+name = "rarrow"
+crate_name = "rarrow"
+identifiers = []
+
+[[gem]]
+name = "rmg-cli"
+crate_name = "rmg-cli"
+identifiers = []
+
+[[gem]]
+name = "rmg-core"
+crate_name = "rmg-core"
+identifiers = []
+
+[[gem]]
+name = "rmg-ffi"
+crate_name = "rmg-ffi"
+identifiers = []
+
+[[gem]]
+name = "rmg-wasm"
+crate_name = "rmg-wasm"
+identifiers = []
+
+[[gem]]
+name = "rust-decl-splitter"
+crate_name = "rust-decl-splitter"
+identifiers = []
+
+[[gem]]
+name = "rust-system-composer"
+crate_name = "rust-system-composer"
+identifiers = []
+
+[[gem]]
+name = "stage0_parser_crate"
+crate_name = "stage0_parser_crate"
+identifiers = []
+
+[[gem]]
+name = "temp_hf_project"
+crate_name = "temp_hf_project"
+identifiers = []
+
+[[gem]]
+name = "test-bootstrap"
+crate_name = "test-bootstrap"
+identifiers = []
+
+[[gem]]
+name = "test-openssl-sys"
+crate_name = "test-openssl-sys"
+identifiers = []
+
+[[gem]]
+name = "test_definitions_lib"
+crate_name = "test_definitions_lib"
+identifiers = []
+
+[[gem]]
+name = "test_definitions_macro"
+crate_name = "test_definitions_macro"
+identifiers = []
+
+[[gem]]
+name = "test_definitions_test"
+crate_name = "test_definitions_test"
+identifiers = []
+
+[[gem]]
+name = "aho-corasick-wrapper"
+crate_name = "aho-corasick-wrapper"
+identifiers = []

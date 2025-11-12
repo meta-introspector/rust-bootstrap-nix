@@ -1,0 +1,8 @@
+title = "Define Canonical Lib Layer 0"
+description = "This task involves completing the extraction and **isolation of atomic units without internal dependencies**. These extracted declarations must be placed in **layer-specific directories** (e.g., `generated_declarations/0/`) and structured according to the **4KB file blocking** constraint."
+status = "IN_PROGRESS"
+created_at = "2025-11-01T12:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 2
+step_id = "3"
+name = "Define Canonical Lib Layer 0"

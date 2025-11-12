@@ -1,0 +1,69 @@
+.PHONY: all build-splitter run-splitter build-generator run-generator test-build create-prelude-crate dump-declarations-toml test-decl-splitter test-minimal-decl-splitter
+
+# Default target
+all: test-build dump-declarations-toml
+
+run-splitter:
+	@echo "Running prelude-generator with --run-decl-splitter..."
+	cargo run --package prelude-generator -- \
+		--run-decl-splitter \
+		--path . \
+		--generated-decls-output-dir generated_declarations \
+		--output-declarations-toml generated_declarations/project_info.toml
+
+
+
+dump-declarations-toml: run-splitter
+	@echo "Dumping declarations to generated_declarations/project_info.toml"
+
+# Create prelude crate
+create-prelude-crate:
+	@echo "Creating prelude crate..."
+	mkdir -p rust-decl-splitter/output_self_test/prelude/src
+	printf '[package]\nname = "prelude"\nversion = "0.1.0"\nedition = "2021"\n\n[dependencies]\nquote = "1.0.41"\nsyn = { version = "2.0.108", features = ["full", "visit"] }\nwalkdir = "2.5.0"\n' > rust-decl-splitter/output_self_test/prelude/Cargo.toml
+	printf 'pub use quote::quote;\npub use std::{env, fs, io, path::{Path, PathBuf}};\npub use syn::{self, Item, Ident, spanned::Spanned};\npub use walkdir::WalkDir;\n' > rust-decl-splitter/output_self_test/prelude/src/lib.rs
+
+# Build workspace-generator
+build-generator:
+	@echo "Building workspace-generator..."
+	cargo build --package workspace-generator
+
+# Run workspace-generator
+run-generator: build-generator run-splitter create-prelude-crate
+	@echo "Running workspace-generator..."
+	cargo run --package workspace-generator -- rust-decl-splitter/output_self_test
+
+# Test the generated workspace build
+test-build: run-generator
+	@echo "Testing the generated workspace build..."
+	cd rust-decl-splitter/output_self_test && cargo build
+
+# Test decl-splitter with a single small crate (pipeline-traits)
+test-decl-splitter:
+	@echo "Expanding macros for pipeline-traits..."
+	cargo expand --package pipeline-traits > expanded_pipeline_traits.rs
+	@echo "Running prelude-generator with --run-decl-splitter for expanded pipeline-traits..."
+	cargo run --package prelude-generator -- \
+		--run-decl-splitter \
+		--path expanded_pipeline_traits.rs \
+		--output-declarations-toml test_declarations.toml
+
+# Test decl-splitter with a very minimal crate
+test-minimal-decl-splitter:
+	@echo "Expanding macros for temp_test_crate..."
+	cargo expand --manifest-path /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/temp_test_crate/Cargo.toml > expanded_temp_test_crate.rs
+	@echo "Running prelude-generator with --run-decl-splitter for expanded temp_test_crate..."
+	@RUST_BACKTRACE=1 target/debug/prelude-generator --run-decl-splitter \
+		--path expanded_temp_test_crate.rs \
+		--output-declarations-toml minimal_test_declarations.toml \
+		--output-symbol-map minimal_test_symbol_map.toml \
+		--verbose
+
+# Analyze type usage in preprocessed code
+analyze-type-usage: test-decl-splitter
+	@echo "Running prelude-generator with --analyze-type-usage for expanded pipeline-traits..."
+	@RUST_BACKTRACE=1 target/debug/prelude-generator --analyze-type-usage \
+		--path expanded_pipeline_traits.rs \
+		--max-expression-depth 5 \
+		--output-type-usage-report type_usage_report.txt \
+		--verbose

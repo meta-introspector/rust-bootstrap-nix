@@ -1,0 +1,19 @@
+# tasks/13_02_implement_layered_declaration_processing.toml
+title = "Implement Layered Declaration Processing"
+description = "Implement a workflow to process Rust crates layer by layer, splitting declarations into individual files, regenerating them in layers, and regenerating Cargo.toml files. Focus on isolating types and functions with traits and templates to parameterize types and collapse dependencies."
+name = "Implement Layered Declaration Processing"
+status = "IN_PROGRESS"
+created_at = "2025-11-09T12:00:00Z"
+priority = "high"
+assigned_to = "Gemini"
+tags = ["layered-processing", "declarations", "rust-system-composer", "traits", "templates"]
+dependencies = ["13_01_vendorize_all_rust_dependencies.toml"]
+sub_tasks = [
+    "Read and parse the full layers_list.txt to understand dependency layers.",
+    "Develop a mechanism to iterate through crates based on their assigned layer (bottom-up).",
+    "Integrate with split-expanded-lib to split declarations of each crate into individual files.",
+    "Modify rust-system-composer to regenerate declarations within their respective layers.",
+    "Update Cargo.toml files for each layered crate, including dependencies on lower layers.",
+    "Design and implement a strategy to isolate types and functions using traits and templates.",
+    "Refactor code to parameterize types and reduce direct dependencies between modules."
+]

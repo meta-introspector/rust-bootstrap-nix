@@ -1,12 +1,15 @@
-//! Implementation of the various distribution aspects of the compiler.
-//!
-//! This module is responsible for creating tarballs of the standard library,
-//! compiler, and documentation. This ends up being what we distribute to
-//! everyone as well.
-//!
-//! No tarball is actually created literally in this file, but rather we shell
-//! out to `rust-installer` still. This may one day be replaced with bits and
-//! pieces of `rustup.rs`!
+use crate::prelude::*;
+
+
+/// Implementation of the various distribution aspects of the compiler.
+///
+/// This module is responsible for creating tarballs of the standard library,
+/// compiler, and documentation. This ends up being what we distribute to
+/// everyone as well.
+///
+/// No tarball is actually created literally in this file, but rather we shell
+/// out to `rust-installer` still. This may one day be replaced with bits and
+/// pieces of `rustup.rs`!
 
 use std::collections::HashSet;
 use std::ffi::OsStr;
@@ -22,7 +25,7 @@ use crate::core::build_steps::tool::{self, Tool};
 use crate::core::build_steps::vendor::default_paths_to_vendor;
 use crate::core::build_steps::{compile, llvm};
 use crate::core::builder::{Builder, Kind, RunConfig, ShouldRun, Step};
-use crate::core::config::TargetSelection;
+//use crate::core::config::TargetSelection;
 use crate::utils::channel::{self, Info};
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{
@@ -173,7 +176,7 @@ fn make_win_dist(
     target: TargetSelection,
     builder: &Builder<'_>,
 ) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -912,7 +915,7 @@ impl Step for Src {
 
     /// Creates the `rust-src` installer component
     fn run(self, builder: &Builder<'_>) -> GeneratedTarball {
-        if !builder.config.dry_run() {
+        if !builder.config.dry_run {
             builder.require_submodule("src/llvm-project", None);
         }
 
@@ -1333,7 +1336,7 @@ impl Step for CodegenBackend {
     }
 
     fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return None;
         }
 
@@ -1511,7 +1514,7 @@ impl Step for Extended {
         let etc = builder.src.join("src/etc/installer");
 
         // Avoid producing tarballs during a dry run.
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return;
         }
 
@@ -1929,7 +1932,7 @@ impl Step for Extended {
             let _time = timeit(builder);
             cmd.run(builder);
 
-            if !builder.config.dry_run() {
+            if !builder.config.dry_run {
                 t!(move_file(exe.join(&filename), distdir(builder).join(&filename)));
             }
         }
@@ -1965,7 +1968,7 @@ fn install_llvm_file(
     destination: &Path,
     install_symlink: bool,
 ) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -2039,7 +2042,7 @@ fn maybe_install_llvm(
         if llvm_dylib_path.exists() {
             builder.install(&llvm_dylib_path, dst_libdir, 0o644);
         }
-        !builder.config.dry_run()
+        !builder.config.dry_run
     } else if let llvm::LlvmBuildStatus::AlreadyBuilt(llvm::LlvmResult { llvm_config, .. }) =
         llvm::prebuilt_llvm_config(builder, target, true)
     {
@@ -2058,7 +2061,7 @@ fn maybe_install_llvm(
             };
             install_llvm_file(builder, &file, dst_libdir, install_symlink);
         }
-        !builder.config.dry_run()
+        !builder.config.dry_run
     } else {
         false
     }

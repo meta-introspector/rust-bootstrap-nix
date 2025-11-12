@@ -1,0 +1,12 @@
+title = "Isolate Level 0 Declarations"
+description = "Complete the extraction of Level 0 Declarations (atomic units without internal dependencies, starting with `const` items). These must be placed in their own isolated, self-contained files and modules within the `generated_declarations/0/` directory. Level 0 elements form the base of the topologically sorted Lattice, enabling layered compilation and dependency verification."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T15:40:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 12
+step_id = "17"
+name = "Isolate Level 0 Declarations"
+related_files = [
+    "generated_declarations/0/",
+    "prelude-generator/src/lib.rs",
+]

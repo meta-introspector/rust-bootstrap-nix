@@ -1,0 +1,17 @@
+.
+./standalonex/src/build_helper
+./standalonex/src
+./standalonex/src/bootstrap
+./standalonex/src/bootstrap/src/core/build_steps/test_utils
+./standalonex/src/bootstrap/src/core/config_crates/config_core
+./standalonex/src/bootstrap/src/core/config_crates/config_macros
+./standalonex/src/bootstrap/src/core/config_crates/config_tests
+./standalonex/src/bootstrap/src/core/config_utils
+./standalonex/src/bootstrap/src/core/config_processor
+./standalonex/src/stage0_parser_crate
+./flake-template-generator
+./configuration-nix
+./bootstrap-config-builder
+./test_definitions_crates/test_definitions_lib
+./test_definitions_crates/test_definitions_macro
+./test_definitions_crates/test_definitions_test

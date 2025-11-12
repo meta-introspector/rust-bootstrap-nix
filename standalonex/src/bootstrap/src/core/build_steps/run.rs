@@ -1,7 +1,8 @@
-//! Build-and-run steps for in-repo tools
-//!
-//! A bit of a hodge-podge as e.g. if a tool's a test fixture it should be in `build_steps::test`.
-//! If it can be reached from `./x.py run` it can go here.
+use crate::prelude::*;
+// Build-and-run steps for in-repo tools
+//
+// A bit of a hodge-podge as e.g. if a tool's a test fixture it should be in `build_steps::test`.
+// If it can be reached from `./x.py run` it can go here.
 
 use std::path::PathBuf;
 
@@ -10,8 +11,8 @@ use crate::core::build_steps::dist::distdir;
 use crate::core::build_steps::test;
 use crate::core::build_steps::tool::{self, SourceType, Tool};
 use crate::core::builder::{Builder, Kind, RunConfig, ShouldRun, Step};
-use crate::core::config::TargetSelection;
-use crate::core::config::flags::get_completion;
+//use crate::core::config::TargetSelection;
+//use crate::core::config::flags::get_completion;
 use crate::utils::exec::command;
 
 #[derive(Debug, PartialOrd, Ord, Clone, Hash, PartialEq, Eq)]

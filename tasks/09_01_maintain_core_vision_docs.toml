@@ -1,0 +1,13 @@
+title = "Maintain and cross-reference core vision documents"
+description = "Continuously maintain and cross-reference core architectural documents such as `lattice.md`, `rollup.md`, and `bootstrap.md` as the Flake Lattice and Introspective Rollup Workflow evolve. Ensure these documents accurately reflect the project's current state and future vision."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T11:20:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 9
+step_id = "1"
+name = "Maintain core vision docs"
+related_files = [
+    "lattice.md",
+    "rollup.md",
+    "bootstrap.md",
+]

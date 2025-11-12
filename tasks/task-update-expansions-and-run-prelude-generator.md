@@ -1,0 +1,1 @@
+Okay, I need to update expansions and then run prelude-generator to scan only ./expanded/. First, I'll execute make expand-all from the workspace root. Then, I'll run prelude-generator from the workspace root with --path ./expanded and the type usage analysis arguments, which will implicitly exclude generated_declarations.

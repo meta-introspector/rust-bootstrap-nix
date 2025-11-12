@@ -1,0 +1,16 @@
+[package]
+name = "cargo-flake-generator"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cargo-flake-generator"
+path = "src/main.rs"
+
+[dependencies]
+cargo_metadata = "0.18"
+anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+
+

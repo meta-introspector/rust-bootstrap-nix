@@ -1,0 +1,12 @@
+title = "Utilize AST_STATISTICS for ClassifyUsesFunctor Heuristics"
+description = "Refine the logic in the `ClassifyUsesFunctor` using statistical data generated in `ast-stats-crate::AST_STATISTICS`. This data-driven approach will replace manual guesswork with informed analysis for populating the trait details within `UseStatement`, closing the self-reflection loop."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T15:00:00Z"
+parent_task = "02_07_refine_classify_uses_functor.toml"
+stage_id = 12
+step_id = "13"
+name = "AST_STATISTICS for Classification Heuristics"
+related_files = [
+    "prelude-generator/src/prelude_category_pipeline.rs", # Assuming ClassifyUsesFunctor is here
+    "ast-stats-crate/src/lib.rs", # Assuming ast-stats-crate exists
+]

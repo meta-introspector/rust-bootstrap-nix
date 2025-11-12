@@ -1,0 +1,29 @@
+title = "Generate 8D Sub-Lattices and Organize into Usage-Based Libraries"
+description = "Further split the generated declarations into an 8D sublattice based on the type of AST node (e.g., functions, structs, enums) and the types used within each declaration. The '8D' refers to a multi-dimensional classification system, potentially aligning with the 8-fold recursion goal. The ultimate objective is to collect these sub-lattices into logical libraries, categorizing them by 'who uses what' and at 'what complexity level'. This task will leverage the existing layered reporting and sub-lattice analysis capabilities to create a highly organized and navigable codebase structure."
+status = "IN_PROGRESS"
+created_at = "2025-11-05T12:45:00Z"
+parent_task = "06_20_sub_lattice_of_large_types.toml"
+stage_id = 0
+step_id = "LT_23"
+name = "Generate 8D Sub-Lattices and Organize Libraries"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "split-expanded-bin/Cargo.toml",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "scripts/generate_package_lists.sh",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "scripts/expand_rust_compiler_crates.sh",
+]

@@ -1,0 +1,12 @@
+title = "Mandate 'One External Crate Per Module' (OECPM)"
+description = "Enforce the 'One External Crate Per Module' (OECPM) architectural constraint. As code is broken down by `rust-decl-splitter`, ensure that newly created modules adhere to this rule. If a declaration relies on two external crates, it must be refactored into two or more dependent functions/types, each contained in a separate module wrapper."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T15:20:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 12
+step_id = "15"
+name = "Mandate OECPM"
+related_files = [
+    "rust-decl-splitter/src/main.rs", # Assuming this tool exists
+    "generated_declarations/",
+]

@@ -1,0 +1,30 @@
+[package]
+name = "rust-system-composer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+regex = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+toml_edit = "0.22"
+config = "0.13"
+walkdir = "2.0"
+fs_extra = "1.0"
+quote = "1.0"
+proc-macro2 = "1.0"
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+prelude-generator = { path = "../prelude-generator" }
+cargo-flake-generator = { path = "../tools/cargo-flake-generator" }
+flake-template-generator = { path = "../flake-template-generator" }
+split-expanded-lib = { path = "../split-expanded-lib" }
+expanded-code-collector = { path = "../crates/expanded-code-collector" }
+code-graph-flattener = { path = "../crates/code-graph-flattener" }
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+

@@ -1,0 +1,2 @@
+[bins]
+prelude_generator = "target/release/prelude-generator"

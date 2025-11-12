@@ -1,0 +1,8 @@
+title = "Implement Bag of Words and Coordinate Grouping for Declarations"
+description = "This implements the core mechanism for converting a declaration into a quantifiable lattice node. The BoW (referenced identifiers/types) is the **foundation for calculating the declaration's 8D coordinate** and grouping declarations into highly efficient, dependency-optimized **~4KB chunks**."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 1
+step_id = "2"
+name = "Implement Bag of Words and Coordinate Grouping for Declarations"

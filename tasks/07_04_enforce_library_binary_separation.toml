@@ -1,0 +1,21 @@
+title = "Enforce separation of library logic from binary entry points"
+description = "Audit and enforce the consistent separation of library logic from binary entry points across all tools in the project. This ensures that core functionalities reside in `lib.rs` and binaries primarily handle argument parsing and calling library functions."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T10:20:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 7
+step_id = "4"
+name = "Enforce library/binary separation"
+related_files = [
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "bootstrap-config-builder/src/lib.rs",
+    "bootstrap-config-builder/src/main.rs",
+    "rust-system-composer/src/lib.rs",
+    "rust-system-composer/src/main.rs",
+    "split-expanded-bin/src/lib.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/lib.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+]

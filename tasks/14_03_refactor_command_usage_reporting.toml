@@ -1,0 +1,41 @@
+# tasks/14_03_refactor_command_usage_reporting.toml
+
+[task]
+name = "Refactor Command Object Usage Reporting to a Dedicated Code Graph Query Tool"
+description = "Move the Command object usage reporting logic from rust-system-composer into a new, dedicated `code-graph-query-tool` crate. This crate will be a generic tool for querying CodeGraphs, loading a serialized CodeGraph, executing a user-defined query using petgraph, and generating a report."
+status = "pending"
+priority = "high"
+assigned_to = "Gemini"
+created_date = "2025-11-09"
+due_date = "2025-11-10"
+
+[subtasks.create_code_graph_query_tool_crate]
+name = "Create `code-graph-query-tool` crate"
+description = "Create a new binary crate in `crates/code-graph-query-tool`."
+status = "pending"
+
+[subtasks.implement_code_graph_query_tool_logic]
+name = "Implement generic query logic in `code-graph-query-tool`"
+description = """
+- Add `clap` for argument parsing (input: serialized CodeGraph path, query definition, output: report path).
+- Load and deserialize the CodeGraph.
+- Convert CodeGraph to `petgraph::graph::DiGraph`.
+- Implement a generic query engine that can interpret a query definition (e.g., a simple DSL or JSON structure) to query for nodes/edges based on their properties (id, node_type, properties HashMap).
+- Generate and write the report based on the query results.
+"""
+status = "pending"
+
+[subtasks.modify_rust_system_composer]
+name = "Modify `rust-system-composer` to call `code-graph-query-tool`"
+description = """
+- Remove direct Command object usage reporting logic from `run_layered_composition_workflow`.
+- If `--command-report-output-path` is provided, `rust-system-composer` will:
+    - Ensure `code_graph_output_path` is provided (or generate a temporary one).
+    - Call the `code-graph-query-tool` executable, passing the path to the generated CodeGraph, a predefined query for 'Command' object usage, and the desired report output path.
+"""
+status = "pending"
+
+[subtasks.update_documentation]
+name = "Update documentation"
+description = "Update `README.md`, `GEMINI.md`, and `docs/recent_changes.md` to reflect the new architecture for Command object usage reporting, now using a generic code graph query tool."
+status = "pending"

@@ -1,0 +1,19 @@
+
+.PHONY: test-cargo-run test-nix-develop-cargo-run print-path-direct print-path-nix-develop
+
+test-cargo-run:
+	@echo "--- Running test-cargo-run directly ---"
+	cd test_cargo_run_env && cargo run
+
+test-nix-develop-cargo-run:
+	@echo "--- Running test-nix-develop-cargo-run via nix develop ---"
+	nix develop --command bash -c "cd test_cargo_run_env && cargo run"
+
+print-path-direct:
+	@echo "--- PATH directly ---"
+	@echo $$PATH
+
+print-path-nix-develop:
+	@echo "--- PATH via nix develop ---"
+	nix develop --command bash -c "echo $$PATH"
+

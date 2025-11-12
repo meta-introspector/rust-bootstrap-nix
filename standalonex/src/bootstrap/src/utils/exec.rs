@@ -1,3 +1,6 @@
+use crate::prelude::*;
+
+
 use std::ffi::OsStr;
 use std::fmt::{Debug, Formatter};
 use std::path::Path;
@@ -6,7 +9,7 @@ use std::process::{Command, CommandArgs, CommandEnvs, ExitStatus, Output, Stdio}
 use build_helper::ci::CiEnv;
 use build_helper::drop_bomb::DropBomb;
 
-use crate::Build;
+//use crate::BuildConfig;
 
 /// What should be done when the command fails.
 #[derive(Debug, Copy, Clone)]

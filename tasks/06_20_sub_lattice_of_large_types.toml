@@ -1,0 +1,20 @@
+title = "Sub-Lattice of Large Enums, Structs, and Functions"
+description = "Document the concept and implementation strategy for treating large enums, structs, and functions as sub-lattices. This involves analyzing their internal components (fields, variants, parameters, methods within `impl` blocks) as nodes and their co-occurrence or dependencies as edges, forming new, finer-grained lattices. This concept is detailed in `Lattice_Analysis_for_Large_Types.md` and is crucial for decomposing complex types into manageable, interconnected components within the overall lattice system."
+status = "IN_PROGRESS"
+created_at = "2025-11-05T12:05:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 0
+step_id = "LT_20"
+name = "Sub-Lattice of Large Types"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+]

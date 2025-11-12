@@ -1,0 +1,13 @@
+[MyStruct]
+id = "MyStruct"
+dependency_type = "struct"
+crate_name = "unknown_crate"
+module_path = "expanded_temp_test_crate"
+usage_count = 0
+
+[my_function]
+id = "my_function"
+dependency_type = "function"
+crate_name = "unknown_crate"
+module_path = "expanded_temp_test_crate"
+usage_count = 0

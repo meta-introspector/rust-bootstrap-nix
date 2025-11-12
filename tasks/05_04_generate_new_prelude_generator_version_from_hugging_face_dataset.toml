@@ -1,0 +1,8 @@
+title = "Generate new prelude-generator version from Hugging Face dataset"
+description = "This implements the core bootstrap placeholder necessary to realize the goal of the **Self-Hosting Prelude Generator**. It allows the system to use its own structured, analyzed data (AST and UseStatement metadata saved to Hugging Face) to **generate a new version of itself**, ensuring reflexivity and data-driven improvement."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 3
+step_id = "5"
+name = "Generate new prelude-generator version from Hugging Face dataset"

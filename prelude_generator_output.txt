@@ -1,0 +1,25 @@
+--- Stage 1: Parsing ---
+  -> Parsed file successfully.
+--- Stage 2: Extracting Use Statements ---
+  -> Extracted 0 use statements.
+--- Stage 3: Classifying Use Statements ---
+  -> Classified use statements:
+ClassifiedUseStatements(
+    [],
+)
+--- METRICS_START ---
+{
+  "ParseFunctor::map": {
+    "duration_micros": 901,
+    "call_count": 1
+  },
+  "ClassifyUsesFunctor::map": {
+    "duration_micros": 18,
+    "call_count": 1
+  },
+  "ExtractUsesFunctor::map": {
+    "duration_micros": 15,
+    "call_count": 1
+  }
+}
+--- METRICS_END ---

@@ -1,12 +1,15 @@
-//! Compilation of native dependencies like LLVM.
-//!
-//! Native projects like LLVM unfortunately aren't suited just yet for
-//! compilation in build scripts that Cargo has. This is because the
-//! compilation takes a *very* long time but also because we don't want to
-//! compile LLVM 3 times as part of a normal bootstrap (we want it cached).
-//!
-//! LLVM and compiler-rt are essentially just wired up to everything else to
-//! ensure that they're always in place if needed.
+use crate::prelude::*;
+
+
+/// Compilation of native dependencies like LLVM.
+///
+/// Native projects like LLVM unfortunately aren't suited just yet for
+/// compilation in build scripts that Cargo has. This is because the
+/// compilation takes a *very* long time but also because we don't want to
+/// compile LLVM 3 times as part of a normal bootstrap (we want it cached).
+///
+/// LLVM and compiler-rt are essentially just wired up to everything else to
+/// ensure that they're always in place if needed.
 
 use std::env;
 use std::env::consts::EXE_EXTENSION;
@@ -19,12 +22,12 @@ use build_helper::ci::CiEnv;
 use build_helper::git::get_closest_merge_commit;
 
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 use crate::utils::exec::command;
 use crate::utils::helpers::{
     self, HashStamp, exe, get_clang_cl_resource_dir, t, unhashed_basename, up_to_date,
 };
-use crate::{CLang, GitRepo, Kind, generate_smart_stamp_hash};
+use crate::{Language, GitInfo, Kind, generate_smart_stamp_hash};
 
 #[derive(Clone)]
 pub struct LlvmResult {
@@ -509,7 +512,7 @@ impl Step for Llvm {
         if target != builder.config.build {
             let LlvmResult { llvm_config, .. } =
                 builder.ensure(Llvm { target: builder.config.build });
-            if !builder.config.dry_run() {
+            if !builder.config.dry_run {
                 let llvm_bindir =
                     command(&llvm_config).arg("--bindir").run_capture_stdout(builder).stdout();
                 let host_bin = Path::new(llvm_bindir.trim());
@@ -524,7 +527,7 @@ impl Step for Llvm {
             if builder.config.llvm_clang {
                 let build_bin = builder.llvm_out(builder.config.build).join("build").join("bin");
                 let clang_tblgen = build_bin.join("clang-tblgen").with_extension(EXE_EXTENSION);
-                if !builder.config.dry_run() && !clang_tblgen.exists() {
+                if !builder.config.dry_run && !clang_tblgen.exists() {
                     panic!("unable to find {}", clang_tblgen.display());
                 }
                 cfg.define("CLANG_TABLEGEN", clang_tblgen);
@@ -553,7 +556,7 @@ impl Step for Llvm {
             cfg.define(key, val);
         }
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return res;
         }
 
@@ -615,7 +618,7 @@ impl Step for Llvm {
 }
 
 fn check_llvm_version(builder: &Builder<'_>, llvm_config: &Path) {
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         return;
     }
 
@@ -915,7 +918,7 @@ impl Step for Enzyme {
             "src/tools/enzyme",
             Some("The Enzyme sources are required for autodiff."),
         );
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             let out_dir = builder.enzyme_out(self.target);
             return out_dir;
         }
@@ -1005,7 +1008,7 @@ impl Step for Lld {
 
     /// Compile LLD for `target`.
     fn run(self, builder: &Builder<'_>) -> PathBuf {
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return PathBuf::from("lld-out-dir-test-gen");
         }
         let target = self.target;
@@ -1138,7 +1141,7 @@ impl Step for Sanitizers {
         }
 
         let LlvmResult { llvm_config, .. } = builder.ensure(Llvm { target: builder.config.build });
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return runtimes;
         }
 
@@ -1312,7 +1315,7 @@ impl Step for CrtBeginEnd {
 
         let out_dir = builder.native_dir(self.target).join("crt");
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return out_dir;
         }
 
@@ -1386,7 +1389,7 @@ impl Step for Libunwind {
             Some("The LLVM sources are required for libunwind."),
         );
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return PathBuf::new();
         }
 

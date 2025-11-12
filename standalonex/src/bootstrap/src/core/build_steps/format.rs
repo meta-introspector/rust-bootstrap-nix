@@ -1,4 +1,7 @@
-//! Runs rustfmt on the repository.
+use crate::prelude::*;
+
+
+/// Runs rustfmt on the repository.
 
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
@@ -124,7 +127,7 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
         );
         crate::exit!(1);
     };
-    if build.config.dry_run() {
+    if build.config.dry_run {
         return;
     }
 

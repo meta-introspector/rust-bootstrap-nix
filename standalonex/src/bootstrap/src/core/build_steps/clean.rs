@@ -1,9 +1,12 @@
-//! `./x.py clean`
-//!
-//! Responsible for cleaning out a build directory of all old and stale
-//! artifacts to prepare for a fresh build. Currently doesn't remove the
-//! `build/cache` directory (download cache) or the `build/$target/llvm`
-//! directory unless the `--all` flag is present.
+use crate::prelude::*;
+
+
+/// `./x.py clean`
+///
+/// Responsible for cleaning out a build directory of all old and stale
+/// artifacts to prepare for a fresh build. Currently doesn't remove the
+/// `build/cache` directory (download cache) or the `build/$target/llvm`
+/// directory unless the `--all` flag is present.
 
 use std::fs;
 use std::io::{self, ErrorKind};
@@ -11,7 +14,7 @@ use std::path::Path;
 
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step, crate_description};
 use crate::utils::helpers::t;
-use crate::{Build, Compiler, Kind, Mode, Subcommand};
+//use crate::{BuildConfig, Compiler, Kind, Mode, Subcommand};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CleanAll {}
@@ -97,7 +100,7 @@ clean_crate_tree! {
 }
 
 fn clean(build: &Build, all: bool, stage: Option<u32>) {
-    if build.config.dry_run() {
+    if build.config.dry_run {
         return;
     }
 

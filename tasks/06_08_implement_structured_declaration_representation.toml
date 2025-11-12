@@ -1,0 +1,8 @@
+title = "Implement structured Declaration representation"
+description = "Implement a `Declaration` struct to provide a unified way to represent any `syn::Item` along with its associated 'bag of words' and other metadata."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "lattice.md"
+stage_id = 0
+step_id = "LT_08"
+name = "Implement structured Declaration representation"

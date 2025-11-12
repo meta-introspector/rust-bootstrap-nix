@@ -1,0 +1,8 @@
+title = "Decouple API Types using Traits"
+description = "Refactor client crates to export functions via traits, decoupling them from concrete bound API types to enhance modularity and flexibility."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 4
+step_id = "4.3"
+name = "Decouple API Types using Traits"

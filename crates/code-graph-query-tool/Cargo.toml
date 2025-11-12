@@ -1,0 +1,14 @@
+[package]
+name = "code-graph-query-tool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+petgraph = "0.6"
+code-graph-flattener = { path = "../code-graph-flattener" }
+regex = "1.5"
+prelude-generator = { path = "../../prelude-generator" }

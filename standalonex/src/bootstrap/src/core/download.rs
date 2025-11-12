@@ -1,3 +1,6 @@
+use crate::prelude::*;
+
+
 use std::env;
 use std::ffi::OsString;
 use std::fs::{self, File};
@@ -12,7 +15,7 @@ use xz2::bufread::XzDecoder;
 use crate::core::config::BUILDER_CONFIG_FILENAME;
 use crate::utils::exec::{BootstrapCommand, command};
 use crate::utils::helpers::{check_run, exe, hex_encode, move_file, program_out_of_date};
-use crate::{Config, t};
+//use crate::{Config, t};
 
 static SHOULD_FIX_BINS_AND_DYLIBS: OnceLock<bool> = OnceLock::new();
 
@@ -47,14 +50,14 @@ impl Config {
     }
 
     pub(crate) fn create(&self, path: &Path, s: &str) {
-        if self.dry_run() {
+        if self.dry_run {
             return;
         }
         t!(fs::write(path, s));
     }
 
     pub(crate) fn remove(&self, f: &Path) {
-        if self.dry_run() {
+        if self.dry_run {
             return;
         }
         fs::remove_file(f).unwrap_or_else(|_| panic!("failed to remove {:?}", f));
@@ -74,7 +77,7 @@ impl Config {
     /// Returns false if do not execute at all, otherwise returns its
     /// `status.success()`.
     pub(crate) fn check_run(&self, cmd: &mut BootstrapCommand) -> bool {
-        if self.dry_run() && !cmd.run_always {
+        if self.dry_run && !cmd.run_always {
             return true;
         }
         self.verbose(|| println!("running: {cmd:?}"));
@@ -367,7 +370,7 @@ impl Config {
 
         self.verbose(|| println!("verifying {}", path.display()));
 
-        if self.dry_run() {
+        if self.dry_run {
             return false;
         }
 
@@ -387,7 +390,7 @@ impl Config {
             reader.consume(l);
         }
 
-        let checksum = hex_encode(hasher.finalize().as_slice());
+        let checksum = hex_encode(hasher.finalize());
         let verified = checksum == expected;
 
         if !verified {
@@ -508,7 +511,7 @@ impl Config {
 
     fn ci_component_contents(&self, stamp_file: &str) -> Vec<String> {
         assert!(self.download_rustc());
-        if self.dry_run() {
+        if self.dry_run {
             return vec![];
         }
 
@@ -628,7 +631,7 @@ impl Config {
         key: &str,
         destination: &str,
     ) {
-        if self.dry_run() {
+        if self.dry_run {
             return;
         }
 
@@ -723,7 +726,7 @@ download-rustc = false
         use build_helper::exit;
 
         use crate::core::build_steps::llvm::detect_llvm_sha;
-        use crate::core::config::check_incompatible_options_for_ci_llvm;
+//        use crate::core::config::check_incompatible_options_for_ci_llvm;
 
         if !self.llvm_from_ci {
             return;
@@ -733,7 +736,7 @@ download-rustc = false
         let llvm_stamp = llvm_root.join(".llvm-stamp");
         let llvm_sha = detect_llvm_sha(self, self.rust_info.is_managed_git_subrepository());
         let key = format!("{}{}", llvm_sha, self.llvm_assertions);
-        if program_out_of_date(&llvm_stamp, &key) && !self.dry_run() {
+        if program_out_of_date(&llvm_stamp, &key) && !self.dry_run {
             self.download_ci_llvm(&llvm_sha);
 
             if self.should_fix_bins_and_dylibs() {

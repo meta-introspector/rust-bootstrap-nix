@@ -1,3 +1,290 @@
-/build/
-/standalonex/build/
-/standalonex/result
+### Begin Global.gitignore (https://github.com/github/gitignore)
+### https://gist.github.com/gg2001/6a838a9bbae3138e0a2f7c1712058708
+
+## macOS.gitignore
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+## Windows.gitignore
+
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+## Linux.gitignore
+
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+## Emacs.gitignore
+
+# -*- mode: gitignore; -*-
+*~
+#*#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# flymake-mode
+*_flymake.*
+
+# eshell files
+/eshell/history
+/eshell/lastdir
+
+# elpa packages
+/elpa/
+
+# reftex files
+*.rel
+
+# AUCTeX auto folder
+/auto/
+
+# cask packages
+.cask/
+dist/
+
+# Flycheck
+flycheck_*.el
+
+# server auth directory
+/server/
+
+# projectiles files
+.projectile
+
+# directory configuration
+.dir-locals.el
+
+# network security
+/network-security.data
+
+## Vim.gitignore
+
+# Swap
+[._]*.s[a-v][a-z]
+!*.svg  # comment out if you don't need vector files
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+Sessionx.vim
+
+# Temporary
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
+# Generated files
+expanded/
+nix_json_output/
+rust-bootstrap-core/
+expanded/expanded_manifest.json
+
+# Log files
+crash.txt
+error_report.txt
+failed_metadata_cargos.txt
+generate_error_report.sh
+layers.txt
+log.txt
+log2.txt
+logs.txt
+prelude-generator/type_usage_report.txt
+prelude_generator_workspace_type_usage_report.txt
+priority_cargos.txt
+targets.txt
+task.md
+task.txt
+*.log
+*.bin
+*.rmeta
+*.json
+result
+
+# Temporary files
+*~
+.#*
+#*#
+#*
+*#
+.env
+.env.sh
+.env~
+.gitmodules~
+Makefile.expand~
+Makefile.shear
+Makefile.shear~
+flake.nix~
+layers.sh~
+lintall.sh~
+log.txt~
+log2.txt~
+make.log
+pipeline-traits/Cargo.toml~
+pipeline-traits/src/lib.rs~
+prelude-generator/src/bin/interface-generator.rs~
+prelude-generator/src/collect_prelude_info.rs~
+prelude-generator/src/command_handlers/mod.rs~
+prelude-generator/src/declaration_processing.rs~
+prelude-generator/src/lib.rs~
+prelude-generator/src/module_verifier.rs~
+prelude-generator/src/parser.rs~
+prelude-generator/src/pipeline.rs~
+prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/mod.rs~
+prelude-generator/src/processor.rs~
+prelude-generator/src/type_extractor.rs~
+prelude-generator/src/types.rs~
+prelude-generator/src/use_statements.rs~
+prelude-generator/type_usage_report.txt~
+prelude_generator_output.txt~
+run_bootstrap_build_with_logs.sh~
+terms.sh~
+test_definitions_crates/test_definitions_test/src/main.rs~
+standalonex/src/bootstrap-config-types/error.txt~
+standalonex/src/bootstrap-config-types/src/#build.rs#
+standalonex/src/bootstrap-config-types/src/.#build.rs
+standalonex/src/bootstrap-config-types/src/lib.rs~
+standalonex/src/bootstrap/#pt#
+standalonex/src/bootstrap/.#pt
+standalonex/src/bootstrap/src/#log.txt#
+standalonex/src/bootstrap/src/#version#
+standalonex/src/bootstrap/src/core/config/#prelude.rs#
+standalonex/src/bootstrap/src/core/config/#test.txt#
+standalonex/src/bootstrap/src/core/config/config_part5.rs~
+standalonex/src/bootstrap/src/core/config/config_part6.rs~
+standalonex/src/bootstrap/src/core/config/config_part7.rs~
+standalonex/src/bootstrap/src/core/config/debug_info_level.rs~
+standalonex/src/bootstrap/src/core/config/dry_run.rs~
+standalonex/src/bootstrap/src/core/config/mod.rs~
+standalonex/src/bootstrap/src/core/config/stringorbool.rs~
+standalonex/src/bootstrap/src/core/config/tomltarget.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/#parse_inner_src.rs#
+standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_build.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_ci_config.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_dist.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_flags.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_llvm.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_rust.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_target_config.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/local_toml_config.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs~
+standalonex/src/bootstrap/src/core/config_utils/src/target/
+standalonex/src/bootstrap/src/core/config_utils/src/target_selection.rs~
+standalonex/src/bootstrap/stage0/#config.toml#
+standalonex/src/bootstrap/stage0/config.toml~
+standalonex/src/bootstrap/test.sh~
+standalonex/src/build_helper/src/llvm.rs~
+standalonex/src/config_tests/Cargo.toml~
+
+# Generated directories
+generated/
+expanded_crates/
+compiler/rustc_codegen_gcc/build_system/build_sysroot/logs/
+src/bootstrap/__pycache__/
+src/tools/clippy/tests/workspace_test/target/
+target/
+test-rust/build/
+.prelude_cache/
+prelude-generator/generated/
+prelude-generator/logs/
+prelude-generator/self-analysis-logs/
+standalonex/logs/
+standalonex/min_test_project/.prelude_cache/
+flakes/bootstrap-builder/cc-flake/logs/
+flakes/bootstrap-builder/cc-flake/result
+flakes/config/nix_flake_update_20251104_131842.log
+flakes/evaluate-rust/nix_flake_update_20251104_131842.log
+flakes/json-processor-flake/nix_flake_update_20251104_131842.log
+flakes/json-processor/nix_flake_update_20251104_131842.log
+nix-build-scripts/result
+nix/rust-deps/result
+nix_flake_update_20251104_131842.log
+standalonex/nix_flake_update_20251104_131842.log
+
+# Specific untracked files and directories
+.cargo/
+build/
+logs/
+src/bootstrap/defaults/#config.dist.toml#
+rust-system-composer/rust-bootstrap-core/#full_metadata.json#
+vendor
+/.expand_processed_aho-corasick-wrapper_bin
+/tasks/fix_prelude_generator_invalid_code_gen.toml
+/prelude-generator/.shear-fixed-stamp
+/prelude-generator/self_rebuild_output.txt
+/standalonex/.shear_processed_bootstrap-config
+/standalonex/.shear_processed_bootstrap-config-types
+temp_test_crate/src/main.rs

@@ -1,22 +1,25 @@
-//! Sanity checking performed by bootstrap before actually executing anything.
-//!
-//! This module contains the implementation of ensuring that the build
-//! environment looks reasonable before progressing. This will verify that
-//! various programs like git and python exist, along with ensuring that all C
-//! compilers for cross-compiling are found.
-//!
-//! In theory if we get past this phase it's a bug if a build fails, but in
-//! practice that's likely not true!
+use crate::prelude::*;
+
+
+/// Sanity checking performed by bootstrap before actually executing anything.
+///
+/// This module contains the implementation of ensuring that the build
+/// environment looks reasonable before progressing. This will verify that
+/// various programs like git and python exist, along with ensuring that all C
+/// compilers for cross-compiling are found.
+///
+/// In theory if we get past this phase it's a bug if a build fails, but in
+/// practice that's likely not true!
 
 use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 use std::{env, fs};
 
-use crate::Build;
-#[cfg(not(feature = "bootstrap-self-test"))]
-use crate::builder::Builder;
-use crate::builder::Kind;
+//use crate::BuildConfig;
+//#[cfg(not(feature = "bootstrap-self-test"))]
+//use crate::builder::Builder;
+//use crate::builder::Kind;
 #[cfg(not(feature = "bootstrap-self-test"))]
 use crate::core::build_steps::tool;
 use crate::core::config::Target;
@@ -114,7 +117,7 @@ pub fn check(build: &mut Build) {
 
     // Ensure that a compatible version of libstdc++ is available on the system when using `llvm.download-ci-llvm`.
     #[cfg(not(feature = "bootstrap-self-test"))]
-    if !build.config.dry_run() && !build.build.is_msvc() && build.config.llvm_from_ci {
+    if !build.config.dry_run && !build.build.is_msvc() && build.config.llvm_from_ci {
         let builder = Builder::new(build);
         let libcxx_version = builder.ensure(tool::LibcxxVersionTool { target: build.build });
 
@@ -292,7 +295,7 @@ than building it.
 
         // sbf target relies on in-tree built llvm,
         // which doesn't exist when this check runs
-        if !build.config.dry_run() && !target.contains("sbf") && !target.contains("bpf") {
+        if !build.config.dry_run && !target.contains("sbf") && !target.contains("bpf") {
             cmd_finder.must_have(build.cc(*target));
             if let Some(ar) = build.ar(*target) {
                 cmd_finder.must_have(ar);
@@ -300,7 +303,7 @@ than building it.
         }
     }
 
-    if !build.config.dry_run() {
+    if !build.config.dry_run {
         for host in &build.hosts {
             cmd_finder.must_have(build.cxx(*host).unwrap());
 

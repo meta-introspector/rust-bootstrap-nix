@@ -1,0 +1,13 @@
+title = "Sanitize structured error collection"
+description = "Ensure the structured error collection mechanism (`ErrorSample` and `ErrorCollection`) applies sanitization to prevent sensitive file paths from persisting in the resulting JSON file (`collected_errors.json`) if it is to be rolled up or committed to version control."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T11:10:00Z"
+parent_task = "08_02_sanitize_sensitive_paths.toml"
+stage_id = 8
+step_id = "4"
+name = "Sanitize error collection"
+related_files = [
+    "prelude-generator/src/error_collector.rs",
+    "prelude-generator/src/command_handlers/mod.rs",
+    "collected_errors.json",
+]
