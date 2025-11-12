@@ -1,0 +1,8 @@
+title = "Implement ParseFunctor for raw file to parsed file transformation"
+description = "Implement the `ParseFunctor` that takes a `RawFile` and produces a `ParsedFile`, handling direct `syn` parse and macro expansion fallback."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "lattice.md"
+stage_id = 0
+step_id = "LT_15"
+name = "Implement ParseFunctor for raw file to parsed file transformation"

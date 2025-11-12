@@ -1,0 +1,215 @@
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct RawFile (pub String , pub String) ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct ValidatedFile (pub String , pub PathBuf) ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = 'pub mod use_statement_types { pub mod git_info { use std :: fmt :: Debug ; pub struct GitInfo { pub repo_url : String , pub branch : String , pub commit_hash : String , } # [automatically_derived] impl :: core :: fmt :: Debug for GitInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field3_finish (f , "GitInfo" , "repo_url" , & self . repo_url , "branch" , & self . branch , "commit_hash" , & & self . commit_hash ,) } } # [automatically_derived] impl :: core :: clone :: Clone for GitInfo { # [inline] fn clone (& self) -> GitInfo { GitInfo { repo_url : :: core :: clone :: Clone :: clone (& self . repo_url) , branch : :: core :: clone :: Clone :: clone (& self . branch) , commit_hash : :: core :: clone :: Clone :: clone (& self . commit_hash) , } } } pub enum GitDetails { Info (GitInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for GitDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { GitDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } GitDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } GitDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for GitDetails { # [inline] fn clone (& self) -> GitDetails { match self { GitDetails :: Info (__self_0) => { GitDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } GitDetails :: Error (__self_0) => { GitDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } GitDetails :: Unknown => GitDetails :: Unknown , } } } pub trait GitInfoTrait : Send + Sync + Debug { fn git_repo (& self) -> Option < & str > ; fn git_path (& self) -> Option < & str > ; fn our_fork_github (& self) -> Option < & str > ; fn our_branch (& self) -> Option < & str > ; } impl GitInfoTrait for GitDetails { fn git_repo (& self) -> Option < & str > { match self { GitDetails :: Info (info) => Some (& info . repo_url) , _ => None , } } fn git_path (& self) -> Option < & str > { None } fn our_fork_github (& self) -> Option < & str > { None } fn our_branch (& self) -> Option < & str > { match self { GitDetails :: Info (info) => Some (& info . branch) , _ => None , } } } } pub mod nix_info { use std :: fmt :: Debug ; pub struct NixInfo { pub flake_path : String , pub output_type : String , } # [automatically_derived] impl :: core :: fmt :: Debug for NixInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field2_finish (f , "NixInfo" , "flake_path" , & self . flake_path , "output_type" , & & self . output_type ,) } } # [automatically_derived] impl :: core :: clone :: Clone for NixInfo { # [inline] fn clone (& self) -> NixInfo { NixInfo { flake_path : :: core :: clone :: Clone :: clone (& self . flake_path) , output_type : :: core :: clone :: Clone :: clone (& self . output_type) , } } } pub enum NixDetails { Info (NixInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for NixDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { NixDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } NixDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } NixDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for NixDetails { # [inline] fn clone (& self) -> NixDetails { match self { NixDetails :: Info (__self_0) => { NixDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } NixDetails :: Error (__self_0) => { NixDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } NixDetails :: Unknown => NixDetails :: Unknown , } } } pub trait NixInfoTrait : Send + Sync + Debug { fn nix_flake_path (& self) -> Option < & str > ; fn nix_output_type (& self) -> Option < & str > ; } impl NixInfoTrait for NixDetails { fn nix_flake_path (& self) -> Option < & str > { match self { NixDetails :: Info (info) => Some (& info . flake_path) , _ => None , } } fn nix_output_type (& self) -> Option < & str > { match self { NixDetails :: Info (info) => Some (& info . output_type) , _ => None , } } } } pub mod rust_details_info { use std :: fmt :: Debug ; pub struct RustDetailsInfo { pub version : String , pub crate_name : String , pub item_path : String , } # [automatically_derived] impl :: core :: fmt :: Debug for RustDetailsInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field3_finish (f , "RustDetailsInfo" , "version" , & self . version , "crate_name" , & self . crate_name , "item_path" , & & self . item_path ,) } } # [automatically_derived] impl :: core :: clone :: Clone for RustDetailsInfo { # [inline] fn clone (& self) -> RustDetailsInfo { RustDetailsInfo { version : :: core :: clone :: Clone :: clone (& self . version) , crate_name : :: core :: clone :: Clone :: clone (& self . crate_name) , item_path : :: core :: clone :: Clone :: clone (& self . item_path) , } } } pub enum RustDetails { Info (RustDetailsInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for RustDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { RustDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } RustDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } RustDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for RustDetails { # [inline] fn clone (& self) -> RustDetails { match self { RustDetails :: Info (__self_0) => { RustDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } RustDetails :: Error (__self_0) => { RustDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } RustDetails :: Unknown => RustDetails :: Unknown , } } } pub trait RustDetailsInfoTrait : Send + Sync + Debug { fn version (& self) -> Option < & str > ; fn crate_name (& self) -> Option < & str > ; fn item_path (& self) -> Option < & str > ; } impl RustDetailsInfoTrait for RustDetails { fn version (& self) -> Option < & str > { match self { RustDetails :: Info (info) => Some (& info . version) , _ => None , } } fn crate_name (& self) -> Option < & str > { match self { RustDetails :: Info (info) => Some (& info . crate_name) , _ => None , } } fn item_path (& self) -> Option < & str > { match self { RustDetails :: Info (info) => Some (& info . item_path) , _ => None , } } } } pub mod cargo_info { use std :: fmt :: Debug ; pub struct CargoInfo { pub package_name : String , pub version : String , } # [automatically_derived] impl :: core :: fmt :: Debug for CargoInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field2_finish (f , "CargoInfo" , "package_name" , & self . package_name , "version" , & & self . version ,) } } # [automatically_derived] impl :: core :: clone :: Clone for CargoInfo { # [inline] fn clone (& self) -> CargoInfo { CargoInfo { package_name : :: core :: clone :: Clone :: clone (& self . package_name) , version : :: core :: clone :: Clone :: clone (& self . version) , } } } pub enum CargoDetails { Info (CargoInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for CargoDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { CargoDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } CargoDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } CargoDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for CargoDetails { # [inline] fn clone (& self) -> CargoDetails { match self { CargoDetails :: Info (__self_0) => { CargoDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } CargoDetails :: Error (__self_0) => { CargoDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } CargoDetails :: Unknown => CargoDetails :: Unknown , } } } pub trait CargoInfoTrait : Send + Sync + Debug { fn package_name (& self) -> Option < & str > ; fn version (& self) -> Option < & str > ; } impl CargoInfoTrait for CargoDetails { fn package_name (& self) -> Option < & str > { match self { CargoDetails :: Info (info) => Some (& info . package_name) , _ => None , } } fn version (& self) -> Option < & str > { match self { CargoDetails :: Info (info) => Some (& info . version) , _ => None , } } } } pub mod syn_info { use std :: fmt :: Debug ; pub struct SynInfo { pub parsed_type : String , pub version : String , } # [automatically_derived] impl :: core :: fmt :: Debug for SynInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field2_finish (f , "SynInfo" , "parsed_type" , & self . parsed_type , "version" , & & self . version ,) } } # [automatically_derived] impl :: core :: clone :: Clone for SynInfo { # [inline] fn clone (& self) -> SynInfo { SynInfo { parsed_type : :: core :: clone :: Clone :: clone (& self . parsed_type) , version : :: core :: clone :: Clone :: clone (& self . version) , } } } pub enum SynDetails { Info (SynInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for SynDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { SynDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } SynDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } SynDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for SynDetails { # [inline] fn clone (& self) -> SynDetails { match self { SynDetails :: Info (__self_0) => { SynDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } SynDetails :: Error (__self_0) => { SynDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } SynDetails :: Unknown => SynDetails :: Unknown , } } } pub trait SynInfoTrait : Send + Sync + Debug { fn parsed_type (& self) -> Option < & str > ; fn version (& self) -> Option < & str > ; } impl SynInfoTrait for SynDetails { fn parsed_type (& self) -> Option < & str > { match self { SynDetails :: Info (info) => Some (& info . parsed_type) , _ => None , } } fn version (& self) -> Option < & str > { match self { SynDetails :: Info (info) => Some (& info . version) , _ => None , } } } } pub mod llvm_info { use std :: fmt :: Debug ; pub struct LlvmInfo { pub ir_version : String , pub target_triple : String , } # [automatically_derived] impl :: core :: fmt :: Debug for LlvmInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field2_finish (f , "LlvmInfo" , "ir_version" , & self . ir_version , "target_triple" , & & self . target_triple ,) } } # [automatically_derived] impl :: core :: clone :: Clone for LlvmInfo { # [inline] fn clone (& self) -> LlvmInfo { LlvmInfo { ir_version : :: core :: clone :: Clone :: clone (& self . ir_version) , target_triple : :: core :: clone :: Clone :: clone (& self . target_triple) , } } } pub enum LlvmDetails { Info (LlvmInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for LlvmDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { LlvmDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } LlvmDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } LlvmDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for LlvmDetails { # [inline] fn clone (& self) -> LlvmDetails { match self { LlvmDetails :: Info (__self_0) => { LlvmDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } LlvmDetails :: Error (__self_0) => { LlvmDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } LlvmDetails :: Unknown => LlvmDetails :: Unknown , } } } pub trait LlvmInfoTrait : Send + Sync + Debug { fn ir_version (& self) -> Option < & str > ; fn target_triple (& self) -> Option < & str > ; } impl LlvmInfoTrait for LlvmDetails { fn ir_version (& self) -> Option < & str > { match self { LlvmDetails :: Info (info) => Some (& info . ir_version) , _ => None , } } fn target_triple (& self) -> Option < & str > { match self { LlvmDetails :: Info (info) => Some (& info . target_triple) , _ => None , } } } } pub mod linux_info { use std :: fmt :: Debug ; pub struct LinuxInfo { pub kernel_version : String , pub architecture : String , } # [automatically_derived] impl :: core :: fmt :: Debug for LinuxInfo { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { :: core :: fmt :: Formatter :: debug_struct_field2_finish (f , "LinuxInfo" , "kernel_version" , & self . kernel_version , "architecture" , & & self . architecture ,) } } # [automatically_derived] impl :: core :: clone :: Clone for LinuxInfo { # [inline] fn clone (& self) -> LinuxInfo { LinuxInfo { kernel_version : :: core :: clone :: Clone :: clone (& self . kernel_version) , architecture : :: core :: clone :: Clone :: clone (& self . architecture) , } } } pub enum LinuxDetails { Info (LinuxInfo) , Error (String) , Unknown , } # [automatically_derived] impl :: core :: fmt :: Debug for LinuxDetails { # [inline] fn fmt (& self , f : & mut :: core :: fmt :: Formatter) -> :: core :: fmt :: Result { match self { LinuxDetails :: Info (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Info" , & __self_0 ,) } LinuxDetails :: Error (__self_0) => { :: core :: fmt :: Formatter :: debug_tuple_field1_finish (f , "Error" , & __self_0 ,) } LinuxDetails :: Unknown => { :: core :: fmt :: Formatter :: write_str (f , "Unknown") } } } } # [automatically_derived] impl :: core :: clone :: Clone for LinuxDetails { # [inline] fn clone (& self) -> LinuxDetails { match self { LinuxDetails :: Info (__self_0) => { LinuxDetails :: Info (:: core :: clone :: Clone :: clone (__self_0)) } LinuxDetails :: Error (__self_0) => { LinuxDetails :: Error (:: core :: clone :: Clone :: clone (__self_0)) } LinuxDetails :: Unknown => LinuxDetails :: Unknown , } } } pub trait LinuxInfoTrait : Send + Sync + Debug { fn kernel_version (& self) -> Option < & str > ; fn architecture (& self) -> Option < & str > ; } impl LinuxInfoTrait for LinuxDetails { fn kernel_version (& self) -> Option < & str > { match self { LinuxDetails :: Info (info) => Some (& info . kernel_version) , _ => None , } } fn architecture (& self) -> Option < & str > { match self { LinuxDetails :: Info (info) => Some (& info . architecture) , _ => None , } } } } pub use git_info :: { GitInfo , GitDetails , GitInfoTrait } ; pub use nix_info :: { NixInfo , NixDetails , NixInfoTrait } ; pub use rust_details_info :: { RustDetailsInfo , RustDetails , RustDetailsInfoTrait } ; pub use cargo_info :: { CargoInfo , CargoDetails , CargoInfoTrait } ; pub use syn_info :: { SynInfo , SynDetails , SynInfoTrait } ; pub use llvm_info :: { LlvmInfo , LlvmDetails , LlvmInfoTrait } ; pub use linux_info :: { LinuxInfo , LinuxDetails , LinuxInfoTrait } ; }'
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct UseStatement { pub statement : String , pub error : Option < String > , pub git_details : Option < GitDetails > , pub nix_details : Option < NixDetails > , pub rust_details : Option < RustDetails > , pub cargo_details : Option < CargoDetails > , pub syn_details : Option < SynDetails > , pub llvm_details : Option < LlvmDetails > , pub linux_details : Option < LinuxDetails > , }"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "# [automatically_derived] impl :: core :: default :: Default for AstStatistics { # [inline] fn default () -> AstStatistics { AstStatistics { node_type_counts : :: core :: default :: Default :: default () , variable_declarations : :: core :: default :: Default :: default () , function_definitions : :: core :: default :: Default :: default () , import_statements : :: core :: default :: Default :: default () , } } }"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct UseStatements (pub Vec < String >) ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = '# [doc = " Information about an import statement found in the AST"] pub struct ImportInfo { pub path : String , pub alias : Option < String > , pub is_external : bool , pub source_crate : Option < String > , pub git_source_url : Option < String > , pub git_branch : Option < String > , }'
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = '# [doc = " Information about a variable found in the AST"] pub struct VariableInfo { pub name : String , pub type_name : String , pub is_mutable : bool , pub scope : String , }'
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct ParsedFile (pub String , pub PathBuf) ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub struct ClassifiedUseStatements (pub Vec < UseStatement > , pub HashMap < String , Vec < String > > ,) ;"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = """# [doc (hidden)] # [allow (non_upper_case_globals , unused_attributes , unused_qualifications , clippy :: absolute_paths ,)] const _ : () = { # [allow (unused_extern_crates , clippy :: useless_attribute)] extern crate serde as _serde ; # [automatically_derived] impl < 'de > _serde :: Deserialize < 'de > for AstStatistics { fn deserialize < __D > (__deserializer : __D ,) -> _serde :: __private228 :: Result < Self , __D :: Error > where __D : _serde :: Deserializer < 'de > , { # [allow (non_camel_case_types)] # [doc (hidden)] enum __Field { __field0 , __field1 , __field2 , __field3 , __ignore , } # [doc (hidden)] struct __FieldVisitor ; # [automatically_derived] impl < 'de > _serde :: de :: Visitor < 'de > for __FieldVisitor { type Value = __Field ; fn expecting (& self , __formatter : & mut _serde :: __private228 :: Formatter ,) -> _serde :: __private228 :: fmt :: Result { _serde :: __private228 :: Formatter :: write_str (__formatter , "field identifier" ,) } fn visit_u64 < __E > (self , __value : u64 ,) -> _serde :: __private228 :: Result < Self :: Value , __E > where __E : _serde :: de :: Error , { match __value { 0u64 => _serde :: __private228 :: Ok (__Field :: __field0) , 1u64 => _serde :: __private228 :: Ok (__Field :: __field1) , 2u64 => _serde :: __private228 :: Ok (__Field :: __field2) , 3u64 => _serde :: __private228 :: Ok (__Field :: __field3) , _ => _serde :: __private228 :: Ok (__Field :: __ignore) , } } fn visit_str < __E > (self , __value : & str ,) -> _serde :: __private228 :: Result < Self :: Value , __E > where __E : _serde :: de :: Error , { match __value { "node_type_counts" => _serde :: __private228 :: Ok (__Field :: __field0) , "variable_declarations" => { _serde :: __private228 :: Ok (__Field :: __field1) } "function_definitions" => { _serde :: __private228 :: Ok (__Field :: __field2) } "import_statements" => { _serde :: __private228 :: Ok (__Field :: __field3) } _ => _serde :: __private228 :: Ok (__Field :: __ignore) , } } fn visit_bytes < __E > (self , __value : & [u8] ,) -> _serde :: __private228 :: Result < Self :: Value , __E > where __E : _serde :: de :: Error , { match __value { b"node_type_counts" => { _serde :: __private228 :: Ok (__Field :: __field0) } b"variable_declarations" => { _serde :: __private228 :: Ok (__Field :: __field1) } b"function_definitions" => { _serde :: __private228 :: Ok (__Field :: __field2) } b"import_statements" => { _serde :: __private228 :: Ok (__Field :: __field3) } _ => _serde :: __private228 :: Ok (__Field :: __ignore) , } } } # [automatically_derived] impl < 'de > _serde :: Deserialize < 'de > for __Field { # [inline] fn deserialize < __D > (__deserializer : __D ,) -> _serde :: __private228 :: Result < Self , __D :: Error > where __D : _serde :: Deserializer < 'de > , { _serde :: Deserializer :: deserialize_identifier (__deserializer , __FieldVisitor ,) } } # [doc (hidden)] struct __Visitor < 'de > { marker : _serde :: __private228 :: PhantomData < AstStatistics > , lifetime : _serde :: __private228 :: PhantomData < & 'de () > , } # [automatically_derived] impl < 'de > _serde :: de :: Visitor < 'de > for __Visitor < 'de > { type Value = AstStatistics ; fn expecting (& self , __formatter : & mut _serde :: __private228 :: Formatter ,) -> _serde :: __private228 :: fmt :: Result { _serde :: __private228 :: Formatter :: write_str (__formatter , "struct AstStatistics" ,) } # [inline] fn visit_seq < __A > (self , mut __seq : __A ,) -> _serde :: __private228 :: Result < Self :: Value , __A :: Error > where __A : _serde :: de :: SeqAccess < 'de > , { let __field0 = match _serde :: de :: SeqAccess :: next_element :: < HashMap < String , u32 > , > (& mut __seq) ? { _serde :: __private228 :: Some (__value) => __value , _serde :: __private228 :: None => { return _serde :: __private228 :: Err (_serde :: de :: Error :: invalid_length (0usize , & "struct AstStatistics with 4 elements" ,) ,) ; } } ; let __field1 = match _serde :: de :: SeqAccess :: next_element :: < Vec < VariableInfo > , > (& mut __seq) ? { _serde :: __private228 :: Some (__value) => __value , _serde :: __private228 :: None => { return _serde :: __private228 :: Err (_serde :: de :: Error :: invalid_length (1usize , & "struct AstStatistics with 4 elements" ,) ,) ; } } ; let __field2 = match _serde :: de :: SeqAccess :: next_element :: < Vec < FunctionInfo > , > (& mut __seq) ? { _serde :: __private228 :: Some (__value) => __value , _serde :: __private228 :: None => { return _serde :: __private228 :: Err (_serde :: de :: Error :: invalid_length (2usize , & "struct AstStatistics with 4 elements" ,) ,) ; } } ; let __field3 = match _serde :: de :: SeqAccess :: next_element :: < Vec < ImportInfo > , > (& mut __seq) ? { _serde :: __private228 :: Some (__value) => __value , _serde :: __private228 :: None => { return _serde :: __private228 :: Err (_serde :: de :: Error :: invalid_length (3usize , & "struct AstStatistics with 4 elements" ,) ,) ; } } ; _serde :: __private228 :: Ok (AstStatistics { node_type_counts : __field0 , variable_declarations : __field1 , function_definitions : __field2 , import_statements : __field3 , }) } # [inline] fn visit_map < __A > (self , mut __map : __A ,) -> _serde :: __private228 :: Result < Self :: Value , __A :: Error > where __A : _serde :: de :: MapAccess < 'de > , { let mut __field0 : _serde :: __private228 :: Option < HashMap < String , u32 > , > = _serde :: __private228 :: None ; let mut __field1 : _serde :: __private228 :: Option < Vec < VariableInfo > > = _serde :: __private228 :: None ; let mut __field2 : _serde :: __private228 :: Option < Vec < FunctionInfo > > = _serde :: __private228 :: None ; let mut __field3 : _serde :: __private228 :: Option < Vec < ImportInfo > > = _serde :: __private228 :: None ; while let _serde :: __private228 :: Some (__key) = _serde :: de :: MapAccess :: next_key :: < __Field , > (& mut __map) ? { match __key { __Field :: __field0 => { if _serde :: __private228 :: Option :: is_some (& __field0) { return _serde :: __private228 :: Err (< __A :: Error as _serde :: de :: Error > :: duplicate_field ("node_type_counts" ,) ,) ; } __field0 = _serde :: __private228 :: Some (_serde :: de :: MapAccess :: next_value :: < HashMap < String , u32 > , > (& mut __map) ? ,) ; } __Field :: __field1 => { if _serde :: __private228 :: Option :: is_some (& __field1) { return _serde :: __private228 :: Err (< __A :: Error as _serde :: de :: Error > :: duplicate_field ("variable_declarations" ,) ,) ; } __field1 = _serde :: __private228 :: Some (_serde :: de :: MapAccess :: next_value :: < Vec < VariableInfo > , > (& mut __map) ? ,) ; } __Field :: __field2 => { if _serde :: __private228 :: Option :: is_some (& __field2) { return _serde :: __private228 :: Err (< __A :: Error as _serde :: de :: Error > :: duplicate_field ("function_definitions" ,) ,) ; } __field2 = _serde :: __private228 :: Some (_serde :: de :: MapAccess :: next_value :: < Vec < FunctionInfo > , > (& mut __map) ? ,) ; } __Field :: __field3 => { if _serde :: __private228 :: Option :: is_some (& __field3) { return _serde :: __private228 :: Err (< __A :: Error as _serde :: de :: Error > :: duplicate_field ("import_statements" ,) ,) ; } __field3 = _serde :: __private228 :: Some (_serde :: de :: MapAccess :: next_value :: < Vec < ImportInfo > , > (& mut __map) ? ,) ; } _ => { let _ = _serde :: de :: MapAccess :: next_value :: < _serde :: de :: IgnoredAny , > (& mut __map) ? ; } } } let __field0 = match __field0 { _serde :: __private228 :: Some (__field0) => __field0 , _serde :: __private228 :: None => { _serde :: __private228 :: de :: missing_field ("node_type_counts") ? } } ; let __field1 = match __field1 { _serde :: __private228 :: Some (__field1) => __field1 , _serde :: __private228 :: None => { _serde :: __private228 :: de :: missing_field ("variable_declarations" ,) ? } } ; let __field2 = match __field2 { _serde :: __private228 :: Some (__field2) => __field2 , _serde :: __private228 :: None => { _serde :: __private228 :: de :: missing_field ("function_definitions" ,) ? } } ; let __field3 = match __field3 { _serde :: __private228 :: Some (__field3) => __field3 , _serde :: __private228 :: None => { _serde :: __private228 :: de :: missing_field ("import_statements") ? } } ; _serde :: __private228 :: Ok (AstStatistics { node_type_counts : __field0 , variable_declarations : __field1 , function_definitions : __field2 , import_statements : __field3 , }) } } # [doc (hidden)] const FIELDS : & 'static [& 'static str] = & ["node_type_counts" , "variable_declarations" , "function_definitions" , "import_statements" ,] ; _serde :: Deserializer :: deserialize_struct (__deserializer , "AstStatistics" , FIELDS , __Visitor { marker : _serde :: __private228 :: PhantomData :: < AstStatistics > , lifetime : _serde :: __private228 :: PhantomData , } ,) } } } ;"""
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = "pub trait PipelineFunctor < Input : Send + 'static , Output : Send + 'static > { fn map < 'writer > (& 'writer self , writer : & 'writer mut (impl tokio :: io :: AsyncWriteExt + Unpin + Send) , input : Input ,) -> Pin < Box < dyn Future < Output = Result < Output > > + Send + 'writer > > ; }"
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = '# [doc = " Comprehensive AST analysis data for a Rust project"] pub struct AstStatistics { pub node_type_counts : HashMap < String , u32 > , pub variable_declarations : Vec < VariableInfo > , pub function_definitions : Vec < FunctionInfo > , pub import_statements : Vec < ImportInfo > , }'
+
+[[declarations]]
+referenced_types = []
+referenced_functions = []
+external_identifiers = []
+source_file = "expanded_pipeline_traits.rs"
+crate_name = "expanded_pipeline_traits"
+resolved_dependencies = []
+is_proc_macro = false
+required_imports = []
+direct_dependencies = []
+extern_crates = ["std"]
+
+[declarations.item]
+Other = '# [doc = " Information about a function found in the AST"] pub struct FunctionInfo { pub name : String , pub visibility : String , pub arg_count : u32 , pub arg_types : Vec < String > , pub return_type : String , pub is_async : bool , pub is_unsafe : bool , pub is_const : bool , }'
+
+[types]
+
+[modules]
+
+[crates]

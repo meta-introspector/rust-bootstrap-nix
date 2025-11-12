@@ -1,57 +1,43 @@
 {
-  description = "Nix flake for the configuration-nix Rust crate";
+  description = "Nix flake for Rust package: configuration-nix";
 
   inputs = {
-    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
-    rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify"; # Corrected
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, rustSrcFlake }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
         };
-        rustToolchain = pkgs.rustChannels.nightly.rust.override {
-          targets = [
-            (if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu")
-          ];
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile {
+          rustToolchainFile = ./rust-toolchain.toml; # Assuming rust-toolchain.toml exists
         };
       in
       {
-        packages.default = pkgs.rustPlatform.buildRustPackage {
+        packages.configuration-nix = pkgs.rustPlatform.buildRustPackage {
           pname = "configuration-nix";
           version = "0.1.0";
           src = ./.;
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
-          buildInputs = [ rustToolchain pkgs.clap ];
-        };
+          cargoLock.lockFile = ./Cargo.lock; # Assuming Cargo.lock exists
 
-        apps.default = flake-utils.lib.mkApp {
-          drv = pkgs.writeShellScriptBin "generate-config" ''
-            ${self.packages.${system}.default}/bin/configuration-nix \
-              --stage "$1" \
-              --target "$2" \
-              --nixpkgs-path "${nixpkgs.outPath}" \
-              --rust-overlay-path "${rust-overlay.outPath}" \
-              --configuration-nix-path "${self.outPath}" \
-              --rust-src-flake-path "${rustSrcFlake.outPath}" \
-              --rust-bootstrap-nix-flake-ref "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify" \
-              --rust-src-flake-ref "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
-          '';
-        };
-
-        devShells.default = pkgs.mkShell {
-          packages = [
-            pkgs.cargo
-            pkgs.rustc
-            pkgs.nix
+          nativeBuildInputs = with pkgs; [
+            pkg-config
           ];
+
+          buildInputs = with pkgs; [
+            # Add common build dependencies here, e.g., openssl
+            # openssl
+          ];
+
+          # Environment variables for build, if needed
+          # OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+          # OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+          # PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
       }
     );

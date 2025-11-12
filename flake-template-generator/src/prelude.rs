@@ -10,3 +10,5 @@ pub use clap :: Parser ;
 pub use std :: fs ;
 pub use std :: path :: PathBuf ;
 pub use std :: process :: Command ;
+pub use crate::flake_generator::generate_flake_nix_content;
+

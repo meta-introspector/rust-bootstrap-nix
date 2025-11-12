@@ -1,0 +1,29 @@
+title = "Evaluate PlantUML-related Rust Crates for Integration"
+description = """
+Evaluate the following PlantUML-related Rust crates for potential integration into the project.
+The goal is to identify suitable crates for generating diagrams from code or for visualizing graph structures.
+
+Crates to evaluate:
+1.  https://github.com/sytsereitsma/mdbook-plantuml
+2.  https://gitlab.com/nogiro/plantuml-server-client-rs
+3.  https://github.com/maksugr/plantuml_encoding
+4.  https://github.com/smolijar/plantaznik
+5.  https://github.com/cocalon/rsdoc
+6.  https://github.com/TobTheRock/phytofsm
+7.  https://github.com/nrskt/ruml
+8.  https://github.com/silence-coding/ml
+9.  https://github.com/adjivas/ml
+10. https://github.com/SelamaAshalanore/rudg
+11. https://github.com/rdghosal/nereus/
+12. https://github.com/nrskt/ruml
+13. https://github.com/sdm-lang/rust-sdml
+"""
+status = "TODO"
+created_at = "2025-11-09T12:00:00Z"
+parent_task = "plan.md"
+stage_id = 0
+step_id = "PLANTUML_EVAL"
+name = "Evaluate PlantUML Crates"
+related_files = [
+    "vendor/",
+]

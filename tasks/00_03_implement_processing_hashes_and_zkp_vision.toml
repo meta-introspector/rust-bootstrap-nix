@@ -1,0 +1,48 @@
+# Task: Implement Processing Hashes and ZKP Vision for Layered Analysis Stages
+# CRQ: [To be assigned]
+
+[task_info]
+id = "00_03_implement_processing_hashes_and_zkp_vision"
+name = "Implement Processing Hashes and ZKP Vision"
+description = """
+Enhance the layered analysis workflow by implementing processing hashes for each stage.
+Initial progress has been made with the creation of `rust-system-builder`, which successfully
+generates a `config.lock` file containing hashes of input files (Rust source, Cargo.toml)
+and the hash of the `rust-system-builder` binary itself.
+
+This involves:
+1.  **Initial Processing Hash Generation (Partially Implemented):** The `rust-system-builder`
+    now generates hashes of input files and its own binary. The next step is to extend this
+    to generate a stable hash representing the processing logic of each stage (e.g., ASTs
+    of the stage's implementation).
+2.  **Integration with Stage Trait:** Add a method to the `Stage` trait (e.g., `processing_hash()`)
+    to expose this hash.
+3.  **Storage in ConfigLock:** Store the processing hash in the `StageLock` for each stage
+    within the `config.lock` file.
+4.  **Invalidation Logic:** Implement logic in the `StageOrchestrator` to compare the current
+    processing hash with the stored hash in `ConfigLock`. If they differ, invalidate the
+    stage's outputs and trigger re-execution.
+
+**Future Vision (ZKP Proof Functions and Proc Macros):**
+The long-term goal is to evolve these processing hashes into Zero-Knowledge Proof (ZKP)
+functions generated directly from the source code of the processing logic. This would
+enable a "lattice of proof" for verifiable and reproducible transformations.
+This also involves exploring the functional transformation of workflows into internal
+and external procedural macros (proc macros) to encapsulate and hash processing logic.
+"""
+status = "in_progress"
+priority = "high"
+assigned_to = "Gemini"
+created_at = "2025-11-10T00:00:00Z" # Placeholder, will be updated with actual date
+updated_at = "2025-11-10T00:00:00Z" # Placeholder, will be updated with actual date
+
+[dependencies]
+# Depends on successful implementation of StageOrchestrator and basic ConfigLock functionality.
+- "00_01_implement_config_lock_and_layered_analysis"
+- "00_02_refactor_stages_for_proc_macro_compatibility"
+
+[acceptance_criteria]
+- Each `Stage` implementation can provide a stable, content-addressable hash of its processing logic.
+- The `StageOrchestrator` stores and utilizes these processing hashes in `ConfigLock`.
+- Changes to a stage's processing logic (code) correctly invalidate its entry in `ConfigLock` and trigger re-execution.
+- The system demonstrates the ability to generate processing hashes from extracted code graphs.

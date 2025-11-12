@@ -1,0 +1,46 @@
+title = "Recreate Rust Compiler with Lattice System (Fungal Consumption)"
+status = "IN_PROGRESS"
+description = """
+The long-term goal of this project is to incrementally recreate the Rust compiler from scratch using our lattice system. This process will involve a "fungal consumption" approach, where the lattice system will slowly consume and break down the existing Rust compiler's components, replacing them with our own modular, lattice-structured implementations.
+
+Recent progress includes: 
+- Implemented idempotency and a --force flag in `expanded-code-collector` to efficiently process Rust compiler crates. 
+- Developed a shell script (`scripts/expand_rust_compiler_crates.sh`) to iterate through individual `Cargo.toml` files of the Rust compiler and expand them using `expanded-code-collector`.
+
+Current focus: Removing Linux syscalls.
+Future steps: Gradually consume `cargo` and `rustc` by cherry-picking essential functions into the lattice, eventually replacing their `main` functions with library calls within our system.
+
+This task encompasses the entire journey of:
+- Decomposing the Rust compiler's AST, HIR, MIR, and other intermediate representations.
+- Extracting canonical declarations and their dependencies.
+- Building a hierarchical lattice of functions and types.
+- Implementing precondition checks and rich metadata extraction.
+- Generating a global symbol table.
+- Ultimately, self-hosting and replacing parts of the Rust toolchain with our lattice-based system.
+"""
+created_at = "2025-11-04T12:00:00Z"
+parent_task = "plan.md"
+stage_id = 0
+step_id = "VISION"
+name = "Recreate Rust Compiler with Lattice System"
+related_files = [
+    "emergency_task_update_dump.md",
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "scripts/generate_package_lists.sh",
+    "scripts/expand_rust_compiler_crates.sh",
+]

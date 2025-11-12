@@ -1,3 +1,0 @@
-docs: Add canonical naming system requirements to README.md
-
-This commit adds a new section to `README.md` under "Architectural Goal: Lattice of Functions" outlining the need for a canonical naming system. This system will standardize the identification and referencing of various components, including compiler, architecture, target Rust version, bootstrap phase, step, vendor Git repository, Cargo name, filename, nesting level, declaration type, and declaration name. This is crucial for reproducibility, traceability, automation, and human readability within the project's architecture.

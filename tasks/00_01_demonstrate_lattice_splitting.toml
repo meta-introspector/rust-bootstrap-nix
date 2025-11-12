@@ -1,0 +1,32 @@
+title = "Demonstrate Lattice Splitting of a Large Function"
+description = """
+This task aims to demonstrate the automatic splitting of a large, monolithic Rust function into smaller, lattice-structured chunks using our tools. This will serve as a concrete example of the "fungal consumption" approach, showcasing how a complex piece of code can be decomposed and reorganized according to our lattice system principles.
+
+The process will involve:
+- Identifying a suitable large Rust function (e.g., a complex algorithm or a core processing loop).
+- Using `expanded-code-collector` to obtain its expanded form.
+- Applying `split-expanded-bin` to analyze its internal dependencies and extract canonical declarations.
+- Visualizing the resulting lattice structure of the function's components.
+- Generating a new, modularized version of the function based on the lattice.
+"""
+status = "IN_PROGRESS"
+created_at = "2025-11-05T12:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 0
+step_id = "DEMONSTRATION"
+name = "Demonstrate Lattice Splitting"
+related_files = [
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "split-expanded-bin/Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "Cargo.lock",
+    "Cargo.toml",
+    "scripts/expand_rust_compiler_crates.sh",
+]

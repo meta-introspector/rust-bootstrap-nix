@@ -1,4 +1,12 @@
-use crate::prelude::*;
+//use crate::flags::Color;
+//use crate::subcommand::Subcommand;
+//use crate::DebuginfoLevel;
+
+use crate::TomlConfig;
+use crate::rust::Rust;
+//use crate::Flags;
+
+
 /// Compares the current Rust options against those in the CI rustc builder and detects any incompatible options.
 /// It does this by destructuring the `Rust` instance to make sure every `Rust` field is covered and not missing.
 pub fn check_incompatible_options_for_ci_rustc(
@@ -34,7 +42,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         optimize,
         randomize_layout,
         debug_logging,
-        debuginfo_level_rustc,
         llvm_tools,
         llvm_bitcode_linker,
         lto,
@@ -55,10 +62,6 @@ pub fn check_incompatible_options_for_ci_rustc(
         std_debug_assertions: _,
         overflow_checks: _,
         overflow_checks_std: _,
-        debuginfo_level: _,
-        debuginfo_level_std: _,
-        debuginfo_level_tools: _,
-        debuginfo_level_tests: _,
         backtrace: _,
         parallel_compiler: _,
         musl_root: _,
@@ -89,7 +92,7 @@ pub fn check_incompatible_options_for_ci_rustc(
     err!(current_rust_config.optimize, optimize);
     err!(current_rust_config.randomize_layout, randomize_layout);
     err!(current_rust_config.debug_logging, debug_logging);
-    err!(current_rust_config.debuginfo_level_rustc, debuginfo_level_rustc);
+
     err!(current_rust_config.rpath, rpath);
     err!(current_rust_config.strip, strip);
     err!(current_rust_config.lld_mode, lld_mode);

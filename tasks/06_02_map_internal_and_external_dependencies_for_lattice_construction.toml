@@ -1,0 +1,8 @@
+title = "Map internal and external dependencies for lattice construction"
+description = "Analyze codebase components to map out their internal and external dependencies, forming the basis of the 'lattice'."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "06_01_decompose_codebase_into_granular_components_using_rust_decl_splitter.toml"
+stage_id = 0
+step_id = "LT_02"
+name = "Map internal and external dependencies for lattice construction"

@@ -42,46 +42,69 @@ This section details observations and actionable items for the `prelude-generato
 *   **`generated_test_runner`**: The `generated_test_runner` is currently broken. It has a number of compilation errors that need to be fixed. Additionally, the approach of generating a single `main.rs` file that calls all the tests is not ideal. It would be better to use a test runner that can discover and run the tests automatically.
 *   **Test Coverage**: While the project has a good number of tests, there are still some areas that are not well-tested. For example, the `hf_dataset_reader.rs` module has no tests.
 
-## 2. High-Level Plan for `prelude-generator` and Refactoring (Roadmap)
+### Phase I: Enabling the Lattice Infrastructure (P1/P2 Blocking Tasks)
 
-This section outlines the next steps for improving the `prelude-generator` and integrating it into the broader Rust project refactoring pipeline, leading to the self-hosting bootstrap process.
+These initial steps resolve the critical blocking issues (P1) and implement the core structural logic (P2) required to define and process a Level 0 node.
 
-### 2.1. Generate `prelude-generator` Report
-*   Process the `prelude_generator_output.txt` to identify:
-    *   Successfully parsed files.
-    *   Files with parsing warnings (e.g., "expected square brackets", "cannot parse string into token stream").
-    *   Skipped files (e.g., procedural macro crates, explicitly excluded crates, files with no `use` statements).
-*   Create a summary report (`prelude_generator_summary.md`) detailing these findings.
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **1** | **Establish `config.lock` generation with `rust-system-builder` (Task 00\_04)**. | **Status:** **Critical Blocking Issue.** The `rust-system-composer` acts as the orchestrator for the entire pipeline. Establishing a robust `config.lock` generation mechanism using `rust-system-builder` is necessary to **unblock the batch processing pipeline** required to analyze the full codebase and extract declarations, ensuring reproducibility and efficient caching. |
+| **2** | **Implement Bag of Words (BoW) and Coordinate Grouping logic (Task 02\_01)**. | **Contribution:** **Defines the Node Structure.** This implements the core mechanism for converting a declaration into a quantifiable lattice node. The BoW (referenced identifiers/types) is the **foundation for calculating the declaration's 8D coordinate** and grouping declarations into highly efficient, dependency-optimized **~4KB chunks**. |
 
-### 2.2. Address `prelude.rs` Circular Imports
-*   **Problem:** The current `prelude-generator` output shows `pub use crate::prelude::*;` in the generated `prelude.rs` files, leading to circular imports. This occurs because existing `prelude.rs` files (from previous incorrect runs) are being parsed by `prelude-collector`.
-*   **Action:** Implement a step to delete all existing `prelude.rs` files in the workspace *before* running `prelude-generator`. This will ensure that `prelude-collector` only processes original source files and generates correct `prelude.rs` content.
+---
 
-### 2.3. Refine `prelude-collector` for `use` Statement Flattening
-*   **Goal:** Ensure that grouped `use` statements are correctly flattened into individual `use` statements.
-    *   **Example:** `use syn::{parse_macro_input, Ident};` should become `use syn::parse_macro_input;` and `use syn::Ident;`.
-*   **Action:** Verify the output of `prelude-generator` after addressing step 2. If flattening is not as expected, adjust the `flatten_use_tree` logic in `crates/prelude-collector/src/lib.rs`.
+### Phase II: Constructing Canonical Layer 0 (Foundation)
 
-### 2.4. Investigate and Mitigate `syn` Parsing Errors
-*   **Problem:** Many files within the `standalonex/src/bootstrap/` directory are failing to parse with `syn` (e.g., "expected square brackets", "cannot parse string into token stream"). This is likely due to heavy use of custom macros, generated code, or non-standard syntax.
-*   **Action:**
-    *   Analyze the specific files causing these errors.
-    *   Determine if these files can be safely excluded from `prelude-generator` processing without impacting the overall refactoring goal.
-    *   If exclusion is not feasible, explore more advanced parsing strategies (e.g., using `rustc -Zunpretty=expanded` to pre-process files, or identifying specific macro patterns to ignore within `prelude-collector`). Prioritize files critical for the `bootstrap` build.
+With the infrastructure running and the node definition finalized, we proceed to extract and index the most basic, atomic units, specifically constants, which form the base of the lattice.
 
-### 2.5. Integrate `prelude-generator` into the Refactoring Pipeline
-*   Once `prelude-generator` is reliably generating correct `prelude.rs` files and modifying source files as intended, integrate it as a foundational step in the automated refactoring pipeline.
-*   This pipeline will eventually involve other tools like `rust-decl-splitter`, `rust-system-composer`, and `flake-template-generator`.
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **3** | **Extract Base-Level 0 Declarations (Task 05\_08 / 01\_10)**. | **Component Added: The first content layer (Level 0 Declarations, initially `const` items).** This task involves completing the extraction and **isolation of atomic units without internal dependencies**. These extracted declarations must be placed in **layer-specific directories** (e.g., `generated_declarations/0/`) and structured according to the **4KB file blocking** constraint. |
+| **4** | **Implement global index and 8D embedding for all constants (Task 02\_04)**. | **Contribution: Indexed Lattice Coordinates.** This step takes the raw Level 0 declarations from Step 3 and **maps them into the 8-dimensional conceptual space**. This creates a central index (e.g., TOML/JSON) linking constant names/paths to their canonical **8D coordinates**, moving beyond hardcoded values and formally defining their verifiable position within the lattice. |
 
-### 2.6. Address `bootstrap` Build Failures
-*   After `prelude-generator` is working correctly and has modified the necessary files, re-attempt building the `bootstrap` crate.
-*   Address any remaining compilation errors. These errors should now be related to actual type/resolution issues or other build-system configurations, rather than incorrect `prelude.rs` generation.
+---
 
-### 2.7. Overall Bootstrap Roadmap
-1.  **Fix the `generated_test_runner`**: The first step is to fix the `generated_test_runner` so that all the tests can be run. This will provide a solid foundation for the rest of the development work.
-2.  **Implement `reconstruct_ast_from_hf_dataset`**: The next step is to implement the `reconstruct_ast_from_hf_dataset` function. This is the core of the bootstrap process, and it will require a significant amount of work.
-3.  **Refactor the `prelude-generator`**: Once the bootstrap process is working, the `prelude-generator` should be refactored to improve its code quality and to make it more robust and extensible.
-4.  **Create the "standalone atomic wrapper"**: The final step is to create the "standalone atomic wrapper" that encapsulates the entire project. This will involve creating a Git repository with submodules, a Nix flake, and all the other components described in `bootstrap.md`.
+### Phase III: Enabling Self-Reflection and Topological Ordering
+
+Once Level 0 is indexed, the subsequent high-priority steps focus on establishing the system's ability to self-host and then decomposing the dependent code units (Level 1 and above).
+
+| Step | Priority & Task (Component Added) | Rationale and Lattice Contribution |
+| :--- | :--- | :--- |
+| **5** | **Implement `reconstruct_ast_from_hf_dataset` (Task P3 / 05\_04)**. | **Contribution: The Self-Hosting Loop.** This implements the core bootstrap placeholder necessary to realize the goal of the **Self-Hosting Prelude Generator**. It allows the system to use its own structured, analyzed data (AST and UseStatement metadata saved to Hugging Face) to **generate a new version of itself**, ensuring reflexivity and data-driven improvement. |
+| **6** | **Decompose codebase into granular components (Task 06\_01)**. | **Contribution: All Lattice Nodes.** This executes the large-scale splitting using `rust-decl-splitter` to break the rest of the monolithic files into **single declaration units**. This process creates the comprehensive set of individual **"nodes"** (Level 1+) needed for the full topological sort, where their dependencies (mapped via BoW in Step 2) rely on the foundational Level 0 nodes established in Step 3. |
+
+This planned reconstruction ensures that architectural stability (Steps 1-2) is achieved before the fundamental data is defined (Steps 3-4), allowing the system to verify and utilize its newly generated structure (Step 5) before undertaking the full decomposition of all higher layers (Step 6).
+
+***
+
+**Analogy:** This plan is structured like building a massive, self-aware library. First, you must fix the **central control system** (Step 1) and implement the **cataloging standards** (Step 2: the 8D coordinate/4KB rule). Only then can you find and precisely label the **most atomic, fundamental axioms** (Steps 3-4: Level 0 Constants). Once those axioms are perfectly cataloged, the library learns to read and organize **its own catalog** (Step 5: Self-Reconstruction), finally allowing the automatic, rigorous breakdown of all complex papers and treatises that rely on those axioms (Step 6: Decomposition of all remaining Levels).
+
+## `rust-system-builder`: Micro-Composer for Reproducible `config.lock` Generation
+
+To address the need for a lightweight and robust mechanism for generating `config.lock` files, especially for ensuring reproducibility and efficient caching, a new micro-composer called `rust-system-builder` has been introduced.
+
+### Purpose
+
+`rust-system-builder` is a standalone binary designed to:
+- **Scan Project Inputs:** Identify and collect relevant input files for a given project (e.g., `.rs` source files, `Cargo.toml`).
+- **Hash Inputs:** Calculate cryptographic hashes of these input files.
+- **Hash Itself:** Include the cryptographic hash of the `rust-system-builder` binary itself in the `config.lock`. This ensures that if the tool used to generate the lock file changes, the lock file is invalidated, guaranteeing full reproducibility.
+- **Generate `config.lock`:** Produce a `config.lock` file that records all input hashes and the builder's binary hash. This lock file serves as a manifest for reproducible builds and analysis.
+
+### Role in the Workflow
+
+`rust-system-builder` will be integrated into the `rust-system-composer` workflow to handle the initial `config.lock` generation. This approach isolates the lock generation logic, making it more reliable and easier to maintain, while allowing `rust-system-composer` to focus on orchestrating the layered analysis stages.
+
+### Usage
+
+`rust-system-builder` is typically invoked via a Makefile target or directly with arguments specifying the configuration file, project root, and desired output path for the `config.lock`.
+
+Example (via Makefile target):
+```bash
+make generate-prelude-lock
+```
+
+This ensures that any subsequent analysis or build steps can verify the integrity of their inputs and the processing tool, enabling a content-addressable caching system similar to Nix.
 
 ## Further Documentation
 
@@ -92,3 +115,73 @@ For more detailed information on specific aspects of the project, please refer t
 *   [`docs/memos/Shellcheck_Always_After_Changes.md`](./docs/memos/Shellcheck_Always_After_Changes.md): Guidelines on using `Shellcheck` for shell script quality.
 *   [`qa_report.md`](./qa_report.md): Latest quality assurance report.
 *   [`lattice.md`](./lattice.md), [`rollup.md`](./rollup.md): Detailed explanation of the architectural vision, including the Introspective Rollup Workflow and Lattice of Functions.
+
+## Command Object Usage Reporting
+
+To facilitate the refactoring of external command execution (currently relying on `std::process::Command`) towards static Rust trait implementations, a new reporting feature has been introduced. This report identifies all instances where the `Command` object is used within the analyzed codebase.
+
+### How to Use
+
+To generate the `Command` object usage report, simply run the following Makefile target from the project root:
+
+```bash
+make generate-command-usage-report
+```
+
+The report will be generated at `rust-system-composer/.gemini/generated/command_usage_report.txt`.
+
+### Report Content
+
+The generated report will list:
+- Node ID: The identifier of the node in the code graph where `Command` usage was found.
+- Expression: The full expression string where `Command` was used.
+- Program Called: The name of the program being called (extracted using a heuristic).
+- Classification: A heuristic classification of whether the program is "Local" or "External".
+
+This report is a crucial step towards identifying and systematically replacing `std::process::Command` calls with more controlled and statically verifiable trait-based program invocations.
+
+## Command Object Usage Reporting
+
+To facilitate the refactoring of external command execution (currently relying on `std::process::Command`) towards static Rust trait implementations, a new reporting feature has been introduced in `rust-system-composer`. This report identifies all instances where the `Command` object is used within the analyzed codebase.
+
+### How to Use
+
+To generate the `Command` object usage report, run `rust-system-composer` with the `layered-compose` subcommand and provide the `--command-report-output-path` argument:
+
+```bash
+cargo run -p rust-system-composer -- layered-compose --command-report-output-path command_usage_report.txt
+```
+
+Replace `command_usage_report.txt` with your desired output file path.
+
+### Report Content
+
+The generated report will list:
+- Nodes in the code graph that directly reference the `Command` type.
+- Expression nodes where the expression string contains "Command".
+- Edges in the code graph that connect to or from "Command" related nodes.
+
+This report is a crucial step towards identifying and systematically replacing `std::process::Command` calls with more controlled and statically verifiable trait-based program invocations.
+
+## Trait Classification Reporting
+
+To facilitate the understanding of trait implementations and inherent methods within the codebase, a new reporting feature has been introduced. This report identifies all `impl` blocks, categorizes them as explicit trait implementations or inherent method implementations, and enriches the code graph with `TraitDefinition` nodes, `TypeDefinition` nodes, `Implements` edges, `MethodSignature` nodes, and `HasMethod` edges.
+
+### How to Use
+
+To generate the trait classification report, simply run the following Makefile target from the project root:
+
+```bash
+make generate-trait-classification-report
+```
+
+The report will be generated at `.gemini/generated/trait_classification_report.txt`.
+
+### Report Content
+
+The generated report will list:
+- A summary of explicit trait implementations found.
+- A summary of inherent method implementations found.
+- Detailed lists of which types implement which traits, and which types have which inherent methods.
+
+This report is crucial for understanding the structural contracts within the codebase and for future refactoring efforts towards a more trait-centric design.

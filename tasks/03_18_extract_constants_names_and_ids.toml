@@ -1,0 +1,8 @@
+title = "Extract Constants, Names, and IDs"
+description = "From the processed data, identify and extract all constants, names, and unique identifiers."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 3
+step_id = "3.2"
+name = "Extract Constants, Names, and IDs"

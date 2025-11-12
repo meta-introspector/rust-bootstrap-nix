@@ -40,6 +40,10 @@ test = false
 
 [dependencies]
 bootstrap-config-types = { path = "../bootstrap-config-types" }
+bootstrap-macros = { path = "../../macros/bootstrap-macros" }
+#~/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/
+#~/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex
+#/macros/bootstrap-macros/Cargo.toml
 ignore = "=0.4.23"
 globset = "=0.4.16"
 # Most of the time updating these dependencies requires modifications to the
@@ -77,6 +81,7 @@ bootstrap-config-utils = { path = "src/core/config_utils" }
 bootstrap-test-utils = { path = "src/core/build_steps/test_utils" }
 build_helper = { path = "../build_helper" }
 stage0_parser_crate = { path = "../stage0_parser_crate" }
+git-utils = { path = "../../crates/git-utils" }
 
 # Dependencies needed by the build-metrics feature
 sysinfo = { version = "0.31.2", default-features = false, optional = true, features = ["system"] }

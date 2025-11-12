@@ -1,5 +1,5 @@
 use anyhow::Context;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use std::collections::HashMap;
 use quote::quote;
 
@@ -9,12 +9,10 @@ use crate::type_extractor;
 pub async fn process_structs(
     all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>>,
     args: &crate::Args,
-    project_root: &PathBuf,
+    _project_root: &PathBuf,
     _type_map: &HashMap<String, type_extractor::TypeInfo>,
 ) -> anyhow::Result<()> {
-    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap_or_else(|| {
-        project_root.join("generated/level0_decls")
-    });
+    let generated_decls_output_dir = args.generated_decls_output_dir.clone().unwrap();
 
     println!("  -> Generated structs will be written to layer-specific directories.");
 
@@ -76,7 +74,7 @@ use crate::type_extractor::TypeInfo;
     if !errors.is_empty() {
         eprintln!(r"\n--- Errors Encountered during struct processing ---");
         for error in &errors {
-            eprintln!(r"{:{}}", error);
+            eprintln!("{:?}", error);
         }
         eprintln!(r"---------------------------------------------------");
         return Err(anyhow::anyhow!("Struct processing completed with errors."));

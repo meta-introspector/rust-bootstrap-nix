@@ -1,0 +1,13 @@
+title = "Fix broken generated_test_runner"
+description = "Fix the broken `generated_test_runner` to re-establish a stable, automated test foundation for the overall project. This is a P2 task crucial for ensuring code correctness and enabling deeper refactoring with confidence."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T12:20:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 11
+step_id = "2"
+name = "Fix generated_test_runner"
+related_files = [
+    "generated_test_runner/src/main.rs", # Assuming this is the main file for the test runner
+    "Cargo.toml",
+    "Makefile",
+]

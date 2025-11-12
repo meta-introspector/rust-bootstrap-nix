@@ -1,0 +1,8 @@
+title = "Integrate symbol table for primitives and modules"
+description = "Establish a symbol table to register primitives and populate with modules (Rust standard library, project modules, external crates) as 'lattices' or 'gems'."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "lattice.md"
+stage_id = 0
+step_id = "LT_12"
+name = "Integrate symbol table for primitives and modules"

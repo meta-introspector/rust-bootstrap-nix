@@ -8,6 +8,7 @@ pub struct ParsedConfig {
     pub gcc_dir: Option<PathBuf>,
     pub config: Option<PathBuf>,
     pub change_id: Option<String>,
+    pub rustc_source: Option<String>,
     pub jobs: Option<usize>,
     pub build_triple: Option<String>,
     pub out: PathBuf,

@@ -1,0 +1,13 @@
+title = "Enforce shellcheck in CI/CD"
+description = "Ensure that the CI/CD integration enforces `shellcheck` on all shell scripts within the project, as mandated by `SOP_Code_Quality_Guidelines.md`. This will maintain code quality and prevent common shell scripting errors."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T11:40:00Z"
+parent_task = "09_01_maintain_core_vision_docs.toml"
+stage_id = 9
+step_id = "3"
+name = "Enforce shellcheck"
+related_files = [
+    "docs/sops/SOP_Code_Quality_Guidelines.md",
+    "scripts/",
+    ".github/workflows/ci.yml", # Assuming GitHub Actions
+]

@@ -1,5 +1,0 @@
-[workspace]
-members = [
-    "bootstrap", "bootstrap-config-builder-core",
-    "stage0_parser_crate",
-]

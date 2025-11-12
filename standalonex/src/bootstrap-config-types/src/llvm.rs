@@ -1,5 +1,9 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
+use crate::define_config;
+use crate::StringOrBool;
+use std::collections::HashMap;
 define_config! {
+    #[derive(Deserialize)]
     #[doc = " TOML representation of how the LLVM build is configured."] struct Llvm {
     optimize : Option < bool > = "optimize", thin_lto : Option < bool > = "thin-lto",
     release_debuginfo : Option < bool > = "release-debuginfo", assertions : Option < bool

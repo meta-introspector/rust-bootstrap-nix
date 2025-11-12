@@ -1,0 +1,14 @@
+title = "Implement reconstruct_ast_from_hf_dataset"
+description = "Implement the `reconstruct_ast_from_hf_dataset` function in `hf_dataset_reader.rs`. This is a P3 task and the single most critical placeholder required to realize the self-hosting bootstrap process, enabling the `prelude-generator` to generate a new version of itself from a Hugging Face dataset."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T12:30:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 11
+step_id = "3"
+name = "Implement reconstruct_ast_from_hf_dataset"
+related_files = [
+    "hf_dataset_reader.rs", # Assuming this is the file where it needs to be implemented
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "bootstrap.md",
+]

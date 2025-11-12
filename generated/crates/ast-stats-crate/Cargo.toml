@@ -1,8 +1,0 @@
-[package]
-name = "ast-stats-crate"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-once_cell = "1.19.0"
-pipeline-traits = { path = "../../../pipeline-traits" }

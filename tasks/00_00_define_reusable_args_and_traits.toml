@@ -1,0 +1,47 @@
+# tasks/00_00_define_reusable_args_and_traits.toml
+#
+# This task defines the architectural change to formalize the project's vocabulary,
+# configuration, and file layout using traits and reusable argument structs.
+
+[task]
+name = "Define Reusable Args Structs and Traits"
+description = """
+Implement a standardized approach for command-line arguments and configuration entries
+across the project. This involves:
+
+1.  **Defining a `IsRunnable` trait:** This trait will encapsulate dry-run functionality,
+    allowing any command or subcommand to consistently report its intended actions
+    without execution.
+2.  **Creating reusable `Args` structs:** Extract common argument patterns (e.g.,
+    `config_file_path`, `project_root`, `output_path`) into reusable structs.
+    These structs will be composed into larger command-specific argument structures.
+3.  **Abstracting configuration entries:** Define traits and structs for common
+    `config.toml` entries to ensure consistency and reusability.
+4.  **Abstracting file paths and generated output:** Introduce generic traits for
+    handling file paths and representing generated code or data, promoting
+    flexibility and testability.
+
+This task aims to improve code modularity, reduce duplication, and enhance the
+maintainability and extensibility of the project's command-line interface and
+configuration system.
+"""
+status = "IN_PROGRESS"
+notes = "Implemented initial generation of traits for clap-derived argument structs (Parser and Args) in prelude-generator."
+priority = "high"
+assigned_to = "Gemini"
+created_date = "2025-11-10"
+due_date = "2025-11-17"
+tags = ["architecture", "refactoring", "cli", "configuration", "traits"]
+dependencies = []
+sub_tasks = [
+    "Define IsRunnable trait and implement for relevant Args structs.",
+    "Extract common CLI argument patterns into reusable structs.",
+    "Formalize config.toml entries with dedicated structs and traits.",
+    "Create traits for abstracting file paths and generated output representations."
+]
+related_documents = [
+    "rust-system-composer/src/cli.rs",
+    "rust-system-composer/src/lib.rs",
+    "rust-system-composer/src/traits/is_runnable.rs",
+    "Makefile.test"
+]

@@ -1,0 +1,28 @@
+title = "Architectural Principle: Lattice of Modules and Flakes from Self-Contained Entities"
+description = "Document the architectural principle of creating a lattice of modules and flakes based on a single existing type or module, such as the Rust compiler itself. This principle recognizes that entities like Rust are 'self-describing and self-contained monsters,' and their internal structure can inform the construction of a higher-level lattice representing inter-module dependencies and flake relationships. This task emphasizes the foundational idea that even complex, monolithic systems can be decomposed and re-represented within our lattice framework."
+status = "IN_PROGRESS"
+created_at = "2025-11-05T12:10:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 0
+step_id = "VISION_01"
+name = "Lattice from Self-Contained Entities"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "split-expanded-bin/src/main.rs",
+    "crates/expanded-code-collector/src/expander.rs",
+    "crates/expanded-code-collector/src/main.rs",
+    "crates/expanded-code-collector/src/expanded_metadata.rs",
+    "crates/expanded-code-collector/src/manifest.rs",
+    "crates/expanded-code-collector/Cargo.toml",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile.deps",
+    "Makefile.expand",
+    "Makefile.rust_workflow",
+    "scripts/generate_package_lists.sh",
+    "scripts/expand_rust_compiler_crates.sh",
+]

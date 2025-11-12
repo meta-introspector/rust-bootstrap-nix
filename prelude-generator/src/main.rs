@@ -1,91 +1,98 @@
-use prelude_generator::command_handlers;
+use anyhow::Context;
+use clap::Parser;
 use std::path::PathBuf;
-use syn;
-use tokio;
-use prelude_generator::use_extractor::get_rustc_info;
+
+use prelude_generator::args::Args; // Added this line
+use prelude_generator::command_handlers;
+use prelude_generator::split_expanded_bin_handler; // Added this line
+use prelude_generator::type_usage_analyzer;
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let (args, config) = prelude_generator::cli::parse_arguments_and_config()?;
+    println!("Before Args::parse()");
+    let args = Args::parse();
+    let mut warnings: Vec<String> = Vec::new(); // Keep as Vec<String>
 
-    let project_root = if args.path == PathBuf::from(".") {
-        std::env::current_dir()?.parent().unwrap().to_path_buf()
+    let project_root = args.path.clone();
+    let config = if let Some(config_path) = &args.config_file_path {
+        Some(prelude_generator::config_parser::read_config(config_path, &project_root)?) // Changed back to prelude_generator
     } else {
-        args.path.clone()
+        None
     };
 
-    let rustc_info = get_rustc_info()?;
-    let cache_dir = project_root.join(".prelude_cache");
-    tokio::fs::create_dir_all(&cache_dir).await?;
-
-    let mut all_numerical_constants: Vec<syn::ItemConst> = Vec::new();
-    let mut all_string_constants: Vec<syn::ItemConst> = Vec::new();
-
-    if args.analyze_ast {
-        crate::command_handlers::handle_analyze_ast(&args)?;
-        return Ok(()); // Exit after AST analysis if requested
+    let mut args_with_config = args.clone();
+    if args_with_config.generated_decls_output_dir.is_none() {
+        if let Some(cfg) = &config {
+            if let Some(generated_output_dir) = &cfg.generated_output_dir {
+                args_with_config.generated_decls_output_dir = Some(generated_output_dir.clone());
+            }
+        }
     }
 
-    if args.generate_test_report {
-        crate::command_handlers::handle_generate_test_report(&args)?;
-    }
 
-    if args.compile_tests {
-        crate::command_handlers::handle_compile_tests(&args)?;
-    }
 
-    if args.extract_use_statements {
-        crate::command_handlers::handle_extract_use_statements(&args)?;
-    }
+    let main_project_root = std::env::current_dir()?.parent().unwrap().to_path_buf();
+    let canonical_output_root = main_project_root.join("generated");
+    tokio::fs::create_dir_all(&canonical_output_root)
+        .await
+        .context(format!("Failed to create canonical output root directory: {}", canonical_output_root.display()))?;
 
-    if args.collect_and_process_use_statements {
-        crate::command_handlers::handle_collect_and_process_use_statements();
-    }
+    if args_with_config.run_decl_splitter {
+        let rustc_info = prelude_generator::use_extractor::rustc_info::get_rustc_info()?;
+        command_handlers::handle_run_decl_splitter(&args_with_config, &project_root, &rustc_info, &mut warnings, &canonical_output_root).await?;
+    } else if args_with_config.analyze_type_usage {
+        type_usage_analyzer::analyze_type_usage(&args_with_config).await?;
+    } else if args_with_config.extract_global_level0_decls {
+        let rustc_info = prelude_generator::use_extractor::rustc_info::get_rustc_info()?;
+        let mut all_numerical_constants = Vec::new();
+        let mut all_string_constants = Vec::new();
 
-    if args.generate_aggregated_test_file {
-        crate::command_handlers::handle_generate_aggregated_test_file();
-    }
+        // Define dummy_cache_dir and default_crate_name
+        let dummy_cache_dir = PathBuf::from(".prelude_cache");
+        let default_crate_name = "unknown_crate".to_string();
 
-    if args.run_pipeline {
-        crate::command_handlers::handle_run_pipeline(&args, config.as_ref().unwrap()).await?;
-    }
-
-    if args.verify_config {
-        crate::command_handlers::handle_verify_config();
-    }
-
-    if args.extract_global_level0_decls {
-        crate::command_handlers::handle_extract_global_level0_decls(
+        command_handlers::handle_extract_global_level0_decls(
             &project_root,
-            &args,
+            &args_with_config,
             &mut all_numerical_constants,
             &mut all_string_constants,
             &rustc_info,
-            &cache_dir,
+            &dummy_cache_dir,
+            &default_crate_name,
+            &mut warnings,
+            &canonical_output_root,
         ).await?;
+
+        command_handlers::handle_extract_numerical_constants(&project_root, &args_with_config, &all_numerical_constants).await?;
+        command_handlers::handle_extract_string_constants(&project_root, &args_with_config, &all_string_constants).await?;
+    } else if args_with_config.run_split_expanded_bin {
+        let rustc_info = prelude_generator::use_extractor::rustc_info::get_rustc_info()?;
+
+        let inputs = prelude_generator::types::SplitExpandedBinInputs {
+            files_to_process: args_with_config.split_expanded_files.clone(),
+            project_root: args_with_config.split_expanded_project_root.clone().unwrap_or_else(|| PathBuf::from("generated_workspace")),
+            rustc_version: rustc_info.version.clone(),
+            rustc_host: rustc_info.host.clone(),
+            verbose: args_with_config.verbose,
+            output_global_toml: args_with_config.split_expanded_output_global_toml.clone(),
+            output_symbol_map: args_with_config.output_symbol_map.clone(),
+            warnings: &mut warnings,
+            canonical_output_root: &canonical_output_root,
+        };
+        split_expanded_bin_handler::handle_split_expanded_bin(inputs).await?; // Modified this line
+    }
+    else {
+        // Default behavior or error if no specific command flag is set
+        println!("No specific command flag set. Use --help for options.");
     }
 
-    // Process numerical constants
-    if args.extract_numerical_constants {
-        crate::command_handlers::handle_extract_numerical_constants(&project_root, &args, &all_numerical_constants).await?;
-    }
-
-    // Process string constants
-    if args.extract_string_constants {
-        crate::command_handlers::handle_extract_string_constants(&project_root, &args, &all_string_constants).await?;
-    }
-
-    if args.analyze_bag_of_words {
-        crate::command_handlers::handle_analyze_bag_of_words(&project_root, &args)?;
-    }
-
-    if args.calculate_layers {
-        crate::command_handlers::handle_calculate_layers(&project_root, &args).await?;
-    }
-
-    // If no specific command was executed, print help or a default message
-    if !args.analyze_ast && !args.generate_test_report && !args.compile_tests && !args.extract_use_statements && !args.collect_and_process_use_statements && !args.generate_aggregated_test_file && !args.run_pipeline && !args.verify_config && !args.extract_global_level0_decls && !args.analyze_bag_of_words && !args.extract_numerical_constants && !args.extract_string_constants && !args.calculate_layers {
-        println!(r"No specific command executed. Use --help for options.");
+    if !warnings.is_empty() {
+        eprintln!("\n--- Warnings ---");
+        for warning in warnings {
+            eprintln!("{}", warning);
+        }
+        eprintln!("----------------");
     }
 
     Ok(())

@@ -1,0 +1,8 @@
+title = "Save AST and use statement info to Hugging Face dataset"
+description = "Save the generated AST and the detailed `use` statement information into a Hugging Face dataset. This is a critical prerequisite for the `reconstruct_ast_from_hf_dataset` step, which is essential for the self-hosting bootstrap process."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "05_02_generate_ast_from_prelude_generator_source_code.toml"
+stage_id = 0
+step_id = "BS_03"
+name = "Save AST and use statement info to Hugging Face dataset"

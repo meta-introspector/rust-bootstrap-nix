@@ -1,0 +1,8 @@
+title = "Implement PreprocessFunctor for refining use statement classification"
+description = "Implement the `PreprocessFunctor` that refines the classification for `use` statements that initially failed to parse, and further enriches trait-based detail fields."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "lattice.md"
+stage_id = 0
+step_id = "LT_18"
+name = "Implement PreprocessFunctor for refining use statement classification"

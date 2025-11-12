@@ -1,0 +1,12 @@
+title = "Decompose HuggingFaceValidatorFunctor"
+description = "Break down the `HuggingFaceValidatorFunctor` into a sequence of smaller, composable steps: (1) Temporary Git Repo Creation, (2) Validator Execution, and (3) Result Copying/Parsing. Each step should be testable and modular, aligning with the Lattice of Functions."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T14:30:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 12
+step_id = "10"
+name = "Decompose HuggingFaceValidatorFunctor"
+related_files = [
+    "prelude-generator/src/huggingface_validator_functor.rs", # Assuming this file exists or similar
+    "prelude-generator/src/pipeline.rs",
+]

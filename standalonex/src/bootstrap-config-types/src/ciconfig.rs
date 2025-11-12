@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 /// Configuration for CI-related paths and settings.
 #[derive(Debug, Default, Clone)]
 pub struct CiConfig {

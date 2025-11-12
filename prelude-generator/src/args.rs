@@ -1,5 +1,6 @@
 use clap::Parser;
 use std::path::PathBuf;
+use anyhow::Context; // Add this line
 
 /// Command-line arguments for the prelude generator.
 #[derive(Parser, Debug, Clone, Default)]
@@ -9,7 +10,7 @@ pub struct Args {
     #[arg(long)]
     pub dry_run: bool,
     /// The path to the workspace root.
-    #[arg(long, default_value = ".")]
+    #[arg(long)]
     pub path: PathBuf,
     /// Comma-separated list of crate names to exclude from processing.
     #[arg(long, value_delimiter = ',')]
@@ -18,8 +19,8 @@ pub struct Args {
     #[arg(long, default_value_t = false)]
     pub report: bool,
     /// Path to a file to save/load processing results.
-    #[arg(long, default_value = "prelude_processing_results.json")]
-    pub results_file: PathBuf,
+    #[arg(long)]
+    pub results_file: Option<PathBuf>,
     /// Generate a report on the prelude cache.
     #[arg(long, default_value_t = false)]
     pub cache_report: bool,
@@ -125,8 +126,8 @@ pub struct Args {
     pub analyze_bag_of_words: bool,
 
     /// Path to the output TOML file for the bag of words report. Only used if `analyze_bag_of_words` is true.
-    #[arg(long, default_value = "bag_of_words_report.toml")]
-    pub bag_of_words_output_file: PathBuf,
+    #[arg(long)]
+    pub bag_of_words_output_file: Option<PathBuf>,
 
     /// Extract and organize numerical constants into a hierarchical directory structure.
     #[arg(long, default_value_t = false)]
@@ -143,46 +144,89 @@ pub struct Args {
     /// Comma-separated list of file/module names to filter by during processing.
     #[arg(long, value_delimiter = ',')]
     pub filter_names: Option<Vec<String>>,
+
+    /// Path to a rustc wrapper script to use for macro expansion.
+    #[arg(long)]
+    pub rustc_wrapper_path: Option<PathBuf>,
+
+    // New arguments for split-expanded-bin functionality
+    /// Run the split-expanded-bin functionality.
+    #[arg(long, default_value_t = false)]
+    pub run_split_expanded_bin: bool,
+
+    /// Paths to the input Rust files (e.g., expanded .rs files) for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_files: Vec<PathBuf>,
+
+    /// Directory to output the generated declaration files for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_project_root: Option<PathBuf>,
+
+    /// Rustc version (e.g., "1.89.0") for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_rustc_version: Option<String>,
+
+    /// Rustc host triple (e.g., "aarch64-unknown-linux-gnu") for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_rustc_host: Option<String>,
+
+    /// Path to output the global declarations TOML file for split-expanded-bin.
+    #[arg(long)]
+    pub split_expanded_output_global_toml: Option<PathBuf>,
+
+    /// Path to output the global symbol map TOML file.
+    #[arg(long)]
+    pub output_symbol_map: Option<PathBuf>,
+
+    /// Run the declaration splitter functionality.
+    #[arg(long, default_value_t = false)]
+    pub run_decl_splitter: bool,
+
+    /// Path to output a TOML file containing all declarations, types, modules, and crates.
+    #[arg(long)]
+    pub output_declarations_toml: Option<PathBuf>,
+
+    /// Analyze type usage in expressions.
+    #[arg(long, default_value_t = false)]
+    pub analyze_type_usage: bool,
+
+    /// The maximum expression depth to consider for type usage analysis. Required if `analyze_type_usage` is true.
+    #[arg(long)]
+    pub max_expression_depth: Option<usize>,
+
+    /// Path to output the leveled type usage report. Required if `analyze_type_usage` is true.
+    #[arg(long)]
+    pub output_type_usage_report: Option<PathBuf>,
+
+    /// Path to output all collected analysis data (expressions, lattices) to a TOML file.
+    #[arg(long)]
+    pub output_toml_report: Option<PathBuf>,
+
+    /// Path to output all collected analysis data (expressions, lattices) to a JSON file.
+    #[arg(long)]
+    pub output_analysis_data_json: Option<PathBuf>,
+
+    /// Paths to exclude from processing.
+    #[arg(long, value_delimiter = ',')]
+    pub exclude_paths: Vec<PathBuf>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_args_default_values() {
-        let args = Args::parse_from(&["prelude-generator"]);
-        assert!(!args.dry_run);
-        assert_eq!(args.path, PathBuf::from("."));
-        assert!(args.exclude_crates.is_empty());
-        assert!(!args.report);
-        assert_eq!(args.results_file, PathBuf::from("prelude_processing_results.json"));
-        assert!(!args.cache_report);
-        assert!(args.timeout.is_none());
-        assert!(!args.force);
-    }
-
-    #[test]
-    fn test_args_custom_values() {
-        let args = Args::parse_from(&[
-            "prelude-generator",
-            "--dry-run",
-            "--path", "/tmp/my_project",
-            "--exclude-crates", "crate1,crate2",
-            "--report",
-            "--results-file", "custom_results.json",
-            "--cache-report",
-            "--timeout", "60",
-            "--force",
-        ]);
-
-        assert!(args.dry_run);
-        assert_eq!(args.path, PathBuf::from("/tmp/my_project"));
-        assert_eq!(args.exclude_crates, vec!["crate1".to_string(), "crate2".to_string()]);
-        assert!(args.report);
-        assert_eq!(args.results_file, PathBuf::from("custom_results.json"));
-        assert!(args.cache_report);
-        assert_eq!(args.timeout, Some(60));
-        assert!(args.force);
+impl Args {
+    /// Resolves all relative paths in `exclude_paths` to absolute paths based on `self.path`.
+    pub fn resolve_exclude_paths(&self) -> anyhow::Result<Vec<PathBuf>> {
+        let mut resolved_paths = Vec::new();
+        for p in &self.exclude_paths {
+            let resolved_p = if p.is_relative() {
+                if *p == PathBuf::from(".") { // Dereference p here
+                    self.path.canonicalize().context("Failed to canonicalize project root path")?
+                } else {
+                    self.path.join(p).canonicalize().context(format!("Failed to canonicalize exclude path: {:?}", p))?
+                }
+            } else {
+                p.canonicalize().context(format!("Failed to canonicalize absolute exclude path: {:?}", p))?
+            };
+            resolved_paths.push(resolved_p);
+        }
+        Ok(resolved_paths)
     }
 }

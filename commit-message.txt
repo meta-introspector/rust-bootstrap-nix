@@ -1,10 +1,12 @@
-docs(bag-of-words): Update documentation for bag of words and coordinate grouping
+feat: Introduce rust-system-builder for reproducible config.lock generation
 
-This commit updates the documentation files (`8d.md`, `GEMINI.md`, `lattice.md`, `plan.md`) to reflect the new functionality and refined plan for implementing "bag of words" and coordinate grouping for declarations.
+This commit introduces `rust-system-builder`, a new micro-composer responsible for generating reproducible `config.lock` files. This addresses the need for a lightweight and robust mechanism to track input file hashes and the builder's binary hash, ensuring content-addressable caching and build reproducibility.
 
-- **`8d.md`:** Updated with a more detailed "Revised Plan" for bag of words and coordinate grouping, including the concept of symbol tables and 4KB chunking.
-- **`GEMINI.md`:** Updated to reflect the successful implementation of structured error collection in `prelude-generator`.
-- **`lattice.md`:** Added a new section describing `prelude-generator`'s role in lattice construction through bag of words and coordinate grouping.
-- **`plan.md`:** Added a new item under "Next Steps" for the ongoing work on "Implement Bag of Words and Coordinate Grouping for Declarations."
+Key changes include:
+- **New `rust-system-builder` crate:** A standalone binary for scanning project inputs, hashing them, and hashing itself to produce a `config.lock`.
+- **Updated `Makefile`:** Added a `generate-prelude-lock` target to simplify `config.lock` generation for `prelude-generator` using `rust-system-builder`.
+- **Updated `README.md`:** Added a new section detailing `rust-system-builder`'s purpose and updated the "Phase I" section to reflect its role in establishing `config.lock` generation.
+- **Updated `rust-system-composer`:** Fixed compilation errors related to `config.lock` and `StageOrchestrator` refactoring, preparing it for integration with `rust-system-builder`.
+- **New/Updated Tasks:** Created `00_04_integrate_rust_system_builder_into_composer.toml` and updated `00_03_implement_processing_hashes_and_zkp_vision.toml` to reflect progress and next steps.
 
-Additionally, this commit includes the new `prelude-generator/src/declaration.rs` file, which introduces the `Declaration` struct for unifying declaration representation with associated "bag of words."
+This is a foundational step towards a more robust and verifiable layered analysis workflow.

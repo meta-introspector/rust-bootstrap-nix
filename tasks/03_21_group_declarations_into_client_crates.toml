@@ -1,0 +1,8 @@
+title = "Group Declarations into Client Crates"
+description = "Group declarations into new 'client-X' or 'client-X-Y' crates based on their primary external crate dependencies, aiming for the 'one external crate per module' principle."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 4
+step_id = "4.2"
+name = "Group Declarations into Client Crates"

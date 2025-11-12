@@ -1,6 +1,8 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
+use config_macros::define_config;
 define_config! {
-    #[doc = " TOML representation of various global install decisions."] struct Install {
+    #[derive(Deserialize)]
+    struct Install {
     prefix : Option < String > = "prefix", sysconfdir : Option < String > = "sysconfdir",
     docdir : Option < String > = "docdir", bindir : Option < String > = "bindir", libdir
     : Option < String > = "libdir", mandir : Option < String > = "mandir", datadir :

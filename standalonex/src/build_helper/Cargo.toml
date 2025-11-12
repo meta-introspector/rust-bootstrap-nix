@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 serde = "1"
 serde_derive = "1"
+git2 = "0.19"

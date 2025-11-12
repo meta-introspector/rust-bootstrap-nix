@@ -27,7 +27,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.nix.nixpkgs_path
     };
     let system_arch = "aarch64-linux";
-    let flake_nix_content = generate_flake_nix_content(&nixpkgs_url, &system_arch);
+    let flake_nix_content = generate_flake_nix_content(
+        &nixpkgs_url,
+        &system_arch,
+        args.use_rustc_wrapper,
+        None,
+    );
     let config_content = fs::read_to_string(&args.config_path)?;
     write_flake_and_config(&absolute_output_dir, &flake_nix_content, &config_content)?;
     let output_flake_nix_path = absolute_output_dir.join("flake.nix");

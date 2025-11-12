@@ -1,0 +1,20 @@
+[package]
+name = "expanded-code-collector"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+clap = { version = "4.0", features = ["derive"] }
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+cargo_metadata = "0.18.1"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+tempfile = "3.8"
+serde_derive = "1.0"
+toml = "0.8"

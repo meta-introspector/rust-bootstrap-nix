@@ -1,0 +1,8 @@
+title = "Implement global index and 8D embedding for all constants"
+description = "This step takes the raw Level 0 declarations from Step 3 and **maps them into the 8-dimensional conceptual space**. This creates a central index (e.g., TOML/JSON) linking constant names/paths to their canonical **8D coordinates**, moving beyond hardcoded values and formally defining their verifiable position within the lattice."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 2
+step_id = "4"
+name = "Implement global index and 8D embedding for all constants"

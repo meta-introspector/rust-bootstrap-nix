@@ -1,4 +1,12 @@
-use crate::prelude::*;
+use clap::*;
+use build_helper::prelude::*;
+use crate::TargetSelectionList;
+use crate::target_selection::target_selection_list;
+use crate::Kind;
+use crate::Config;
+//use crate::build::Build;
+
+//use crate::subcommand::Subcommand;
 #[derive(Clone, ValueEnum)]
 pub enum Warnings {
     Default,
@@ -219,9 +227,9 @@ impl Flags {
             normalize_args(args),
         ) {
             println!("NOTE: updating submodules before printing available paths");
-            let config = Config::parse(Self::parse(&[String::from("build")]));
-            let build = Build::new(config);
-            let paths = Builder::get_help(&build, subcommand);
+            // let config = Config::parse(Self::parse(&[String::from("build")]));
+            // let build = Build::new(config);
+            // let paths = Builder::get_help(&build, subcommand);
             if let Some(s) = paths {
                 println!("{s}");
             } else {

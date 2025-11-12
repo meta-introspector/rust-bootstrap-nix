@@ -1,0 +1,8 @@
+title = "Refactor rust-system-composer as Orchestrator"
+description = "Refactor rust-system-composer to act as an orchestrator, using library calls to split-expanded-lib to generate per-file Rust projects."
+status = "DONE"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 2
+step_id = "2.1"
+name = "Refactor rust-system-composer as Orchestrator"

@@ -9,18 +9,19 @@ use pipeline_traits::{PipelineFunctor, ParsedFile, ValidatedFile};
 use indoc::indoc;
 use tempfile::tempdir;
 use super::utils::copy_dir_all;
-
+use crate::PipelineConfig;
 // HuggingFaceValidatorFunctor
 pub struct HuggingFaceValidatorFunctor {
     pub args: crate::Args,
     pub hf_validator_path: Option<PathBuf>,
 }
 
-impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor {
+impl PipelineFunctor<ParsedFile, ValidatedFile, PipelineConfig> for HuggingFaceValidatorFunctor {
     fn map<'writer>(
         &'writer self,
         writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: ParsedFile,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<ValidatedFile>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("HuggingFaceValidatorFunctor::map");
@@ -34,8 +35,13 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             original_file_path.hash(&mut hasher);
             let short_id = format!("{:x}", hasher.finish());
 
+            let generated_output_dir = _config.as_ref()
+                .and_then(|c| c.generated_output_dir.as_ref())
+                .map(|p| p.to_path_buf())
+                .unwrap_or_else(|| PathBuf::from(".gemini/generated/"));
+
             writer.write_all(format!("  -> Short ID for hf-validator project: {}\n", short_id).as_bytes()).await?;
-            let hf_validator_project_dir = PathBuf::from(format!("generated/hf_validator_projects/{}", short_id));
+            let hf_validator_project_dir = generated_output_dir.join(format!("hf_validator_projects/{}", short_id));
             tokio::fs::create_dir_all(&hf_validator_project_dir).await?;
 
             // Write the Rust source code to a file within the persistent directory
@@ -117,7 +123,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             // Construct the command to execute hf-validator
             let hf_validator_executable = self.hf_validator_path.clone().unwrap_or_else(|| {
                 // Fallback to default if not provided in config.toml, assuming release build
-                self.args.path.join("target/release/hf-validator")
+                PathBuf::from(&self.args.path).join("target/release/hf-validator")
             });
 
             writer.write_all(format!("  -> Executing hf-validator: {:#?}\n", hf_validator_executable).as_bytes()).await?;
@@ -144,7 +150,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
             writer.write_all(format!("  -> Hugging Face Validation Result: Dataset generated at {:#?}\n", output_path).as_bytes()).await?;
 
             // Define the permanent output directory
-            let permanent_output_dir = PathBuf::from(format!("generated/hf_dataset_output/{}", short_id));
+            let permanent_output_dir = generated_output_dir.join(format!("hf_dataset_output/{}", short_id));
             tokio::fs::create_dir_all(&permanent_output_dir).await?;
 
             // --- Start: Mapping file logic ---
@@ -159,7 +165,7 @@ impl PipelineFunctor<ParsedFile, ValidatedFile> for HuggingFaceValidatorFunctor 
                 files: HashMap<String, String>,
             }
 
-            let mapping_file_path = PathBuf::from("generated/hf_dataset_output/mapping.toml");
+            let mapping_file_path = generated_output_dir.join("hf_dataset_output/mapping.toml");
             let mut mapping = if mapping_file_path.exists() {
                 let mut file = File::open(&mapping_file_path).await
                     .context("Failed to open mapping.toml")?;

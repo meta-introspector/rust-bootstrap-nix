@@ -1,0 +1,15 @@
+title = "Fix immediate compilation errors in prelude-generator"
+description = "Address and resolve immediate compilation errors in the `prelude-generator` crate, specifically those stemming from type mismatches (e.g., 5-element tuple return, `RustcInfo` conversion) introduced by changes to `split-expanded-lib` or module refactoring. This is a critical P1 task to restore project stability."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T12:10:00Z"
+parent_task = "00_00_recreate_rust_compiler_with_lattice.toml"
+stage_id = 11
+step_id = "1"
+name = "Fix prelude-generator compilation errors"
+related_files = [
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "prelude-generator/src/command_handlers/mod.rs",
+    "prelude-generator/src/command_handlers/decl_splitter_handler.rs",
+    "split-expanded-lib/src/lib.rs",
+]

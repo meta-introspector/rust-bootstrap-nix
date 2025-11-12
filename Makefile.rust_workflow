@@ -1,0 +1,116 @@
+#-*-Makefile-*-
+SHELL := /usr/bin/env bash
+
+.PHONY: all deps-all expand-all split-all clean
+
+# Define paths
+METADATA_FILE := rust-bootstrap-core/full_metadata.json
+EXPANDED_DIR := expanded
+PROJECT_ROOT := .
+
+# Paths for Rust compiler source expansion
+RUST_SRC_PATH := /data/data/com.termux.nix/files/home/nix/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src
+RUST_SRC_METADATA_FILE := $(RUST_SRC_PATH)/full_metadata.json
+RUST_SRC_EXPANDED_DIR := $(RUST_SRC_PATH)/expanded
+
+# --- Dependency Collection (from Makefile.deps) ---
+deps-all: $(METADATA_FILE)
+
+$(METADATA_FILE):
+	@echo "Collecting full workspace metadata using cargo metadata..."
+	mkdir -p $(@D) # Ensure the directory exists
+	cargo metadata --format-version 1 > $@
+
+# --- Dependency Collection for Rust Compiler Source ---
+deps-rust-compiler-src: $(RUST_SRC_METADATA_FILE)
+
+$(RUST_SRC_METADATA_FILE):
+	@echo "Collecting full workspace metadata for Rust compiler source using cargo metadata..."
+	mkdir -p $(@D) # Ensure the directory exists
+	cargo metadata --format-version 1 --manifest-path $(RUST_SRC_PATH)/Cargo.toml > $@
+
+# --- Expanded Code Collection (using expanded-code-collector) ---
+expand-all: $(METADATA_FILE)
+	@echo "Running expanded-code-collector for all layers..."
+	for i in $(shell seq 0 10); do \
+		echo "Processing layer $$i..."; \
+		cargo run --bin expanded-code-collector -- \
+			--metadata-path $(METADATA_FILE) \
+			--output-dir $(EXPANDED_DIR) \
+			--layer $$i; \
+	done
+
+# --- Expanded Code Collection for Rust Compiler Source ---
+expand-rust-compiler-src: deps-rust-compiler-src
+	@echo "Running expanded-code-collector for all packages in Rust compiler source..."
+	mkdir -p $(RUST_SRC_EXPANDED_DIR) # Ensure the directory exists
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(RUST_SRC_METADATA_FILE) \
+		--output-dir $(RUST_SRC_EXPANDED_DIR) \
+		--layer 0 \
+		--force # Use --force to overwrite existing files
+
+# --- Split and Organize Declarations (using split-expanded-bin) ---
+split-all: expand-all
+	@echo "Running split-expanded-bin..."
+	cargo run --bin split-expanded-bin -- \
+		--expanded-manifest $(EXPANDED_DIR)/expanded_manifest.json \
+		--project-root $(PROJECT_ROOT) \
+		--rustc-version "1.89.0" \
+		--rustc-host "aarch64-unknown-linux-gnu" \
+		--verbosity 3 \
+		--layer 0
+# --- All Workflow ---
+all: deps-all expand-all split-all
+
+split-step-1: $(METADATA_FILE)
+	@echo "Running expanded-code-collector for smallest file (autocfg) in dry-run mode..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--layer 0 \
+		--package autocfg \
+		--dry-run
+
+expanded-code-collector-self-report: deps-all
+	@echo "Running expanded-code-collector on itself in dry-run mode..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--layer 0 \
+		--package expanded-code-collector \
+		--dry-run
+
+	@echo "Running prelude-generator to generate constant report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--generated-decls-output-dir $(EXPANDED_DIR)
+
+generate-analysis-report: deps-all expand-all
+	@echo "Running prelude-generator to generate comprehensive analysis report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--output-toml-report $(EXPANDED_DIR)/analysis_report.toml
+
+expanded-code-collector-self-report-full: deps-all
+	@echo "Running expanded-code-collector on itself (full run)..."
+	cargo run --bin expanded-code-collector -- \
+		--metadata-path $(METADATA_FILE) \
+		--output-dir $(EXPANDED_DIR) \
+		--layer 0 \
+		--package expanded-code-collector
+
+	@echo "Running prelude-generator to generate constant report..."
+	cargo run --bin prelude-generator -- \
+		--path $(EXPANDED_DIR) \
+		--generated-decls-output-dir $(EXPANDED_DIR)
+
+
+# --- Clean Target ---
+clean:
+	@echo "Cleaning generated files..."
+	rm -rf $(METADATA_FILE)
+	rm -rf $(EXPANDED_DIR)
+	rm -rf src/level_*
+	rm -f scripts/packages.list
+	rm -f scripts/binary_packages.list

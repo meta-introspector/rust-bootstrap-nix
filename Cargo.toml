@@ -1,15 +1,6 @@
 [workspace]
-resolver = "2"
-members = [
-    "configuration-nix",
-    "bootstrap-config-builder",
-    "flake-template-generator",
-    "prelude-generator",
-    "rust-decl-splitter",
-    "rust-system-composer",
-    "vendor/rarrow", "metrics-reporter",
-    #"vendor/rust/hugging-face-dataset-validator-rust",
-    "pipeline-traits",
-    "ast-decoder",
-]
+#resolver = "2"
+resolver = "3"
+members = ["crates/code-graph-query-tool","rust-system-composer", "tools/task-graph-analyzer", "test_cargo_run_env", "rust-system-builder", "crates/git-utils", "split-expanded-bin", "crates/flake-orchestrator-lib"]
+
 

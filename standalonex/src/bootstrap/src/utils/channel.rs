@@ -13,7 +13,7 @@ use std::path::Path;
 
 use super::helpers;
 //use crate::BuildConfig;
-use crate::utils::helpers::{start_process, t};
+use crate::utils::helpers::{start_process};
 
 #[derive(Clone, Default)]
 pub enum GitInfo {
@@ -67,7 +67,7 @@ impl GitInfo {
                 .arg("--pretty=format:%cd")
                 .as_command_mut(),
         );
-        let ver_hash =
+        let ver_hash = 
             start_process(helpers::git(Some(dir)).arg("rev-parse").arg("HEAD").as_command_mut());
         let short_ver_hash = start_process(
             helpers::git(Some(dir)).arg("rev-parse").arg("--short=9").arg("HEAD").as_command_mut(),
@@ -153,11 +153,10 @@ pub fn read_commit_info_file(root: &Path) -> Option<Info> {
 /// Write the commit information to the `git-commit-info` file given the project
 /// root.
 pub fn write_commit_info_file(root: &Path, info: &Info) {
-    let commit_info = format!("{}\n{}\n{}\n", info.sha, info.short_sha, info.commit_date);
-    t!(fs::write(root.join("git-commit-info"), commit_info));
+    bootstrap_macros::t!(fs::write(root.join("git-commit-info"), commit_info));
 }
 
 /// Write the commit hash to the `git-commit-hash` file given the project root.
 pub fn write_commit_hash_file(root: &Path, sha: &str) {
-    t!(fs::write(root.join("git-commit-hash"), sha));
+    bootstrap_macros::t!(fs::write(root.join("git-commit-hash"), sha));
 }

@@ -1,27 +1,37 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 use serde::Deserialize;
+use crate::ChangeIdWrapper;
+//use crate::build::Build;
+//use crate::subcommand_groups::BuildTool;
+use crate::install::Install;
+use crate::llvm::Llvm;
+use crate::rust::Rust;
+use std::collections::HashMap;
+use crate::tomltarget::TomlTarget;
+use crate::dist::Dist;
+use crate::ci::Ci;
 /// Structure of the `config.toml` file that configuration is read from.
 ///
 /// This structure uses `Decodable` to automatically decode a TOML configuration
 /// file into this format, and then this is traversed and written into the above
 /// `Config` structure.
 #[derive(Deserialize, Default)]
-pub(crate) struct Nix {
-    nixpkgs_path: Option<PathBuf>,
-    rust_overlay_path: Option<PathBuf>,
-    rust_bootstrap_nix_path: Option<PathBuf>,
-    configuration_nix_path: Option<PathBuf>,
-    rust_src_flake_path: Option<PathBuf>,
+pub struct Nix {
+    pub nixpkgs_path: Option<PathBuf>,
+    pub rust_overlay_path: Option<PathBuf>,
+    pub rust_bootstrap_nix_path: Option<PathBuf>,
+    pub configuration_nix_path: Option<PathBuf>,
+    pub rust_src_flake_path: Option<PathBuf>,
 }
 #[derive(Deserialize, Default)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
-pub(crate) struct TomlConfig {
+pub struct TomlConfig {
     #[serde(flatten)]
     change_id: ChangeIdWrapper,
-    build: Option<Build>,
+//    build: Option<>,
     install: Option<Install>,
-    llvm: Option<Llvm>,
-    rust: Option<Rust>,
+    pub llvm: Option<Llvm>,
+    pub rust: Option<Rust>,
     target: Option<HashMap<String, TomlTarget>>,
     dist: Option<Dist>,
     ci: Option<Ci>,

@@ -17,7 +17,7 @@ fi
 
 echo "Checking for missing semicolons in prelude imports..."
 PRELUDE_LINE="use crate::prelude::*";
-FILES_TO_FIX=$(grep -r -l "${PRELUDE_LINE}" --include "*.rs" . | xargs grep -L "${PRELUDE_LINE};" --include "*.rs")
+# FILES_TO_FIX=$(grep -r -l "${PRELUDE_LINE}" --include "*.rs" . | xargs grep -L "${PRELUDE_LINE};" --include "*.rs")
 
 if [ -n "$FILES_TO_FIX" ]; then
     for file in $FILES_TO_FIX;

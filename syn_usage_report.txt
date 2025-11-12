@@ -1,0 +1,182 @@
+standalonex/src/config_macros/src/lib.rs://use syn::Token;
+standalonex/src/config_macros/src/lib.rs:    attrs: Vec<syn::Attribute>,
+standalonex/src/config_macros/src/lib.rs:    fields: syn::punctuated::Punctuated<ConfigField, Token![,]>,
+standalonex/src/config_macros/src/lib.rs:    ty: syn::Type,
+standalonex/src/config_macros/src/lib.rs:        let attrs = input.call(syn::Attribute::parse_outer)?;
+test_definitions_crates/test_definitions_macro/src/lib.rs:use syn::{parse_macro_input, Ident, LitBool, LitStr};
+test_definitions_crates/test_definitions_macro/src/lib.rs:    compare_mode: syn::Expr,
+test_definitions_crates/test_definitions_macro/src/lib.rs:impl syn::parse::Parse for TestDefinitionArgs {
+test_definitions_crates/test_definitions_macro/src/lib.rs:    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+test_definitions_crates/test_definitions_macro/src/lib.rs:        syn::braced!(content in input);
+test_definitions_crates/test_definitions_macro/src/lib.rs:            content.parse::<syn::Token![:]>()?;
+test_definitions_crates/test_definitions_macro/src/lib.rs:                content.parse::<syn::Token![,]>()?;
+metrics-reporter/src/main.rs:    match syn::parse_file(&wrapped_code_content) {
+metrics-reporter/src/main.rs:                if let syn::Item::Use(use_item) = item {
+project_prelude.rs:pub use syn::braced;
+project_prelude.rs:pub use syn::{parse_macro_input, Ident, LitBool, LitStr};
+project_prelude.rs:pub use syn::{parse_macro_input, Ident, LitStr, Token};
+project_prelude.rs:pub use syn::parse::{Parse, ParseStream, Result};
+prelude-generator/src/modify_file.rs:use syn::Item;
+prelude-generator/src/modify_file.rs:    let ast = syn::parse_file(&content)?;
+prelude-generator/src/modify_file.rs:        let prelude_use: Item = syn::parse_quote! {
+prelude-generator/src/modify_crate_root.rs:use syn::Item;
+prelude-generator/src/modify_crate_root.rs:    let ast = syn::parse_file(&content)?;
+prelude-generator/src/modify_crate_root.rs:        let prelude_mod: Item = syn::parse_quote! {
+prelude-generator/src/test_extractor.rs:use syn::{Item};
+prelude-generator/src/test_extractor.rs:    let ast = syn::parse_file(&content)
+prelude-generator/src/constant_storage/numerical_constants.rs:use syn::ItemConst;
+prelude-generator/src/constant_storage/string_constants.rs:use syn::ItemConst;
+prelude-generator/src/code_generator.rs:pub fn use_item_to_string(use_item: &syn::ItemUse) -> String {
+prelude-generator/src/type_usage_analyzer.rs:use syn::{self, visit::Visit};
+prelude-generator/src/type_usage_analyzer.rs:            let file = match syn::parse_file(&file_content) {
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:pub async fn expand_macros_and_parse(writer: &mut (impl tokio::io::AsyncWriteExt + Unpin), file_path: &Path, crate_root: &Path, manifest_path: &Path, rustc_info: &RustcInfo, cache_dir: &Path) -> Result<(syn::File, Option<ErrorSample>)> {
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:        return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:        return Ok((syn::parse_file(&expanded_code).with_context(|| format!("Failed to parse cached expanded code for {}", file_path.display()))?, None));
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:        return Ok((syn::parse_file("").unwrap(), Some(error_sample))); // Return a dummy syn::File and the error sample
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:    match syn::parse_file(&relevant_expanded_code) {
+prelude-generator/src/use_extractor/expand_macros_and_parse.rs:            Ok((syn::parse_file("").unwrap(), Some(error_sample))) // Return a dummy syn::File and the error sample
+prelude-generator/src/use_extractor/flatten_use_tree.rs:use syn::UseTree;
+prelude-generator/src/parser.rs:                let ast = match syn::parse_file(&content) {
+prelude-generator/src/bag_of_words_visitor.rs:use syn::{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Ident};
+prelude-generator/src/bag_of_words_visitor.rs:    pub fn extract_from_file(file: &syn::File) -> Self {
+prelude-generator/src/bag_of_words_visitor.rs:        syn::visit::visit_item_const(self, i);
+prelude-generator/src/bag_of_words_visitor.rs:        syn::visit::visit_item_fn(self, i);
+prelude-generator/src/bag_of_words_visitor.rs:        syn::visit::visit_item_struct(self, i);
+prelude-generator/src/bag_of_words_visitor.rs:        syn::visit::visit_item_enum(self, i);
+prelude-generator/src/bag_of_words_visitor.rs:        syn::visit::visit_item_static(self, i);
+prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/classify_uses_functor.rs:                match syn::parse_str::<syn::ItemUse>(&use_statement) {
+prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/extract_uses_functor.rs:                let ast = syn::parse_file(&source_code)
+prelude-generator/src/prelude_category_pipeline/prelude_category_pipeline_impls/extract_uses_functor.rs:                    if let syn::Item::Use(use_item) = item {
+prelude-generator/src/use_statements.rs://use syn::{visit::Visit, ItemConst, ItemStruct, TypePath, PathArguments, GenericArgument, Meta, Ident};
+prelude-generator/src/use_statements.rs:pub fn get_required_uses_for_item_const(_constant: &syn::ItemConst) -> String {
+prelude-generator/src/use_statements.rs:pub fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String {
+prelude-generator/src/use_statements.rs:    fn add_uses_from_type_path(type_path: &syn::TypePath, uses: &mut HashSet<&'static str>) {
+prelude-generator/src/use_statements.rs:                    uses.insert("use syn::{ItemConst, ItemStruct};\n");
+prelude-generator/src/use_statements.rs:                    uses.insert("use syn::visit::Visit;\n");
+prelude-generator/src/use_statements.rs:            if let syn::PathArguments::AngleBracketed(angle_args) = &segment.arguments {
+prelude-generator/src/use_statements.rs:                    if let syn::GenericArgument::Type(syn::Type::Path(inner_type_path)) = arg {
+prelude-generator/src/use_statements.rs:            if let syn::Meta::List(meta_list) = &attr.meta {
+prelude-generator/src/use_statements.rs:            if let syn::Meta::List(meta_list) = &attr.meta {
+prelude-generator/src/use_statements.rs:        if let syn::Type::Path(type_path) = &field.ty {
+prelude-generator/src/use_statements.rs:        uses.insert("use syn::{ItemConst, ItemStruct};\n");
+prelude-generator/src/use_statements.rs:        uses.insert("use syn::visit::Visit;\n");
+prelude-generator/src/use_statements.rs:        uses.insert("use syn::visit::Visit;\n"); // BagOfWordsVisitor also needs Visit
+prelude-generator/src/type_extractor.rs:use syn::{visit::Visit, Type, PathArguments, GenericArgument, ItemStruct, ItemConst, Meta};
+prelude-generator/src/type_extractor.rs:        syn::visit::visit_type(self, i);
+prelude-generator/src/type_extractor.rs:        syn::visit::visit_item_struct(self, i);
+prelude-generator/src/type_extractor.rs:        syn::visit::visit_item_const(self, i);
+prelude-generator/src/type_extractor.rs:        let file = match syn::parse_file(&content) {
+prelude-generator/src/command_handlers.rs:use syn::{self, visit::Visit};
+prelude-generator/src/command_handlers.rs:    _all_numerical_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/command_handlers.rs:    _all_string_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/command_handlers.rs:    all_numerical_constants: &Vec<syn::ItemConst>,
+prelude-generator/src/command_handlers.rs:    all_string_constants: &Vec<syn::ItemConst>,
+prelude-generator/src/command_handlers.rs:            if let Ok(file) = syn::parse_file(&content) {
+prelude-generator/src/declaration_processing/constant_processing.rs:    all_constants: Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/constant_processing.rs:    _all_numerical_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/constant_processing.rs:    _all_string_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/constant_processing.rs:pub fn generate_constants_module(constants: &[syn::ItemConst]) -> String {
+prelude-generator/src/declaration_processing/struct_processing.rs:    all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>>,
+prelude-generator/src/declaration_processing/struct_processing.rs:                    format!("use syn::{{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Item}};
+prelude-generator/src/declaration_processing/struct_processing.rs:pub fn generate_structs_module(structs: &[syn::ItemStruct]) -> String {
+prelude-generator/src/declaration_processing/process_constants.rs:    all_constants: Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/process_constants.rs:    all_numerical_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/process_constants.rs:    all_string_constants: &mut Vec<syn::ItemConst>,
+prelude-generator/src/declaration_processing/process_constants.rs:        if let syn::Expr::Lit(expr_lit) = &constant.expr.as_ref() {
+prelude-generator/src/declaration_processing/process_constants.rs:                syn::Lit::Int(_) | syn::Lit::Float(_) => all_numerical_constants.push(constant.clone()),
+prelude-generator/src/declaration_processing/process_constants.rs:                syn::Lit::Str(_) => all_string_constants.push(constant.clone()),
+prelude-generator/src/declaration_processing/process_constants.rs:pub fn generate_constants_module(constants: &[syn::ItemConst]) -> String {
+prelude-generator/src/split_expanded_bin_handler.rs:    let mut parsed_files: Vec<(PathBuf, syn::File)> = Vec::new();
+prelude-generator/src/split_expanded_bin_handler.rs:                match syn::parse_file(&file_content) {
+prelude-generator/src/split_expanded_bin_handler.rs:        syn::visit::Visit::visit_file(&mut visitor, &file);
+prelude-generator/src/reference_visitor.rs:use syn::visit;
+prelude-generator/src/reference_visitor.rs:    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+prelude-generator/src/reference_visitor.rs:        if let syn::Expr::Path(expr_path) = &*i.func {
+prelude-generator/src/reference_visitor.rs:        syn::visit::visit_expr_call(self, i);
+prelude-generator/src/reference_visitor.rs:    fn visit_path(&mut self, i: &'ast syn::Path) {
+prelude-generator/src/reference_visitor.rs:        syn::visit::visit_path(self, i);
+prelude-generator/src/dependency_analyzer.rs:use syn::{
+prelude-generator/src/type_collector.rs:use syn::{self, visit::{self, Visit}, Type};
+prelude-generator/src/type_usage_visitor.rs:use syn::{self, visit::{self, Visit}, ItemFn, ItemStruct, ItemEnum, ItemConst, ItemStatic, Type, Expr, ItemImpl};
+prelude-generator/src/type_usage_visitor.rs:    fn visit_expr_field(&mut self, i: &'ast syn::ExprField) {
+prelude-generator/src/type_usage_visitor.rs:    fn visit_expr_match(&mut self, i: &'ast syn::ExprMatch) {
+prelude-generator/src/type_usage_visitor.rs:            if let syn::Pat::TupleStruct(pat_tuple_struct) = &arm.pat {
+prelude-generator/src/type_usage_visitor.rs:            } else if let syn::Pat::Path(pat_path) = &arm.pat {
+prelude-generator/src/type_usage_visitor.rs:    fn visit_expr_if(&mut self, i: &'ast syn::ExprIf) {
+prelude-generator/src/type_usage_visitor.rs:        if let syn::Expr::Let(expr_let) = &*i.cond {
+prelude-generator/src/type_usage_visitor.rs:            if let syn::Pat::TupleStruct(pat_tuple_struct) = &*expr_let.pat {
+prelude-generator/src/type_usage_visitor.rs:            } else if let syn::Pat::Path(pat_path) = &*expr_let.pat {
+prelude-generator/src/type_usage_visitor.rs:    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+prelude-generator/generated_all_tests.rs:        let test_func1: ItemFn = syn::parse_quote! {
+prelude-generator/generated_all_tests.rs:        let test_func2: ItemFn = syn::parse_quote! {
+ast-decoder/src/lib.rs:use syn::{self, visit::{self, Visit}, Item, Visibility};
+ast-decoder/src/lib.rs:    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+ast-decoder/src/lib.rs:            if let syn::FnArg::Typed(pat_type) = arg {
+ast-decoder/src/lib.rs:        let return_type = if let syn::ReturnType::Type(_, ty) = &i.sig.output {
+ast-decoder/src/lib.rs:    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+ast-decoder/src/lib.rs:    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+ast-decoder/src/lib.rs:    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+ast-decoder/src/lib.rs:    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+ast-decoder/src/lib.rs:    fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
+ast-decoder/src/lib.rs:    fn visit_pat_ident(&mut self, i: &'ast syn::PatIdent) {
+ast-decoder/src/lib.rs:    fn visit_item(&mut self, i: &'ast syn::Item) {
+ast-decoder/src/lib.rs:                let ast = syn::parse_file(&parsed_code).context("Failed to parse code into AST for traversal")?;
+ast-decoder/src/lib.rs:                syn::visit::visit_file(&mut visitor, &ast);
+syn-usage-collector/src/lib.rs:use syn::{visit::{self, Visit}, File, Ident, Type, Path};
+syn-usage-collector/src/lib.rs:/// Helper function to convert a syn::Type to a String representation.
+rust-bootstrap-core/src/level_00/src/other_t/use_statements.rs:"pub mod use_statements { use std :: collections :: HashSet ; pub fn get_required_uses_for_item_const (_constant : & syn :: ItemConst) -> String { \"\" . to_string () } pub fn get_required_uses_for_item_struct (structure : & syn :: ItemStruct) -> String { let mut uses = HashSet :: new () ; fn add_uses_from_type_path (type_path : & syn :: TypePath , uses : & mut HashSet < & 'static str > ,) { for segment in type_path . path . segments . iter () { let ident_str = segment . ident . to_string () ; match ident_str . as_str () { \"HashMap\" => { uses . insert (\"use std::collections::HashMap;\\n\") ; } \"PathBuf\" => { uses . insert (\"use std::path::PathBuf;\\n\") ; } \"String\" => { uses . insert (\"use std::string::String;\\n\") ; } \"syn\" => { uses . insert (\"use syn::{ItemConst, ItemStruct};\\n\") ; uses . insert (\"use syn::visit::Visit;\\n\") ; } \"clap\" => { uses . insert (\"use clap::{Parser, Args, Command};\\n\") ; } \"serde\" => { uses . insert (\"use serde::{Serialize, Deserialize};\\n\") ; } _ => { } } if let syn :: PathArguments :: AngleBracketed (angle_args) = & segment . arguments { for arg in angle_args . args . iter () { if let syn :: GenericArgument :: Type (syn :: Type :: Path (inner_type_path) ,) = arg { add_uses_from_type_path (inner_type_path , uses) ; } } } } } if structure . attrs . iter () . any (| attr | { if attr . path () . is_ident (\"derive\") { if let syn :: Meta :: List (meta_list) = & attr . meta { meta_list . tokens . to_string () . contains (\"Parser\") } else { false } } else { false } }) { uses . insert (\"use clap::{Parser, Args, Command};\\n\") ; uses . insert (\"use std::path::PathBuf;\\n\") ; } if structure . attrs . iter () . any (| attr | { if attr . path () . is_ident (\"derive\") { if let syn :: Meta :: List (meta_list) = & attr . meta { meta_list . tokens . to_string () . contains (\"Serialize\") || meta_list . tokens . to_string () . contains (\"Deserialize\") } else { false } } else { false } }) { uses . insert (\"use serde::{Serialize, Deserialize};\\n\") ; } for field in structure . fields . iter () { if let syn :: Type :: Path (type_path) = & field . ty { add_uses_from_type_path (type_path , & mut uses) ; } } if structure . ident . to_string () == \"Level0DeclsVisitor\" { uses . insert (\"use syn::{ItemConst, ItemStruct};\\n\") ; uses . insert (\"use syn::visit::Visit;\\n\") ; } if structure . ident . to_string () == \"BagOfWordsVisitor\" { uses . insert (\"use std::collections::HashMap;\\n\") ; uses . insert (\"use syn::visit::Visit;\\n\") ; } let mut sorted_uses : Vec < & str > = uses . into_iter () . collect () ; sorted_uses . sort_unstable () ; sorted_uses . join (\"\") } }"
+split-expanded-lib/src/lib.rs:use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
+split-expanded-lib/src/lib.rs:            DeclarationItem::Const(s) => syn::parse_str::<ItemConst>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_const".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Struct(s) => syn::parse_str::<ItemStruct>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_struct".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Enum(s) => syn::parse_str::<ItemEnum>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_enum".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Fn(s) => syn::parse_str::<ItemFn>(s).map(|item| item.sig.ident.to_string()).unwrap_or_else(|_| "unknown_fn".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Static(s) => syn::parse_str::<ItemStatic>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_static".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Macro(s) => syn::parse_str::<syn::ItemMacro>(s).map(|item| item.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string())).unwrap_or_else(|_| "unknown_macro".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Mod(s) => syn::parse_str::<syn::ItemMod>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_mod".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Trait(s) => syn::parse_str::<syn::ItemTrait>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::TraitAlias(s) => syn::parse_str::<syn::ItemTraitAlias>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait_alias".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Type(s) => syn::parse_str::<syn::ItemType>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_type".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Union(s) => syn::parse_str::<syn::ItemUnion>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_union".to_string()),
+split-expanded-lib/src/lib.rs:            DeclarationItem::Other(s) => syn::parse_str::<syn::Item>(s).map(|item| {
+split-expanded-lib/src/lib.rs:                    syn::Item::Const(item_const) => item_const.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Enum(item_enum) => item_enum.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Fn(item_fn) => item_fn.sig.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Macro(item_macro) => item_macro.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string()),
+split-expanded-lib/src/lib.rs:                    syn::Item::Mod(item_mod) => item_mod.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Static(item_static) => item_static.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Struct(item_struct) => item_struct.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Trait(item_trait) => item_trait.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::TraitAlias(item_trait_alias) => item_trait_alias.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Type(item_type) => item_type.ident.to_string(),
+split-expanded-lib/src/lib.rs:                    syn::Item::Union(item_union) => item_union.ident.to_string(),
+split-expanded-lib/src/lib.rs:    fn visit_path(&mut self, path: &'ast syn::Path) {
+split-expanded-lib/src/lib.rs:    fn visit_item(&mut self, i: &'ast syn::Item) {
+split-expanded-lib/src/lib.rs:    fn visit_trait_item(&mut self, i: &'ast syn::TraitItem) {
+split-expanded-lib/src/lib.rs:    fn visit_type(&mut self, i: &'ast syn::Type) {
+split-expanded-lib/src/lib.rs:    fn visit_expr(&mut self, i: &'ast syn::Expr) {
+split-expanded-lib/src/lib.rs:    fn is_proc_macro_item(attrs: &[syn::Attribute]) -> bool {
+split-expanded-lib/src/lib.rs:    fn extract_identifiers_from_type(&self, ty: &syn::Type) -> HashSet<String> {
+split-expanded-lib/src/lib.rs:            syn::Type::Path(type_path) => {
+split-expanded-lib/src/lib.rs:    fn extract_identifiers_from_expr(&self, expr: &syn::Expr) -> HashSet<String> {
+split-expanded-lib/src/lib.rs:            syn::Expr::Path(expr_path) => {
+split-expanded-lib/src/lib.rs:            syn::Expr::Call(expr_call) => {
+split-expanded-lib/src/lib.rs:            syn::Expr::MethodCall(expr_method_call) => {
+split-expanded-lib/src/lib.rs:        syn::visit::visit_item_struct(self, i);
+split-expanded-lib/src/lib.rs:            if let syn::FnArg::Typed(pat_type) = input {
+split-expanded-lib/src/lib.rs:        if let syn::ReturnType::Type(_, ty) = &i.sig.output {
+split-expanded-lib/src/lib.rs:            fn visit_expr(&mut self, i: &'ast syn::Expr) {
+split-expanded-lib/src/lib.rs:                syn::visit::visit_expr(self, i);
+split-expanded-lib/src/lib.rs:            fn visit_type(&mut self, i: &'ast syn::Type) {
+split-expanded-lib/src/lib.rs:                syn::visit::visit_type(self, i);
+split-expanded-lib/src/lib.rs:    fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
+split-expanded-lib/src/lib.rs:    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+split-expanded-lib/src/lib.rs:        // Do not call syn::visit::visit_item_mod(self, i) here,
+split-expanded-lib/src/lib.rs:    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+split-expanded-lib/src/lib.rs:        // Do not call syn::visit::visit_item_trait(self, i) here,
+split-expanded-lib/src/lib.rs:    fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
+split-expanded-lib/src/lib.rs:    fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+split-expanded-lib/src/lib.rs:    fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
+split-expanded-lib/src/lib.rs:    fn visit_item(&mut self, i: &'ast syn::Item) {
+split-expanded-lib/src/lib.rs:    match syn::parse_file(&file_content) {
+split-expanded-lib/src/lib.rs:                    syn::Item::Use(item_use) => {
+split-expanded-lib/src/lib.rs:                    syn::Item::ExternCrate(item_extern_crate) => {

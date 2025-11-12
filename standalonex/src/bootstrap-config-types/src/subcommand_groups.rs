@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum QaTool {
     Check { #[arg(long)] all_targets: bool },

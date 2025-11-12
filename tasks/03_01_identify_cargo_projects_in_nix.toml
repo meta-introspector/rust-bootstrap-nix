@@ -1,0 +1,12 @@
+title = "Identify Cargo Projects in ~/nix/"
+description = "Locate all Cargo.toml files within the specified ~/nix/ directory."
+tool = "glob"
+command = "glob('**/Cargo.toml', path='/data/data/com.termux.nix/files/home/nix/')"
+output_variable = "nix_cargo_projects"
+expected_output = "List of absolute paths to Cargo.toml files in ~/nix/."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "03_project_analysis_plan.toml"
+stage_id = 1
+step_id = "1.1"
+name = "Identify Cargo Projects in ~/nix/"

@@ -1,4 +1,7 @@
-use crate::prelude::*;
+use build_helper::prelude::*;
+use build_helper::exit;
+use crate::Kind;
+use crate::DocTests;
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum QaTool {
     Bench {
@@ -462,6 +465,7 @@ impl Subcommand {
 }
 /// Returns the shell completion for a given shell, if the result differs from the current
 /// content of `path`. If `path` does not exist, always returns `Some`.
+use crate::Flags;
 pub fn get_completion<G: clap_complete::Generator>(
     shell: G,
     path: &Path,

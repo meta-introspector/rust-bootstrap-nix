@@ -2,19 +2,21 @@ use anyhow::{Result};
 use std::pin::Pin;
 use std::future::Future;
 use std::boxed::Box;
+use std::collections::HashMap;
 
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, UseStatements, ClassifiedUseStatements, UseStatement};
 use syn;
-
+use crate::PipelineConfig;
 // ClassifyUsesFunctor
 pub struct ClassifyUsesFunctor;
 
-impl PipelineFunctor<UseStatements, ClassifiedUseStatements> for ClassifyUsesFunctor {
+impl PipelineFunctor<UseStatements, ClassifiedUseStatements, PipelineConfig> for ClassifyUsesFunctor {
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: UseStatements,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<ClassifiedUseStatements>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("ClassifyUsesFunctor::map");
@@ -102,7 +104,7 @@ impl PipelineFunctor<UseStatements, ClassifiedUseStatements> for ClassifyUsesFun
                 }
                 classified_uses.push(current_use_statement);
             }
-            let __result = Ok(ClassifiedUseStatements(classified_uses));
+            let __result = Ok(ClassifiedUseStatements(classified_uses, HashMap::new()));
             measurement::record_function_exit("ClassifyUsesFunctor::map");
             __result
         })

@@ -1,0 +1,16 @@
+title = "Generate Declaration TOML/Parquet Updates"
+description = "Implement the functionality to generate TOML files (or Parquet, if applicable) containing the canonical definition, Level assignment, and the identified Bag of Words/Coordinates for processed functions. This structured definition will be consumed by `rust-decl-splitter` to ensure functions are split and stored in the correct layer within the `generated_declarations/` hierarchy."
+status = "IN_PROGRESS"
+created_at = "2025-11-06T13:40:00Z"
+parent_task = "02_05_generate_toml_report_for_bag_of_words.toml"
+stage_id = 12
+step_id = "5"
+name = "Generate Declaration Updates"
+related_files = [
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/command_handlers/mod.rs",
+    "prelude-generator/src/report_generator.rs",
+    "rust-decl-splitter/src/main.rs", # Assuming this tool exists
+    "minimal_test_declarations.toml",
+    "bag_of_words_report.toml",
+]

@@ -24,33 +24,6 @@ pub use crate::utils::shared_helpers::{dylib_path, dylib_path_var};
 #[cfg(test)]
 mod tests;
 
-/// A helper macro to `unwrap` a result except also print out details like:
-///
-/// * The file/line of the panic
-/// * The expression that failed
-/// * The error itself
-///
-/// This is currently used judiciously throughout the build system rather than
-/// using a `Result` with `try!`, but this may change one day...
-#[macro_export]
-#[macro_export]
-macro_rules! t {
-    ($e:expr) => {
-        match $e {
-            Ok(e) => e,
-            Err(e) => panic!("{} failed with {}", stringify!($e), e),
-        }
-    };
-    // it can show extra info in the second parameter
-    ($e:expr, $extra:expr) => {
-        match $e {
-            Ok(e) => e,
-            Err(e) => panic!("{} failed with {} ({:?})", stringify!($e), e, $extra),
-        }
-    };
-}
-pub use t;
-
 use crate::utils::exec::{BootstrapCommand, command};
 
 pub fn exe(name: &str, target: TargetSelection) -> String {

@@ -1,0 +1,24 @@
+title = "Implement Leveled Report for Type T Usage by Other Type Count"
+description = '''Implement a specialized leveled report that analyzes the usage of a specific `type T` within unique expressions up to a defined depth N. The report should categorize and present the usage based on the number of *other* types involved in the expression: 
+- Expressions that use `type T` directly with no other types. 
+- Expressions that use `type T` with exactly one other type. 
+- Expressions that use `type T` with N other types. 
+This task refines the layered usage reporting by providing a more granular view of type interactions and dependencies.'''
+status = "IN_PROGRESS"
+created_at = "2025-11-05T12:30:00Z"
+parent_task = "02_10_implement_layered_usage_reporting.toml"
+stage_id = 1
+step_id = "1.2"
+name = "Leveled Report for Type T Usage"
+related_files = [
+    "prelude-generator/src/command_handlers.rs",
+    "prelude-generator/src/lib.rs",
+    "prelude-generator/src/main.rs",
+    "syn-usage-collector/src/lib.rs",
+    "syn-usage-collector/src/main.rs",
+    "Makefile.deps",
+    "Makefile.expand",
+    "scripts/generate_package_lists.sh",
+    "Cargo.lock",
+    "Cargo.toml",
+]

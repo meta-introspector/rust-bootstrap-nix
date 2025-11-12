@@ -1,0 +1,8 @@
+title = "Re-compose transformed components into lattice-structured codebase"
+description = "Assemble the transformed components into the final, topologically sorted, lattice-structured codebase."
+status = "IN_PROGRESS"
+created_at = "2025-11-03T00:00:00Z"
+parent_task = "06_04_canonicalize_and_refactor_components_one_external_crate_per_module.toml"
+stage_id = 0
+step_id = "LT_05"
+name = "Re-compose transformed components into lattice-structured codebase"

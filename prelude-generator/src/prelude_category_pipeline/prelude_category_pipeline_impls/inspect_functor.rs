@@ -5,7 +5,7 @@ use std::future::Future;
 use std::boxed::Box;
 
 use pipeline_traits::PipelineFunctor;
-
+use crate::PipelineConfig;
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {
     label: &'a str,
@@ -21,11 +21,12 @@ impl<'a, T: Debug> InspectFunctor<'a, T> {
     }
 }
 
-impl<'a, T: Debug + Clone + Send + Sync + 'static> PipelineFunctor<T, T> for InspectFunctor<'a, T> {
+impl<'a, T: Debug + Clone + Send + Sync + 'static> PipelineFunctor<T, T, PipelineConfig> for InspectFunctor<'a, T> {
     fn map<'writer>(
         &'writer self,
         writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: T,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<T>> + Send + 'writer>> {
         Box::pin(async move {
             writer.write_all(format!("--- Inspecting: {} ---\n", self.label).as_bytes()).await?;

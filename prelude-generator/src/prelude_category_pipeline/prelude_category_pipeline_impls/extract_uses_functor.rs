@@ -11,12 +11,13 @@ use syn;
 
 // ExtractUsesFunctor
 pub struct ExtractUsesFunctor;
-
-impl PipelineFunctor<ParsedFile, UseStatements> for ExtractUsesFunctor {
+use crate::PipelineConfig;
+impl PipelineFunctor<ParsedFile, UseStatements, PipelineConfig> for ExtractUsesFunctor {
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
         input: ParsedFile,
+        _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<UseStatements>> + Send + 'writer>> {
         Box::pin(async move {
             measurement::record_function_entry("ExtractUsesFunctor::map");

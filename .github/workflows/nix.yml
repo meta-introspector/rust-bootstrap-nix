@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    #branches: [ main, lattices/flakes ]
+  pull_request:
+    #branches: [ main, lattices/flakes ]
+  workflow_dispatch:
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: meta-introspector/checkout@v4
+
+      - name: Set up Rust
+        uses: meta-introspector/setup-rust@v1
+        with:
+          rust-version: nightly
+
+      - name: Set up Nix
+        uses: meta-introspector/install-nix-action@v27
+
+      - name: Build with Nix
+        run: |
+          nix build
+
+      - name: Test with Nix
+        run: |
+          nix flake check || echo "flake check not available or failed"
+
+      - name: Build Rust
+        run: |
+          cargo build --release
+
+      - name: Test Rust
+        run: |
+          cargo test

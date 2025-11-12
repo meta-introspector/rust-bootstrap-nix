@@ -1,0 +1,1 @@
+RUST_BACKTRACE=full target/debug/split-expanded-bin --project-root /data/data/com.termux.nix/files/home/pick-up-nix2/rust-bootstrap-core --rustc-version unknown --verbosity=8 --rustc-host unknown --files ../expanded/.expand_output_aho-corasick.rs  
