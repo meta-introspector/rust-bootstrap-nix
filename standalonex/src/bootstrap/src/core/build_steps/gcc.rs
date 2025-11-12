@@ -108,7 +108,7 @@ impl Step for Gcc {
         let _time = helpers::timeit(builder);
         t!(fs::create_dir_all(&out_dir));
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return true;
         }
 

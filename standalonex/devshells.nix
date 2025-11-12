@@ -1,0 +1,38 @@
+{ pkgs
+, self
+, rustSrcFlake
+,
+}:
+
+{
+  aarch64-linux.default = pkgs.mkShell {
+    name = "standalonex-dev-shell";
+
+    packages = [
+      pkgs.python3
+      pkgs.rust-bin.stable."1.84.1".default
+      pkgs.cargo
+    ];
+
+    shellHook = ''
+      # Add the flake's source directory to PATH
+      export PATH=${self}/:$PATH # self here refers to the flake's source directory in the Nix store
+      echo "x.py is available in your PATH."
+
+      # Set environment variable for src/stage0 path
+      export RUST_SRC_STAGE0_PATH=${rustSrcFlake}/src/stage0
+      export RUST_SRC_ROOT=${rustSrcFlake}
+
+      # In a Nix environment, it's generally preferred to manage config.toml statically
+      # or pass tool paths via environment variables to the bootstrap process,
+      # rather than dynamically generating config.toml in the shellHook.
+      # For example, RUSTC and CARGO environment variables can be set directly.
+
+      # Create dummy etc/ files for bootstrap compilation
+      mkdir -p etc
+      echo "{}" > etc/rust_analyzer_settings.json
+      echo ";; dummy eglot config" > etc/rust_analyzer_eglot.el
+      echo "# dummy helix config" > etc/rust_analyzer_helix.toml
+    '';
+  };
+}

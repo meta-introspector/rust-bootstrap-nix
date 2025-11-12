@@ -1,20 +1,21 @@
-//! Implementation of bootstrap, the Rust build system.
-//!
-//! This module, and its descendants, are the implementation of the Rust build
-//! system. Most of this build system is backed by Cargo but the outer layer
-//! here serves as the ability to orchestrate calling Cargo, sequencing Cargo
-//! builds, building artifacts like LLVM, etc. The goals of bootstrap are:
-//!
-//! * To be an easily understandable, easily extensible, and maintainable build
-//!   system.
-//! * Leverage standard tools in the Rust ecosystem to build the compiler, aka
-//!   crates.io and Cargo.
-//! * A standard interface to build across all platforms, including MSVC
-//!
-//! ## Further information
-//!
-//! More documentation can be found in each respective module below, and you can
-//! also check out the `src/bootstrap/README.md` file for more information.
+use crate::prelude::*;
+/// Implementation of bootstrap, the Rust build system.
+///
+/// This module, and its descendants, are the implementation of the Rust build
+/// system. Most of this build system is backed by Cargo but the outer layer
+/// here serves as the ability to orchestrate calling Cargo, sequencing Cargo
+/// builds, building artifacts like LLVM, etc. The goals of bootstrap are:
+///
+/// * To be an easily understandable, easily extensible, and maintainable build
+///   system.
+/// * Leverage standard tools in the Rust ecosystem to build the compiler, aka
+///   crates.io and Cargo.
+/// * A standard interface to build across all platforms, including MSVC
+///
+/// ## Further information
+///
+/// More documentation can be found in each respective module below, and you can
+/// also check out the `src/bootstrap/README.md` file for more information.
 
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -33,9 +34,17 @@ use termcolor::{ColorChoice, StandardStream, WriteColor};
 use utils::channel::GitInfo;
 use utils::helpers::hex_encode;
 
+
 use crate::core::builder;
 use crate::core::builder::{Builder, Kind};
-use crate::core::config::{DryRun, LldMode, LlvmLibunwind, Target, TargetSelection, flags};
+
+pub use crate::core::config::*;
+use crate::core::config::dry_run::DryRun;
+use crate::core::config::lld_mode::LldMode;
+use crate::core::config::llvm_lib_unwind::LlvmLibunwind;
+use crate::core::config::target_selection::Target;
+use crate::core::config::target_selection::TargetSelection;
+use crate::core::config::flags;
 use crate::utils::exec::{BehaviorOnFailure, BootstrapCommand, CommandOutput, OutputMode, command};
 use crate::utils::helpers::{
     self, dir_is_empty, exe, libdir, mtime, output, set_file_times, symlink_dir,
@@ -43,14 +52,25 @@ use crate::utils::helpers::{
 
 mod core;
 mod utils;
+pub mod prelude;
 
 pub use core::builder::PathSet;
 pub use core::config::Config;
-pub use core::config::flags::{Flags, Subcommand};
+pub use core::config::flags::Flags;
+pub use crate::Subcommand;
 
-pub use utils::change_tracker::{
-    CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,
-};
+pub use utils::change_tracker::{CONFIG_CHANGE_HISTORY, find_recent_config_change_ids, human_readable_changes,};
+
+macro_rules! forward {
+    ( $( $fn:ident( $($param:ident: $ty:ty),* ) $( -> $ret:ty)? ),+ $(,)? ) => {
+        impl Build {
+            $( fn $fn(&self, $($param: $ty),* ) $( -> $ret)? {
+                self.config.$fn( $($param),* )
+            } )+
+        }
+    }
+}
+pub(crate) use forward;
 
 const LLVM_TOOLS: &[&str] = &[
     "llvm-cov",      // used to generate coverage report
@@ -274,6 +294,22 @@ forward! {
     llvm_link_shared() -> bool,
     download_rustc() -> bool,
     initial_rustfmt() -> Option<PathBuf>,
+    last_modified_commit(modified_paths: &[&str], option_name: &str, if_unchanged: bool) -> Option<String>,
+    needs_sanitizer_runtime_built(target: TargetSelection) -> bool,
+    llvm_libunwind(target: TargetSelection) -> LlvmLibunwind,
+    ci_llvm_root() -> PathBuf,
+    profiler_path(target: TargetSelection) -> Option<&str>,
+    profiler_enabled(target: TargetSelection) -> bool,
+    ci_rustc_dir() -> PathBuf,
+    default_codegen_backend(target: TargetSelection) -> Option<String>,
+    libdir_relative() -> Option<&Path>,
+    llvm_enabled(target: TargetSelection) -> bool,
+    codegen_backends(target: TargetSelection) -> &[String],
+    git_config() -> GitConfig<'_>,
+    update_submodule(relative_path: &str),
+    submodules() -> bool,
+    args() -> Vec<&str>,
+    test_args() -> Vec<&str>,
 }
 
 impl Build {
@@ -312,7 +348,7 @@ impl Build {
         let in_tree_llvm_info = config.in_tree_llvm_info.clone();
         let in_tree_gcc_info = config.in_tree_gcc_info.clone();
 
-        let initial_target_libdir_str = if config.dry_run() {
+        let initial_target_libdir_str = if config.dry_run {
             "/dummy/lib/path/to/lib/".to_string()
         } else {
             output(
@@ -326,7 +362,7 @@ impl Build {
         let initial_target_dir = Path::new(&initial_target_libdir_str).parent().unwrap();
         let initial_lld = initial_target_dir.join("bin").join("rust-lld");
 
-        let initial_sysroot = if config.dry_run() {
+        let initial_sysroot = if config.dry_run {
             "/dummy".to_string()
         } else {
             output(Command::new(&config.initial_rustc).arg("--print").arg("sysroot"))
@@ -367,13 +403,13 @@ impl Build {
         if bootstrap_out.ends_with("deps") {
             bootstrap_out.pop();
         }
-        if !bootstrap_out.join(exe("rustc", config.build)).exists() && !cfg!(test) {
-            // this restriction can be lifted whenever https://github.com/rust-lang/rfcs/pull/3028 is implemented
-            panic!(
-                "`rustc` not found in {}, run `cargo build --bins` before `cargo run`",
-                bootstrap_out.display()
-            )
-        }
+       // if !bootstrap_out.join(exe("rustc", config.build)).exists() && !cfg!(test) {
+        //    // this restriction can be lifted whenever https://github.com/rust-lang/rfcs/pull/3028 is implemented
+         //   panic!(
+         //       "`rustc` not found in {}, run `cargo build --bins` before `cargo run`",
+          //      bootstrap_out.display()
+          //  )
+       // }
 
         if rust_info.is_from_tarball() && config.description.is_none() {
             config.description = Some("built from a source tarball".to_owned());
@@ -582,12 +618,12 @@ impl Build {
                 return core::build_steps::format::format(
                     &builder::Builder::new(self),
                     *check,
-                    *all,
+                    all,
                     &self.config.paths,
                 );
             }
             Subcommand::Suggest { run } => {
-                return core::build_steps::suggest::suggest(&builder::Builder::new(self), *run);
+                return core::build_steps::suggest::suggest(&builder::Builder::new(self), run);
             }
             Subcommand::Perf { .. } => {
                 return core::build_steps::perf::perf(&builder::Builder::new(self));
@@ -595,7 +631,7 @@ impl Build {
             _ => (),
         }
 
-        if !self.config.dry_run() {
+        if !self.config.dry_run {
             {
                 // We first do a dry-run. This is a sanity-check to ensure that
                 // steps don't do anything expensive in the dry-run.
@@ -920,7 +956,7 @@ impl Build {
         stderr: OutputMode,
     ) -> CommandOutput {
         command.mark_as_executed();
-        if self.config.dry_run() && !command.run_always {
+        if self.config.dry_run && !command.run_always {
             return CommandOutput::default();
         }
 
@@ -1192,7 +1228,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the C compiler for the target specified.
     fn cc(&self, target: TargetSelection) -> PathBuf {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return PathBuf::new();
         }
         self.cc.borrow()[&target].path().into()
@@ -1201,7 +1237,7 @@ Executed at: {executed_at}"#,
     /// Returns a list of flags to pass to the C compiler for the target
     /// specified.
     fn cflags(&self, target: TargetSelection, which: GitRepo, c: CLang) -> Vec<String> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Vec::new();
         }
         let base = match c {
@@ -1247,7 +1283,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the `ar` archive utility for the target specified.
     fn ar(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return None;
         }
         self.ar.borrow().get(&target).cloned()
@@ -1255,7 +1291,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the `ranlib` utility for the target specified.
     fn ranlib(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return None;
         }
         self.ranlib.borrow().get(&target).cloned()
@@ -1263,7 +1299,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the C++ compiler for the target specified.
     fn cxx(&self, target: TargetSelection) -> Result<PathBuf, String> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Ok(PathBuf::new());
         }
         match self.cxx.borrow().get(&target) {
@@ -1274,7 +1310,7 @@ Executed at: {executed_at}"#,
 
     /// Returns the path to the linker for the given target if it needs to be overridden.
     fn linker(&self, target: TargetSelection) -> Option<PathBuf> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Some(PathBuf::new());
         }
         if let Some(linker) = self.config.target_config.get(&target).and_then(|c| c.linker.clone())
@@ -1660,7 +1696,7 @@ Executed at: {executed_at}"#,
     }
 
     fn read_stamp_file(&self, stamp: &Path) -> Vec<(PathBuf, DependencyType)> {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return Vec::new();
         }
 
@@ -1709,7 +1745,7 @@ Executed at: {executed_at}"#,
     }
 
     fn copy_link_internal(&self, src: &Path, dst: &Path, dereference_symlinks: bool) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         self.verbose_than(1, || println!("Copy/Link {src:?} to {dst:?}"));
@@ -1736,7 +1772,7 @@ Executed at: {executed_at}"#,
             }
         }
         if let Ok(()) = fs::hard_link(&src, dst) {
-            // Attempt to "easy copy" by creating a hard link (symlinks are priviledged on windows),
+            // Attempt to "easy copy" by creating a hard link (symlinks are privileged on windows),
             // but if that fails just fall back to a slow `copy` operation.
         } else {
             if let Err(e) = fs::copy(&src, dst) {
@@ -1757,7 +1793,7 @@ Executed at: {executed_at}"#,
     /// when this function is called.
     /// Will attempt to use hard links if possible and fall back to copying.
     pub fn cp_link_r(&self, src: &Path, dst: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         for f in self.read_dir(src) {
@@ -1817,7 +1853,7 @@ Executed at: {executed_at}"#,
     }
 
     fn install(&self, src: &Path, dstdir: &Path, perms: u32) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         let dst = dstdir.join(src.file_name().unwrap());
@@ -1831,21 +1867,21 @@ Executed at: {executed_at}"#,
     }
 
     fn read(&self, path: &Path) -> String {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return String::new();
         }
         t!(fs::read_to_string(path))
     }
 
     fn create_dir(&self, dir: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         t!(fs::create_dir_all(dir))
     }
 
     fn remove_dir(&self, dir: &Path) {
-        if self.config.dry_run() {
+        if self.config.dry_run {
             return;
         }
         t!(fs::remove_dir_all(dir))
@@ -1854,18 +1890,21 @@ Executed at: {executed_at}"#,
     fn read_dir(&self, dir: &Path) -> impl Iterator<Item = fs::DirEntry> {
         let iter = match fs::read_dir(dir) {
             Ok(v) => v,
-            Err(_) if self.config.dry_run() => return vec![].into_iter(),
+            Err(_) if self.config.dry_run => return vec![].into_iter(),
             Err(err) => panic!("could not read dir {dir:?}: {err:?}"),
         };
         iter.map(|e| t!(e)).collect::<Vec<_>>().into_iter()
     }
 
     fn symlink_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, src: P, link: Q) -> io::Result<()> {
-        #[cfg(unix)]
-        use std::os::unix::fs::symlink as symlink_file;
-        #[cfg(windows)]
-        use std::os::windows::fs::symlink_file;
-        if !self.config.dry_run() { symlink_file(src.as_ref(), link.as_ref()) } else { Ok(()) }
+        if self.config.dry_run { return Ok(()); }
+        if cfg!(unix) {
+            std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
+        } /* else if cfg!(windows) {
+            std::os::windows::fs::symlink_file(src.as_ref(), link.as_ref())
+        } */ else {
+            Err(io::Error::new(io::ErrorKind::Other, "symlinks not supported on this platform"))
+        }
     }
 
     /// Returns if config.ninja is enabled, and checks for ninja existence,
@@ -1911,30 +1950,7 @@ to download LLVM rather than building it.
         self.config.ninja_in_file
     }
 
-    pub fn colored_stdout<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stdout, self.config.stdout_is_tty, f)
-    }
 
-    pub fn colored_stderr<R, F: FnOnce(&mut dyn WriteColor) -> R>(&self, f: F) -> R {
-        self.colored_stream_inner(StandardStream::stderr, self.config.stderr_is_tty, f)
-    }
-
-    fn colored_stream_inner<R, F, C>(&self, constructor: C, is_tty: bool, f: F) -> R
-    where
-        C: Fn(ColorChoice) -> StandardStream,
-        F: FnOnce(&mut dyn WriteColor) -> R,
-    {
-        let choice = match self.config.color {
-            flags::Color::Always => ColorChoice::Always,
-            flags::Color::Never => ColorChoice::Never,
-            flags::Color::Auto if !is_tty => ColorChoice::Never,
-            flags::Color::Auto => ColorChoice::Auto,
-        };
-        let mut stream = constructor(choice);
-        let result = f(&mut stream);
-        stream.reset().unwrap();
-        result
-    }
 }
 
 #[cfg(unix)]
@@ -2010,7 +2026,7 @@ pub fn generate_smart_stamp_hash(
     hasher.update(status);
     hasher.update(additional_input);
 
-    hex_encode(hasher.finalize().as_slice())
+    hex_encode(hasher.finalize())
 }
 
 /// Ensures that the behavior dump directory is properly initialized.

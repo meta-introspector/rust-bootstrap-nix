@@ -52,10 +52,15 @@ fn main() {
         ("RUSTC_REAL", "RUSTC_LIBDIR")
     };
 
-    let sysroot = env::var_os("RUSTC_SYSROOT").expect("RUSTC_SYSROOT was not set");
+    let sysroot = env::var_os("RUSTC_SYSROOT").unwrap_or_else(|| {
+        eprintln!("FATAL: RUSTC_SYSROOT was not set.");
+        eprintln!("       This environment variable is required by the rustc shim to locate the Rust standard library.");
+        eprintln!("       Please ensure RUSTC_SYSROOT is set to the correct path of the Rust toolchain sysroot.");
+        std::process::exit(1);
+    });
     let on_fail = env::var_os("RUSTC_ON_FAIL").map(Command::new);
 
-    let rustc_real = env::var_os(rustc).unwrap_or_else(|| panic!("{:?} was not set", rustc));
+    let rustc_real = env::var_os(rustc).unwrap_or_else(|| panic!("{:?} was not set!", rustc));
     let libdir = env::var_os(libdir).unwrap_or_else(|| panic!("{:?} was not set", libdir));
     let mut dylib_path = dylib_path();
     dylib_path.insert(0, PathBuf::from(&libdir));
@@ -66,7 +71,7 @@ fn main() {
     // FIXME: We might want to consider removing RUSTC_REAL and setting RUSTC directly?
     // NOTE: we intentionally pass the name of the host, not the target.
     let host = env::var("CFG_COMPILER_BUILD_TRIPLE").unwrap();
-    let is_clippy = args[0].to_string_lossy().ends_with(&exe("clippy-driver", &host));
+    let is_clippy = args[0].to_string_lossy().ends_with(&exe("clippy-driver", &host[..]));
     let rustc_driver = if is_clippy {
         if is_build_script {
             // Don't run clippy on build scripts (for one thing, we may not have libstd built with
@@ -82,7 +87,7 @@ fn main() {
         // don't remove the first arg if we're being run as RUSTC instead of RUSTC_WRAPPER.
         // Cargo also sometimes doesn't pass the `.exe` suffix on Windows - add it manually.
         let current_exe = env::current_exe().expect("couldn't get path to rustc shim");
-        let arg0 = exe(args[0].to_str().expect("only utf8 paths are supported"), &host);
+        let arg0 = exe(args[0].to_str().expect("only utf8 paths are supported"), &host[..]);
         if Path::new(&arg0) == current_exe {
             args.remove(0);
         }

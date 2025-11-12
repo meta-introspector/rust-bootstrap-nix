@@ -114,7 +114,7 @@ pub fn check(build: &mut Build) {
 
     // Ensure that a compatible version of libstdc++ is available on the system when using `llvm.download-ci-llvm`.
     #[cfg(not(feature = "bootstrap-self-test"))]
-    if !build.config.dry_run() && !build.build.is_msvc() && build.config.llvm_from_ci {
+    if !build.config.dry_run && !build.build.is_msvc() && build.config.llvm_from_ci {
         let builder = Builder::new(build);
         let libcxx_version = builder.ensure(tool::LibcxxVersionTool { target: build.build });
 
@@ -292,7 +292,7 @@ than building it.
 
         // sbf target relies on in-tree built llvm,
         // which doesn't exist when this check runs
-        if !build.config.dry_run() && !target.contains("sbf") && !target.contains("bpf") {
+        if !build.config.dry_run && !target.contains("sbf") && !target.contains("bpf") {
             cmd_finder.must_have(build.cc(*target));
             if let Some(ar) = build.ar(*target) {
                 cmd_finder.must_have(ar);
@@ -300,7 +300,7 @@ than building it.
         }
     }
 
-    if !build.config.dry_run() {
+    if !build.config.dry_run {
         for host in &build.hosts {
             cmd_finder.must_have(build.cxx(*host).unwrap());
 

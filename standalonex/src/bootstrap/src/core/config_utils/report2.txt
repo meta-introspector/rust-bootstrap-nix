@@ -1,0 +1,253 @@
+      1    |                                                                                           |
+      1    |                                  +++++       +
+      1    |                 |
+      1   |                 ^^^^  ^^^^^^^
+      1   |                 ^^^^^^^  ^^^^
+      1   |     ^^^^
+      1   |     ^^^^^^^^^^^^^^^
+      1   |     ^^^^^^^^^^^^^^^^^^^^^^
+      1   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      1   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      1 10 + pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &LocalFlags) {
+      1 10 + pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut LocalTomlConfig, flags: &crate::LocalFlags) {
+      1 10 + pub fn parse_inner_build(config: &mut ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+      1 11 |                 config.channel = channel;
+      1 11 |                 config.channel = Some(channel);
+      1 11 -     let crate::LocalBuild {
+      1 11 |     let crate::LocalBuild {
+      1 11 +     let LocalBuild {
+      1 13 - pub(crate) fn get_toml(file: &Path) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+      1 13 | pub(crate) fn get_toml(file: &Path) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+      1 13 + pub(crate) fn get_toml(file: &Path) -> Result<LocalTomlConfig, toml::de::Error> {
+      1 13 - pub fn dry_run(config: &crate::ParsedConfig) -> bool {
+      1 13 | pub fn dry_run(config: &crate::ParsedConfig) -> bool {
+      1 13 + pub fn dry_run(config: &ParsedConfig) -> bool {
+      1 14 -     crate::ParsedConfig {
+      1 14 |     crate::ParsedConfig {
+      1 14 +     ParsedConfig {
+      1 15 |         crate::DryRun::Disabled => false,
+      1 17 |         config.omit_git_hash = toml.rust.as_ref().and_then(|r| r.omit_git_hash).unwrap_or(config.channel == "dev");
+      1 19 -         .and_then(|table: toml::Value| crate::LocalTomlConfig::deserialize(table))
+      1 19 |         .and_then(|table: toml::Value| crate::LocalTomlConfig::deserialize(table))
+      1 19 +         .and_then(|table: toml::Value| LocalTomlConfig::deserialize(table))
+      1 1 + pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &LocalTomlConfig) {
+      1 1 + pub fn parse_inner_stage0(config: &mut ParsedConfig, toml: &crate::LocalTomlConfig) {
+      1  1 + use crate::parsed_config::ParsedConfig;
+      1 1 | use std::path::{PathBuf, Path};
+      1 25 |         config.config = Some(if cfg!(not(feature = "bootstrap-self-test")) {
+      1  2 + use crate::dry_run::DryRun;
+      1  2 + use crate::local_ci_config::LocalCiConfig;
+      1  2 + use crate::parsed_config::ParsedConfig;
+      1  2 + use crate::target_selection::TargetSelection;
+      1 2 | use std::path::PathBuf;
+      1 3 | use serde::Deserialize;
+      1 3 | use std::path::{Path, PathBuf};
+      1 42 -         build: crate::TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+      1 42 |         build: crate::TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+      1 42 +         build: TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+      1 42 -     pub dry_run: crate::DryRun,
+      1 42 |     pub dry_run: crate::DryRun,
+      1 42 +     pub dry_run: DryRun,
+      1 48 | fn apply_test_config(config: &mut ParsedConfig, toml: &mut LocalTomlConfig) {
+      1 4 | use crate::get_toml;
+      1 4 | use crate::local_flags::LocalFlags;
+      1 4 | use serde_derive::Deserialize;
+      1 4 | use std::env;
+      1 51 -         ci: Some(crate::LocalCiConfig {
+      1 51 |         ci: Some(crate::LocalCiConfig {
+      1 51 +         ci: Some(LocalCiConfig {
+      1 5 |     config.cmd = flags.subcommand.take();
+      1  5 + use crate::local_build::LocalBuild;
+      1  5 + use crate::local_flags::LocalFlags;
+      1  5 + use crate::local_toml_config::LocalTomlConfig;
+      1 5 | use crate::local_toml_config::LocalTomlConfig;
+      1  5 + use crate::parsed_config::ParsedConfig;
+      1 5 | use serde_derive::Deserialize;
+      1 5 | use toml;
+      1 6 |     config.incremental = flags.incremental;
+      1 6 + pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<LocalTomlConfig, toml::de::Error> {
+      1 6 + pub fn get_builder_toml(config: &ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+      1 6 | use crate::dry_run::DryRun;
+      1 6 | use std::env;
+      1 7 |     config.dry_run = flags.dry_run;
+      1 7 - pub fn default_opts() -> crate::ParsedConfig {
+      1 7 | pub fn default_opts() -> crate::ParsedConfig {
+      1 7 + pub fn default_opts() -> ParsedConfig {
+      1 7 | use std::fs;
+      1 8 |     config.verbose = Some(flags.verbose);
+      1 8 -         return Ok(crate::LocalTomlConfig::default());
+      1 8 |         return Ok(crate::LocalTomlConfig::default());
+      1 8 +         return Ok(LocalTomlConfig::default());
+      1 8 | use crate::parse_inner_stage0;
+      1 8 | use std::fs;
+      1 9 |     config.stage = flags.stage.unwrap_or_default();
+      1    Compiling bootstrap-config-utils v0.1.0 (/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/config_utils)
+      1    |                                           ^^^^^^ could not find `DryRun` in the crate root
+      1    |                                               ^^^^^^^^^^^^^^^ could not find `LocalTomlConfig` in the crate root
+      1   |                          ^^^^^^^^^^^^^^^ could not find `LocalTomlConfig` in the crate root
+      1    |                       ^^^^^^^^^^^^^^^ could not find `TargetSelection` in the crate root
+      1 error: could not compile `bootstrap-config-utils` (lib) due to 29 previous errors; 22 warnings emitted
+      1 error[E0412]: cannot find type `DryRun` in the crate root
+      1 error[E0412]: cannot find type `LocalFlags` in the crate root
+      1 error[E0412]: cannot find type `LocalTomlConfig` in this scope
+      1 error[E0412]: cannot find type `ParsedConfig` in this scope
+      1 error[E0422]: cannot find struct, variant or union type `LocalBuild` in the crate root
+      1 error[E0422]: cannot find struct, variant or union type `LocalCiConfig` in the crate root
+      1 error[E0422]: cannot find struct, variant or union type `ParsedConfig` in the crate root
+      1 error[E0433]: failed to resolve: could not find `TargetSelection` in the crate root
+      1 error[E0609]: no field `dry_run` on type `&mut LocalFlags`
+      1 error[E0609]: no field `incremental` on type `&mut LocalFlags`
+      1 error[E0609]: no field `stage` on type `&mut LocalFlags`
+      1 error[E0609]: no field `subcommand` on type `&mut LocalFlags`
+      1 error[E0609]: no field `verbose` on type `&mut LocalFlags`
+      1    |                                                                                           expected because this is `std::option::Option<std::string::String>`
+      1    |                 expected due to the type of this binding
+      1    |                                                                                           --------------    ^^^^^ expected `Option<String>`, found `&str`
+      1    |                 --------------   ^^^^^^^ expected `Option<String>`, found `String`
+      1 For more information about an error, try `rustc --explain E0308`.
+      1            found reference `&'static str`
+      1             found struct `std::string::String`
+      1    = help: consider adding `bootstrap-self-test` as a feature in `Cargo.toml`
+      1 help: consider importing this enum
+      1    |                      ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+      1 help: if you import `DryRun`, refer to it directly
+      1 help: if you import `LocalBuild`, refer to it directly
+      1 help: if you import `LocalCiConfig`, refer to it directly
+      1 help: if you import `LocalFlags`, refer to it directly
+      1 help: if you import `TargetSelection`, refer to it directly
+      1    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+      1 help: try wrapping the expression in `Some`
+      1    = note:   expected enum `std::option::Option<std::string::String>`
+      1    = note: expected enum `std::option::Option<std::string::String>`
+      1 note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+      1    = note: no expected values for `feature`
+      1    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+      1 note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+      1 note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+      1    = note: `#[warn(unexpected_cfgs)]` on by default
+      1   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+      1    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+      1    |                                                                                                              ^^^^^^^^^^ not found in the crate root
+      1    |                                                                              ^^^^^^^^^^^^^^^ not found in the crate root
+      1    |                                                      ^^^^^^^^^^^^^^^ not found in the crate root
+      1    |                                              ^^^^^^^^^^^^ not found in the crate root
+      1    |                                ^^^^^^^^^^^^ not found in the crate root
+      1    |                         ^^^^^^ not found in the crate root
+      1    |                         ^^^^^^^^^^^^^ not found in the crate root
+      1    |                ^^^^^^^^^^ not found in the crate root
+      1    |            ^^^^^^^^^^^^ not found in the crate root
+      1   |                                                                                          ^^^^^^^^^^^^^^^ not found in the crate root
+      1   |                                                                           ^^^^^^^^^^^^^^^ not found in the crate root
+      1   |                                               ^^^^^^^^^^^^ not found in the crate root
+      1   |                                         ^^^^^^^^^^^^ not found in the crate root
+      1   |                                 ^^^^^^^^^^^^ not found in the crate root
+      1   |                                                                 ^^^^^^^^^^^^^^^ not found in this scope
+      1   |                                            ^^^^^^^^^^^^ not found in this scope
+      1 Some errors have detailed explanations: E0308, E0412, E0422, E0433, E0609.
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/build_config.rs:1:26
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/build_config.rs:4:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs:2:44
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs:2:65
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:14:12
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:42:23
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:51:25
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:7:33
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:13:32
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:15:16
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:16:16
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:16:43
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:2:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:6:41
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:6:90
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:8:26
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:13:54
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:19:47
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:3:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:5:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:2:17
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:3:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:5:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:2:26
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:3:5
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:42:25
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:4:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:6:5
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:110
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:46
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:78
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:11:16
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:6:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:7:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:5:24
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:6:32
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:7:28
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:8:33
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:9:26
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_stage0.rs:1:47
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_stage0.rs:1:75
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:25:42
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:4:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:8:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:3:17
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:4:5
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:48:22
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:5:5
+      1  --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:8:5
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/rust_channel_git_hash_config.rs:11:34
+      1   --> standalonex/src/bootstrap/src/core/config_utils/src/rust_channel_git_hash_config.rs:17:109
+      1   |                                 ^^^^^^^ unknown field
+      1   |                                ^^^^^^^^^^^ unknown field
+      1   |                            ^^^^^^^ unknown field
+      1   |                          ^^^^^ unknown field
+      1   |                        ^^^^^^^^^^ unknown field
+      1 warning: `bootstrap-config-utils` (lib) generated 22 warnings
+      1 warning: unexpected `cfg` condition value: `bootstrap-self-test`
+      1 warning: unused import: `crate::dry_run::DryRun`
+      1 warning: unused import: `crate::get_toml`
+      1 warning: unused import: `crate::local_flags::LocalFlags`
+      1 warning: unused import: `crate::local_toml_config::LocalTomlConfig`
+      1 warning: unused import: `crate::parse_inner_stage0`
+      1 warning: unused import: `serde::Deserialize`
+      1 warning: unused import: `std::path::PathBuf`
+      1 warning: unused import: `toml`
+      1 warning: unused variable: `config`
+      1 warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+      2   |                          ^^^^
+      2   |     ^^^^^^^
+      2   |     ^^^^^^^^
+      2   |     ^^^^^^^^^^^^^^^^^^
+      2 16 |         crate::DryRun::SelfCheck | crate::DryRun::UserSelected => true,
+      2 1 - pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+      2 1 | pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+      2  1 + use crate::local_toml_config::LocalTomlConfig;
+      2 1 + use crate::local_toml_config::LocalTomlConfig;
+      2 1 + use crate::parsed_config::ParsedConfig;
+      2 2 |     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig);
+      2 2 + use crate::local_toml_config::LocalTomlConfig;
+      2 2 + use crate::parsed_config::ParsedConfig;
+      2 2 | use std::path::{PathBuf, Path};
+      2 3 | use std::collections::HashMap;
+      2 6 - pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+      2 6 | pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+      2    |                ^^^^^^ could not find `DryRun` in the crate root
+      2 error[E0308]: mismatched types
+      2 error[E0433]: failed to resolve: could not find `LocalTomlConfig` in the crate root
+      2 warning: unused import: `Path`
+      2 warning: unused import: `serde_derive::Deserialize`
+      2 warning: unused imports: `PathBuf` and `Path`
+      2 warning: unused import: `std::collections::HashMap`
+      2 warning: unused import: `std::env`
+      2 warning: unused import: `std::fs`
+      3 10 - pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+      3 10 | pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+      3 error[E0433]: failed to resolve: could not find `DryRun` in the crate root
+      4 error[E0412]: cannot find type `LocalTomlConfig` in the crate root
+      5   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+      5 error[E0412]: cannot find type `ParsedConfig` in the crate root
+      5   = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+      6 help: if you import `LocalTomlConfig`, refer to it directly
+      6 help: if you import `ParsedConfig`, refer to it directly
+     18 help: consider importing this struct
+     51 
+     75   |
+     78    |

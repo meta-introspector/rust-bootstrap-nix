@@ -1,5 +1,20 @@
-vendor = true
-rustc = "/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/rustc"
-cargo = "/nix/store/i7yprsq7l6zi19954b8lxcd5ibxkp14j-rust-legacy-1.92.0-nightly-2025-10-16/bin/cargo"
-HOME = "/data/data/com.termux.nix/files/usr/tmp/nix-shell.GCgkig/nix-shell.NprGk6/tmp.cHrvt4OLAq"
-CARGO_HOME = "/data/data/com.termux.nix/files/usr/tmp/nix-shell.GCgkig/nix-shell.NprGk6/tmp.cHrvt4OLAq/.cargo"
+[rust]
+rustc = "/dummy/rustc"
+cargo = "/dummy/cargo"
+
+[build]
+rustc = "/dummy/rustc"
+cargo = "/dummy/cargo"
+
+[env]
+HOME = "/tmp/home"
+CARGO_HOME = "/tmp/cargo-home"
+
+[git]
+base_branch = "feature/CRQ-016-nixify"
+new_flake_branch_prefix = "feature"
+component = "solana-rust-1.84.1"
+arch = "aarch64"
+phase = "phase0"
+step = "step1"
+output_dir_prefix = "flakes"

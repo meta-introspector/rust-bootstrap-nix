@@ -10,10 +10,9 @@ use std::io::{self, BufRead, BufReader, IsTerminal, Write};
 use std::str::FromStr;
 use std::{env, process};
 
-use bootstrap::{
-    Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids,
-    human_readable_changes, t,
-};
+use bootstrap::{Build, CONFIG_CHANGE_HISTORY, Config, Flags, Subcommand, find_recent_config_change_ids, human_readable_changes, t, prelude::*};
+use bootstrap_config_utils::parse;
+use bootstrap_config_utils::dry_run;
 use build_helper::ci::CiEnv;
 
 fn main() {
@@ -24,115 +23,65 @@ fn main() {
     }
 
     let flags = Flags::parse(&args);
-    let config = Config::parse(flags);
+    let mut config = parse::parse(flags);
 
-    let mut build_lock;
-    let _build_lock_guard;
+    // Resolve Nix paths dynamically if not already set
+    config.resolve_nix_paths().expect("Failed to resolve Nix paths");
 
-    if !config.bypass_bootstrap_lock {
-        // Display PID of process holding the lock
-        // PID will be stored in a lock file
-        let lock_path = config.out.join("lock");
-        let pid = fs::read_to_string(&lock_path);
+    let mut build_results = Vec::new();
 
-        build_lock = fd_lock::RwLock::new(t!(fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(&lock_path)));
-        _build_lock_guard = match build_lock.try_write() {
-            Ok(mut lock) => {
-                t!(lock.write(process::id().to_string().as_ref()));
-                lock
-            }
-            err => {
-                drop(err);
-                if let Ok(pid) = pid {
-                    println!("WARNING: build directory locked by process {pid}, waiting for lock");
-                } else {
-                    println!("WARNING: build directory locked, waiting for lock");
-                }
-                let mut lock = t!(build_lock.write());
-                t!(lock.write(process::id().to_string().as_ref()));
-                lock
-            }
-        };
-    }
+    for rustc_version in &config.rustc_versions {
+        for cargo_version in &config.cargo_versions {
+            let mut new_config = config.clone();
+            new_config.initial_rustc = PathBuf::from(rustc_version);
+            new_config.initial_cargo = PathBuf::from(cargo_version);
 
-    // check_version warnings are not printed during setup, or during CI
-    let changelog_suggestion = if matches!(config.cmd, Subcommand::Setup { .. }) || CiEnv::is_ci() {
-        None
-    } else {
-        check_version(&config)
-    };
+            println!("Building with rustc: {} and cargo: {}", rustc_version, cargo_version);
 
-    // NOTE: Since `./configure` generates a `config.toml`, distro maintainers will see the
-    // changelog warning, not the `x.py setup` message.
-    let suggest_setup = config.config.is_none() && !matches!(config.cmd, Subcommand::Setup { .. });
-    if suggest_setup {
-        println!("WARNING: you have not made a `config.toml`");
-        println!(
-            "HELP: consider running `./x.py setup` or copying `config.example.toml` by running \
-            `cp config.example.toml config.toml`"
-        );
-    } else if let Some(suggestion) = &changelog_suggestion {
-        println!("{suggestion}");
-    }
+            let mut build_lock;
+            let _build_lock_guard;
 
-    let pre_commit = config.src.join(".git").join("hooks").join("pre-commit");
-    let dump_bootstrap_shims = config.dump_bootstrap_shims;
-    let out_dir = config.out.clone();
+            if !new_config.bypass_bootstrap_lock {
+                // Display PID of process holding the lock
+                // PID will be stored in a lock file
+                let lock_path = new_config.out.join("lock");
+                let pid = fs::read_to_string(&lock_path);
 
-    Build::new(config).build();
-
-    if suggest_setup {
-        println!("WARNING: you have not made a `config.toml`");
-        println!(
-            "HELP: consider running `./x.py setup` or copying `config.example.toml` by running \
-            `cp config.example.toml config.toml`"
-        );
-    } else if let Some(suggestion) = &changelog_suggestion {
-        println!("{suggestion}");
-    }
-
-    // Give a warning if the pre-commit script is in pre-commit and not pre-push.
-    // HACK: Since the commit script uses hard links, we can't actually tell if it was installed by x.py setup or not.
-    // We could see if it's identical to src/etc/pre-push.sh, but pre-push may have been modified in the meantime.
-    // Instead, look for this comment, which is almost certainly not in any custom hook.
-    if fs::read_to_string(pre_commit).map_or(false, |contents| {
-        contents.contains("https://github.com/rust-lang/rust/issues/77620#issuecomment-705144570")
-    }) {
-        println!(
-            "WARNING: You have the pre-push script installed to .git/hooks/pre-commit. \
-                  Consider moving it to .git/hooks/pre-push instead, which runs less often."
-        );
-    }
-
-    if suggest_setup || changelog_suggestion.is_some() {
-        println!("NOTE: this message was printed twice to make it more likely to be seen");
-    }
-
-    if dump_bootstrap_shims {
-        let dump_dir = out_dir.join("bootstrap-shims-dump");
-        assert!(dump_dir.exists());
-
-        for entry in walkdir::WalkDir::new(&dump_dir) {
-            let entry = t!(entry);
-
-            if !entry.file_type().is_file() {
-                continue;
+                build_lock = fd_lock::RwLock::new(t!(fs::OpenOptions::new()
+                    .write(true)
+                    .truncate(true)
+                    .create(true)
+                    .open(&lock_path)));
+                _build_lock_guard = match build_lock.try_write() {
+                    Ok(mut lock) => {
+                        t!(lock.write(process::id().to_string().as_ref()));
+                        lock
+                    }
+                    err => {
+                        drop(err);
+                        if let Ok(pid) = pid {
+                            println!("WARNING: build directory locked by process {pid}, waiting for lock");
+                        } else {
+                            println!("WARNING: build directory locked, waiting for lock");
+                        }
+                        let mut lock = t!(build_lock.write());
+                        t!(lock.write(process::id().to_string().as_ref()));
+                        lock
+                    }
+                };
             }
 
-            let file = t!(fs::File::open(entry.path()));
+            let build_result = std::panic::catch_unwind(|| {
+                Build::new(new_config).build();
+            });
 
-            // To ensure deterministic results we must sort the dump lines.
-            // This is necessary because the order of rustc invocations different
-            // almost all the time.
-            let mut lines: Vec<String> = t!(BufReader::new(&file).lines().collect());
-            lines.sort_by_key(|t| t.to_lowercase());
-            let mut file = t!(OpenOptions::new().write(true).truncate(true).open(entry.path()));
-            t!(file.write_all(lines.join("\n").as_bytes()));
+            build_results.push((rustc_version.clone(), cargo_version.clone(), build_result.is_ok()));
         }
+    }
+
+    println!("Build results:");
+    for (rustc_version, cargo_version, success) in &build_results {
+        println!("  rustc: {}, cargo: {}, success: {}", rustc_version, cargo_version, success);
     }
 }
 
@@ -176,7 +125,7 @@ fn check_version(config: &Config) -> Option<String> {
             "update `config.toml` to use `change-id = {latest_change_id}` instead"
         ));
 
-        if io::stdout().is_terminal() && !config.dry_run() {
+        if io::stdout().is_terminal() && !dry_run::dry_run(&config) {
             t!(fs::write(warned_id_path, latest_change_id.to_string()));
         }
     } else {

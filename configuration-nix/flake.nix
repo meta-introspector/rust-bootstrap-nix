@@ -1,0 +1,58 @@
+{
+  description = "Nix flake for the configuration-nix Rust crate";
+
+  inputs = {
+    nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
+    rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
+    flake-utils.url = "github:meta-introspector/flake-utils?ref=feature/CRQ-016-nixify"; # Corrected
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+  };
+
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, rustSrcFlake }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ rust-overlay.overlays.default ];
+        };
+        rustToolchain = pkgs.rustChannels.nightly.rust.override {
+          targets = [
+            (if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu")
+          ];
+        };
+      in
+      {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "configuration-nix";
+          version = "0.1.0";
+          src = ./.;
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+          buildInputs = [ rustToolchain pkgs.clap ];
+        };
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = pkgs.writeShellScriptBin "generate-config" ''
+            ${self.packages.${system}.default}/bin/configuration-nix \
+              --stage "$1" \
+              --target "$2" \
+              --nixpkgs-path "${nixpkgs.outPath}" \
+              --rust-overlay-path "${rust-overlay.outPath}" \
+              --configuration-nix-path "${self.outPath}" \
+              --rust-src-flake-path "${rustSrcFlake.outPath}" \
+              --rust-bootstrap-nix-flake-ref "github:meta-introspector/rust-bootstrap-nix?ref=feature/CRQ-016-nixify" \
+              --rust-src-flake-ref "github:meta-introspector/rust?ref=feature/CRQ-016-nixify"
+          '';
+        };
+
+        devShells.default = pkgs.mkShell {
+          packages = [
+            pkgs.cargo
+            pkgs.rustc
+            pkgs.nix
+          ];
+        };
+      }
+    );
+}

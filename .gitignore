@@ -1,3 +1,17 @@
 /build/
 /standalonex/build/
 /standalonex/result
+result
+logs/
+Makefile~
+*.log
+*~
+*#
+*/build
+/standalonex/src/target/
+/standalonex/src/bootstrap/build/
+/standalonex/src/bootstrap/target/
+target/
+*.d
+*.so
+/.pre-commit-config.local.yamlnix-build-scripts/.#Makefile

@@ -150,7 +150,7 @@ impl<P: Step> Step for RustbookSrc<P> {
         let index = out.join("index.html");
         let rustbook = builder.tool_exe(Tool::Rustbook);
 
-        if !builder.config.dry_run()
+        if !builder.config.dry_run
             && (!up_to_date(&src, &index) || !up_to_date(&rustbook, &index))
         {
             builder.info(&format!("Rustbook ({target}) - {name}"));
@@ -380,8 +380,8 @@ impl Step for Standalone {
                 && up_to_date(&footer, &html)
                 && up_to_date(&favicon, &html)
                 && up_to_date(&full_toc, &html)
-                && (builder.config.dry_run() || up_to_date(&version_info, &html))
-                && (builder.config.dry_run() || up_to_date(&rustdoc, &html))
+                && (builder.config.dry_run || up_to_date(&version_info, &html))
+                && (builder.config.dry_run || up_to_date(&rustdoc, &html))
             {
                 continue;
             }
@@ -478,7 +478,7 @@ impl Step for Releases {
             || !up_to_date(&footer, &html)
             || !up_to_date(&favicon, &html)
             || !up_to_date(&full_toc, &html)
-            || !(builder.config.dry_run()
+            || !(builder.config.dry_run
                 || up_to_date(&version_info, &html)
                 || up_to_date(&rustdoc, &html))
         {
@@ -546,7 +546,7 @@ impl Step for SharedAssets {
 
         let version_input = builder.src.join("src").join("doc").join("version_info.html.template");
         let version_info = out.join("version_info.html");
-        if !builder.config.dry_run() && !up_to_date(&version_input, &version_info) {
+        if !builder.config.dry_run && !up_to_date(&version_input, &version_info) {
             let info = t!(fs::read_to_string(&version_input))
                 .replace("VERSION", &builder.rust_release())
                 .replace("SHORT_HASH", builder.rust_info().sha_short().unwrap_or(""))
@@ -882,7 +882,7 @@ impl Step for Rustc {
 
         cargo.into_cmd().run(builder);
 
-        if !builder.config.dry_run() {
+        if !builder.config.dry_run {
             // Sanity check on linked compiler crates
             for krate in &*self.crates {
                 let dir_name = krate.replace('-', "_");
@@ -1014,7 +1014,7 @@ macro_rules! tool_doc {
                 let _guard = builder.msg_doc(compiler, stringify!($tool).to_lowercase(), target);
                 cargo.into_cmd().run(builder);
 
-                if !builder.config.dry_run() {
+                if !builder.config.dry_run {
                     // Sanity check on linked doc directories
                     $(for krate in $crates {
                         let dir_name = krate.replace("-", "_");
@@ -1147,7 +1147,7 @@ impl Step for UnstableBookGen {
 }
 
 fn symlink_dir_force(config: &Config, original: &Path, link: &Path) {
-    if config.dry_run() {
+    if config.dry_run {
         return;
     }
     if let Ok(m) = fs::symlink_metadata(link) {
