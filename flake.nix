@@ -5,7 +5,7 @@
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
     rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/main"; # Use main branch of upstream cargo2nix
+    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify"; # Use main branch of upstream cargo2nix
   };
 
   outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, cargo2nix, ... }@inputs:
@@ -19,7 +19,7 @@
       commonRustDeps = import ./nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
 
       # Explicitly define cargo2nix package
-      cargo2nix-pkg = pkgs.callPackage inputs.cargo2nix.packages.${system}.default { };
+      cargo2nixpkg = pkgs.callPackage inputs.cargo2nix.packages.${system}.default { };
     in
     {
       packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
@@ -80,6 +80,9 @@
         })
         { };
 
+      # Explicitly define cargo2nix package
+      cargo2nixpkg = pkgs.callPackage inputs.cargo2nix.packages.${system}.default { };
+
       devShells.aarch64-linux.default = pkgs.mkShell {
         buildInputs = [
           pkgs.rust-bin.nightly.latest.default
@@ -89,7 +92,7 @@
           pkgs.cargo-watch
           pkgs.cargo-expand
           pkgs.rustfmt
-          cargo2nix-pkg # Add cargo2nix to devShell
+          cargo2nixpkg # Add cargo2nix to devShell
         ] ++ commonRustDeps.commonBuildInputs;
         PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
         OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
