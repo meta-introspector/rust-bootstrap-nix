@@ -1,7 +1,10 @@
-//! Various utility functions used throughout bootstrap.
-//!
-//! Simple things like testing the various filesystem operations here and there,
-//! not a lot of interesting happenings here unfortunately.
+use crate::prelude::*;
+
+
+/// Various utility functions used throughout bootstrap.
+///
+/// Simple things like testing the various filesystem operations here and there,
+/// not a lot of interesting happenings here unfortunately.
 
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
@@ -13,9 +16,9 @@ use std::{env, fs, io, str};
 use build_helper::util::fail;
 use object::read::archive::ArchiveFile;
 
-use crate::LldMode;
+//use crate::LldMode;
 use crate::core::builder::Builder;
-use crate::core::config::{Config, TargetSelection};
+//use crate::core::config::{Config, TargetSelection};
 pub use crate::utils::shared_helpers::{dylib_path, dylib_path_var};
 
 #[cfg(test)]
@@ -29,6 +32,7 @@ mod tests;
 ///
 /// This is currently used judiciously throughout the build system rather than
 /// using a `Result` with `try!`, but this may change one day...
+#[macro_export]
 #[macro_export]
 macro_rules! t {
     ($e:expr) => {
@@ -128,7 +132,7 @@ pub struct TimeIt(bool, Instant);
 
 /// Returns an RAII structure that prints out how long it took to drop.
 pub fn timeit(builder: &Builder<'_>) -> TimeIt {
-    TimeIt(builder.config.dry_run(), Instant::now())
+    TimeIt(builder.config.dry_run, Instant::now())
 }
 
 impl Drop for TimeIt {
@@ -151,7 +155,7 @@ pub(crate) fn program_out_of_date(stamp: &Path, key: &str) -> bool {
 /// Symlinks two directories, using junctions on Windows and normal symlinks on
 /// Unix.
 pub fn symlink_dir(config: &Config, original: &Path, link: &Path) -> io::Result<()> {
-    if config.dry_run() {
+    if config.dry_run {
         return Ok(());
     }
     let _ = fs::remove_dir_all(link);

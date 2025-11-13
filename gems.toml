@@ -1,0 +1,45 @@
+# Configuration for "gem" pattern modules.
+# Each entry defines a gem, its associated crate, and a list of identifiers
+# that belong to this gem.
+
+[[gem]]
+name = "serde"
+crate_name = "serde"
+identifiers = [
+    "Serialize",
+    "Deserialize",
+    "Serializer",
+    "Deserializer",
+    "ser",
+    "de",
+]
+
+[[gem]]
+name = "syn"
+crate_name = "syn"
+identifiers = [
+    "parse",
+    "parse_macro_input",
+    "parse_quote",
+    "Error",
+    "Result",
+    "Ident",
+    "Path",
+    "Type",
+    "Expr",
+    "Item",
+    "visit",
+    "Visit",
+]
+
+[[gem]]
+name = "std_collections_hashmap"
+crate_name = "std::collections"
+identifiers = [
+    "HashMap",
+    "BTreeMap",
+    "HashSet",
+    "BTreeSet",
+]
+
+# Add other gems as needed

@@ -1,3 +1,46 @@
 /build/
 /standalonex/build/
 /standalonex/result
+logs/
+Makefile~
+*.log
+*~
+*#
+.#*
+*.elc
+*.fasl
+/prelude-generator/.prelude_cache/
+/prelude-generator/prelude_processing_results.json
+/.prelude_cache/
+/prelude-generator/generated/
+
+# Environment files
+.env
+.env.sh
+
+# Nix build outputs
+result
+*.nix-build-scripts-result
+*.nix-deps-result
+flakes/*/aarch64-linux/stage0/step1-configure/result
+flakes/bootstrap-builder/cc-flake/result
+nix-build-scripts/result
+nix/rust-deps/result
+
+# Generated files and directories
+generated/hf_dataset_output/
+generated/hf_validator_projects/
+prelude-generator/generated_test_runner/target/
+prelude-generator/self_rebuild_output.txt
+
+# Rust build outputs
+target/
+standalonex/src/bootstrap/src/core/config_utils/src/target/
+standalonex/src/target/
+standalonex/test_minimal/result
+/standalonex/libglobal_level0_decls.rmeta
+/standalonex/libself_generated_code.rmeta
+*.rmeta
+
+# Ignore prelude-generator cache files
+standalonex/min_test_project/.prelude_cache/

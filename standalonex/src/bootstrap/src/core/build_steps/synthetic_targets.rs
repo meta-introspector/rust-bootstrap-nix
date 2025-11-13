@@ -1,15 +1,18 @@
-//! In some cases, parts of bootstrap need to change part of a target spec just for one or a few
-//! steps. Adding these targets to rustc proper would "leak" this implementation detail of
-//! bootstrap, and would make it more complex to apply additional changes if the need arises.
-//!
-//! To address that problem, this module implements support for "synthetic targets". Synthetic
-//! targets are custom target specs generated using builtin target specs as their base. You can use
-//! one of the target specs already defined in this module, or create new ones by adding a new step
-//! that calls create_synthetic_target.
+use crate::prelude::*;
+
+
+/// In some cases, parts of bootstrap need to change part of a target spec just for one or a few
+/// steps. Adding these targets to rustc proper would "leak" this implementation detail of
+/// bootstrap, and would make it more complex to apply additional changes if the need arises.
+///
+/// To address that problem, this module implements support for "synthetic targets". Synthetic
+/// targets are custom target specs generated using builtin target specs as their base. You can use
+/// one of the target specs already defined in this module, or create new ones by adding a new step
+/// that calls create_synthetic_target.
 
 use crate::Compiler;
 use crate::core::builder::{Builder, ShouldRun, Step};
-use crate::core::config::TargetSelection;
+//use crate::core::config::TargetSelection;
 use crate::utils::exec::command;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -51,7 +54,7 @@ fn create_synthetic_target(
     let path = builder.out.join("synthetic-target-specs").join(format!("{name}.json"));
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
 
-    if builder.config.dry_run() {
+    if builder.config.dry_run {
         std::fs::write(&path, b"dry run\n").unwrap();
         return TargetSelection::create_synthetic(&name, path.to_str().unwrap());
     }

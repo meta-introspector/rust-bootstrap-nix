@@ -1,0 +1,16 @@
+#![feature(prelude_import)]
+#![allow(unused_imports)]
+#![allow(dead_code)]
+#[macro_use]
+extern crate std;
+#[prelude_import]
+use std::prelude::rust_2021::*;
+use std::env;
+fn main() {
+    let host = env::var("HOST").unwrap();
+    { ::std::io::_print(format_args!("cargo:rerun-if-changed=build.rs\n")); };
+    {
+        ::std::io::_print(format_args!("cargo:rustc-env=BUILD_TRIPLE={0}\n",
+                host));
+    };
+}

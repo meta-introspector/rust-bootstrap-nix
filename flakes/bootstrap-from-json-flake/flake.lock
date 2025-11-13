@@ -1,0 +1,81 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1757898380,
+        "narHash": "sha256-1Z0KAfbySsHu/IoZbBJLrPgs3IqQGup0T8J9S1ffAkE=",
+        "owner": "meta-introspector",
+        "repo": "nixpkgs",
+        "rev": "26833ad1dad83826ef7cc52e0009ca9b7097c79f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1757898380,
+        "narHash": "sha256-1Z0KAfbySsHu/IoZbBJLrPgs3IqQGup0T8J9S1ffAkE=",
+        "owner": "meta-introspector",
+        "repo": "nixpkgs",
+        "rev": "26833ad1dad83826ef7cc52e0009ca9b7097c79f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "rust-bootstrap-nix": "rust-bootstrap-nix",
+        "rust-overlay": "rust-overlay"
+      }
+    },
+    "rust-bootstrap-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1761264010,
+        "narHash": "sha256-bk8CGdlbGgWZOAMpP/C8OnrY1/9Qkt5PEOqiiMGwy9o=",
+        "owner": "meta-introspector",
+        "repo": "rust-bootstrap-nix",
+        "rev": "d636fccdf25885a624ec285014b7a639b4052e94",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "rust-bootstrap-nix",
+        "type": "github"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1760649444,
+        "narHash": "sha256-K8OdikWA0y9JQxRgd+ZN7KzpS7Zsk/fdv6+WZMcNTOw=",
+        "owner": "meta-introspector",
+        "repo": "rust-overlay",
+        "rev": "eee7767f08f58eb56822d7e85423098eb3e6dd65",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meta-introspector",
+        "ref": "feature/CRQ-016-nixify",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

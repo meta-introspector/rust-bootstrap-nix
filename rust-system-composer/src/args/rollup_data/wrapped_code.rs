@@ -1,0 +1,2 @@
+use prelude::*;
+# [derive (Parser , Debug)] # [command (author , version , about , long_about = None)] struct Args { # [doc = " The path to the workspace root for prelude-generator."] # [arg (long)] workspace_root : PathBuf , # [doc = " The input directory for rust-decl-splitter."] # [arg (long)] input_dir : PathBuf , # [doc = " The output directory for rust-decl-splitter."] # [arg (long)] output_dir : PathBuf , # [doc = " Run in dry-run mode, printing changes without modifying files."] # [arg (long)] dry_run : bool , }

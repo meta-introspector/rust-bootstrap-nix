@@ -1,146 +1,112 @@
 {
-  description = "Python development environment extending rust-src with sccache";
+  description = "Step 1: Generate config.toml";
 
   inputs = {
     nixpkgs.url = "github:meta-introspector/nixpkgs?ref=feature/CRQ-016-nixify";
     rust-overlay.url = "github:meta-introspector/rust-overlay?ref=feature/CRQ-016-nixify";
-    rustSrcFlake.url = "github:meta-introspector/rust?ref=e6c1b92d0abaa3f64032d6662cbcde980c826ff2";
-
+    rustSrcFlake.url = "github:meta-introspector/rust?ref=feature/CRQ-016-nixify";
+    cargo2nix.url = "github:meta-introspector/cargo2nix?ref=feature/CRQ-016-nixify";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake } :
+  outputs = { self, nixpkgs, rust-overlay, rustSrcFlake, cargo2nix, ... }@inputs:
     let
-      pkgs_aarch64 = import nixpkgs { system = "aarch64-linux"; overlays = [ rust-overlay.overlays.default ]; };
-      rustToolchain_aarch64 = pkgs_aarch64.rustChannels.nightly.rust.override { targets = [ "aarch64-unknown-linux-gnu" ]; };
-
-      pkgs_x86_64 = import nixpkgs { system = "x86_64-linux"; overlays = [ rust-overlay.overlays.default ]; };
-      rustToolchain_x86_64 = pkgs_x86_64.rustChannels.nightly.rust.override { targets = [ "x86_64-unknown-linux-gnu" ]; };
-
-      # Define the sccache-enabled rustc package
-      sccachedRustc = (system: pkgs: rustToolchain:
-        let
-          cargo_bin = "${rustToolchain}/bin/cargo";
-          rustc_bin = "${rustToolchain}/bin/rustc";
-          cargoHome = "$TMPDIR/.cargo";
-          compiler_date = "2024-11-28";
-          build_triple = if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
-        in
-        (rustSrcFlake.packages.${system}.default).overrideAttrs (oldAttrs: {
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.sccache pkgs.curl ];
-          configurePhase = "# Skip the default configure script";
-          preConfigure = pkgs.lib.concatStringsSep "\n" [
-            (oldAttrs.preConfigure or "")
-            "export RUSTC_WRAPPER=\"${pkgs.sccache}/bin/sccache\""
-            "export SCCACHE_DIR=\"$TMPDIR/sccache\""
-            "export SCCACHE_TEMPDIR=\"$TMPDIR/sccache-tmp\""
-            "mkdir -p \"$SCCACHE_DIR\""
-            "mkdir -p \"$SCCACHE_TEMPDIR\""
-            "sccache --stop-server || true"
-            "sccache --start-server"
-            "export PATH=\"${pkgs.curl}/bin:$PATH\""
-            "export CURL=\"${pkgs.curl}/bin/curl\""
-          ];
-          buildPhase = pkgs.lib.concatStringsSep "\n" [
-
-            "echo \"vendor = true\" >> config.toml"
-            "echo \"rustc = \\\"${rustc_bin}\\\"\" >> config.toml"
-            "echo \"cargo = \\\"${cargo_bin}\\\"\" >> config.toml"
-            "echo \"HOME = \\\"$TMPDIR\\\"\" >> config.toml"
-            "echo \"CARGO_HOME = \\\"$TMPDIR/.cargo\\\"\" >> config.toml"
-            "mkdir -p \"$TMPDIR/.cargo\""
-            "mkdir -p \"build/${build_triple}/stage0\""
-            "echo \"${compiler_date}\" > \"build/${build_triple}/stage0/.rustc-stamp\""
-            "export HOME=\"$TMPDIR\""
-            "export CARGO_HOME=\"$TMPDIR/.cargo\""
-            "python x.py build"
-          ];
-          preBuild = (oldAttrs.preBuild or "") + "sccache --zero-stats";
-          postBuild = (oldAttrs.postBuild or "") + "sccache --show-stats\nsccache --stop-server";
-        })
-      );
-
+      system = "aarch64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ rust-overlay.overlays.default cargo2nix.overlays.default ];
+      };
+      lib = nixpkgs.lib; # Define lib here
+      commonRustDeps = import ./nix/rust-deps/common-rust-deps.nix { inherit pkgs lib; };
     in
     {
-      devShells.aarch64-linux.default = pkgs_aarch64.mkShell {
-        name = "python-rust-fix-dev-shell";
-
-        packages = [
-          rustToolchain_aarch64
-          pkgs_aarch64.python3
-          pkgs_aarch64.python3Packages.pip
-          pkgs_aarch64.git
-          pkgs_aarch64.curl
-          pkgs_aarch64.which # Add which to the devShell
-        ];
-
-        # Set HOME and CARGO_HOME for the devShell
-        shellHook = ''
-          export HOME="$TMPDIR"
-          export CARGO_HOME="$HOME/.cargo"
-          mkdir -p $CARGO_HOME
+      packages.aarch64-linux.default = pkgs.stdenv.mkDerivation {
+        name = "generate-config";
+        src = self;
+        buildInputs = [ pkgs.cargo pkgs.rustc pkgs.cacert pkgs.nix pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        buildPhase = ''
+          export CARGO_HOME=$(mktemp -d)
+          cargo run --bin bootstrap-config-generator -- --project-root . --rust-src-flake-path /nix/store/rhs81k02n3vg452abxl462g2i6xyadyf-source --version 1.84.1 --target aarch64-unknown-linux-gnu --stage 0
         '';
-
-        nativeBuildInputs = [
-          pkgs_aarch64.binutils
-          pkgs_aarch64.cmake
-          pkgs_aarch64.ninja
-          pkgs_aarch64.pkg-config
-          pkgs_aarch64.nix
-        ];
-
-        buildInputs = [
-          pkgs_aarch64.openssl
-          pkgs_aarch64.glibc.out
-          pkgs_aarch64.glibc.static
-        ];
-
-        RUSTC_ICE = "0";
-        LD_LIBRARY_PATH = "${pkgs_aarch64.lib.makeLibraryPath [
-          pkgs_aarch64.stdenv.cc.cc.lib
-        ]}";
+        installPhase = ''
+          mkdir -p $out
+          cp config.toml $out/config.toml
+        '';
       };
 
-      devShells.x86_64-linux.default = pkgs_x86_64.mkShell {
-        name = "python-rust-fix-dev-shell";
-
-        packages = [
-          rustToolchain_x86_64
-          pkgs_x86_64.python3
-          pkgs_x86_64.python3Packages.pip
-          pkgs_x86_64.git
-          pkgs_x86_64.curl
-          pkgs_x86_64.which # Add which to the devShell
-        ];
-
-        # Set HOME and CARGO_HOME for the devShell
-        shellHook = ''
-          export HOME="$TMPDIR"
-          export CARGO_HOME="$HOME/.cargo"
-          mkdir -p $CARGO_HOME
+      packages.aarch64-linux.check = pkgs.rustPlatform.buildRustPackage {
+        pname = "rust-check";
+        version = "0.1.0";
+        src = self;
+        cargoLock.lockFile = ./Cargo.lock;
+        buildInputs = [ pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        CARGO_NET_OFFLINE = false;
+        cargoBuildFlags = [ "--target" "aarch64-unknown-linux-gnu" ];
+        CARGO_BUILD_FLAGS = "--target aarch64-unknown-linux-gnu";
+        checkPhase = ''
+          echo "pkgs.openssl.dev path: ${pkgs.openssl.dev}"
+          export PKG_CONFIG_PATH=${commonRustDeps.pkgConfigPath}
+          export PKG_CONFIG_SYSROOT_DIR=/
+          export PATH=$PATH:${pkgs.pkg-config}/bin
+          cargo check --workspace
         '';
-
-        nativeBuildInputs = [
-          pkgs_x86_64.binutils
-          pkgs_x86_64.cmake
-          pkgs_x86_64.ninja
-          pkgs_x86_64.pkg-config
-          pkgs_x86_64.nix
-        ];
-
-        buildInputs = [
-          pkgs_x86_64.openssl
-          pkgs_x86_64.glibc.out
-          pkgs_x86_64.glibc.static
-        ];
-
-        RUSTC_ICE = "0";
-        LD_LIBRARY_PATH = "${pkgs_x86_64.lib.makeLibraryPath [
-          pkgs_x86_64.stdenv.cc.cc.lib
-        ]}";
       };
 
-      # Define packages.default to be the sccache-enabled rustc package
-      packages.aarch64-linux.default = sccachedRustc "aarch64-linux" pkgs_aarch64 rustToolchain_aarch64;
-      packages.x86_64-linux.default = sccachedRustc "x86_64-linux" pkgs_x86_64 rustToolchain_x86_64;
+      packages.aarch64-linux.bootstrap = pkgs.rustPlatform.buildRustPackage {
+        pname = "bootstrap";
+        version = "0.0.0";
+        src = self;
+        cargoLock.lockFile = ./standalonex/src/bootstrap/Cargo.lock;
+        cargoRoot = "standalonex/src/bootstrap";
+        buildInputs = [ pkgs.pkg-config pkgs.openssl ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        CARGO_NET_OFFLINE = false;
+        cargoBuildFlags = [ "--target" "aarch64-unknown-linux-gnu" ];
+        CARGO_BUILD_FLAGS = "--target aarch64-unknown-linux-gnu";
+      };
+
+      packages.aarch64-linux.generateCargoNix = pkgs.callPackage
+        (inputs.cargo2nix.lib.importCargoLock {
+          lockFile = self.outPath + "/Cargo.lock"; # Use the workspace root's Cargo.lock
+        })
+        { };
+
+      devShells.aarch64-linux.default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.rustc
+          pkgs.cargo
+          pkgs.rust-analyzer
+          pkgs.openssl
+          pkgs.pkg-config
+          pkgs.cargo-watch
+          pkgs.cargo-expand
+          pkgs.rustfmt
+        ] ++ commonRustDeps.commonBuildInputs;
+        PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+        OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+        RUST_SRC_PATH = "${rustSrcFlake}/library";
+      };
     };
 }
+
+#   +          packages = with pkgs; [
+# +          rust-bin.nightly.latest.default
+# +          cargo-watch
+# +          cargo-expand
+# +          prettyplease
+# +          rustfmt
+# +        ];
+# +          PKG_CONFIG_PATH = commonRustDeps.pkgConfigPath;
+# +          OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
+# +          OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+# +          RUST_SRC_PATH = "${rustSrcFlake}/library";
+# +          };
+# +          };
+# +          }

@@ -1,0 +1,10 @@
+docs(bag-of-words): Update documentation for bag of words and coordinate grouping
+
+This commit updates the documentation files (`8d.md`, `GEMINI.md`, `lattice.md`, `plan.md`) to reflect the new functionality and refined plan for implementing "bag of words" and coordinate grouping for declarations.
+
+- **`8d.md`:** Updated with a more detailed "Revised Plan" for bag of words and coordinate grouping, including the concept of symbol tables and 4KB chunking.
+- **`GEMINI.md`:** Updated to reflect the successful implementation of structured error collection in `prelude-generator`.
+- **`lattice.md`:** Added a new section describing `prelude-generator`'s role in lattice construction through bag of words and coordinate grouping.
+- **`plan.md`:** Added a new item under "Next Steps" for the ongoing work on "Implement Bag of Words and Coordinate Grouping for Declarations."
+
+Additionally, this commit includes the new `prelude-generator/src/declaration.rs` file, which introduces the `Declaration` struct for unifying declaration representation with associated "bag of words."

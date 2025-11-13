@@ -1,0 +1,1 @@
+This is a placeholder AI summary for /data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/test_output/my_function_two/rollup_data/wrapped_code.rs

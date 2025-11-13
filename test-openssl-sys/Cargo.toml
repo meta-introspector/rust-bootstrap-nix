@@ -1,0 +1,9 @@
+[package]
+name = "test-openssl-sys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+openssl-sys = "0.9.110"
+
+#[workspace]

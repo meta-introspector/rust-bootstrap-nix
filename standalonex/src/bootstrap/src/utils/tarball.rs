@@ -1,15 +1,18 @@
-//! Facilitates the management and generation of tarballs.
-//!
-//! Tarballs efficiently hold Rust compiler build artifacts and
-//! capture a snapshot of each boostrap stage.
-//! In uplifting, a tarball from Stage N captures essential components
-//! to assemble Stage N + 1 compiler.
+use crate::prelude::*;
+
+
+/// Facilitates the management and generation of tarballs.
+///
+/// Tarballs efficiently hold Rust compiler build artifacts and
+/// capture a snapshot of each bootstrap stage.
+/// In uplifting, a tarball from Stage N captures essential components
+/// to assemble Stage N + 1 compiler.
 
 use std::path::{Path, PathBuf};
 
 use crate::core::build_steps::dist::distdir;
 use crate::core::builder::{Builder, Kind};
-use crate::core::config::BUILDER_CONFIG_FILENAME;
+//use crate::core::config::BUILDER_CONFIG_FILENAME;
 use crate::utils::exec::BootstrapCommand;
 use crate::utils::helpers::{move_file, t};
 use crate::utils::{channel, helpers};
@@ -390,7 +393,7 @@ impl<'a> Tarball<'a> {
         // Ensure there are no symbolic links in the tarball. In particular,
         // rustup-toolchain-install-master and most versions of Windows can't handle symbolic links.
         let decompressed_output = self.temp_dir.join(&package_name);
-        if !self.builder.config.dry_run() && !self.permit_symlinks {
+        if !self.builder.config.dry_run && !self.permit_symlinks {
             for entry in walkdir::WalkDir::new(&decompressed_output) {
                 let entry = t!(entry);
                 if entry.path_is_symlink() {

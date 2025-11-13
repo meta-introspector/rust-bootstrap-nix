@@ -1,0 +1,84 @@
+//use syn::{visit::Visit, ItemConst, ItemStruct, TypePath, PathArguments, GenericArgument, Meta, Ident};
+use std::collections::HashSet;
+
+pub fn get_required_uses_for_item_const(_constant: &syn::ItemConst) -> String {
+    // For Level 0 constants, typically no special uses are needed unless they use complex types.
+    // For now, return empty string.
+    "".to_string()
+}
+
+pub fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String {
+    let mut uses = HashSet::new();
+
+    // Helper function to add uses based on type path segments
+    fn add_uses_from_type_path(type_path: &syn::TypePath, uses: &mut HashSet<&'static str>) {
+        for segment in type_path.path.segments.iter() {
+            let ident_str = segment.ident.to_string();
+            match ident_str.as_str() {
+                "HashMap" => { uses.insert("use std::collections::HashMap;\n"); },
+                "PathBuf" => { uses.insert("use std::path::PathBuf;\n"); },
+                "String" => { uses.insert("use std::string::String;\n"); },
+                "syn" => { 
+                    uses.insert("use syn::{ItemConst, ItemStruct};\n");
+                    uses.insert("use syn::visit::Visit;\n");
+                },
+                "clap" => { uses.insert("use clap::{Parser, Args, Command};\n"); },
+                "serde" => { uses.insert("use serde::{Serialize, Deserialize};\n"); },
+                _ => {},
+            }
+
+            // Recursively check generic arguments
+            if let syn::PathArguments::AngleBracketed(angle_args) = &segment.arguments {
+                for arg in angle_args.args.iter() {
+                    if let syn::GenericArgument::Type(syn::Type::Path(inner_type_path)) = arg {
+                        add_uses_from_type_path(inner_type_path, uses);
+                    }
+                }
+            }
+        }
+    }
+
+    // Check for clap attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Parser")
+            } else { false }
+        } else { false }
+    }) {
+        uses.insert("use clap::{Parser, Args, Command};\n");
+        uses.insert("use std::path::PathBuf;\n"); // Args often uses PathBuf
+    }
+
+    // Check for serde attributes
+    if structure.attrs.iter().any(|attr| {
+        if attr.path().is_ident("derive") {
+            if let syn::Meta::List(meta_list) = &attr.meta {
+                meta_list.tokens.to_string().contains("Serialize") || meta_list.tokens.to_string().contains("Deserialize")
+            } else { false }
+        } else { false }
+    }) {
+        uses.insert("use serde::{Serialize, Deserialize};\n");
+    }
+
+    // Analyze fields for types
+    for field in structure.fields.iter() {
+        if let syn::Type::Path(type_path) = &field.ty {
+            add_uses_from_type_path(type_path, &mut uses);
+        }
+    }
+
+    // Specific uses for visitors (can be removed if covered by field analysis)
+    if structure.ident.to_string() == "Level0DeclsVisitor" {
+        uses.insert("use syn::{ItemConst, ItemStruct};\n");
+        uses.insert("use syn::visit::Visit;\n");
+    }
+    if structure.ident.to_string() == "BagOfWordsVisitor" {
+        uses.insert("use std::collections::HashMap;\n");
+        uses.insert("use syn::visit::Visit;\n"); // BagOfWordsVisitor also needs Visit
+    }
+
+    let mut sorted_uses: Vec<&str> = uses.into_iter().collect();
+    sorted_uses.sort_unstable();
+    sorted_uses.join("")
+}

@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "configuration-nix",
+    "bootstrap-config-builder",
+    "flake-template-generator",
+    "prelude-generator",
+    "rust-decl-splitter",
+    "rust-system-composer",
+    "vendor/rarrow", "metrics-reporter",
+    #"vendor/rust/hugging-face-dataset-validator-rust",
+    "pipeline-traits",
+    "ast-decoder",
+]
+

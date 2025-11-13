@@ -1,19 +1,22 @@
-//! Compilation of native dependencies like GCC.
-//!
-//! Native projects like GCC unfortunately aren't suited just yet for
-//! compilation in build scripts that Cargo has. This is because the
-//! compilation takes a *very* long time but also because we don't want to
-//! compile GCC 3 times as part of a normal bootstrap (we want it cached).
-//!
-//! GCC and compiler-rt are essentially just wired up to everything else to
-//! ensure that they're always in place if needed.
+use crate::prelude::*;
+
+
+/// Compilation of native dependencies like GCC.
+///
+/// Native projects like GCC unfortunately aren't suited just yet for
+/// compilation in build scripts that Cargo has. This is because the
+/// compilation takes a *very* long time but also because we don't want to
+/// compile GCC 3 times as part of a normal bootstrap (we want it cached).
+///
+/// GCC and compiler-rt are essentially just wired up to everything else to
+/// ensure that they're always in place if needed.
 
 use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
-use crate::core::config::TargetSelection;
+//use crate::core::config::TargetSelection;
 use crate::utils::exec::command;
 use crate::utils::helpers::{self, HashStamp, t};
 use crate::{Kind, generate_smart_stamp_hash};
@@ -108,7 +111,7 @@ impl Step for Gcc {
         let _time = helpers::timeit(builder);
         t!(fs::create_dir_all(&out_dir));
 
-        if builder.config.dry_run() {
+        if builder.config.dry_run {
             return true;
         }
 

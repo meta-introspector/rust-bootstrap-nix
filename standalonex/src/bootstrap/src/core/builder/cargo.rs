@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use std::env;
 use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
@@ -5,15 +6,15 @@ use std::path::{Path, PathBuf};
 use super::{Builder, Kind};
 use crate::core::build_steps::tool::SourceType;
 use crate::core::build_steps::{compile, test};
-use crate::core::config::SplitDebuginfo;
-use crate::core::config::flags::Color;
+//use crate::core::config::SplitDebuginfo;
+//use crate::core::config::flags::Color;
 use crate::utils::helpers::{
     self, LldThreads, add_link_lib_path, check_cfg_arg, linker_args, linker_flags,
 };
-use crate::{
-    BootstrapCommand, CLang, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitRepo, Mode,
-    TargetSelection, command, prepare_behaviour_dump_dir, t,
-};
+//use crate::{
+//    BootstrapCommand, Language, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitInfo, Mode,
+//    TargetSelection, command, prepare_behaviour_dump_dir, t,
+//};
 
 /// Represents flag values in `String` form with whitespace delimiter to pass it to the compiler
 /// later.
@@ -264,7 +265,7 @@ impl Cargo {
             self.rustdocflags.arg(&arg);
         }
 
-        if !builder.config.dry_run()
+        if !builder.config.dry_run
             && builder.cc.borrow()[&target].args().iter().any(|arg| arg == "-gz")
         {
             self.rustflags.arg("-Clink-arg=-gz");
@@ -759,7 +760,7 @@ impl Builder<'_> {
         //
         // Only clear out the directory if we're compiling std; otherwise, we
         // should let Cargo take care of things for us (via depdep info)
-        if !self.config.dry_run() && mode == Mode::Std && cmd_kind == Kind::Build {
+        if !self.config.dry_run && mode == Mode::Std && cmd_kind == Kind::Build {
             self.clear_if_dirty(&out_dir, &self.rustc(compiler));
         }
 

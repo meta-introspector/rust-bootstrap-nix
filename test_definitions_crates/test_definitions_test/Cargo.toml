@@ -1,0 +1,7 @@
+[package]
+name = "test_definitions_test"
+version = "0.1.0"
+#edition = "2024"
+
+[dependencies]
+test_definitions_macro = { path = "../test_definitions_macro" }

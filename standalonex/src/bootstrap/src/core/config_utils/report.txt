@@ -1,0 +1,528 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling bootstrap-config-utils v0.1.0 (/data/data/com.termux.nix/files/home/pick-up-nix2/vendor/rust/platform-tools-agave-rust-solana/vendor/rust-src/vendor/rust/rust-bootstrap-nix/standalonex/src/bootstrap/src/core/config_utils)
+error[E0433]: failed to resolve: could not find `DryRun` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:15:16
+   |
+15 |         crate::DryRun::Disabled => false,
+   |                ^^^^^^ could not find `DryRun` in the crate root
+
+error[E0433]: failed to resolve: could not find `DryRun` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:16:16
+   |
+16 |         crate::DryRun::SelfCheck | crate::DryRun::UserSelected => true,
+   |                ^^^^^^ could not find `DryRun` in the crate root
+
+error[E0433]: failed to resolve: could not find `DryRun` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:16:43
+   |
+16 |         crate::DryRun::SelfCheck | crate::DryRun::UserSelected => true,
+   |                                           ^^^^^^ could not find `DryRun` in the crate root
+
+error[E0412]: cannot find type `ParsedConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:7:33
+  |
+7 | pub fn default_opts() -> crate::ParsedConfig {
+  |                                 ^^^^^^^^^^^^ not found in the crate root
+  |
+help: consider importing this struct
+  |
+2 + use crate::parsed_config::ParsedConfig;
+  |
+help: if you import `ParsedConfig`, refer to it directly
+  |
+7 - pub fn default_opts() -> crate::ParsedConfig {
+7 + pub fn default_opts() -> ParsedConfig {
+  |
+
+error[E0422]: cannot find struct, variant or union type `ParsedConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:14:12
+   |
+14 |     crate::ParsedConfig {
+   |            ^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 2 + use crate::parsed_config::ParsedConfig;
+   |
+help: if you import `ParsedConfig`, refer to it directly
+   |
+14 -     crate::ParsedConfig {
+14 +     ParsedConfig {
+   |
+
+error[E0433]: failed to resolve: could not find `TargetSelection` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:42:23
+   |
+42 |         build: crate::TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+   |                       ^^^^^^^^^^^^^^^ could not find `TargetSelection` in the crate root
+   |
+help: consider importing this struct
+   |
+ 2 + use crate::target_selection::TargetSelection;
+   |
+help: if you import `TargetSelection`, refer to it directly
+   |
+42 -         build: crate::TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+42 +         build: TargetSelection::from_user(&env::var("BUILD_TRIPLE").unwrap()),
+   |
+
+error[E0422]: cannot find struct, variant or union type `LocalCiConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/default_opts.rs:51:25
+   |
+51 |         ci: Some(crate::LocalCiConfig {
+   |                         ^^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 2 + use crate::local_ci_config::LocalCiConfig;
+   |
+help: if you import `LocalCiConfig`, refer to it directly
+   |
+51 -         ci: Some(crate::LocalCiConfig {
+51 +         ci: Some(LocalCiConfig {
+   |
+
+error[E0412]: cannot find type `ParsedConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:6:41
+  |
+6 | pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+  |                                         ^^^^^^^^^^^^ not found in the crate root
+  |
+help: consider importing this struct
+  |
+2 + use crate::parsed_config::ParsedConfig;
+  |
+help: if you import `ParsedConfig`, refer to it directly
+  |
+6 - pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+6 + pub fn get_builder_toml(config: &ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+  |
+
+error[E0412]: cannot find type `LocalTomlConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:6:90
+  |
+6 | pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+  |                                                                                          ^^^^^^^^^^^^^^^ not found in the crate root
+  |
+help: consider importing this struct
+  |
+2 + use crate::local_toml_config::LocalTomlConfig;
+  |
+help: if you import `LocalTomlConfig`, refer to it directly
+  |
+6 - pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+6 + pub fn get_builder_toml(config: &crate::ParsedConfig, build_name: &str) -> Result<LocalTomlConfig, toml::de::Error> {
+  |
+
+error[E0433]: failed to resolve: could not find `LocalTomlConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:8:26
+  |
+8 |         return Ok(crate::LocalTomlConfig::default());
+  |                          ^^^^^^^^^^^^^^^ could not find `LocalTomlConfig` in the crate root
+  |
+help: consider importing this struct
+  |
+2 + use crate::local_toml_config::LocalTomlConfig;
+  |
+help: if you import `LocalTomlConfig`, refer to it directly
+  |
+8 -         return Ok(crate::LocalTomlConfig::default());
+8 +         return Ok(LocalTomlConfig::default());
+  |
+
+error[E0412]: cannot find type `LocalTomlConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:13:54
+   |
+13 | pub(crate) fn get_toml(file: &Path) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+   |                                                      ^^^^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 1 + use crate::local_toml_config::LocalTomlConfig;
+   |
+help: if you import `LocalTomlConfig`, refer to it directly
+   |
+13 - pub(crate) fn get_toml(file: &Path) -> Result<crate::LocalTomlConfig, toml::de::Error> {
+13 + pub(crate) fn get_toml(file: &Path) -> Result<LocalTomlConfig, toml::de::Error> {
+   |
+
+error[E0433]: failed to resolve: could not find `LocalTomlConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:19:47
+   |
+19 |         .and_then(|table: toml::Value| crate::LocalTomlConfig::deserialize(table))
+   |                                               ^^^^^^^^^^^^^^^ could not find `LocalTomlConfig` in the crate root
+   |
+help: consider importing this struct
+   |
+ 1 + use crate::local_toml_config::LocalTomlConfig;
+   |
+help: if you import `LocalTomlConfig`, refer to it directly
+   |
+19 -         .and_then(|table: toml::Value| crate::LocalTomlConfig::deserialize(table))
+19 +         .and_then(|table: toml::Value| LocalTomlConfig::deserialize(table))
+   |
+
+error[E0412]: cannot find type `ParsedConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_stage0.rs:1:47
+  |
+1 | pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+  |                                               ^^^^^^^^^^^^ not found in the crate root
+  |
+help: consider importing this struct
+  |
+1 + use crate::parsed_config::ParsedConfig;
+  |
+help: if you import `ParsedConfig`, refer to it directly
+  |
+1 - pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+1 + pub fn parse_inner_stage0(config: &mut ParsedConfig, toml: &crate::LocalTomlConfig) {
+  |
+
+error[E0412]: cannot find type `LocalTomlConfig` in the crate root
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_stage0.rs:1:75
+  |
+1 | pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+  |                                                                           ^^^^^^^^^^^^^^^ not found in the crate root
+  |
+help: consider importing this struct
+  |
+1 + use crate::local_toml_config::LocalTomlConfig;
+  |
+help: if you import `LocalTomlConfig`, refer to it directly
+  |
+1 - pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &crate::LocalTomlConfig) {
+1 + pub fn parse_inner_stage0(config: &mut crate::ParsedConfig, toml: &LocalTomlConfig) {
+  |
+
+error[E0412]: cannot find type `ParsedConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:46
+   |
+10 | pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+   |                                              ^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 5 + use crate::parsed_config::ParsedConfig;
+   |
+help: if you import `ParsedConfig`, refer to it directly
+   |
+10 - pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+10 + pub fn parse_inner_build(config: &mut ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+   |
+
+error[E0412]: cannot find type `LocalTomlConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:78
+   |
+10 | pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+   |                                                                              ^^^^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 5 + use crate::local_toml_config::LocalTomlConfig;
+   |
+help: if you import `LocalTomlConfig`, refer to it directly
+   |
+10 - pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+10 + pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut LocalTomlConfig, flags: &crate::LocalFlags) {
+   |
+
+error[E0412]: cannot find type `LocalFlags` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:10:110
+   |
+10 | pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+   |                                                                                                              ^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 5 + use crate::local_flags::LocalFlags;
+   |
+help: if you import `LocalFlags`, refer to it directly
+   |
+10 - pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &crate::LocalFlags) {
+10 + pub fn parse_inner_build(config: &mut crate::ParsedConfig, toml: &mut crate::LocalTomlConfig, flags: &LocalFlags) {
+   |
+
+error[E0422]: cannot find struct, variant or union type `LocalBuild` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:11:16
+   |
+11 |     let crate::LocalBuild {
+   |                ^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 5 + use crate::local_build::LocalBuild;
+   |
+help: if you import `LocalBuild`, refer to it directly
+   |
+11 -     let crate::LocalBuild {
+11 +     let LocalBuild {
+   |
+
+error[E0412]: cannot find type `ParsedConfig` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/dry_run.rs:13:32
+   |
+13 | pub fn dry_run(config: &crate::ParsedConfig) -> bool {
+   |                                ^^^^^^^^^^^^ not found in the crate root
+   |
+help: consider importing this struct
+   |
+ 1 + use crate::parsed_config::ParsedConfig;
+   |
+help: if you import `ParsedConfig`, refer to it directly
+   |
+13 - pub fn dry_run(config: &crate::ParsedConfig) -> bool {
+13 + pub fn dry_run(config: &ParsedConfig) -> bool {
+   |
+
+error[E0412]: cannot find type `ParsedConfig` in this scope
+ --> standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs:2:44
+  |
+2 |     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig);
+  |                                            ^^^^^^^^^^^^ not found in this scope
+  |
+help: consider importing this struct
+  |
+1 + use crate::parsed_config::ParsedConfig;
+  |
+
+error[E0412]: cannot find type `LocalTomlConfig` in this scope
+ --> standalonex/src/bootstrap/src/core/config_utils/src/config_applicator.rs:2:65
+  |
+2 |     fn apply_to_config(&self, config: &mut ParsedConfig, toml: &LocalTomlConfig);
+  |                                                                 ^^^^^^^^^^^^^^^ not found in this scope
+  |
+help: consider importing this struct
+  |
+1 + use crate::local_toml_config::LocalTomlConfig;
+  |
+
+error[E0412]: cannot find type `DryRun` in the crate root
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:42:25
+   |
+42 |     pub dry_run: crate::DryRun,
+   |                         ^^^^^^ not found in the crate root
+   |
+help: consider importing this enum
+   |
+ 2 + use crate::dry_run::DryRun;
+   |
+help: if you import `DryRun`, refer to it directly
+   |
+42 -     pub dry_run: crate::DryRun,
+42 +     pub dry_run: DryRun,
+   |
+
+warning: unused imports: `PathBuf` and `Path`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:2:17
+  |
+2 | use std::path::{PathBuf, Path};
+  |                 ^^^^^^^  ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::collections::HashMap`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:3:5
+  |
+3 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `serde_derive::Deserialize`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/lib.rs:5:5
+  |
+5 | use serde_derive::Deserialize;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_builder_toml.rs:2:5
+  |
+2 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `serde::Deserialize`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:3:5
+  |
+3 | use serde::Deserialize;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::local_toml_config::LocalTomlConfig`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/get_toml.rs:5:5
+  |
+5 | use crate::local_toml_config::LocalTomlConfig;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `PathBuf` and `Path`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:3:17
+  |
+3 | use std::path::{Path, PathBuf};
+  |                 ^^^^  ^^^^^^^
+
+warning: unused import: `std::env`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:4:5
+  |
+4 | use std::env;
+  |     ^^^^^^^^
+
+warning: unused import: `toml`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:5:5
+  |
+5 | use toml;
+  |     ^^^^
+
+warning: unused import: `crate::parse_inner_stage0`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:8:5
+  |
+8 | use crate::parse_inner_stage0;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::get_toml`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:4:5
+  |
+4 | use crate::get_toml;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::fs`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:8:5
+  |
+8 | use std::fs;
+  |     ^^^^^^^
+
+warning: unexpected `cfg` condition value: `bootstrap-self-test`
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_toml.rs:25:42
+   |
+25 |         config.config = Some(if cfg!(not(feature = "bootstrap-self-test")) {
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `bootstrap-self-test` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unused import: `std::env`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:6:5
+  |
+6 | use std::env;
+  |     ^^^^^^^^
+
+warning: unused import: `std::fs`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_build.rs:7:5
+  |
+7 | use std::fs;
+  |     ^^^^^^^
+
+warning: unused import: `Path`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/build_config.rs:1:26
+  |
+1 | use std::path::{PathBuf, Path};
+  |                          ^^^^
+
+warning: unused import: `crate::local_flags::LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/build_config.rs:4:5
+  |
+4 | use crate::local_flags::LocalFlags;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Path`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:2:26
+  |
+2 | use std::path::{PathBuf, Path};
+  |                          ^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:3:5
+  |
+3 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `serde_derive::Deserialize`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:4:5
+  |
+4 | use serde_derive::Deserialize;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::dry_run::DryRun`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parsed_config.rs:6:5
+  |
+6 | use crate::dry_run::DryRun;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0609]: no field `subcommand` on type `&mut LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:5:24
+  |
+5 |     config.cmd = flags.subcommand.take();
+  |                        ^^^^^^^^^^ unknown field
+  |
+  = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+
+error[E0609]: no field `incremental` on type `&mut LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:6:32
+  |
+6 |     config.incremental = flags.incremental;
+  |                                ^^^^^^^^^^^ unknown field
+  |
+  = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+
+error[E0609]: no field `dry_run` on type `&mut LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:7:28
+  |
+7 |     config.dry_run = flags.dry_run;
+  |                            ^^^^^^^ unknown field
+  |
+  = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+
+error[E0609]: no field `verbose` on type `&mut LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:8:33
+  |
+8 |     config.verbose = Some(flags.verbose);
+  |                                 ^^^^^^^ unknown field
+  |
+  = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+
+error[E0609]: no field `stage` on type `&mut LocalFlags`
+ --> standalonex/src/bootstrap/src/core/config_utils/src/parse_inner_flags.rs:9:26
+  |
+9 |     config.stage = flags.stage.unwrap_or_default();
+  |                          ^^^^^ unknown field
+  |
+  = note: available fields are: `set`, `jobs`, `build_dir`, `skip_stage0_validation`, `host` ... and 3 others
+
+error[E0308]: mismatched types
+  --> standalonex/src/bootstrap/src/core/config_utils/src/rust_channel_git_hash_config.rs:11:34
+   |
+11 |                 config.channel = channel;
+   |                 --------------   ^^^^^^^ expected `Option<String>`, found `String`
+   |                 |
+   |                 expected due to the type of this binding
+   |
+   = note: expected enum `std::option::Option<std::string::String>`
+            found struct `std::string::String`
+help: try wrapping the expression in `Some`
+   |
+11 |                 config.channel = Some(channel);
+   |                                  +++++       +
+
+error[E0308]: mismatched types
+  --> standalonex/src/bootstrap/src/core/config_utils/src/rust_channel_git_hash_config.rs:17:109
+   |
+17 |         config.omit_git_hash = toml.rust.as_ref().and_then(|r| r.omit_git_hash).unwrap_or(config.channel == "dev");
+   |                                                                                           --------------    ^^^^^ expected `Option<String>`, found `&str`
+   |                                                                                           |
+   |                                                                                           expected because this is `std::option::Option<std::string::String>`
+   |
+   = note:   expected enum `std::option::Option<std::string::String>`
+           found reference `&'static str`
+
+warning: unused variable: `config`
+  --> standalonex/src/bootstrap/src/core/config_utils/src/parse.rs:48:22
+   |
+48 | fn apply_test_config(config: &mut ParsedConfig, toml: &mut LocalTomlConfig) {
+   |                      ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+Some errors have detailed explanations: E0308, E0412, E0422, E0433, E0609.
+For more information about an error, try `rustc --explain E0308`.
+warning: `bootstrap-config-utils` (lib) generated 22 warnings
+error: could not compile `bootstrap-config-utils` (lib) due to 29 previous errors; 22 warnings emitted
