@@ -14,18 +14,15 @@ pub fn parse_inner_toml(
         toml_path = config.src.join(toml_path);
     }
     if !using_default_path || toml_path.exists() {
-        config.config = Some(
-            if cfg!(not(feature = "bootstrap-self-test")) {
-                toml_path.canonicalize().unwrap()
-            } else {
-                toml_path.clone()
-            },
-        );
-        get_toml(&toml_path)
-            .unwrap_or_else(|e| {
-                eprintln!("ERROR: Failed to parse '{}': {e}", toml_path.display());
-                std::process::exit(2);
-            })
+        config.config = Some(if cfg!(not(feature = "bootstrap-self-test")) {
+            toml_path.canonicalize().unwrap()
+        } else {
+            toml_path.clone()
+        });
+        get_toml(&toml_path).unwrap_or_else(|e| {
+            eprintln!("ERROR: Failed to parse '{}': {e}", toml_path.display());
+            std::process::exit(2);
+        })
     } else {
         config.config = None;
         LocalTomlConfig::default()

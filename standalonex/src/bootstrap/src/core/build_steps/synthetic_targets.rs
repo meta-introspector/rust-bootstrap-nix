@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-
+use crate::core::builder::{Builder, ShouldRun, Step};
 /// In some cases, parts of bootstrap need to change part of a target spec just for one or a few
 /// steps. Adding these targets to rustc proper would "leak" this implementation detail of
 /// bootstrap, and would make it more complex to apply additional changes if the need arises.
@@ -9,9 +9,7 @@ use crate::prelude::*;
 /// targets are custom target specs generated using builtin target specs as their base. You can use
 /// one of the target specs already defined in this module, or create new ones by adding a new step
 /// that calls create_synthetic_target.
-
 use crate::Compiler;
-use crate::core::builder::{Builder, ShouldRun, Step};
 //use crate::core::config::TargetSelection;
 use crate::utils::exec::command;
 
@@ -51,7 +49,10 @@ fn create_synthetic_target(
     }
 
     let name = format!("{base}-synthetic-{suffix}");
-    let path = builder.out.join("synthetic-target-specs").join(format!("{name}.json"));
+    let path = builder
+        .out
+        .join("synthetic-target-specs")
+        .join(format!("{name}.json"));
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
 
     if builder.config.dry_run {

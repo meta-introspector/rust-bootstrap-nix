@@ -13,7 +13,10 @@ impl CommandLsTrait for RealLsCommand {
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
         } else {
-            Err(format!("'ls' command failed: {}", String::from_utf8_lossy(&output.stderr)))
+            Err(format!(
+                "'ls' command failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ))
         }
     }
 }
@@ -31,7 +34,10 @@ impl CommandMyLocalScriptShTrait for RealMyLocalScriptCommand {
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
         } else {
-            Err(format!("'./my_local_script.sh' command failed: {}", String::from_utf8_lossy(&output.stderr)))
+            Err(format!(
+                "'./my_local_script.sh' command failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ))
         }
     }
 }

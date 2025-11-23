@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Rustfmt {
     pub common: common_test_fields::CommonTestFields,
@@ -32,7 +31,11 @@ impl Step for Rustfmt {
         let host = self.common.host;
         let compiler = self.common.compiler;
 
-        builder.ensure(tool::Rustfmt { compiler, target: self.common.host, extra_features: Vec::new() });
+        builder.ensure(tool::Rustfmt {
+            compiler,
+            target: self.common.host,
+            extra_features: Vec::new(),
+        });
 
         let mut cargo = tool::prepare_tool_cargo(
             builder,
@@ -51,6 +54,15 @@ impl Step for Rustfmt {
 
         cargo.add_rustc_lib_path(builder);
 
-        run_cargo_test(cargo, &[], &[], "rustfmt", "rustfmt", compiler, host, builder);
+        run_cargo_test(
+            cargo,
+            &[],
+            &[],
+            "rustfmt",
+            "rustfmt",
+            compiler,
+            host,
+            builder,
+        );
     }
 }

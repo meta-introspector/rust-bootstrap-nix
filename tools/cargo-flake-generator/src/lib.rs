@@ -1,8 +1,8 @@
 // src/lib.rs for cargo-flake-generator
 
+use anyhow::{anyhow, Context, Result};
+use cargo_metadata::{Metadata, MetadataCommand};
 use std::path::Path;
-use anyhow::{Result, Context, anyhow};
-use cargo_metadata::{MetadataCommand, Metadata};
 
 // This struct will hold configuration for flake generation
 pub struct FlakeGeneratorConfig {
@@ -31,10 +31,7 @@ impl Default for FlakeGeneratorConfig {
 ///
 /// # Returns
 /// `Ok(())` if the flake generation is successful, otherwise an `anyhow::Error`.
-pub fn generate_flake_for_crate(
-    project_root: &Path,
-    config: &FlakeGeneratorConfig,
-) -> Result<()> {
+pub fn generate_flake_for_crate(project_root: &Path, config: &FlakeGeneratorConfig) -> Result<()> {
     println!("Generating flake for crate: {}", project_root.display());
 
     // 1. Read Cargo.toml and Cargo.lock to get project metadata and dependencies
@@ -45,7 +42,10 @@ pub fn generate_flake_for_crate(
 
     // Check if this is a workspace root
     if metadata.workspace_root == project_root {
-        println!("Skipping flake generation for workspace root: {}", project_root.display());
+        println!(
+            "Skipping flake generation for workspace root: {}",
+            project_root.display()
+        );
         return Ok(()); // Skip generating a flake for the workspace root itself
     }
 
@@ -64,19 +64,31 @@ pub fn generate_flake_for_crate(
 }
 
 /// Constructs the content of the flake.nix file.
-fn construct_flake_nix_content(project_root: &Path, metadata: &Metadata, config: &FlakeGeneratorConfig) -> Result<String> {
+fn construct_flake_nix_content(
+    project_root: &Path,
+    metadata: &Metadata,
+    config: &FlakeGeneratorConfig,
+) -> Result<String> {
     let root_manifest_path = project_root.join("Cargo.toml");
 
-    let root_package = metadata.packages.iter()
+    let root_package = metadata
+        .packages
+        .iter()
         .find(|p| p.manifest_path == root_manifest_path)
-        .ok_or_else(|| anyhow!("Could not find package for manifest path: {}", root_manifest_path.display()))?;
+        .ok_or_else(|| {
+            anyhow!(
+                "Could not find package for manifest path: {}",
+                root_manifest_path.display()
+            )
+        })?;
 
     let package_name = &root_package.name;
     let package_version = &root_package.version;
 
     // This is a simplified template. A real implementation would be much more complex,
     // handling dependencies, features, build scripts, etc., similar to cargo2nix output.
-    let content = format!(r#"
+    let content = format!(
+        r#"
 {{
   description = "Nix flake for Rust package: {}";
 

@@ -1,8 +1,8 @@
 #![cfg(test)]
 
 use super::*;
-use tempfile::tempdir;
 use std::path::{Path, PathBuf};
+use tempfile::tempdir;
 // Added Path import
 // Removed use std::io::Write;
 use prelude_collector::FileProcessingStatus;
@@ -10,9 +10,16 @@ use prelude_collector::FileProcessingStatus;
 fn setup_test_crate(dir: &Path, crate_name: &str, lib_content: &str) -> PathBuf {
     let crate_path = dir.join(crate_name);
     fs::create_dir_all(&crate_path.join("src")).unwrap();
-    fs::write(crate_path.join("Cargo.toml"), format!("[package]\nname = \"{{}}\nversion = \"0.1.0\"
+    fs::write(
+        crate_path.join("Cargo.toml"),
+        format!(
+            "[package]\nname = \"{{}}\nversion = \"0.1.0\"
 edition = \"2021\"
-", crate_name)).unwrap();
+",
+            crate_name
+        ),
+    )
+    .unwrap();
     fs::write(crate_path.join("src/lib.rs"), lib_content).unwrap();
     crate_path
 }
@@ -23,8 +30,10 @@ fn test_process_crates_integration() -> Result<()> {
     let project_root = temp_dir.path().to_path_buf();
 
     // Setup a dummy crate
-    let crate1_path = setup_test_crate(&project_root, "my-crate",
-        "use std::collections::HashMap;\nfn my_func() {}\n"
+    let crate1_path = setup_test_crate(
+        &project_root,
+        "my-crate",
+        "use std::collections::HashMap;\nfn my_func() {}\n",
     );
 
     // Create mock Args
@@ -57,8 +66,13 @@ fn test_process_crates_integration() -> Result<()> {
     let results_file_content = fs::read_to_string(&args.results_file.unwrap())?;
     let results: Vec<FileProcessingResult> = serde_json::from_str(&results_file_content)?;
     assert_eq!(results.len(), 2); // lib.rs and prelude.rs
-    assert!(results.iter().any(|r| r.path.ends_with("src/lib.rs") && matches!(r.status, FileProcessingStatus::Success)));
-    assert!(results.iter().any(|r| r.path.ends_with("src/prelude.rs") && matches!(r.status, FileProcessingStatus::Success)));
+    assert!(results.iter().any(
+        |r| r.path.ends_with("src/lib.rs") && matches!(r.status, FileProcessingStatus::Success)
+    ));
+    assert!(results
+        .iter()
+        .any(|r| r.path.ends_with("src/prelude.rs")
+            && matches!(r.status, FileProcessingStatus::Success)));
 
     Ok(())
 }
@@ -69,14 +83,15 @@ fn test_process_crates_report_only() -> Result<()> {
     let project_root = temp_dir.path().to_path_buf();
 
     // Create a dummy results.json file
-    let dummy_results = vec![
-        FileProcessingResult {
-            path: PathBuf::from("dummy/file.rs"),
-            status: FileProcessingStatus::Success,
-        },
-    ];
+    let dummy_results = vec![FileProcessingResult {
+        path: PathBuf::from("dummy/file.rs"),
+        status: FileProcessingStatus::Success,
+    }];
     let results_json_path = project_root.join("dummy_results.json");
-    fs::write(&results_json_path, serde_json::to_string_pretty(&dummy_results)?)?;
+    fs::write(
+        &results_json_path,
+        serde_json::to_string_pretty(&dummy_results)?,
+    )?;
 
     let args = Args {
         dry_run: false,

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Bootstrap;
 
@@ -47,7 +46,16 @@ impl Step for Bootstrap {
         }
         // bootstrap tests are racy on directory creation so just run them one at a time.
         // Since there's not many this shouldn't be a problem.
-        run_cargo_test(cmd, &["--test-threads=1"], &[], "bootstrap", None, compiler, host, builder);
+        run_cargo_test(
+            cmd,
+            &["--test-threads=1"],
+            &[],
+            "bootstrap",
+            None,
+            compiler,
+            host,
+            builder,
+        );
     }
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {

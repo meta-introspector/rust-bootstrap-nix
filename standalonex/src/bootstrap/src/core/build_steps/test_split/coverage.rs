@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Coverage {
     pub common: common_test_fields::CommonTestFields,
@@ -49,7 +48,9 @@ impl Step for Coverage {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
+        let compiler = run
+            .builder
+            .compiler(run.builder.top_stage, run.build_triple());
 
         run.builder.ensure(Coverage {
             common: common_test_fields::CommonTestFields {
@@ -63,7 +64,17 @@ impl Step for Coverage {
 
     fn run(self, builder: &Builder<'_>) {
         // Run the specified coverage tests (possibly all of them) in both modes.
-        Self::run_coverage_tests(builder, self.common.compiler, self.common.target, CoverageMap::MODE);
-        Self::run_coverage_tests(builder, self.common.compiler, self.common.target, CoverageRun::MODE);
+        Self::run_coverage_tests(
+            builder,
+            self.common.compiler,
+            self.common.target,
+            CoverageMap::MODE,
+        );
+        Self::run_coverage_tests(
+            builder,
+            self.common.compiler,
+            self.common.target,
+            CoverageRun::MODE,
+        );
     }
 }

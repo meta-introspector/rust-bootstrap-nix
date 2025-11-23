@@ -1,22 +1,23 @@
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
+use std::boxed::Box;
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::future::Future;
-use std::boxed::Box;
-use std::fmt::Debug;
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 
 pub mod use_statement_types;
+pub mod rustc_tool_trait;
+pub mod rustc_tools;
 pub use use_statement_types::{
-    GitDetails, GitInfo, GitInfoTrait,
-    NixDetails, NixInfo, NixInfoTrait,
-    RustDetails, RustDetailsInfo, RustDetailsInfoTrait,
-    CargoDetails, CargoInfo, CargoInfoTrait,
-    SynDetails, SynInfo, SynInfoTrait,
-    LlvmDetails, LlvmInfo, LlvmInfoTrait,
-    LinuxDetails, LinuxInfo, LinuxInfoTrait,
+    CargoDetails, CargoInfo, CargoInfoTrait, GitDetails, GitInfo, GitInfoTrait, LinuxDetails,
+    LinuxInfo, LinuxInfoTrait, LlvmDetails, LlvmInfo, LlvmInfoTrait, NixDetails, NixInfo,
+    NixInfoTrait, RustDetails, RustDetailsInfo, RustDetailsInfoTrait, SynDetails, SynInfo,
+    SynInfoTrait, RustcToolDetails, RustcToolInfo, RustcToolInfoTrait,
 };
+pub use rustc_tool_trait::RustcToolTrait;
+pub use rustc_tools::{dummy_rustc_tool::DummyRustcTool, command_rustc_tool::CommandRustcTool};
 
 #[derive(Debug)]
 pub struct RawFile(pub String, pub String);
@@ -51,6 +52,7 @@ pub struct UseStatement {
     pub syn_details: Option<SynDetails>,
     pub llvm_details: Option<LlvmDetails>,
     pub linux_details: Option<LinuxDetails>,
+    pub rustc_tool_details: Option<RustcToolDetails>,
 }
 
 /// Information about a variable found in the AST

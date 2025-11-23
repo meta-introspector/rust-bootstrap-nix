@@ -1,11 +1,10 @@
 use crate::prelude::*;
 
-
 use std::path::PathBuf;
 
+use crate::core::config::target_selection::TargetSelection;
 use crate::Build;
 use crate::Compiler;
-use crate::core::config::target_selection::TargetSelection;
 
 impl Build {
     /// Root output directory of LLVM for `target`
@@ -81,8 +80,9 @@ impl Build {
                 // On Fedora the system LLVM installs FileCheck in the
                 // llvm subdirectory of the libdir.
                 let llvm_libdir = command(s).arg("--libdir").run_capture_stdout(self).stdout();
-                let lib_filecheck =
-                    Path::new(llvm_libdir.trim()).join("llvm").join(exe("FileCheck", target));
+                let lib_filecheck = Path::new(llvm_libdir.trim())
+                    .join("llvm")
+                    .join(exe("FileCheck", target));
                 if lib_filecheck.exists() {
                     lib_filecheck
                 } else {
@@ -124,7 +124,8 @@ impl Build {
 
     /// Returns the libdir of the snapshot compiler.
     pub fn rustc_snapshot_libdir(&self) -> PathBuf {
-        self.rustc_snapshot_sysroot().join(libdir(self.config.build))
+        self.rustc_snapshot_sysroot()
+            .join(libdir(self.config.build))
     }
 
     /// Returns the sysroot of the snapshot compiler.

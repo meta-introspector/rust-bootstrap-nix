@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CodegenCranelift {
     pub common: common_test_fields::CommonTestFields,
@@ -39,7 +38,11 @@ impl Step for CodegenCranelift {
             return;
         }
 
-        if !builder.config.codegen_backends(run.target).contains(&"cranelift".to_owned()) {
+        if !builder
+            .config
+            .codegen_backends(run.target)
+            .contains(&"cranelift".to_owned())
+        {
             builder.info("cranelift not in rust.codegen-backends. skipping");
             return;
         }
@@ -77,9 +80,11 @@ impl Step for CodegenCranelift {
             );
 
             cargo.current_dir(&builder.src.join("compiler/rustc_codegen_cranelift"));
-            cargo
-                .arg("--manifest-path")
-                .arg(builder.src.join("compiler/rustc_codegen_cranelift/build_system/Cargo.toml"));
+            cargo.arg("--manifest-path").arg(
+                builder
+                    .src
+                    .join("compiler/rustc_codegen_cranelift/build_system/Cargo.toml"),
+            );
             compile::rustc_cargo_env(builder, &mut cargo, target, compiler.stage);
 
             // Avoid incremental cache issues when changing rustc

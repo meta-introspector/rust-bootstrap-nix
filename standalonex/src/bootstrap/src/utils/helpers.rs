@@ -1,11 +1,9 @@
 use crate::prelude::*;
 
-
 /// Various utility functions used throughout bootstrap.
 ///
 /// Simple things like testing the various filesystem operations here and there,
 /// not a lot of interesting happenings here unfortunately.
-
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -24,7 +22,7 @@ pub use crate::utils::shared_helpers::{dylib_path, dylib_path_var};
 #[cfg(test)]
 mod tests;
 
-use crate::utils::exec::{BootstrapCommand, command};
+use crate::utils::exec::{command, BootstrapCommand};
 
 pub fn exe(name: &str, target: TargetSelection) -> String {
     crate::utils::shared_helpers::exe(name, &target.triple)
@@ -32,9 +30,14 @@ pub fn exe(name: &str, target: TargetSelection) -> String {
 
 /// Returns `true` if the file name given looks like a dynamic library.
 pub fn is_dylib(path: &Path) -> bool {
-    path.extension().and_then(|ext| ext.to_str()).map_or(false, |ext| {
-        ext == "dylib" || ext == "so" || ext == "dll" || (ext == "a" && is_aix_shared_archive(path))
-    })
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .map_or(false, |ext| {
+            ext == "dylib"
+                || ext == "so"
+                || ext == "dll"
+                || (ext == "a" && is_aix_shared_archive(path))
+        })
 }
 
 fn is_aix_shared_archive(path: &Path) -> bool {
@@ -63,7 +66,11 @@ pub fn is_debug_info(name: &str) -> bool {
 /// Returns the corresponding relative library directory that the compiler's
 /// dylibs will be found in.
 pub fn libdir(target: TargetSelection) -> &'static str {
-    if target.is_windows() { "bin" } else { "lib" }
+    if target.is_windows() {
+        "bin"
+    } else {
+        "lib"
+    }
 }
 
 /// Adds a list of lookup paths to `cmd`'s dynamic library lookup path.
@@ -88,7 +95,11 @@ pub fn add_link_lib_path(path: Vec<PathBuf>, cmd: &mut BootstrapCommand) {
 /// Returns the environment variable which the link library lookup path
 /// resides in for this platform.
 fn link_lib_path_var() -> &'static str {
-    if cfg!(target_env = "msvc") { "LIB" } else { "LIBRARY_PATH" }
+    if cfg!(target_env = "msvc") {
+        "LIB"
+    } else {
+        "LIBRARY_PATH"
+    }
 }
 
 /// Parses the `link_lib_path_var()` environment variable, returning a list of
@@ -112,7 +123,11 @@ impl Drop for TimeIt {
     fn drop(&mut self) {
         let time = self.1.elapsed();
         if !self.0 {
-            println!("\tfinished in {}.{:03} seconds", time.as_secs(), time.subsec_millis());
+            println!(
+                "\tfinished in {}.{:03} seconds",
+                time.as_secs(),
+                time.subsec_millis()
+            );
         }
     }
 }
@@ -315,7 +330,9 @@ pub fn start_process(cmd: &mut Command) -> impl FnOnce() -> String {
 
 /// Returns the last-modified time for `path`, or zero if it doesn't exist.
 pub fn mtime(path: &Path) -> SystemTime {
-    fs::metadata(path).and_then(|f| f.modified()).unwrap_or(UNIX_EPOCH)
+    fs::metadata(path)
+        .and_then(|f| f.modified())
+        .unwrap_or(UNIX_EPOCH)
 }
 
 /// Returns `true` if `dst` is up to date given that the file or files in `src`
@@ -367,7 +384,10 @@ pub fn get_clang_cl_resource_dir(builder: &Builder<'_>, clang_cl_path: &str) -> 
     // Similar to how LLVM does it, to find clang's library runtime directory:
     // - we ask `clang-cl` to locate the `clang_rt.builtins` lib.
     let mut builtins_locator = command(clang_cl_path);
-    builtins_locator.args(["/clang:-print-libgcc-file-name", "/clang:--rtlib=compiler-rt"]);
+    builtins_locator.args([
+        "/clang:-print-libgcc-file-name",
+        "/clang:--rtlib=compiler-rt",
+    ]);
 
     let clang_rt_builtins = builtins_locator.run_capture_stdout(builder).stdout();
     let clang_rt_builtins = Path::new(clang_rt_builtins.trim());
@@ -378,7 +398,9 @@ pub fn get_clang_cl_resource_dir(builder: &Builder<'_>, clang_cl_path: &str) -> 
 
     // - the profiler runtime will be located in the same directory as the builtins lib, like
     // `$LLVM_DISTRO_ROOT/lib/clang/$LLVM_VERSION/lib/windows`.
-    let clang_rt_dir = clang_rt_builtins.parent().expect("The clang lib folder should exist");
+    let clang_rt_dir = clang_rt_builtins
+        .parent()
+        .expect("The clang lib folder should exist");
     clang_rt_dir.to_path_buf()
 }
 
@@ -404,9 +426,17 @@ fn lld_flag_no_threads(builder: &Builder<'_>, lld_mode: LldMode, is_windows: boo
             }
             _ => true,
         };
-        if newer_version { new_flags } else { old_flags }
+        if newer_version {
+            new_flags
+        } else {
+            old_flags
+        }
     });
-    if is_windows { windows_flag } else { other_flag }
+    if is_windows {
+        windows_flag
+    } else {
+        other_flag
+    }
 }
 
 pub fn dir_is_empty(dir: &Path) -> bool {
@@ -419,7 +449,9 @@ pub fn dir_is_empty(dir: &Path) -> bool {
 /// the "y" part from the string.
 pub fn extract_beta_rev(version: &str) -> Option<String> {
     let parts = version.splitn(2, "-beta.").collect::<Vec<_>>();
-    let count = parts.get(1).and_then(|s| s.find(' ').map(|p| s[..p].to_string()));
+    let count = parts
+        .get(1)
+        .and_then(|s| s.find(' ').map(|p| s[..p].to_string()));
 
     count
 }
@@ -474,7 +506,13 @@ pub fn add_rustdoc_cargo_linker_args(
     let args = linker_args(builder, target, lld_threads);
     let mut flags = cmd
         .get_envs()
-        .find_map(|(k, v)| if k == OsStr::new("RUSTDOCFLAGS") { v } else { None })
+        .find_map(|(k, v)| {
+            if k == OsStr::new("RUSTDOCFLAGS") {
+                v
+            } else {
+                None
+            }
+        })
         .unwrap_or_default()
         .to_os_string();
     for arg in args {
@@ -495,10 +533,13 @@ where
 {
     use std::fmt::Write;
 
-    input.as_ref().iter().fold(String::with_capacity(input.as_ref().len() * 2), |mut acc, &byte| {
-        write!(&mut acc, "{:02x}", byte).expect("Failed to write byte to the hex String.");
-        acc
-    })
+    input.as_ref().iter().fold(
+        String::with_capacity(input.as_ref().len() * 2),
+        |mut acc, &byte| {
+            write!(&mut acc, "{:02x}", byte).expect("Failed to write byte to the hex String.");
+            acc
+        },
+    )
 }
 
 /// Create a `--check-cfg` argument invocation for a given name
@@ -508,7 +549,10 @@ pub fn check_cfg_arg(name: &str, values: Option<&[&str]>) -> String {
     // ',values("tvos","watchos")' or '' (nothing) when there are no values.
     let next = match values {
         Some(values) => {
-            let mut tmp = values.iter().flat_map(|val| [",", "\"", val, "\""]).collect::<String>();
+            let mut tmp = values
+                .iter()
+                .flat_map(|val| [",", "\"", val, "\""])
+                .collect::<String>();
 
             tmp.insert_str(1, "values(");
             tmp.push(')');
@@ -566,7 +610,10 @@ pub struct HashStamp {
 
 impl HashStamp {
     pub fn new(path: PathBuf, hash: Option<&str>) -> Self {
-        HashStamp { path, hash: hash.map(|s| s.as_bytes().to_owned()) }
+        HashStamp {
+            path,
+            hash: hash.map(|s| s.as_bytes().to_owned()),
+        }
     }
 
     pub fn is_done(&self) -> bool {

@@ -2,10 +2,9 @@
 //use crate::subcommand::Subcommand;
 //use crate::DebuginfoLevel;
 
-use crate::TomlConfig;
 use crate::rust::Rust;
+use crate::TomlConfig;
 //use crate::Flags;
-
 
 /// Compares the current Rust options against those in the CI rustc builder and detects any incompatible options.
 /// It does this by destructuring the `Rust` instance to make sure every `Rust` field is covered and not missing.
@@ -15,27 +14,39 @@ pub fn check_incompatible_options_for_ci_rustc(
 ) -> Result<(), String> {
     macro_rules! err {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
-            return
-            Err(format!("ERROR: Setting `rust.{}` is incompatible with `rust.download-rustc`. \
+            if let Some(current) = &$current {
+                if Some(current) != $expected.as_ref() {
+                    return Err(format!(
+                        "ERROR: Setting `rust.{}` is incompatible with `rust.download-rustc`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
-            "None/" } else { "" }, $expected,)); }; };
+                        stringify!($expected).replace("_", "-"),
+                        $current,
+                        if $expected.is_some() { "None/" } else { "" },
+                        $expected,
+                    ));
+                };
+            };
         };
     }
     macro_rules! warn {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
-            println!("WARNING: `rust.{}` has no effect with `rust.download-rustc`. \
+            if let Some(current) = &$current {
+                if Some(current) != $expected.as_ref() {
+                    println!(
+                        "WARNING: `rust.{}` has no effect with `rust.download-rustc`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
-            "None/" } else { "" }, $expected,); }; };
+                        stringify!($expected).replace("_", "-"),
+                        $current,
+                        if $expected.is_some() { "None/" } else { "" },
+                        $expected,
+                    );
+                };
+            };
         };
     }
-    let (Some(current_rust_config), Some(ci_rust_config)) = (
-        current_config_toml.rust,
-        ci_config_toml.rust,
-    ) else {
+    let (Some(current_rust_config), Some(ci_rust_config)) =
+        (current_config_toml.rust, ci_config_toml.rust)
+    else {
         return Ok(());
     };
     let Rust {
@@ -115,10 +126,7 @@ pub fn set<T>(field: &mut T, val: Option<T>) {
 }
 pub fn threads_from_config(v: u32) -> u32 {
     match v {
-        0 => {
-            std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get)
-                as u32
-        }
+        0 => std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get) as u32,
         n => n,
     }
 }

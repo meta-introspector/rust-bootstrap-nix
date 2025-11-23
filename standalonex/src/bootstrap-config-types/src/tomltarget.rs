@@ -1,6 +1,6 @@
-use build_helper::prelude::*;
 use crate::define_config;
 use crate::StringOrBool;
+use build_helper::prelude::*;
 define_config! {
     #[derive(Deserialize)]
     struct TomlTarget {

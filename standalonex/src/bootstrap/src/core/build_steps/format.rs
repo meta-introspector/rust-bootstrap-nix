@@ -1,13 +1,11 @@
 use crate::prelude::*;
 
-
 /// Runs rustfmt on the repository.
-
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Mutex;
 use std::sync::mpsc::SyncSender;
+use std::sync::Mutex;
 
 use build_helper::ci::CiEnv;
 use build_helper::git::get_git_modified_files;
@@ -109,8 +107,11 @@ struct RustfmtConfig {
 // foo/bar/baz" or "skipped 20 untracked files".
 fn print_paths(verb: &str, adjective: Option<&str>, paths: &[String]) {
     let len = paths.len();
-    let adjective =
-        if let Some(adjective) = adjective { format!("{adjective} ") } else { String::new() };
+    let adjective = if let Some(adjective) = adjective {
+        format!("{adjective} ")
+    } else {
+        String::new()
+    };
     if len <= 10 {
         for path in paths {
             println!("fmt: {verb} {adjective}file {path}");
@@ -164,8 +165,11 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
             override_builder.add(&format!("!{ignore}")).expect(&ignore);
         }
     }
-    let git_available =
-        helpers::git(None).allow_failure().arg("--version").run_capture(build).is_success();
+    let git_available = helpers::git(None)
+        .allow_failure()
+        .arg("--version")
+        .run_capture(build)
+        .is_success();
 
     let mut adjective = None;
     if git_available {
@@ -198,7 +202,9 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
                 // have `foo.rs` in the repository root it will also match
                 // against anything like `compiler/rustc_foo/src/foo.rs`,
                 // preventing the latter from being formatted.
-                override_builder.add(&format!("!/{untracked_path}")).expect(&untracked_path);
+                override_builder
+                    .add(&format!("!/{untracked_path}"))
+                    .expect(&untracked_path);
             }
             if !all {
                 adjective = Some("modified");
@@ -237,7 +243,10 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
     assert!(rustfmt_path.exists(), "{}", rustfmt_path.display());
     let src = build.src.clone();
     let (tx, rx): (SyncSender<PathBuf>, _) = std::sync::mpsc::sync_channel(128);
-    let walker = WalkBuilder::new(src.clone()).types(matcher).overrides(override_).build_parallel();
+    let walker = WalkBuilder::new(src.clone())
+        .types(matcher)
+        .overrides(override_)
+        .build_parallel();
 
     // There is a lot of blocking involved in spawning a child process and reading files to format.
     // Spawn more processes than available concurrency to keep the CPU busy.
@@ -250,7 +259,11 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
         while let Ok(path) = rx.recv() {
             // Try getting more paths from the channel to amortize the overhead of spawning
             // processes.
-            let paths: Vec<_> = rx.try_iter().take(63).chain(std::iter::once(path)).collect();
+            let paths: Vec<_> = rx
+                .try_iter()
+                .take(63)
+                .chain(std::iter::once(path))
+                .collect();
 
             let child = rustfmt(&src, &rustfmt_path, paths.as_slice(), check);
             children.push_back(child);
@@ -301,7 +314,11 @@ pub fn format(build: &Builder<'_>, check: bool, all: bool, paths: &[PathBuf]) {
     });
     let mut paths = formatted_paths.into_inner().unwrap();
     paths.sort();
-    print_paths(if check { "checked" } else { "formatted" }, adjective, &paths);
+    print_paths(
+        if check { "checked" } else { "formatted" },
+        adjective,
+        &paths,
+    );
 
     drop(tx);
 

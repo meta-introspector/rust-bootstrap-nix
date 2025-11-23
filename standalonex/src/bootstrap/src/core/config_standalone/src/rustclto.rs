@@ -1,7 +1,5 @@
 use crate::prelude::*;
 
-
-
 /// LTO mode used for compiling rustc itself.
 #[derive(Default, Clone, PartialEq, Debug)]
 pub enum RustcLto {
@@ -15,7 +13,7 @@ pub enum RustcLto {
 impl std::str::FromStr for RustcLto {
     type Err = String;
 
-fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "thin-local" => Ok(RustcLto::ThinLocal),
             "thin" => Ok(RustcLto::Thin),

@@ -3,4 +3,4 @@
 #[macro_use]
 extern crate std;
 #[prelude_import]
-use ::std::prelude::rust_2015::*;
+use std::prelude::rust_2015::*;

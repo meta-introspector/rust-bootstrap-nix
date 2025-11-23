@@ -19,7 +19,7 @@ impl serde::de::Visitor<'_> for OptimizeVisitor {
     where
         E: serde::de::Error,
     {
-        if matches!(value, 0..= 3) {
+        if matches!(value, 0..=3) {
             Ok(RustOptimize::Int(value as u8))
         } else {
             Err(serde::de::Error::custom(format_optimize_error_msg(value)))

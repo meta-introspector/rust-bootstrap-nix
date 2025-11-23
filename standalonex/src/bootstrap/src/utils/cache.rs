@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::any::{Any, TypeId};
 use std::borrow::Borrow;
 use std::cell::RefCell;
@@ -121,7 +120,10 @@ struct TyIntern<T: Clone + Eq> {
 
 impl<T: Hash + Clone + Eq> Default for TyIntern<T> {
     fn default() -> Self {
-        TyIntern { items: Vec::new(), set: Default::default() }
+        TyIntern {
+            items: Vec::new(),
+            set: Default::default(),
+        }
     }
 }
 
@@ -224,7 +226,10 @@ impl Cache {
             .or_insert_with(|| Box::<HashMap<S, S::Output>>::default())
             .downcast_mut::<HashMap<S, S::Output>>()
             .expect("invalid type mapped");
-        assert!(!stepcache.contains_key(&step), "processing {step:?} a second time");
+        assert!(
+            !stepcache.contains_key(&step),
+            "processing {step:?} a second time"
+        );
         stepcache.insert(step, value);
     }
 

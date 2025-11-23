@@ -1,14 +1,13 @@
 use crate::prelude::*;
 
-
 use std::path::Path;
 
-use build_helper::util;
-use build_helper::exit;
-use crate::Build;
 use crate::core::config::Config;
 use crate::utils::channel::GitInfo;
 use crate::utils::helpers::{self, dir_is_empty};
+use crate::Build;
+use build_helper::exit;
+use build_helper::util;
 
 impl Build {
     /// Updates a submodule, and exits with a failure if submodule management

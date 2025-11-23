@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use crate::t;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RemoteCopyLibs {
@@ -31,7 +30,10 @@ impl Step for RemoteCopyLibs {
         // Spawn the emulator and wait for it to come online
         let tool = builder.tool_exe(Tool::RemoteTestClient);
         let mut cmd = command(&tool);
-        cmd.arg("spawn-emulator").arg(target.triple).arg(&server).arg(builder.tempdir());
+        cmd.arg("spawn-emulator")
+            .arg(target.triple)
+            .arg(&server)
+            .arg(builder.tempdir());
         if let Some(rootfs) = builder.qemu_rootfs(target) {
             cmd.arg(rootfs);
         }

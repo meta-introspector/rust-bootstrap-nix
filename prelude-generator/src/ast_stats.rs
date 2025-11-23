@@ -1,5 +1,3 @@
-
-
 pub fn generate_ast_statistics_code(stats: &pipeline_traits::AstStatistics) -> String {
     let mut code = String::new();
     code.push_str("use std::collections::HashMap;\n");
@@ -9,7 +7,10 @@ pub fn generate_ast_statistics_code(stats: &pipeline_traits::AstStatistics) -> S
     code.push_str("pub static AST_STATISTICS: Lazy<AstStatistics> = Lazy::new(|| {\n");
     code.push_str("    let mut node_type_counts = HashMap::new();\n");
     for (node_type, count) in &stats.node_type_counts {
-        code.push_str(&format!("    node_type_counts.insert(\"{}\".to_string(), {});\n", node_type, count));
+        code.push_str(&format!(
+            "    node_type_counts.insert(\"{}\".to_string(), {});\n",
+            node_type, count
+        ));
     }
     code.push_str("\n");
 

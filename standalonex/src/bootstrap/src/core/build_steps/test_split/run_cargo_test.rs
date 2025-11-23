@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Given a `cargo test` subcommand, add the appropriate flags and run it.
 ///
 /// Returns whether the test succeeded.
@@ -15,8 +14,15 @@ fn run_cargo_test<'a>(
     target: TargetSelection,
     builder: &Builder<'_>,
 ) -> bool {
-    let mut cargo =
-        prepare_cargo_test(cargo, libtest_args, crates, primary_crate, compiler, target, builder);
+    let mut cargo = prepare_cargo_test(
+        cargo,
+        libtest_args,
+        crates,
+        primary_crate,
+        compiler,
+        target,
+        builder,
+    );
     let _time = helpers::timeit(builder);
     let _group = description.into().and_then(|what| {
         builder.msg_sysroot_tool(Kind::Test, compiler.stage, what, compiler.host, target)

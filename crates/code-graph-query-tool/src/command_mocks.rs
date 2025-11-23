@@ -9,7 +9,10 @@ pub struct MockLsCommand {
 impl CommandLsTrait for MockLsCommand {
     fn execute(&self, args: &[&str]) -> Result<String, String> {
         if let Some(expected) = &self.expected_args {
-            assert_eq!(args.to_vec(), expected.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            assert_eq!(
+                args.to_vec(),
+                expected.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
+            );
         }
         self.mock_output.clone()
     }
@@ -24,7 +27,10 @@ pub struct MockMyLocalScriptCommand {
 impl CommandMyLocalScriptShTrait for MockMyLocalScriptCommand {
     fn execute(&self, args: &[&str]) -> Result<String, String> {
         if let Some(expected) = &self.expected_args {
-            assert_eq!(args.to_vec(), expected.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            assert_eq!(
+                args.to_vec(),
+                expected.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
+            );
         }
         self.mock_output.clone()
     }

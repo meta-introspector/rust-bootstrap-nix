@@ -1,9 +1,7 @@
-use std::collections::HashMap;
 use split_expanded_lib::Declaration;
+use std::collections::HashMap;
 
-pub fn layer_declarations(
-    all_declarations: Vec<Declaration>,
-) -> HashMap<usize, Vec<Declaration>> {
+pub fn layer_declarations(all_declarations: Vec<Declaration>) -> HashMap<usize, Vec<Declaration>> {
     let mut layered_decls: HashMap<usize, Vec<Declaration>> = HashMap::new();
     let mut remaining_decls = all_declarations;
     let mut current_layer_num = 0;
@@ -20,7 +18,11 @@ pub fn layer_declarations(
         // Identify declarations for the current layer
         for decl in remaining_decls.into_iter() {
             let has_unresolved_deps = decl.referenced_types.iter().any(|dep| {
-                !current_layer_idents.contains(dep) && !layered_decls.values().flatten().any(|d| d.get_identifier() == *dep)
+                !current_layer_idents.contains(dep)
+                    && !layered_decls
+                        .values()
+                        .flatten()
+                        .any(|d| d.get_identifier() == *dep)
             });
 
             if !has_unresolved_deps {
@@ -40,7 +42,8 @@ pub fn layer_declarations(
         remaining_decls = next_remaining_decls;
         current_layer_num += 1;
 
-        if current_layer_num > 8 { // Stop at layer 8 as per requirement
+        if current_layer_num > 8 {
+            // Stop at layer 8 as per requirement
             break;
         }
     }

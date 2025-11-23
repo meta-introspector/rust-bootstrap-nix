@@ -86,10 +86,7 @@ impl AppConfig {
         if let Some(output) = args.output.clone() {
             self.output = Some(output);
         }
-        if let Some(rust_bootstrap_nix_flake_ref) = args
-            .rust_bootstrap_nix_flake_ref
-            .clone()
-        {
+        if let Some(rust_bootstrap_nix_flake_ref) = args.rust_bootstrap_nix_flake_ref.clone() {
             self.rust_bootstrap_nix_flake_ref = Some(rust_bootstrap_nix_flake_ref);
         }
         if let Some(rust_src_flake_ref) = args.rust_src_flake_ref.clone() {

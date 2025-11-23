@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TierCheck {
     pub compiler: Compiler,
@@ -17,7 +16,8 @@ impl Step for TierCheck {
 
     fn make_run(run: RunConfig<'_>) {
         let compiler =
-            run.builder.compiler_for(run.builder.top_stage, run.builder.build.build, run.target);
+            run.builder
+                .compiler_for(run.builder.top_stage, run.builder.build.build, run.target);
         run.builder.ensure(TierCheck { compiler });
     }
 

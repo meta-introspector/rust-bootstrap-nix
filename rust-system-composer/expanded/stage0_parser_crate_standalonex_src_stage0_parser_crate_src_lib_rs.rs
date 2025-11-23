@@ -2,9 +2,9 @@
 #![no_std]
 #[macro_use]
 extern crate std;
-#[prelude_import]
-use ::std::prelude::rust_2015::*;
 use crate::prelude::*;
+#[prelude_import]
+use std::prelude::rust_2015::*;
 pub mod prelude {
     pub use std::collections::BTreeMap;
     pub use std::path::Path;
@@ -92,7 +92,9 @@ impl ::core::clone::Clone for Stage0Config {
         Stage0Config {
             dist_server: ::core::clone::Clone::clone(&self.dist_server),
             artifacts_server: ::core::clone::Clone::clone(&self.artifacts_server),
-            artifacts_with_llvm_assertions_server: ::core::clone::Clone::clone(&self.artifacts_with_llvm_assertions_server),
+            artifacts_with_llvm_assertions_server: ::core::clone::Clone::clone(
+                &self.artifacts_with_llvm_assertions_server,
+            ),
             git_merge_commit_email: ::core::clone::Clone::clone(&self.git_merge_commit_email),
             git_repository: ::core::clone::Clone::clone(&self.git_repository),
             nightly_branch: ::core::clone::Clone::clone(&self.nightly_branch),
@@ -100,50 +102,58 @@ impl ::core::clone::Clone for Stage0Config {
     }
 }
 pub fn parse_stage0_file(path: &Path) -> Stage0 {
-    let stage0_content =
-        std::fs::read_to_string(path).expect(&::alloc::__export::must_use({
-                        ::alloc::fmt::format(format_args!("Failed to read stage0 file: {0}",
-                                path.display()))
-                    }));
+    let stage0_content = std::fs::read_to_string(path).expect(&::alloc::__export::must_use({
+        ::alloc::fmt::format(format_args!(
+            "Failed to read stage0 file: {0}",
+            path.display()
+        ))
+    }));
     let mut stage0 = Stage0::default();
     for line in stage0_content.lines() {
         let line = line.trim();
-        if line.is_empty() { continue; }
-        if line.starts_with('#') { continue; }
+        if line.is_empty() {
+            continue;
+        }
+        if line.starts_with('#') {
+            continue;
+        }
         let (key, value) = line.split_once('=').unwrap();
         match key {
             "dist_server" => stage0.config.dist_server = value.to_owned(),
-            "artifacts_server" =>
-                stage0.config.artifacts_server = value.to_owned(),
+            "artifacts_server" => stage0.config.artifacts_server = value.to_owned(),
             "artifacts_with_llvm_assertions_server" => {
-                stage0.config.artifacts_with_llvm_assertions_server =
-                    value.to_owned();
+                stage0.config.artifacts_with_llvm_assertions_server = value.to_owned();
             }
             "git_merge_commit_email" => {
                 stage0.config.git_merge_commit_email = value.to_owned();
             }
-            "git_repository" =>
-                stage0.config.git_repository = value.to_owned(),
-            "nightly_branch" =>
-                stage0.config.nightly_branch = value.to_owned(),
+            "git_repository" => stage0.config.git_repository = value.to_owned(),
+            "nightly_branch" => stage0.config.nightly_branch = value.to_owned(),
             "compiler_date" => stage0.compiler.date = value.to_owned(),
             "compiler_version" => stage0.compiler.version = value.to_owned(),
             "rustfmt_date" => {
-                stage0.rustfmt.get_or_insert(VersionMetadata::default()).date
-                    = value.to_owned();
+                stage0
+                    .rustfmt
+                    .get_or_insert(VersionMetadata::default())
+                    .date = value.to_owned();
             }
             "rustfmt_version" => {
-                stage0.rustfmt.get_or_insert(VersionMetadata::default()).version
-                    = value.to_owned();
+                stage0
+                    .rustfmt
+                    .get_or_insert(VersionMetadata::default())
+                    .version = value.to_owned();
             }
             dist if dist.starts_with("dist") => {
-                stage0.checksums_sha256.insert(key.to_owned(),
-                    value.to_owned());
+                stage0
+                    .checksums_sha256
+                    .insert(key.to_owned(), value.to_owned());
             }
             unsupported => {
                 {
-                    ::std::io::_print(format_args!("\'{0}\' field is not supported.\n",
-                            unsupported));
+                    ::std::io::_print(format_args!(
+                        "\'{0}\' field is not supported.\n",
+                        unsupported
+                    ));
                 };
             }
         }

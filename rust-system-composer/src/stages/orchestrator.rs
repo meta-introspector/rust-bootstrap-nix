@@ -1,10 +1,10 @@
-use anyhow::Result;
-use std::path::Path;
 use crate::cli::{CliArgs, LayeredComposeArgs};
 use crate::config::Config;
 use crate::config_lock::{ConfigLock, StageStatus}; // StageLock is not directly used here
-use crate::stages::Stage;
 use crate::stages::prelude_info_collection::PreludeInfoCollectionStage;
+use crate::stages::Stage;
+use anyhow::Result;
+use std::path::Path;
 
 pub struct StageOrchestrator {
     stages: Vec<Box<dyn Stage>>,
@@ -34,7 +34,10 @@ impl StageOrchestrator {
             // TODO: Implement caching/skipping logic here based on stage_lock and layered_compose_args
 
             if layered_compose_args.generate_lock_only {
-                println!("GENERATE LOCK ONLY: Collecting input hashes for stage: {}", stage.name());
+                println!(
+                    "GENERATE LOCK ONLY: Collecting input hashes for stage: {}",
+                    stage.name()
+                );
                 stage_lock.input_hashes = stage.collect_input_hashes(project_root)?;
                 stage_lock.status = StageStatus::Skipped; // Mark as skipped since it's not fully executed
             } else {

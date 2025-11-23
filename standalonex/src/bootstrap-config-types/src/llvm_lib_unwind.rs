@@ -13,9 +13,9 @@ impl FromStr for LlvmLibunwind {
             "no" => Ok(Self::No),
             "in-tree" => Ok(Self::InTree),
             "system" => Ok(Self::System),
-            invalid => {
-                Err(format!("Invalid value '{invalid}' for rust.llvm-libunwind config."))
-            }
+            invalid => Err(format!(
+                "Invalid value '{invalid}' for rust.llvm-libunwind config."
+            )),
         }
     }
 }

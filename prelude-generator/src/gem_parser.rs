@@ -1,6 +1,6 @@
+use anyhow::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
-use anyhow::Result;
 
 #[derive(Debug, Deserialize)]
 pub struct GemConfig {
@@ -16,9 +16,7 @@ pub struct GemEntry {
 
 impl Default for GemConfig {
     fn default() -> Self {
-        GemConfig {
-            gem: Vec::new(),
-        }
+        GemConfig { gem: Vec::new() }
     }
 }
 

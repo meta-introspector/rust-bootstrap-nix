@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Clippy {
     pub common: common_test_fields::CommonTestFields,
@@ -33,7 +32,11 @@ impl Step for Clippy {
         let host = self.common.host;
         let compiler = self.common.compiler;
 
-        builder.ensure(tool::Clippy { compiler, target: self.common.host, extra_features: Vec::new() });
+        builder.ensure(tool::Clippy {
+            compiler,
+            target: self.common.host,
+            extra_features: Vec::new(),
+        });
         let mut cargo = tool::prepare_tool_cargo(
             builder,
             compiler,
@@ -47,7 +50,9 @@ impl Step for Clippy {
 
         cargo.env("RUSTC_TEST_SUITE", builder.rustc(compiler));
         cargo.env("RUSTC_LIB_PATH", builder.rustc_libdir(compiler));
-        let host_libs = builder.stage_out(compiler, Mode::ToolRustc).join(builder.cargo_dir());
+        let host_libs = builder
+            .stage_out(compiler, Mode::ToolRustc)
+            .join(builder.cargo_dir());
         cargo.env("HOST_LIBS", host_libs);
 
         cargo.add_rustc_lib_path(builder);

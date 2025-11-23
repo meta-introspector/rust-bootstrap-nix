@@ -5,38 +5,40 @@ mod generated_tests {
     #[test]
     fn test_args_default_values() {
         let args = Args::parse_from(&["prelude-generator"]);
-        assert!(! args.dry_run);
+        assert!(!args.dry_run);
         assert_eq!(args.path, PathBuf::from("."));
         assert!(args.exclude_crates.is_empty());
-        assert!(! args.report);
-        assert_eq!(args.results_file, PathBuf::from("prelude_processing_results.json"));
-        assert!(! args.cache_report);
+        assert!(!args.report);
+        assert_eq!(
+            args.results_file,
+            PathBuf::from("prelude_processing_results.json")
+        );
+        assert!(!args.cache_report);
         assert!(args.timeout.is_none());
-        assert!(! args.force);
+        assert!(!args.force);
     }
     #[test]
     fn test_args_custom_values() {
-        let args = Args::parse_from(
-            &[
-                "prelude-generator",
-                "--dry-run",
-                "--path",
-                "/tmp/my_project",
-                "--exclude-crates",
-                "crate1,crate2",
-                "--report",
-                "--results-file",
-                "custom_results.json",
-                "--cache-report",
-                "--timeout",
-                "60",
-                "--force",
-            ],
-        );
+        let args = Args::parse_from(&[
+            "prelude-generator",
+            "--dry-run",
+            "--path",
+            "/tmp/my_project",
+            "--exclude-crates",
+            "crate1,crate2",
+            "--report",
+            "--results-file",
+            "custom_results.json",
+            "--cache-report",
+            "--timeout",
+            "60",
+            "--force",
+        ]);
         assert!(args.dry_run);
         assert_eq!(args.path, PathBuf::from("/tmp/my_project"));
         assert_eq!(
-            args.exclude_crates, vec!["crate1".to_string(), "crate2".to_string()]
+            args.exclude_crates,
+            vec!["crate1".to_string(), "crate2".to_string()]
         );
         assert!(args.report);
         assert_eq!(args.results_file, PathBuf::from("custom_results.json"));
@@ -55,7 +57,7 @@ mod generated_tests {
         let content = fs::read_to_string(&report_path)?;
         assert!(content.contains("# Prelude Generation Summary Report"));
         assert!(content.contains("- Total files processed: 0"));
-        assert!(! content.contains("## Detailed Results"));
+        assert!(!content.contains("## Detailed Results"));
         std::env::set_current_dir(&original_dir)?;
         Ok(())
     }
@@ -65,12 +67,22 @@ mod generated_tests {
         let original_dir = std::env::current_dir()?;
         std::env::set_current_dir(&dir)?;
         let results = vec![
-            FileProcessingResult { path : PathBuf::from("src/file1.rs"), status :
-            FileProcessingStatus::Success, }, FileProcessingResult { path :
-            PathBuf::from("src/file2.rs"), status : FileProcessingStatus::Skipped {
-            reason : "already processed".to_string() }, }, FileProcessingResult { path :
-            PathBuf::from("src/file3.rs"), status : FileProcessingStatus::Failed { error
-            : "syntax error".to_string() }, },
+            FileProcessingResult {
+                path: PathBuf::from("src/file1.rs"),
+                status: FileProcessingStatus::Success,
+            },
+            FileProcessingResult {
+                path: PathBuf::from("src/file2.rs"),
+                status: FileProcessingStatus::Skipped {
+                    reason: "already processed".to_string(),
+                },
+            },
+            FileProcessingResult {
+                path: PathBuf::from("src/file3.rs"),
+                status: FileProcessingStatus::Failed {
+                    error: "syntax error".to_string(),
+                },
+            },
         ];
         generate_report(&results)?;
         let report_path = dir.path().join("prelude_generator_summary.md");
@@ -81,17 +93,11 @@ mod generated_tests {
         assert!(content.contains("- Successfully processed: 1"));
         assert!(content.contains("- Skipped: 1"));
         assert!(content.contains("- Failed: 1"));
+        assert!(content.contains("### src/file1.rs\n- Status: ✅ Successfully Processed"));
         assert!(
-            content.contains("### src/file1.rs\n- Status: ✅ Successfully Processed")
+            content.contains("### src/file2.rs\n- Status: ⏭️ Skipped (Reason: already processed")
         );
-        assert!(
-            content
-            .contains("### src/file2.rs\n- Status: ⏭️ Skipped (Reason: already processed")
-        );
-        assert!(
-            content
-            .contains("### src/file3.rs\n- Status: ❌ Failed (Error: syntax error")
-        );
+        assert!(content.contains("### src/file3.rs\n- Status: ❌ Failed (Error: syntax error"));
         std::env::set_current_dir(&original_dir)?;
         Ok(())
     }
@@ -104,7 +110,7 @@ mod generated_tests {
         generate_prelude(&src_dir, prelude_content, false, false)?;
         let prelude_path = src_dir.join("prelude.rs");
         assert!(prelude_path.exists());
-        assert_eq!(fs::read_to_string(& prelude_path) ?, prelude_content);
+        assert_eq!(fs::read_to_string(&prelude_path)?, prelude_content);
         Ok(())
     }
     #[test]
@@ -115,7 +121,7 @@ mod generated_tests {
         let prelude_content = "// Test prelude content";
         generate_prelude(&src_dir, prelude_content, true, false)?;
         let prelude_path = src_dir.join("prelude.rs");
-        assert!(! prelude_path.exists());
+        assert!(!prelude_path.exists());
         Ok(())
     }
     #[test]
@@ -128,7 +134,7 @@ mod generated_tests {
         let new_prelude_content = "// New prelude content";
         generate_prelude(&src_dir, new_prelude_content, false, true)?;
         assert!(prelude_path.exists());
-        assert_eq!(fs::read_to_string(& prelude_path) ?, new_prelude_content);
+        assert_eq!(fs::read_to_string(&prelude_path)?, new_prelude_content);
         Ok(())
     }
     #[test]
@@ -142,7 +148,7 @@ mod generated_tests {
         let new_prelude_content = "// New prelude content";
         generate_prelude(&src_dir, new_prelude_content, false, false)?;
         assert!(prelude_path.exists());
-        assert_eq!(fs::read_to_string(& prelude_path) ?, original_content);
+        assert_eq!(fs::read_to_string(&prelude_path)?, original_content);
         Ok(())
     }
     #[test]
@@ -156,8 +162,8 @@ mod generated_tests {
         modify_file(&file_path, false, true)?;
         let content = fs::read_to_string(&file_path)?;
         assert!(content.contains("use crate::prelude::*;"));
-        assert!(! content.contains("use std::collections::HashMap;"));
-        assert!(! content.contains("use crate::another_module;"));
+        assert!(!content.contains("use std::collections::HashMap;"));
+        assert!(!content.contains("use crate::another_module;"));
         assert!(content.contains("fn main() {}"));
         Ok(())
     }
@@ -188,11 +194,7 @@ mod generated_tests {
     #[test]
     fn test_modify_file_no_force_no_overwrite() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(
-            &dir,
-            "test_file.rs",
-            "use std::fmt;\nfn some_func() {}\n",
-        );
+        let file_path = setup_test_file(&dir, "test_file.rs", "use std::fmt;\nfn some_func() {}\n");
         let original_content = fs::read_to_string(&file_path)?;
         modify_file(&file_path, false, false)?;
         let content_after_skip = fs::read_to_string(&file_path)?;
@@ -202,15 +204,11 @@ mod generated_tests {
     #[test]
     fn test_modify_file_force_overwrite() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(
-            &dir,
-            "test_file.rs",
-            "use std::fmt;\nfn some_func() {}\n",
-        );
+        let file_path = setup_test_file(&dir, "test_file.rs", "use std::fmt;\nfn some_func() {}\n");
         modify_file(&file_path, false, true)?;
         let first_modified_content = fs::read_to_string(&file_path)?;
         assert!(first_modified_content.contains("use crate::prelude::*;"));
-        assert!(! first_modified_content.contains("use std::fmt;"));
+        assert!(!first_modified_content.contains("use std::fmt;"));
         modify_file(&file_path, false, true)?;
         let second_modified_content = fs::read_to_string(&file_path)?;
         assert_eq!(first_modified_content, second_modified_content);
@@ -238,39 +236,35 @@ mod generated_tests {
         process_crates(&args)?;
         let prelude_path = crate1_path.join("src/prelude.rs");
         assert!(prelude_path.exists());
-        assert!(
-            fs::read_to_string(& prelude_path)
-            ?.contains("// This is a generated prelude file")
-        );
+        assert!(fs::read_to_string(&prelude_path)?.contains("// This is a generated prelude file"));
         let lib_rs_path = crate1_path.join("src/lib.rs");
         let lib_rs_content = fs::read_to_string(&lib_rs_path)?;
         assert!(lib_rs_content.contains("use crate::prelude::*;"));
-        assert!(! lib_rs_content.contains("use std::collections::HashMap;"));
+        assert!(!lib_rs_content.contains("use std::collections::HashMap;"));
         let results_file_content = fs::read_to_string(&args.results_file)?;
-        let results: Vec<FileProcessingResult> = serde_json::from_str(
-            &results_file_content,
-        )?;
+        let results: Vec<FileProcessingResult> = serde_json::from_str(&results_file_content)?;
         assert_eq!(results.len(), 2);
-        assert!(
-            results.iter().any(| r | r.path.ends_with("src/lib.rs") && matches!(r.status,
-            FileProcessingStatus::Success))
-        );
-        assert!(
-            results.iter().any(| r | r.path.ends_with("src/prelude.rs") && matches!(r
-            .status, FileProcessingStatus::Success))
-        );
+        assert!(results
+            .iter()
+            .any(|r| r.path.ends_with("src/lib.rs")
+                && matches!(r.status, FileProcessingStatus::Success)));
+        assert!(results.iter().any(|r| r.path.ends_with("src/prelude.rs")
+            && matches!(r.status, FileProcessingStatus::Success)));
         Ok(())
     }
     #[test]
     fn test_process_crates_report_only() -> Result<()> {
         let temp_dir = tempdir()?;
         let project_root = temp_dir.path().to_path_buf();
-        let dummy_results = vec![
-            FileProcessingResult { path : PathBuf::from("dummy/file.rs"), status :
-            FileProcessingStatus::Success, },
-        ];
+        let dummy_results = vec![FileProcessingResult {
+            path: PathBuf::from("dummy/file.rs"),
+            status: FileProcessingStatus::Success,
+        }];
         let results_json_path = project_root.join("dummy_results.json");
-        fs::write(&results_json_path, serde_json::to_string_pretty(&dummy_results)?)?;
+        fs::write(
+            &results_json_path,
+            serde_json::to_string_pretty(&dummy_results)?,
+        )?;
         let args = Args {
             dry_run: false,
             path: project_root.clone(),
@@ -317,11 +311,7 @@ mod generated_tests {
         let dir = tempdir()?;
         let src_dir = dir.path().join("src");
         fs::create_dir(&src_dir)?;
-        let lib_rs_path = setup_test_file(
-            &dir,
-            "src/lib.rs",
-            "pub mod prelude;\nfn main() {}\n",
-        );
+        let lib_rs_path = setup_test_file(&dir, "src/lib.rs", "pub mod prelude;\nfn main() {}\n");
         let original_content = fs::read_to_string(&lib_rs_path)?;
         modify_crate_root(&src_dir, false, false)?;
         let content = fs::read_to_string(&lib_rs_path)?;
@@ -391,10 +381,8 @@ mod generated_tests {
         )?;
         let tests = extract_test_cases_from_file(&file_path)?;
         assert_eq!(tests.len(), 3);
-        let test_names: HashSet<String> = tests
-            .into_iter()
-            .map(|f| f.sig.ident.to_string())
-            .collect();
+        let test_names: HashSet<String> =
+            tests.into_iter().map(|f| f.sig.ident.to_string()).collect();
         assert!(test_names.contains("my_test_1"));
         assert!(test_names.contains("my_test_2"));
         assert!(test_names.contains("nested_test"));
@@ -434,10 +422,8 @@ mod generated_tests {
         )?;
         let tests = collect_all_test_cases(&crate_root)?;
         assert_eq!(tests.len(), 4);
-        let test_names: HashSet<String> = tests
-            .into_iter()
-            .map(|f| f.sig.ident.to_string())
-            .collect();
+        let test_names: HashSet<String> =
+            tests.into_iter().map(|f| f.sig.ident.to_string()).collect();
         assert!(test_names.contains("lib_test"));
         assert!(test_names.contains("nested_lib_test"));
         assert!(test_names.contains("integration_test"));
@@ -454,10 +440,7 @@ mod generated_tests {
         let test_func2: ItemFn = syn::parse_quote! {
             #[test] async fn generated_test_2() -> Result < () > { Ok(()) }
         };
-        generate_aggregated_test_file(
-            output_path.as_path(),
-            vec![test_func1, test_func2],
-        )?;
+        generate_aggregated_test_file(output_path.as_path(), vec![test_func1, test_func2])?;
         let content = fs::read_to_string(&output_path)?;
         assert!(content.contains("#[cfg(test)]"));
         assert!(content.contains("mod generated_tests {"));

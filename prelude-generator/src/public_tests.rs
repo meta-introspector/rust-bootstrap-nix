@@ -1,19 +1,22 @@
 use super::args::Args;
-use std::path::PathBuf;
 use anyhow::Result;
 use std::fs;
+use std::path::PathBuf;
 //use prelude_collector::{FileProcessingResult, FileProcessingStatus};
-use tempfile::tempdir;
 use super::generate_prelude;
-use clap::Parser;
 use crate::types::{FileProcessingResult, FileProcessingStatus};
+use clap::Parser;
+use tempfile::tempdir;
 pub fn test_args_default_values() {
     let args = Args::parse_from(&["prelude-generator"]);
     assert!(!args.dry_run);
     assert_eq!(args.path, PathBuf::from("."));
     assert!(args.exclude_crates.is_empty());
     assert!(!args.report);
-    assert_eq!(args.results_file, Some(PathBuf::from("prelude_processing_results.json")));
+    assert_eq!(
+        args.results_file,
+        Some(PathBuf::from("prelude_processing_results.json"))
+    );
     assert!(!args.cache_report);
     assert!(args.timeout.is_none());
     assert!(!args.force);
@@ -23,20 +26,30 @@ pub fn test_args_custom_values() {
     let args = Args::parse_from(&[
         "prelude-generator",
         "--dry-run",
-        "--path", "/tmp/my_project",
-        "--exclude-crates", "crate1,crate2",
+        "--path",
+        "/tmp/my_project",
+        "--exclude-crates",
+        "crate1,crate2",
         "--report",
-        "--results-file", "custom_results.json",
+        "--results-file",
+        "custom_results.json",
         "--cache-report",
-        "--timeout", "60",
+        "--timeout",
+        "60",
         "--force",
     ]);
 
     assert!(args.dry_run);
     assert_eq!(args.path, PathBuf::from("/tmp/my_project"));
-    assert_eq!(args.exclude_crates, vec!["crate1".to_string(), "crate2".to_string()]);
+    assert_eq!(
+        args.exclude_crates,
+        vec!["crate1".to_string(), "crate2".to_string()]
+    );
     assert!(args.report);
-    assert_eq!(args.results_file, Some(PathBuf::from("custom_results.json")));
+    assert_eq!(
+        args.results_file,
+        Some(PathBuf::from("custom_results.json"))
+    );
     assert!(args.cache_report);
     assert_eq!(args.timeout, Some(60));
     assert!(args.force);
@@ -72,11 +85,15 @@ pub fn test_generate_report_with_results() -> Result<()> {
         },
         FileProcessingResult {
             path: PathBuf::from("src/file2.rs"),
-            status: FileProcessingStatus::Skipped { reason: "already processed".to_string() },
+            status: FileProcessingStatus::Skipped {
+                reason: "already processed".to_string(),
+            },
         },
         FileProcessingResult {
             path: PathBuf::from("src/file3.rs"),
-            status: FileProcessingStatus::Failed { error: "syntax error".to_string() },
+            status: FileProcessingStatus::Failed {
+                error: "syntax error".to_string(),
+            },
         },
     ];
 

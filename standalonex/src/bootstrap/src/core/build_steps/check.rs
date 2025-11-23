@@ -1,25 +1,21 @@
 use crate::prelude::*;
 
-
 /// Implementation of compiling the compiler and standard library, in "check"-based modes.
-
 use std::path::PathBuf;
 
 //use crate::core::build_steps::compile::{
 //    add_to_sysroot, run_cargo, rustc_cargo, rustc_cargo_env, std_cargo, std_crates_for_run_make,
 //};
-use crate::core::build_steps::tool::{SourceType, prepare_tool_cargo};
+use crate::core::build_steps::tool::{prepare_tool_cargo, SourceType};
 use crate::core::builder::{
-    self, Alias, Builder, Kind, RunConfig, ShouldRun, Step, crate_description,
+    self, crate_description, Alias, Builder, Kind, RunConfig, ShouldRun, Step,
 };
 //use crate::core::config::TargetSelection;
 //use crate::{Compiler, Mode, Subcommand,
-	    //Kind
+//Kind
 //};
 //use crate::core::types::{CheckConfig, Rustc, RustcConfig};
 //use crate::core::build_steps::rustc_step_common::rustc_should_run;
-
-
 
 impl Step for Std<CheckStdConfig> {
     type Output = ();
@@ -32,7 +28,11 @@ impl Step for Std<CheckStdConfig> {
     fn make_run(run: RunConfig<'_>) {
         let crates = std_crates_for_run_make(&run);
         let config = <CheckStdConfig as StdTaskConfig>::default_config(run.builder);
-        run.builder.ensure(Std { target: run.target, crates, config });
+        run.builder.ensure(Std {
+            target: run.target,
+            crates,
+            config,
+        });
     }
 
     fn run(self, builder: &Builder<'_>) {
@@ -79,7 +79,12 @@ impl Step for Std<CheckStdConfig> {
         if compiler.stage == 0 {
             let libdir = builder.sysroot_target_libdir(compiler, target);
             let hostdir = builder.sysroot_target_libdir(compiler, compiler.host);
-            add_to_sysroot(builder, &libdir, &hostdir, &libstd_stamp(builder, compiler, target));
+            add_to_sysroot(
+                builder,
+                &libdir,
+                &hostdir,
+                &libstd_stamp(builder, compiler, target),
+            );
         }
         drop(_guard);
 
@@ -133,8 +138,6 @@ impl Step for Std<CheckStdConfig> {
     }
 }
 
-
-
 impl Rustc<CheckRustcConfig> {
     pub fn new(target: TargetSelection, builder: &Builder<'_>) -> Self {
         Self::new_with_build_kind(target, builder, None)
@@ -150,7 +153,11 @@ impl Rustc<CheckRustcConfig> {
             .into_iter()
             .map(|krate| krate.name.to_string())
             .collect();
-        Rustc { target, crates, config: CheckConfig::new(override_build_kind) }
+        Rustc {
+            target,
+            crates,
+            config: CheckConfig::new(override_build_kind),
+        }
     }
 }
 
@@ -166,7 +173,11 @@ impl Step for Rustc<CheckConfig> {
     fn make_run(run: RunConfig<'_>) {
         let crates = run.make_run_crates(Alias::Compiler);
         let config = <CheckConfig as RustcTaskConfig>::default_config(run.builder);
-        run.builder.ensure(Rustc { target: run.target, crates, config });
+        run.builder.ensure(Rustc {
+            target: run.target,
+            crates,
+            config,
+        });
     }
 
     /// Builds the compiler.
@@ -184,10 +195,18 @@ impl Step for Rustc<CheckConfig> {
             // the sysroot for the compiler to find. Otherwise, we're going to
             // fail when building crates that need to generate code (e.g., build
             // scripts and their dependencies).
-            builder.ensure(crate::core::build_steps::compile::Std::new(compiler, compiler.host));
-            builder.ensure(crate::core::build_steps::compile::Std::new(compiler, target));
+            builder.ensure(crate::core::build_steps::compile::Std::new(
+                compiler,
+                compiler.host,
+            ));
+            builder.ensure(crate::core::build_steps::compile::Std::new(
+                compiler, target,
+            ));
         } else {
-            builder.ensure(Std::new_with_build_kind(target, self.config.override_build_kind));
+            builder.ensure(Std::new_with_build_kind(
+                target,
+                self.config.override_build_kind,
+            ));
         }
 
         let mut cargo = builder::Cargo::new(
@@ -230,7 +249,12 @@ impl Step for Rustc<CheckConfig> {
 
         let libdir = builder.sysroot_target_libdir(compiler, target);
         let hostdir = builder.sysroot_target_libdir(compiler, compiler.host);
-        add_to_sysroot(builder, &libdir, &hostdir, &librustc_stamp(builder, compiler, target));
+        add_to_sysroot(
+            builder,
+            &libdir,
+            &hostdir,
+            &librustc_stamp(builder, compiler, target),
+        );
     }
 }
 
@@ -246,12 +270,18 @@ impl Step for CodegenBackend {
     const DEFAULT: bool = true;
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
-        run.paths(&["compiler/rustc_codegen_cranelift", "compiler/rustc_codegen_gcc"])
+        run.paths(&[
+            "compiler/rustc_codegen_cranelift",
+            "compiler/rustc_codegen_gcc",
+        ])
     }
 
     fn make_run(run: RunConfig<'_>) {
         for &backend in &["cranelift", "gcc"] {
-            run.builder.ensure(CodegenBackend { target: run.target, backend });
+            run.builder.ensure(CodegenBackend {
+                target: run.target,
+                backend,
+            });
         }
     }
 
@@ -275,9 +305,11 @@ impl Step for CodegenBackend {
             builder.kind,
         );
 
-        cargo
-            .arg("--manifest-path")
-            .arg(builder.src.join(format!("compiler/rustc_codegen_{backend}/Cargo.toml")));
+        cargo.arg("--manifest-path").arg(
+            builder
+                .src
+                .join(format!("compiler/rustc_codegen_{backend}/Cargo.toml")),
+        );
         rustc_cargo_env(builder, &mut cargo, target, compiler.stage);
 
         let _guard = builder.msg_check(backend, target);
@@ -307,11 +339,9 @@ impl Step for RustAnalyzer {
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
         let builder = run.builder;
         run.path("src/tools/rust-analyzer").default_condition(
-            builder
-                .config
-                .tools
-                .as_ref()
-                .map_or(true, |tools| tools.iter().any(|tool| tool == "rust-analyzer")),
+            builder.config.tools.as_ref().map_or(true, |tools| {
+                tools.iter().any(|tool| tool == "rust-analyzer")
+            }),
         )
     }
 
@@ -361,7 +391,9 @@ impl Step for RustAnalyzer {
         /// Cargo's output path in a given stage, compiled by a particular
         /// compiler for the specified target.
         fn stamp(builder: &Builder<'_>, compiler: Compiler, target: TargetSelection) -> PathBuf {
-            builder.cargo_out(compiler, Mode::ToolRustc, target).join(".rust-analyzer-check.stamp")
+            builder
+                .cargo_out(compiler, Mode::ToolRustc, target)
+                .join(".rust-analyzer-check.stamp")
         }
     }
 }
@@ -444,14 +476,25 @@ macro_rules! tool_check_step {
     };
 }
 
-tool_check_step!(Rustdoc, "rustdoc", "src/tools/rustdoc", "src/librustdoc", SourceType::InTree);
+tool_check_step!(
+    Rustdoc,
+    "rustdoc",
+    "src/tools/rustdoc",
+    "src/librustdoc",
+    SourceType::InTree
+);
 // Clippy, miri and Rustfmt are hybrids. They are external tools, but use a git subtree instead
 // of a submodule. Since the SourceType only drives the deny-warnings
 // behavior, treat it as in-tree so that any new warnings in clippy will be
 // rejected.
 tool_check_step!(Clippy, "clippy", "src/tools/clippy", SourceType::InTree);
 tool_check_step!(Miri, "miri", "src/tools/miri", SourceType::InTree);
-tool_check_step!(CargoMiri, "cargo-miri", "src/tools/miri/cargo-miri", SourceType::InTree);
+tool_check_step!(
+    CargoMiri,
+    "cargo-miri",
+    "src/tools/miri/cargo-miri",
+    SourceType::InTree
+);
 tool_check_step!(Rls, "rls", "src/tools/rls", SourceType::InTree);
 tool_check_step!(Rustfmt, "rustfmt", "src/tools/rustfmt", SourceType::InTree);
 tool_check_step!(
@@ -467,12 +510,20 @@ tool_check_step!(
     SourceType::InTree
 );
 
-tool_check_step!(Bootstrap, "bootstrap", "src/bootstrap", SourceType::InTree, false);
+tool_check_step!(
+    Bootstrap,
+    "bootstrap",
+    "src/bootstrap",
+    SourceType::InTree,
+    false
+);
 
 /// Cargo's output path for the standard library in a given stage, compiled
 /// by a particular compiler for the specified target.
 fn libstd_stamp(builder: &Builder<'_>, compiler: Compiler, target: TargetSelection) -> PathBuf {
-    builder.cargo_out(compiler, Mode::Std, target).join(".libstd-check.stamp")
+    builder
+        .cargo_out(compiler, Mode::Std, target)
+        .join(".libstd-check.stamp")
 }
 
 /// Cargo's output path for the standard library in a given stage, compiled
@@ -482,13 +533,17 @@ fn libstd_test_stamp(
     compiler: Compiler,
     target: TargetSelection,
 ) -> PathBuf {
-    builder.cargo_out(compiler, Mode::Std, target).join(".libstd-check-test.stamp")
+    builder
+        .cargo_out(compiler, Mode::Std, target)
+        .join(".libstd-check-test.stamp")
 }
 
 /// Cargo's output path for librustc in a given stage, compiled by a particular
 /// compiler for the specified target.
 fn librustc_stamp(builder: &Builder<'_>, compiler: Compiler, target: TargetSelection) -> PathBuf {
-    builder.cargo_out(compiler, Mode::Rustc, target).join(".librustc-check.stamp")
+    builder
+        .cargo_out(compiler, Mode::Rustc, target)
+        .join(".librustc-check.stamp")
 }
 
 /// Cargo's output path for librustc_codegen_llvm in a given stage, compiled by a particular

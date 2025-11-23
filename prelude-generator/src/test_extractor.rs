@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::{Path, PathBuf};
-use syn::{Item};
-use walkdir::WalkDir;
-use std::collections::{HashSet, HashMap};
-use serde::{Serialize, Deserialize};
 use std::os::unix::fs::PermissionsExt;
+use std::path::{Path, PathBuf};
+use syn::Item;
+use walkdir::WalkDir;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Clone)]
 pub struct TestInfo {
@@ -29,7 +29,8 @@ fn extract_test_functions_from_items(items: Vec<Item>, file_path: &Path) -> Vec<
             Item::Mod(module) => {
                 // Recursively check items within the module
                 if let Some((_, module_items)) = module.content {
-                    test_functions.extend(extract_test_functions_from_items(module_items, file_path));
+                    test_functions
+                        .extend(extract_test_functions_from_items(module_items, file_path));
                 }
             }
             _ => {}
@@ -56,7 +57,9 @@ pub fn collect_all_test_cases(repo_root: &Path) -> Result<Vec<TestInfo>> {
     for entry in WalkDir::new(repo_root)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
+        .filter(|e| {
+            e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs")
+        })
     {
         let file_path = entry.path();
         println!("  -> Processing file for tests: {}", file_path.display());
@@ -70,7 +73,11 @@ pub fn collect_all_test_cases(repo_root: &Path) -> Result<Vec<TestInfo>> {
                 }
             }
             Err(e) => {
-                eprintln!("Warning: Could not extract tests from {}: {}", file_path.display(), e);
+                eprintln!(
+                    "Warning: Could not extract tests from {}: {}",
+                    file_path.display(),
+                    e
+                );
             }
         }
     }
@@ -82,15 +89,25 @@ pub fn generate_test_report_json(output_path: &Path, test_functions: Vec<TestInf
     let json_content = serde_json::to_string_pretty(&test_functions)
         .context("Failed to serialize test info to JSON")?;
 
-    fs::write(output_path, json_content)
-        .with_context(|| format!("Failed to write aggregated test report to {}", output_path.display()))?;
+    fs::write(output_path, json_content).with_context(|| {
+        format!(
+            "Failed to write aggregated test report to {}",
+            output_path.display()
+        )
+    })?;
 
-    println!("Aggregated test report generated at: {}", output_path.display());
+    println!(
+        "Aggregated test report generated at: {}",
+        output_path.display()
+    );
     Ok(())
 }
 
 /// Generates a test verification script and a Markdown report.
-pub fn generate_test_verification_script_and_report(output_dir: &Path, test_infos: Vec<TestInfo>) -> Result<()> {
+pub fn generate_test_verification_script_and_report(
+    output_dir: &Path,
+    test_infos: Vec<TestInfo>,
+) -> Result<()> {
     fs::create_dir_all(output_dir)
         .with_context(|| format!("Failed to create output directory {}", output_dir.display()))?;
 
@@ -123,30 +140,47 @@ pub fn generate_test_verification_script_and_report(output_dir: &Path, test_info
     sorted_crate_paths.sort_by(|a, b| a.cmp(b));
 
     for crate_path in sorted_crate_paths {
-        script_content.push_str(&format!("echo \"Running tests in {}...\"\n", crate_path.display()));
+        script_content.push_str(&format!(
+            "echo \"Running tests in {}...\"\n",
+            crate_path.display()
+        ));
         script_content.push_str(&format!("pushd \"{}\"\n", crate_path.display()));
         script_content.push_str("cargo test\n");
         script_content.push_str("popd\n\n");
     }
 
-    fs::write(&script_path, script_content)
-        .with_context(|| format!("Failed to write run_all_tests.sh to {}", script_path.display()))?;
+    fs::write(&script_path, script_content).with_context(|| {
+        format!(
+            "Failed to write run_all_tests.sh to {}",
+            script_path.display()
+        )
+    })?;
 
     // Make the script executable
     let mut perms = fs::metadata(&script_path)?.permissions();
     perms.set_mode(0o755);
     fs::set_permissions(&script_path, perms)?;
 
-    println!("Test verification script generated at: {}", script_path.display());
+    println!(
+        "Test verification script generated at: {}",
+        script_path.display()
+    );
 
     // --- Generate Test_Verification_Report.md ---
     let mut report_content = String::new();
     report_content.push_str("# Test Verification Report\n\n");
-    report_content.push_str("This report summarizes the tests found and provides a script to run them.\n\n");
-    report_content.push_str(&format!("Total unique test functions found: {}\n\n", test_infos.len()));
+    report_content
+        .push_str("This report summarizes the tests found and provides a script to run them.\n\n");
+    report_content.push_str(&format!(
+        "Total unique test functions found: {}\n\n",
+        test_infos.len()
+    ));
 
     report_content.push_str("## How to Run Tests\n");
-    report_content.push_str(&format!("To run all tests, execute the generated script:\n\n```bash\n./{}\n```\n\n", script_path.file_name().unwrap().to_str().unwrap()));
+    report_content.push_str(&format!(
+        "To run all tests, execute the generated script:\n\n```bash\n./{}\n```\n\n",
+        script_path.file_name().unwrap().to_str().unwrap()
+    ));
     report_content.push_str("The script will navigate to each identified Rust crate and run `cargo test` within it.\n\n");
 
     report_content.push_str("## Tests by Crate\n");
@@ -155,7 +189,10 @@ pub fn generate_test_verification_script_and_report(output_dir: &Path, test_info
         let mut current_path = info.file_path.as_path();
         while let Some(parent) = current_path.parent() {
             if parent.join("Cargo.toml").exists() {
-                tests_by_crate.entry(parent.to_path_buf()).or_default().push(info.name);
+                tests_by_crate
+                    .entry(parent.to_path_buf())
+                    .or_default()
+                    .push(info.name);
                 break;
             }
             current_path = parent;
@@ -175,9 +212,16 @@ pub fn generate_test_verification_script_and_report(output_dir: &Path, test_info
         report_content.push_str("\n");
     }
 
-    fs::write(&report_path, report_content)
-        .with_context(|| format!("Failed to write Test_Verification_Report.md to {}", report_path.display()))?;
+    fs::write(&report_path, report_content).with_context(|| {
+        format!(
+            "Failed to write Test_Verification_Report.md to {}",
+            report_path.display()
+        )
+    })?;
 
-    println!("Test verification report generated at: {}", report_path.display());
+    println!(
+        "Test verification report generated at: {}",
+        report_path.display()
+    );
     Ok(())
 }

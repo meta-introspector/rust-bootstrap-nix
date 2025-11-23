@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RustdocGUI {
     pub common: common_test_fields::CommonTestFields,
@@ -27,7 +26,9 @@ impl Step for RustdocGUI {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
+        let compiler = run
+            .builder
+            .compiler(run.builder.top_stage, run.build_triple());
         run.builder.ensure(RustdocGUI {
             common: common_test_fields::CommonTestFields {
                 stage: run.builder.top_stage,

@@ -1,16 +1,16 @@
 #![feature(prelude_import)]
 #[macro_use]
 extern crate std;
-#[prelude_import]
-use std::prelude::rust_2024::*;
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use std::boxed::Box;
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::future::Future;
-use std::boxed::Box;
-use std::fmt::Debug;
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
+#[prelude_import]
+use std::prelude::rust_2024::*;
 pub mod use_statement_types {
     pub mod git_info {
         use std::fmt::Debug;
@@ -57,22 +57,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     GitDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     GitDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    GitDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    GitDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -159,22 +149,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     NixDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     NixDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    NixDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    NixDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -257,22 +237,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     RustDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     RustDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    RustDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    RustDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -358,22 +328,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     CargoDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     CargoDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    CargoDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    CargoDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -452,22 +412,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     SynDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     SynDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    SynDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    SynDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -546,22 +496,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     LlvmDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     LlvmDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    LlvmDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    LlvmDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -640,22 +580,12 @@ pub mod use_statement_types {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     LinuxDetails::Info(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Info",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Info", &__self_0)
                     }
                     LinuxDetails::Error(__self_0) => {
-                        ::core::fmt::Formatter::debug_tuple_field1_finish(
-                            f,
-                            "Error",
-                            &__self_0,
-                        )
+                        ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Error", &__self_0)
                     }
-                    LinuxDetails::Unknown => {
-                        ::core::fmt::Formatter::write_str(f, "Unknown")
-                    }
+                    LinuxDetails::Unknown => ::core::fmt::Formatter::write_str(f, "Unknown"),
                 }
             }
         }
@@ -693,31 +623,26 @@ pub mod use_statement_types {
             }
         }
     }
-    pub use git_info::{GitInfo, GitDetails, GitInfoTrait};
-    pub use nix_info::{NixInfo, NixDetails, NixInfoTrait};
-    pub use rust_details_info::{RustDetailsInfo, RustDetails, RustDetailsInfoTrait};
-    pub use cargo_info::{CargoInfo, CargoDetails, CargoInfoTrait};
-    pub use syn_info::{SynInfo, SynDetails, SynInfoTrait};
-    pub use llvm_info::{LlvmInfo, LlvmDetails, LlvmInfoTrait};
-    pub use linux_info::{LinuxInfo, LinuxDetails, LinuxInfoTrait};
+    pub use cargo_info::{CargoDetails, CargoInfo, CargoInfoTrait};
+    pub use git_info::{GitDetails, GitInfo, GitInfoTrait};
+    pub use linux_info::{LinuxDetails, LinuxInfo, LinuxInfoTrait};
+    pub use llvm_info::{LlvmDetails, LlvmInfo, LlvmInfoTrait};
+    pub use nix_info::{NixDetails, NixInfo, NixInfoTrait};
+    pub use rust_details_info::{RustDetails, RustDetailsInfo, RustDetailsInfoTrait};
+    pub use syn_info::{SynDetails, SynInfo, SynInfoTrait};
 }
 pub use use_statement_types::{
-    GitDetails, GitInfo, GitInfoTrait, NixDetails, NixInfo, NixInfoTrait, RustDetails,
-    RustDetailsInfo, RustDetailsInfoTrait, CargoDetails, CargoInfo, CargoInfoTrait,
-    SynDetails, SynInfo, SynInfoTrait, LlvmDetails, LlvmInfo, LlvmInfoTrait,
-    LinuxDetails, LinuxInfo, LinuxInfoTrait,
+    CargoDetails, CargoInfo, CargoInfoTrait, GitDetails, GitInfo, GitInfoTrait, LinuxDetails,
+    LinuxInfo, LinuxInfoTrait, LlvmDetails, LlvmInfo, LlvmInfoTrait, NixDetails, NixInfo,
+    NixInfoTrait, RustDetails, RustDetailsInfo, RustDetailsInfoTrait, SynDetails, SynInfo,
+    SynInfoTrait,
 };
 pub struct RawFile(pub String, pub String);
 #[automatically_derived]
 impl ::core::fmt::Debug for RawFile {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        ::core::fmt::Formatter::debug_tuple_field2_finish(
-            f,
-            "RawFile",
-            &self.0,
-            &&self.1,
-        )
+        ::core::fmt::Formatter::debug_tuple_field2_finish(f, "RawFile", &self.0, &&self.1)
     }
 }
 pub struct ParsedFile(pub String, pub PathBuf);
@@ -739,10 +664,7 @@ impl ::core::fmt::Debug for UseStatements {
         ::core::fmt::Formatter::debug_tuple_field1_finish(f, "UseStatements", &&self.0)
     }
 }
-pub struct ClassifiedUseStatements(
-    pub Vec<UseStatement>,
-    pub HashMap<String, Vec<String>>,
-);
+pub struct ClassifiedUseStatements(pub Vec<UseStatement>, pub HashMap<String, Vec<String>>);
 #[automatically_derived]
 impl ::core::fmt::Debug for ClassifiedUseStatements {
     #[inline]
@@ -760,12 +682,7 @@ pub struct ValidatedFile(pub String, pub PathBuf);
 impl ::core::fmt::Debug for ValidatedFile {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        ::core::fmt::Formatter::debug_tuple_field2_finish(
-            f,
-            "ValidatedFile",
-            &self.0,
-            &&self.1,
-        )
+        ::core::fmt::Formatter::debug_tuple_field2_finish(f, "ValidatedFile", &self.0, &&self.1)
     }
 }
 #[automatically_derived]
@@ -811,7 +728,7 @@ impl ::core::fmt::Debug for UseStatement {
             "llvm_details",
             "linux_details",
         ];
-        let values: &[&dyn ::core::fmt::Debug] = &[
+        let values: &[&dyn::core::fmt::Debug] = &[
             &self.statement,
             &self.error,
             &self.git_details,
@@ -822,12 +739,7 @@ impl ::core::fmt::Debug for UseStatement {
             &self.llvm_details,
             &&self.linux_details,
         ];
-        ::core::fmt::Formatter::debug_struct_fields_finish(
-            f,
-            "UseStatement",
-            names,
-            values,
-        )
+        ::core::fmt::Formatter::debug_struct_fields_finish(f, "UseStatement", names, values)
     }
 }
 /// Information about a variable found in the AST
@@ -872,7 +784,7 @@ impl ::core::clone::Clone for VariableInfo {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -891,11 +803,7 @@ const _: () = {
                 "VariableInfo",
                 false as usize + 1 + 1 + 1 + 1,
             )?;
-            _serde::ser::SerializeStruct::serialize_field(
-                &mut __serde_state,
-                "name",
-                &self.name,
-            )?;
+            _serde::ser::SerializeStruct::serialize_field(&mut __serde_state, "name", &self.name)?;
             _serde::ser::SerializeStruct::serialize_field(
                 &mut __serde_state,
                 "type_name",
@@ -920,16 +828,14 @@ const _: () = {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de> _serde::Deserialize<'de> for VariableInfo {
-        fn deserialize<__D>(
-            __deserializer: __D,
-        ) -> _serde::__private228::Result<Self, __D::Error>
+        fn deserialize<__D>(__deserializer: __D) -> _serde::__private228::Result<Self, __D::Error>
         where
             __D: _serde::Deserializer<'de>,
         {
@@ -951,10 +857,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "field identifier",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "field identifier")
                 }
                 fn visit_u64<__E>(
                     self,
@@ -1011,10 +914,7 @@ const _: () = {
                 where
                     __D: _serde::Deserializer<'de>,
                 {
-                    _serde::Deserializer::deserialize_identifier(
-                        __deserializer,
-                        __FieldVisitor,
-                    )
+                    _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
             #[doc(hidden)]
@@ -1029,10 +929,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "struct VariableInfo",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "struct VariableInfo")
                 }
                 #[inline]
                 fn visit_seq<__A>(
@@ -1042,56 +939,43 @@ const _: () = {
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let __field0 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field0 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    0usize,
-                                    &"struct VariableInfo with 4 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                0usize,
+                                &"struct VariableInfo with 4 elements",
+                            ));
                         }
                     };
-                    let __field1 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field1 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct VariableInfo with 4 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                1usize,
+                                &"struct VariableInfo with 4 elements",
+                            ));
                         }
                     };
-                    let __field2 = match _serde::de::SeqAccess::next_element::<
-                        bool,
-                    >(&mut __seq)? {
+                    let __field2 = match _serde::de::SeqAccess::next_element::<bool>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    2usize,
-                                    &"struct VariableInfo with 4 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                2usize,
+                                &"struct VariableInfo with 4 elements",
+                            ));
                         }
                     };
-                    let __field3 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field3 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    3usize,
-                                    &"struct VariableInfo with 4 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                3usize,
+                                &"struct VariableInfo with 4 elements",
+                            ));
                         }
                     };
                     _serde::__private228::Ok(VariableInfo {
@@ -1109,13 +993,17 @@ const _: () = {
                 where
                     __A: _serde::de::MapAccess<'de>,
                 {
-                    let mut __field0: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field1: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field2: _serde::__private228::Option<bool> = _serde::__private228::None;
-                    let mut __field3: _serde::__private228::Option<String> = _serde::__private228::None;
-                    while let _serde::__private228::Some(__key) = _serde::de::MapAccess::next_key::<
-                        __Field,
-                    >(&mut __map)? {
+                    let mut __field0: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field1: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field2: _serde::__private228::Option<bool> =
+                        _serde::__private228::None;
+                    let mut __field3: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    while let _serde::__private228::Some(__key) =
+                        _serde::de::MapAccess::next_key::<__Field>(&mut __map)?
+                    {
                         match __key {
                             __Field::__field0 => {
                                 if _serde::__private228::Option::is_some(&__field0) {
@@ -1162,9 +1050,9 @@ const _: () = {
                                 );
                             }
                             _ => {
-                                let _ = _serde::de::MapAccess::next_value::<
-                                    _serde::de::IgnoredAny,
-                                >(&mut __map)?;
+                                let _ = _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
+                                    &mut __map,
+                                )?;
                             }
                         }
                     }
@@ -1201,12 +1089,7 @@ const _: () = {
                 }
             }
             #[doc(hidden)]
-            const FIELDS: &'static [&'static str] = &[
-                "name",
-                "type_name",
-                "is_mutable",
-                "scope",
-            ];
+            const FIELDS: &'static [&'static str] = &["name", "type_name", "is_mutable", "scope"];
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
                 "VariableInfo",
@@ -1244,7 +1127,7 @@ impl ::core::fmt::Debug for FunctionInfo {
             "is_unsafe",
             "is_const",
         ];
-        let values: &[&dyn ::core::fmt::Debug] = &[
+        let values: &[&dyn::core::fmt::Debug] = &[
             &self.name,
             &self.visibility,
             &self.arg_count,
@@ -1254,12 +1137,7 @@ impl ::core::fmt::Debug for FunctionInfo {
             &self.is_unsafe,
             &&self.is_const,
         ];
-        ::core::fmt::Formatter::debug_struct_fields_finish(
-            f,
-            "FunctionInfo",
-            names,
-            values,
-        )
+        ::core::fmt::Formatter::debug_struct_fields_finish(f, "FunctionInfo", names, values)
     }
 }
 #[automatically_derived]
@@ -1283,7 +1161,7 @@ impl ::core::clone::Clone for FunctionInfo {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -1302,11 +1180,7 @@ const _: () = {
                 "FunctionInfo",
                 false as usize + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1,
             )?;
-            _serde::ser::SerializeStruct::serialize_field(
-                &mut __serde_state,
-                "name",
-                &self.name,
-            )?;
+            _serde::ser::SerializeStruct::serialize_field(&mut __serde_state, "name", &self.name)?;
             _serde::ser::SerializeStruct::serialize_field(
                 &mut __serde_state,
                 "visibility",
@@ -1351,16 +1225,14 @@ const _: () = {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de> _serde::Deserialize<'de> for FunctionInfo {
-        fn deserialize<__D>(
-            __deserializer: __D,
-        ) -> _serde::__private228::Result<Self, __D::Error>
+        fn deserialize<__D>(__deserializer: __D) -> _serde::__private228::Result<Self, __D::Error>
         where
             __D: _serde::Deserializer<'de>,
         {
@@ -1386,10 +1258,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "field identifier",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "field identifier")
                 }
                 fn visit_u64<__E>(
                     self,
@@ -1458,10 +1327,7 @@ const _: () = {
                 where
                     __D: _serde::Deserializer<'de>,
                 {
-                    _serde::Deserializer::deserialize_identifier(
-                        __deserializer,
-                        __FieldVisitor,
-                    )
+                    _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
             #[doc(hidden)]
@@ -1476,10 +1342,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "struct FunctionInfo",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "struct FunctionInfo")
                 }
                 #[inline]
                 fn visit_seq<__A>(
@@ -1489,108 +1352,82 @@ const _: () = {
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let __field0 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field0 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    0usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                0usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field1 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field1 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                1usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field2 = match _serde::de::SeqAccess::next_element::<
-                        u32,
-                    >(&mut __seq)? {
+                    let __field2 = match _serde::de::SeqAccess::next_element::<u32>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    2usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                2usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field3 = match _serde::de::SeqAccess::next_element::<
-                        Vec<String>,
-                    >(&mut __seq)? {
+                    let __field3 =
+                        match _serde::de::SeqAccess::next_element::<Vec<String>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        3usize,
+                                        &"struct FunctionInfo with 8 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field4 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    3usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                4usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field4 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field5 = match _serde::de::SeqAccess::next_element::<bool>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    4usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                5usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field5 = match _serde::de::SeqAccess::next_element::<
-                        bool,
-                    >(&mut __seq)? {
+                    let __field6 = match _serde::de::SeqAccess::next_element::<bool>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    5usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                6usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
-                    let __field6 = match _serde::de::SeqAccess::next_element::<
-                        bool,
-                    >(&mut __seq)? {
+                    let __field7 = match _serde::de::SeqAccess::next_element::<bool>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    6usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field7 = match _serde::de::SeqAccess::next_element::<
-                        bool,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    7usize,
-                                    &"struct FunctionInfo with 8 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                7usize,
+                                &"struct FunctionInfo with 8 elements",
+                            ));
                         }
                     };
                     _serde::__private228::Ok(FunctionInfo {
@@ -1612,17 +1449,25 @@ const _: () = {
                 where
                     __A: _serde::de::MapAccess<'de>,
                 {
-                    let mut __field0: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field1: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field2: _serde::__private228::Option<u32> = _serde::__private228::None;
-                    let mut __field3: _serde::__private228::Option<Vec<String>> = _serde::__private228::None;
-                    let mut __field4: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field5: _serde::__private228::Option<bool> = _serde::__private228::None;
-                    let mut __field6: _serde::__private228::Option<bool> = _serde::__private228::None;
-                    let mut __field7: _serde::__private228::Option<bool> = _serde::__private228::None;
-                    while let _serde::__private228::Some(__key) = _serde::de::MapAccess::next_key::<
-                        __Field,
-                    >(&mut __map)? {
+                    let mut __field0: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field1: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field2: _serde::__private228::Option<u32> =
+                        _serde::__private228::None;
+                    let mut __field3: _serde::__private228::Option<Vec<String>> =
+                        _serde::__private228::None;
+                    let mut __field4: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field5: _serde::__private228::Option<bool> =
+                        _serde::__private228::None;
+                    let mut __field6: _serde::__private228::Option<bool> =
+                        _serde::__private228::None;
+                    let mut __field7: _serde::__private228::Option<bool> =
+                        _serde::__private228::None;
+                    while let _serde::__private228::Some(__key) =
+                        _serde::de::MapAccess::next_key::<__Field>(&mut __map)?
+                    {
                         match __key {
                             __Field::__field0 => {
                                 if _serde::__private228::Option::is_some(&__field0) {
@@ -1667,9 +1512,7 @@ const _: () = {
                                     );
                                 }
                                 __field3 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Vec<String>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Vec<String>>(&mut __map)?,
                                 );
                             }
                             __Field::__field4 => {
@@ -1721,9 +1564,9 @@ const _: () = {
                                 );
                             }
                             _ => {
-                                let _ = _serde::de::MapAccess::next_value::<
-                                    _serde::de::IgnoredAny,
-                                >(&mut __map)?;
+                                let _ = _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
+                                    &mut __map,
+                                )?;
                             }
                         }
                     }
@@ -1831,7 +1674,7 @@ impl ::core::fmt::Debug for ImportInfo {
             "git_source_url",
             "git_branch",
         ];
-        let values: &[&dyn ::core::fmt::Debug] = &[
+        let values: &[&dyn::core::fmt::Debug] = &[
             &self.path,
             &self.alias,
             &self.is_external,
@@ -1839,12 +1682,7 @@ impl ::core::fmt::Debug for ImportInfo {
             &self.git_source_url,
             &&self.git_branch,
         ];
-        ::core::fmt::Formatter::debug_struct_fields_finish(
-            f,
-            "ImportInfo",
-            names,
-            values,
-        )
+        ::core::fmt::Formatter::debug_struct_fields_finish(f, "ImportInfo", names, values)
     }
 }
 #[automatically_derived]
@@ -1866,7 +1704,7 @@ impl ::core::clone::Clone for ImportInfo {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -1885,11 +1723,7 @@ const _: () = {
                 "ImportInfo",
                 false as usize + 1 + 1 + 1 + 1 + 1 + 1,
             )?;
-            _serde::ser::SerializeStruct::serialize_field(
-                &mut __serde_state,
-                "path",
-                &self.path,
-            )?;
+            _serde::ser::SerializeStruct::serialize_field(&mut __serde_state, "path", &self.path)?;
             _serde::ser::SerializeStruct::serialize_field(
                 &mut __serde_state,
                 "alias",
@@ -1924,16 +1758,14 @@ const _: () = {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de> _serde::Deserialize<'de> for ImportInfo {
-        fn deserialize<__D>(
-            __deserializer: __D,
-        ) -> _serde::__private228::Result<Self, __D::Error>
+        fn deserialize<__D>(__deserializer: __D) -> _serde::__private228::Result<Self, __D::Error>
         where
             __D: _serde::Deserializer<'de>,
         {
@@ -1957,10 +1789,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "field identifier",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "field identifier")
                 }
                 fn visit_u64<__E>(
                     self,
@@ -2023,10 +1852,7 @@ const _: () = {
                 where
                     __D: _serde::Deserializer<'de>,
                 {
-                    _serde::Deserializer::deserialize_identifier(
-                        __deserializer,
-                        __FieldVisitor,
-                    )
+                    _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
             #[doc(hidden)]
@@ -2041,10 +1867,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "struct ImportInfo",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "struct ImportInfo")
                 }
                 #[inline]
                 fn visit_seq<__A>(
@@ -2054,84 +1877,73 @@ const _: () = {
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let __field0 = match _serde::de::SeqAccess::next_element::<
-                        String,
-                    >(&mut __seq)? {
+                    let __field0 = match _serde::de::SeqAccess::next_element::<String>(&mut __seq)?
+                    {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    0usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                0usize,
+                                &"struct ImportInfo with 6 elements",
+                            ));
                         }
                     };
-                    let __field1 = match _serde::de::SeqAccess::next_element::<
-                        Option<String>,
-                    >(&mut __seq)? {
+                    let __field1 =
+                        match _serde::de::SeqAccess::next_element::<Option<String>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        1usize,
+                                        &"struct ImportInfo with 6 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field2 = match _serde::de::SeqAccess::next_element::<bool>(&mut __seq)? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                2usize,
+                                &"struct ImportInfo with 6 elements",
+                            ));
                         }
                     };
-                    let __field2 = match _serde::de::SeqAccess::next_element::<
-                        bool,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    2usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field3 = match _serde::de::SeqAccess::next_element::<
-                        Option<String>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    3usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field4 = match _serde::de::SeqAccess::next_element::<
-                        Option<String>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    4usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field5 = match _serde::de::SeqAccess::next_element::<
-                        Option<String>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    5usize,
-                                    &"struct ImportInfo with 6 elements",
-                                ),
-                            );
-                        }
-                    };
+                    let __field3 =
+                        match _serde::de::SeqAccess::next_element::<Option<String>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        3usize,
+                                        &"struct ImportInfo with 6 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field4 =
+                        match _serde::de::SeqAccess::next_element::<Option<String>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        4usize,
+                                        &"struct ImportInfo with 6 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field5 =
+                        match _serde::de::SeqAccess::next_element::<Option<String>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        5usize,
+                                        &"struct ImportInfo with 6 elements",
+                                    ),
+                                );
+                            }
+                        };
                     _serde::__private228::Ok(ImportInfo {
                         path: __field0,
                         alias: __field1,
@@ -2149,15 +1961,21 @@ const _: () = {
                 where
                     __A: _serde::de::MapAccess<'de>,
                 {
-                    let mut __field0: _serde::__private228::Option<String> = _serde::__private228::None;
-                    let mut __field1: _serde::__private228::Option<Option<String>> = _serde::__private228::None;
-                    let mut __field2: _serde::__private228::Option<bool> = _serde::__private228::None;
-                    let mut __field3: _serde::__private228::Option<Option<String>> = _serde::__private228::None;
-                    let mut __field4: _serde::__private228::Option<Option<String>> = _serde::__private228::None;
-                    let mut __field5: _serde::__private228::Option<Option<String>> = _serde::__private228::None;
-                    while let _serde::__private228::Some(__key) = _serde::de::MapAccess::next_key::<
-                        __Field,
-                    >(&mut __map)? {
+                    let mut __field0: _serde::__private228::Option<String> =
+                        _serde::__private228::None;
+                    let mut __field1: _serde::__private228::Option<Option<String>> =
+                        _serde::__private228::None;
+                    let mut __field2: _serde::__private228::Option<bool> =
+                        _serde::__private228::None;
+                    let mut __field3: _serde::__private228::Option<Option<String>> =
+                        _serde::__private228::None;
+                    let mut __field4: _serde::__private228::Option<Option<String>> =
+                        _serde::__private228::None;
+                    let mut __field5: _serde::__private228::Option<Option<String>> =
+                        _serde::__private228::None;
+                    while let _serde::__private228::Some(__key) =
+                        _serde::de::MapAccess::next_key::<__Field>(&mut __map)?
+                    {
                         match __key {
                             __Field::__field0 => {
                                 if _serde::__private228::Option::is_some(&__field0) {
@@ -2176,9 +1994,9 @@ const _: () = {
                                     );
                                 }
                                 __field1 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Option<String>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Option<String>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field2 => {
@@ -2202,9 +2020,9 @@ const _: () = {
                                     );
                                 }
                                 __field3 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Option<String>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Option<String>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field4 => {
@@ -2216,9 +2034,9 @@ const _: () = {
                                     );
                                 }
                                 __field4 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Option<String>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Option<String>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field5 => {
@@ -2230,15 +2048,15 @@ const _: () = {
                                     );
                                 }
                                 __field5 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Option<String>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Option<String>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             _ => {
-                                let _ = _serde::de::MapAccess::next_value::<
-                                    _serde::de::IgnoredAny,
-                                >(&mut __map)?;
+                                let _ = _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
+                                    &mut __map,
+                                )?;
                             }
                         }
                     }
@@ -2340,12 +2158,8 @@ impl ::core::clone::Clone for AstStatistics {
     fn clone(&self) -> AstStatistics {
         AstStatistics {
             node_type_counts: ::core::clone::Clone::clone(&self.node_type_counts),
-            variable_declarations: ::core::clone::Clone::clone(
-                &self.variable_declarations,
-            ),
-            function_definitions: ::core::clone::Clone::clone(
-                &self.function_definitions,
-            ),
+            variable_declarations: ::core::clone::Clone::clone(&self.variable_declarations),
+            function_definitions: ::core::clone::Clone::clone(&self.function_definitions),
             import_statements: ::core::clone::Clone::clone(&self.import_statements),
         }
     }
@@ -2355,7 +2169,7 @@ impl ::core::clone::Clone for AstStatistics {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -2403,16 +2217,14 @@ const _: () = {
     non_upper_case_globals,
     unused_attributes,
     unused_qualifications,
-    clippy::absolute_paths,
+    clippy::absolute_paths
 )]
 const _: () = {
     #[allow(unused_extern_crates, clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de> _serde::Deserialize<'de> for AstStatistics {
-        fn deserialize<__D>(
-            __deserializer: __D,
-        ) -> _serde::__private228::Result<Self, __D::Error>
+        fn deserialize<__D>(__deserializer: __D) -> _serde::__private228::Result<Self, __D::Error>
         where
             __D: _serde::Deserializer<'de>,
         {
@@ -2434,10 +2246,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "field identifier",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "field identifier")
                 }
                 fn visit_u64<__E>(
                     self,
@@ -2463,15 +2272,9 @@ const _: () = {
                 {
                     match __value {
                         "node_type_counts" => _serde::__private228::Ok(__Field::__field0),
-                        "variable_declarations" => {
-                            _serde::__private228::Ok(__Field::__field1)
-                        }
-                        "function_definitions" => {
-                            _serde::__private228::Ok(__Field::__field2)
-                        }
-                        "import_statements" => {
-                            _serde::__private228::Ok(__Field::__field3)
-                        }
+                        "variable_declarations" => _serde::__private228::Ok(__Field::__field1),
+                        "function_definitions" => _serde::__private228::Ok(__Field::__field2),
+                        "import_statements" => _serde::__private228::Ok(__Field::__field3),
                         _ => _serde::__private228::Ok(__Field::__ignore),
                     }
                 }
@@ -2483,18 +2286,10 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match __value {
-                        b"node_type_counts" => {
-                            _serde::__private228::Ok(__Field::__field0)
-                        }
-                        b"variable_declarations" => {
-                            _serde::__private228::Ok(__Field::__field1)
-                        }
-                        b"function_definitions" => {
-                            _serde::__private228::Ok(__Field::__field2)
-                        }
-                        b"import_statements" => {
-                            _serde::__private228::Ok(__Field::__field3)
-                        }
+                        b"node_type_counts" => _serde::__private228::Ok(__Field::__field0),
+                        b"variable_declarations" => _serde::__private228::Ok(__Field::__field1),
+                        b"function_definitions" => _serde::__private228::Ok(__Field::__field2),
+                        b"import_statements" => _serde::__private228::Ok(__Field::__field3),
                         _ => _serde::__private228::Ok(__Field::__ignore),
                     }
                 }
@@ -2508,10 +2303,7 @@ const _: () = {
                 where
                     __D: _serde::Deserializer<'de>,
                 {
-                    _serde::Deserializer::deserialize_identifier(
-                        __deserializer,
-                        __FieldVisitor,
-                    )
+                    _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
             #[doc(hidden)]
@@ -2526,10 +2318,7 @@ const _: () = {
                     &self,
                     __formatter: &mut _serde::__private228::Formatter,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
-                        __formatter,
-                        "struct AstStatistics",
-                    )
+                    _serde::__private228::Formatter::write_str(__formatter, "struct AstStatistics")
                 }
                 #[inline]
                 fn visit_seq<__A>(
@@ -2539,58 +2328,55 @@ const _: () = {
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let __field0 = match _serde::de::SeqAccess::next_element::<
-                        HashMap<String, u32>,
-                    >(&mut __seq)? {
+                    let __field0 = match _serde::de::SeqAccess::next_element::<HashMap<String, u32>>(
+                        &mut __seq,
+                    )? {
                         _serde::__private228::Some(__value) => __value,
                         _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    0usize,
-                                    &"struct AstStatistics with 4 elements",
-                                ),
-                            );
+                            return _serde::__private228::Err(_serde::de::Error::invalid_length(
+                                0usize,
+                                &"struct AstStatistics with 4 elements",
+                            ));
                         }
                     };
-                    let __field1 = match _serde::de::SeqAccess::next_element::<
-                        Vec<VariableInfo>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct AstStatistics with 4 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field2 = match _serde::de::SeqAccess::next_element::<
-                        Vec<FunctionInfo>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    2usize,
-                                    &"struct AstStatistics with 4 elements",
-                                ),
-                            );
-                        }
-                    };
-                    let __field3 = match _serde::de::SeqAccess::next_element::<
-                        Vec<ImportInfo>,
-                    >(&mut __seq)? {
-                        _serde::__private228::Some(__value) => __value,
-                        _serde::__private228::None => {
-                            return _serde::__private228::Err(
-                                _serde::de::Error::invalid_length(
-                                    3usize,
-                                    &"struct AstStatistics with 4 elements",
-                                ),
-                            );
-                        }
-                    };
+                    let __field1 =
+                        match _serde::de::SeqAccess::next_element::<Vec<VariableInfo>>(&mut __seq)?
+                        {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        1usize,
+                                        &"struct AstStatistics with 4 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field2 =
+                        match _serde::de::SeqAccess::next_element::<Vec<FunctionInfo>>(&mut __seq)?
+                        {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        2usize,
+                                        &"struct AstStatistics with 4 elements",
+                                    ),
+                                );
+                            }
+                        };
+                    let __field3 =
+                        match _serde::de::SeqAccess::next_element::<Vec<ImportInfo>>(&mut __seq)? {
+                            _serde::__private228::Some(__value) => __value,
+                            _serde::__private228::None => {
+                                return _serde::__private228::Err(
+                                    _serde::de::Error::invalid_length(
+                                        3usize,
+                                        &"struct AstStatistics with 4 elements",
+                                    ),
+                                );
+                            }
+                        };
                     _serde::__private228::Ok(AstStatistics {
                         node_type_counts: __field0,
                         variable_declarations: __field1,
@@ -2606,15 +2392,17 @@ const _: () = {
                 where
                     __A: _serde::de::MapAccess<'de>,
                 {
-                    let mut __field0: _serde::__private228::Option<
-                        HashMap<String, u32>,
-                    > = _serde::__private228::None;
-                    let mut __field1: _serde::__private228::Option<Vec<VariableInfo>> = _serde::__private228::None;
-                    let mut __field2: _serde::__private228::Option<Vec<FunctionInfo>> = _serde::__private228::None;
-                    let mut __field3: _serde::__private228::Option<Vec<ImportInfo>> = _serde::__private228::None;
-                    while let _serde::__private228::Some(__key) = _serde::de::MapAccess::next_key::<
-                        __Field,
-                    >(&mut __map)? {
+                    let mut __field0: _serde::__private228::Option<HashMap<String, u32>> =
+                        _serde::__private228::None;
+                    let mut __field1: _serde::__private228::Option<Vec<VariableInfo>> =
+                        _serde::__private228::None;
+                    let mut __field2: _serde::__private228::Option<Vec<FunctionInfo>> =
+                        _serde::__private228::None;
+                    let mut __field3: _serde::__private228::Option<Vec<ImportInfo>> =
+                        _serde::__private228::None;
+                    while let _serde::__private228::Some(__key) =
+                        _serde::de::MapAccess::next_key::<__Field>(&mut __map)?
+                    {
                         match __key {
                             __Field::__field0 => {
                                 if _serde::__private228::Option::is_some(&__field0) {
@@ -2625,9 +2413,9 @@ const _: () = {
                                     );
                                 }
                                 __field0 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        HashMap<String, u32>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<HashMap<String, u32>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field1 => {
@@ -2639,9 +2427,9 @@ const _: () = {
                                     );
                                 }
                                 __field1 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Vec<VariableInfo>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Vec<VariableInfo>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field2 => {
@@ -2653,9 +2441,9 @@ const _: () = {
                                     );
                                 }
                                 __field2 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Vec<FunctionInfo>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Vec<FunctionInfo>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             __Field::__field3 => {
@@ -2667,15 +2455,15 @@ const _: () = {
                                     );
                                 }
                                 __field3 = _serde::__private228::Some(
-                                    _serde::de::MapAccess::next_value::<
-                                        Vec<ImportInfo>,
-                                    >(&mut __map)?,
+                                    _serde::de::MapAccess::next_value::<Vec<ImportInfo>>(
+                                        &mut __map,
+                                    )?,
                                 );
                             }
                             _ => {
-                                let _ = _serde::de::MapAccess::next_value::<
-                                    _serde::de::IgnoredAny,
-                                >(&mut __map)?;
+                                let _ = _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
+                                    &mut __map,
+                                )?;
                             }
                         }
                     }
@@ -2688,17 +2476,13 @@ const _: () = {
                     let __field1 = match __field1 {
                         _serde::__private228::Some(__field1) => __field1,
                         _serde::__private228::None => {
-                            _serde::__private228::de::missing_field(
-                                "variable_declarations",
-                            )?
+                            _serde::__private228::de::missing_field("variable_declarations")?
                         }
                     };
                     let __field2 = match __field2 {
                         _serde::__private228::Some(__field2) => __field2,
                         _serde::__private228::None => {
-                            _serde::__private228::de::missing_field(
-                                "function_definitions",
-                            )?
+                            _serde::__private228::de::missing_field("function_definitions")?
                         }
                     };
                     let __field3 = match __field3 {

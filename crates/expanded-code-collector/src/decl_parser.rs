@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DeclarationType {
@@ -39,7 +39,13 @@ pub struct Declaration {
 }
 
 // Placeholder for parse_declarations_full function
-pub fn parse_declarations_full(_code: &str) -> (Vec<Declaration>, HashMap<DeclarationType, usize>, HashMap<String, TypeUsage>, HashMap<(DeclarationType, String), Vec<String>>) {
+pub fn parse_declarations_full(
+    _code: &str,
+) -> (
+    Vec<Declaration>,
+    HashMap<DeclarationType, usize>,
+    HashMap<String, TypeUsage>,
+    HashMap<(DeclarationType, String), Vec<String>>,
+) {
     (Vec::new(), HashMap::new(), HashMap::new(), HashMap::new())
 }
-

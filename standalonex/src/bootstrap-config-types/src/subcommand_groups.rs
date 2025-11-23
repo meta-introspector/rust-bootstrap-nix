@@ -1,7 +1,10 @@
 use build_helper::prelude::*;
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum QaTool {
-    Check { #[arg(long)] all_targets: bool },
+    Check {
+        #[arg(long)]
+        all_targets: bool,
+    },
     Clippy {
         #[arg(long)]
         fix: bool,
@@ -39,7 +42,12 @@ pub enum QaTool {
         forbid: Vec<String>,
     },
     Fix,
-    Format { #[arg(long)] check: bool, #[arg(long)] all: bool },
+    Format {
+        #[arg(long)]
+        check: bool,
+        #[arg(long)]
+        all: bool,
+    },
     Test {
         #[arg(long)]
         no_fail_fast: bool,
@@ -70,14 +78,25 @@ pub enum QaTool {
         #[arg(long)]
         doc: bool,
     },
-    Bench { #[arg(long, allow_hyphen_values(true))] test_args: Vec<String> },
-    Suggest { #[arg(long)] run: bool },
+    Bench {
+        #[arg(long, allow_hyphen_values(true))]
+        test_args: Vec<String>,
+    },
+    Suggest {
+        #[arg(long)]
+        run: bool,
+    },
     Perf,
 }
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum BuildTool {
     Build,
-    Doc { #[arg(long)] open: bool, #[arg(long)] json: bool },
+    Doc {
+        #[arg(long)]
+        open: bool,
+        #[arg(long)]
+        json: bool,
+    },
 }
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum DistTool {
@@ -86,8 +105,24 @@ pub enum DistTool {
 }
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum MiscTool {
-    Clean { #[arg(long)] all: bool, #[arg(long, value_name = "N")] stage: Option<u32> },
-    Run { #[arg(long, allow_hyphen_values(true))] args: Vec<String> },
-    Setup { #[arg(value_name = "<PROFILE>|hook|editor|link")] profile: Option<PathBuf> },
-    Vendor { #[arg(long)] sync: Vec<PathBuf>, #[arg(long)] versioned_dirs: bool },
+    Clean {
+        #[arg(long)]
+        all: bool,
+        #[arg(long, value_name = "N")]
+        stage: Option<u32>,
+    },
+    Run {
+        #[arg(long, allow_hyphen_values(true))]
+        args: Vec<String>,
+    },
+    Setup {
+        #[arg(value_name = "<PROFILE>|hook|editor|link")]
+        profile: Option<PathBuf>,
+    },
+    Vendor {
+        #[arg(long)]
+        sync: Vec<PathBuf>,
+        #[arg(long)]
+        versioned_dirs: bool,
+    },
 }

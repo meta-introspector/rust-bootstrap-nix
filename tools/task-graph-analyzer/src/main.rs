@@ -1,9 +1,9 @@
+use petgraph::algo::toposort;
+use petgraph::graph::{DiGraph, NodeIndex};
 use serde::Deserialize;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::collections::{HashMap, HashSet};
-use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::algo::toposort;
 
 #[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
@@ -34,10 +34,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let file_name = path.file_name().unwrap().to_string_lossy().to_string();
 
             // Skip the original plan files (which are not individual tasks)
-            if file_name == "01_flake_lattice_plan.toml" || 
-               file_name == "03_project_analysis_plan.toml" ||
-               file_name == "02_current_development_plan.toml" ||
-               file_name == "04_qa_plan.toml" {
+            if file_name == "01_flake_lattice_plan.toml"
+                || file_name == "03_project_analysis_plan.toml"
+                || file_name == "02_current_development_plan.toml"
+                || file_name == "04_qa_plan.toml"
+            {
                 continue;
             }
             task_file_paths.push(path);
@@ -65,14 +66,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "02_current_development_plan.toml".to_string(),
         "04_qa_plan.toml".to_string(),
         "docs/QA_Plan.md".to_string(), // Added this line
-    ].iter().cloned().collect();
+    ]
+    .iter()
+    .cloned()
+    .collect();
 
     // Validate parent_task references
     let mut unresolved_parents = Vec::new();
     for (task_id, task) in &tasks {
         if let Some(parent) = &task.parent_task {
             if !all_task_ids.contains(parent) && !recognized_virtual_nodes.contains(parent) {
-                unresolved_parents.push(format!("Task '{}' references unresolved parent: '{}'", task_id, parent));
+                unresolved_parents.push(format!(
+                    "Task '{}' references unresolved parent: '{}'",
+                    task_id, parent
+                ));
             }
         }
     }
@@ -132,10 +139,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let output_path = Path::new("taskorder.toml");
             fs::write(output_path, topological_order_content)?;
             println!("Topological order written to taskorder.toml");
-        },
+        }
         Err(cycle) => {
             eprintln!("Error: Cycle detected in task dependencies. Topological sort not possible.");
-            eprintln!("Node in cycle: {}", graph.node_weight(cycle.node_id()).unwrap());
+            eprintln!(
+                "Node in cycle: {}",
+                graph.node_weight(cycle.node_id()).unwrap()
+            );
         }
     }
 

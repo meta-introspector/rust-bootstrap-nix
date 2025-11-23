@@ -4,7 +4,38 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+cargo-submodule-tool-lib = { workspace = true, optional = true }
+toml_edit = { version = "*", optional = true }
+clap = { version = "*", optional = true }
+cargo-repo-sync-lib = { workspace = true, optional = true }
+git2 = { version = "*", optional = true }
+hex = { version = "*", optional = true }
+cargo_metadata = { workspace = true, optional = true }
+sha1 = { version = "*", optional = true }
+anyhow = { version = "*", optional = true }
+pathdiff = { version = "*", optional = true }
+serde = { version = "*", optional = true }
+walkdir = { version = "*", optional = true }
+git-wrapper-lib = { workspace = true, optional = true }
 serde_json = "1.0"
 tempfile = "3.10.1"
 syn = { version = "2.0", features = ["full"] }
 quote = "1.0"
+
+[features]
+cargo_submodule_tool_lib_enabled = ["dep:cargo-submodule-tool-lib"]
+syn_enabled = ["dep:syn"]
+toml_edit_enabled = ["dep:toml_edit"]
+clap_enabled = ["dep:clap"]
+cargo_repo_sync_lib_enabled = ["dep:cargo-repo-sync-lib"]
+git2_enabled = ["dep:git2"]
+hex_enabled = ["dep:hex"]
+cargo_metadata_enabled = ["dep:cargo_metadata"]
+sha1_enabled = ["dep:sha1"]
+anyhow_enabled = ["dep:anyhow"]
+pathdiff_enabled = ["dep:pathdiff"]
+serde_enabled = ["dep:serde"]
+serde_json_enabled = ["dep:serde_json"]
+walkdir_enabled = ["dep:walkdir"]
+git_wrapper_lib_enabled = ["dep:git-wrapper-lib"]
+

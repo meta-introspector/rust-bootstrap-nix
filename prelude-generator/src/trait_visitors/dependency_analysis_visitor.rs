@@ -1,8 +1,12 @@
-use syn::{ItemFn, ItemStruct, ItemEnum, ItemTrait, ItemType, ItemUnion, ItemConst, ItemStatic, ItemMacro, ItemMod, Signature, Block, Fields, Attribute, ReturnType, FnArg, Variant, TraitItem, Expr}; // Added Expr
-use syn::visit::Visit;
-use std::collections::HashSet;
+use crate::trait_visitors::type_collector_visitor::TypeCollectorVisitor;
 use crate::trait_visitors::vernacular_walk::VernacularWalk;
-use crate::trait_visitors::type_collector_visitor::TypeCollectorVisitor; // Added // Added
+use std::collections::HashSet;
+use syn::visit::Visit;
+use syn::{
+    Attribute, Block, Expr, Fields, FnArg, ItemConst, ItemEnum, ItemFn, ItemMacro, ItemMod,
+    ItemStatic, ItemStruct, ItemTrait, ItemType, ItemUnion, ReturnType, Signature, TraitItem,
+    Variant,
+}; // Added Expr // Added // Added
 
 #[derive(Debug, Default)]
 pub struct DependencyAnalysisVisitor {
@@ -80,7 +84,8 @@ impl<'ast> Visit<'ast> for DependencyAnalysisVisitor {
         self.walk_item_enum(i);
     }
 
-    fn visit_variant(&mut self, i: &'ast Variant) { // Added
+    fn visit_variant(&mut self, i: &'ast Variant) {
+        // Added
         self.visit_fields(&i.fields);
         for attr in &i.attrs {
             self.visit_attribute(attr);
@@ -100,7 +105,8 @@ impl<'ast> Visit<'ast> for DependencyAnalysisVisitor {
         self.walk_item_trait(i);
     }
 
-    fn visit_trait_item(&mut self, i: &'ast TraitItem) { // Added
+    fn visit_trait_item(&mut self, i: &'ast TraitItem) {
+        // Added
         self.walk_trait_item(i);
     }
 
@@ -145,12 +151,18 @@ impl<'ast> Visit<'ast> for DependencyAnalysisVisitor {
         self.walk_item_static(i);
     }
 
-    fn visit_expr(&mut self, i: &'ast Expr) { // Added
+    fn visit_expr(&mut self, i: &'ast Expr) {
+        // Added
         self.walk_expr(i);
     }
 
     fn visit_item_macro(&mut self, i: &'ast ItemMacro) {
-        println!("Visiting macro: {}", i.ident.as_ref().map_or("unnamed macro".to_string(), |ident| ident.to_string()));
+        println!(
+            "Visiting macro: {}",
+            i.ident
+                .as_ref()
+                .map_or("unnamed macro".to_string(), |ident| ident.to_string())
+        );
         if let Some(ident) = i.ident.as_ref() {
             self.dependencies.insert(ident.to_string());
         }
@@ -235,26 +247,32 @@ impl<'ast> VernacularWalk<'ast> for DependencyAnalysisVisitor {
     fn walk_type(&mut self, i: &'ast syn::Type) {
         syn::visit::visit_type(self, i);
     }
-    fn walk_bare_fn(&mut self, i: &'ast syn::TypeBareFn) { // Added
+    fn walk_bare_fn(&mut self, i: &'ast syn::TypeBareFn) {
+        // Added
         syn::visit::visit_type_bare_fn(self, i);
     }
-    fn walk_macro(&mut self, i: &'ast syn::Macro) { // Added
+    fn walk_macro(&mut self, i: &'ast syn::Macro) {
+        // Added
         syn::visit::visit_macro(self, i);
     }
-    fn walk_type_path(&mut self, i: &'ast syn::TypePath) { // Added
+    fn walk_type_path(&mut self, i: &'ast syn::TypePath) {
+        // Added
         syn::visit::visit_type_path(self, i);
     }
-    fn walk_type_param_bound(&mut self, i: &'ast syn::TypeParamBound) { // Added
+    fn walk_type_param_bound(&mut self, i: &'ast syn::TypeParamBound) {
+        // Added
         syn::visit::visit_type_param_bound(self, i);
     }
-    fn walk_variant(&mut self, i: &'ast syn::Variant) { // Added
+    fn walk_variant(&mut self, i: &'ast syn::Variant) {
+        // Added
         syn::visit::visit_variant(self, i);
     }
-    fn walk_trait_item(&mut self, i: &'ast syn::TraitItem) { // Added
+    fn walk_trait_item(&mut self, i: &'ast syn::TraitItem) {
+        // Added
         syn::visit::visit_trait_item(self, i);
     }
-    fn walk_expr(&mut self, i: &'ast syn::Expr) { // Added
+    fn walk_expr(&mut self, i: &'ast syn::Expr) {
+        // Added
         syn::visit::visit_expr(self, i);
     }
 }
-

@@ -84,7 +84,10 @@ pub(crate) fn check_incompatible_options_for_ci_llvm(
     err!(current_llvm_config.release_debuginfo, release_debuginfo);
     err!(current_llvm_config.libzstd, libzstd);
     err!(current_llvm_config.targets, targets);
-    err!(current_llvm_config.experimental_targets, experimental_targets);
+    err!(
+        current_llvm_config.experimental_targets,
+        experimental_targets
+    );
     err!(current_llvm_config.clang_cl, clang_cl);
     err!(current_llvm_config.version_suffix, version_suffix);
     err!(current_llvm_config.cflags, cflags);
@@ -104,4 +107,3 @@ pub(crate) fn check_incompatible_options_for_ci_llvm(
 
     Ok(())
 }
-

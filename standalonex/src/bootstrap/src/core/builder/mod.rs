@@ -1,7 +1,7 @@
 use crate::prelude::*;
 mod cargo;
 
-use std::any::{Any, type_name};
+use std::any::{type_name, Any};
 use std::cell::{Cell, RefCell};
 use std::collections::BTreeSet;
 use std::fmt::{Debug, Write};
@@ -25,8 +25,8 @@ use crate::core::build_steps::{
 
 //use crate::core::config::{DryRun, TargetSelection};
 use crate::utils::cache::Cache;
-use crate::utils::exec::{BootstrapCommand, command};
-use crate::utils::helpers::{self, LldThreads, add_dylib_path, exe, libdir, linker_args, t};
+use crate::utils::exec::{command, BootstrapCommand};
+use crate::utils::helpers::{self, add_dylib_path, exe, libdir, linker_args, t, LldThreads};
 use crate::{BuildConfig, Crate};
 
 #[cfg(test)]
@@ -150,8 +150,10 @@ impl RunConfig<'_> {
     /// But it's possible (although strange) to pass something like `library std core`.
     /// Build all crates anyway, as if they hadn't passed the other args.
     pub fn make_run_crates(&self, alias: Alias) -> Vec<String> {
-        let has_alias =
-            self.paths.iter().any(|set| set.assert_single_path().path.ends_with(alias.as_str()));
+        let has_alias = self
+            .paths
+            .iter()
+            .any(|set| set.assert_single_path().path.ends_with(alias.as_str()));
         if !has_alias {
             return self.cargo_crates_in_set();
         }
@@ -161,7 +163,10 @@ impl RunConfig<'_> {
             Alias::Compiler => self.builder.in_tree_crates("rustc-main", Some(self.target)),
         };
 
-        crates.into_iter().map(|krate| krate.name.to_string()).collect()
+        crates
+            .into_iter()
+            .map(|krate| krate.name.to_string())
+            .collect()
     }
 }
 
@@ -252,7 +257,10 @@ impl PathSet {
 
     fn one<P: Into<PathBuf>>(path: P, kind: Kind) -> PathSet {
         let mut set = BTreeSet::new();
-        set.insert(TaskPath { path: path.into(), kind: Some(kind) });
+        set.insert(TaskPath {
+            path: path.into(),
+            kind: Some(kind),
+        });
         PathSet::Set(set)
     }
 
@@ -319,37 +327,46 @@ impl PathSet {
 const PATH_REMAP: &[(&str, &[&str])] = &[
     // config.toml uses `rust-analyzer-proc-macro-srv`, but the
     // actual path is `proc-macro-srv-cli`
-    ("rust-analyzer-proc-macro-srv", &["src/tools/rust-analyzer/crates/proc-macro-srv-cli"]),
+    (
+        "rust-analyzer-proc-macro-srv",
+        &["src/tools/rust-analyzer/crates/proc-macro-srv-cli"],
+    ),
     // Make `x test tests` function the same as `x t tests/*`
-    ("tests", &[
-        // tidy-alphabetical-start
-        "tests/assembly",
-        "tests/codegen",
-        "tests/codegen-units",
-        "tests/coverage",
-        "tests/coverage-run-rustdoc",
-        "tests/crashes",
-        "tests/debuginfo",
-        "tests/incremental",
-        "tests/mir-opt",
-        "tests/pretty",
-        "tests/run-make",
-        "tests/rustdoc",
-        "tests/rustdoc-gui",
-        "tests/rustdoc-js",
-        "tests/rustdoc-js-std",
-        "tests/rustdoc-json",
-        "tests/rustdoc-ui",
-        "tests/ui",
-        "tests/ui-fulldeps",
-        // tidy-alphabetical-end
-    ]),
+    (
+        "tests",
+        &[
+            // tidy-alphabetical-start
+            "tests/assembly",
+            "tests/codegen",
+            "tests/codegen-units",
+            "tests/coverage",
+            "tests/coverage-run-rustdoc",
+            "tests/crashes",
+            "tests/debuginfo",
+            "tests/incremental",
+            "tests/mir-opt",
+            "tests/pretty",
+            "tests/run-make",
+            "tests/rustdoc",
+            "tests/rustdoc-gui",
+            "tests/rustdoc-js",
+            "tests/rustdoc-js-std",
+            "tests/rustdoc-json",
+            "tests/rustdoc-ui",
+            "tests/ui",
+            "tests/ui-fulldeps",
+            // tidy-alphabetical-end
+        ],
+    ),
 ];
 
 fn remap_paths(paths: &mut Vec<PathBuf>) {
     let mut remove = vec![];
     let mut add = vec![];
-    for (i, path) in paths.iter().enumerate().filter_map(|(i, path)| path.to_str().map(|s| (i, s)))
+    for (i, path) in paths
+        .iter()
+        .enumerate()
+        .filter_map(|(i, path)| path.to_str().map(|s| (i, s)))
     {
         for &(search, replace) in PATH_REMAP {
             // Remove leading and trailing slashes so `tests/` and `tests` are equivalent
@@ -388,16 +405,29 @@ impl StepDescription {
         }
 
         // Determine the targets participating in this rule.
-        let targets = if self.only_hosts { &builder.hosts } else { &builder.targets };
+        let targets = if self.only_hosts {
+            &builder.hosts
+        } else {
+            &builder.targets
+        };
 
         for target in targets {
-            let run = RunConfig { builder, paths: pathsets.clone(), target: *target };
+            let run = RunConfig {
+                builder,
+                paths: pathsets.clone(),
+                target: *target,
+            };
             (self.make_run)(run);
         }
     }
 
     fn is_excluded(&self, builder: &Builder<'_>, pathset: &PathSet) -> bool {
-        if builder.config.skip.iter().any(|e| pathset.has(e, builder.kind)) {
+        if builder
+            .config
+            .skip
+            .iter()
+            .any(|e| pathset.has(e, builder.kind))
+        {
             if !matches!(builder.config.dry_run, DryRun::SelfCheck) {
                 println!("Skipping {pathset:?} because it is excluded");
             }
@@ -526,7 +556,11 @@ impl StepDescription {
         }
 
         if !paths.is_empty() {
-            eprintln!("ERROR: no `{}` rules matched {:?}", builder.kind.as_str(), paths,);
+            eprintln!(
+                "ERROR: no `{}` rules matched {:?}",
+                builder.kind.as_str(),
+                paths,
+            );
             eprintln!(
                 "HELP: run `x.py {} --help --verbose` to show a list of available paths",
                 builder.kind.as_str()
@@ -615,7 +649,11 @@ impl<'a> ShouldRun<'a> {
             "use `builder.path()` for real paths: {alias}"
         );
         self.paths.insert(PathSet::Set(
-            std::iter::once(TaskPath { path: alias.into(), kind: Some(self.kind) }).collect(),
+            std::iter::once(TaskPath {
+                path: alias.into(),
+                kind: Some(self.kind),
+            })
+            .collect(),
         ));
         self
     }
@@ -666,7 +704,10 @@ impl<'a> ShouldRun<'a> {
     }
 
     pub fn suite_path(mut self, suite: &str) -> Self {
-        self.paths.insert(PathSet::Suite(TaskPath { path: suite.into(), kind: Some(self.kind) }));
+        self.paths.insert(PathSet::Suite(TaskPath {
+            path: suite.into(),
+            kind: Some(self.kind),
+        }));
         self
     }
 
@@ -1044,7 +1085,12 @@ impl<'a> Builder<'a> {
         }
         let mut help = String::from("Available paths:\n");
         let mut add_path = |path: &Path| {
-            t!(write!(help, "    ./x.py {} {}\n", kind.as_str(), path.display()));
+            t!(write!(
+                help,
+                "    ./x.py {} {}\n",
+                kind.as_str(),
+                path.display()
+            ));
         };
         for pathset in should_run.paths {
             match pathset {
@@ -1093,7 +1139,8 @@ impl<'a> Builder<'a> {
             Subcommand::Suggest { .. } => (Kind::Suggest, &[][..]),
             Subcommand::Setup { profile: ref path } => (
                 Kind::Setup,
-                path.as_ref().map_or([].as_slice(), |path| std::slice::from_ref(path)),
+                path.as_ref()
+                    .map_or([].as_slice(), |path| std::slice::from_ref(path)),
             ),
             Subcommand::Vendor { .. } => (Kind::Vendor, &paths[..]),
             Subcommand::Perf { .. } => (Kind::Perf, &paths[..]),
@@ -1137,7 +1184,9 @@ impl<'a> Builder<'a> {
     /// `Compiler` since all `Compiler` instances are meant to be obtained through this function,
     /// since it ensures that they are valid (i.e., built and assembled).
     pub fn compiler(&self, stage: u32, host: TargetSelection) -> Compiler {
-        self.ensure(compile::Assemble { target_compiler: Compiler { stage, host } })
+        self.ensure(compile::Assemble {
+            target_compiler: Compiler { stage, host },
+        })
     }
 
     /// Similar to `compiler`, except handles the full-bootstrap option to
@@ -1172,7 +1221,10 @@ impl<'a> Builder<'a> {
 
     /// Returns the bindir for a compiler's sysroot.
     pub fn sysroot_target_bindir(&self, compiler: Compiler, target: TargetSelection) -> PathBuf {
-        self.sysroot_target_libdir(compiler, target).parent().unwrap().join("bin")
+        self.sysroot_target_libdir(compiler, target)
+            .parent()
+            .unwrap()
+            .join("bin")
     }
 
     /// Returns the libdir where the standard library and other artifacts are
@@ -1202,7 +1254,10 @@ impl<'a> Builder<'a> {
                 // (in `impl Step for Sysroot`).
                 if !builder.download_rustc() {
                     builder.verbose(|| {
-                        println!("Removing sysroot {} to avoid caching bugs", sysroot.display())
+                        println!(
+                            "Removing sysroot {} to avoid caching bugs",
+                            sysroot.display()
+                        )
                     });
                     let _ = fs::remove_dir_all(&sysroot);
                     t!(fs::create_dir_all(&sysroot));
@@ -1225,7 +1280,8 @@ impl<'a> Builder<'a> {
     }
 
     pub fn sysroot_codegen_backends(&self, compiler: Compiler) -> PathBuf {
-        self.sysroot_target_libdir(compiler, compiler.host).with_file_name("codegen-backends")
+        self.sysroot_target_libdir(compiler, compiler.host)
+            .with_file_name("codegen-backends")
     }
 
     /// Returns the compiler's libdir where it stores the dynamic libraries that
@@ -1306,7 +1362,9 @@ impl<'a> Builder<'a> {
         } else if compiler.is_snapshot(self) {
             self.initial_rustc.clone()
         } else {
-            self.sysroot(compiler).join("bin").join(exe("rustc", compiler.host))
+            self.sysroot(compiler)
+                .join("bin")
+                .join(exe("rustc", compiler.host))
         }
     }
 
@@ -1351,7 +1409,10 @@ impl<'a> Builder<'a> {
         dylib_path.insert(0, self.sysroot(run_compiler).join("lib"));
 
         let mut cmd = command(cargo_clippy);
-        cmd.env(helpers::dylib_path_var(), env::join_paths(&dylib_path).unwrap());
+        cmd.env(
+            helpers::dylib_path_var(),
+            env::join_paths(&dylib_path).unwrap(),
+        );
         cmd.env("CARGO", &self.initial_cargo);
         cmd
     }
@@ -1430,7 +1491,10 @@ impl<'a> Builder<'a> {
             let mut stack = self.stack.borrow_mut();
             for stack_step in stack.iter() {
                 // should skip
-                if stack_step.downcast_ref::<S>().map_or(true, |stack_step| *stack_step != step) {
+                if stack_step
+                    .downcast_ref::<S>()
+                    .map_or(true, |stack_step| *stack_step != step)
+                {
                     continue;
                 }
                 let mut out = String::new();
@@ -1468,7 +1532,9 @@ impl<'a> Builder<'a> {
             let type_string = type_name::<S>();
             println!(
                 "[TIMING] {} {} -- {}.{:03}",
-                &type_string.strip_prefix("bootstrap::").unwrap_or(type_string),
+                &type_string
+                    .strip_prefix("bootstrap::")
+                    .unwrap_or(type_string),
                 &step_string[brace_index..],
                 dur.as_secs(),
                 dur.subsec_millis()
@@ -1483,7 +1549,9 @@ impl<'a> Builder<'a> {
             let cur_step = stack.pop().expect("step stack empty");
             assert_eq!(cur_step.downcast_ref(), Some(&step));
         }
-        self.verbose_than(1, || println!("{}< {:?}", "  ".repeat(self.stack.borrow().len()), step));
+        self.verbose_than(1, || {
+            println!("{}< {:?}", "  ".repeat(self.stack.borrow().len()), step)
+        });
         self.cache.put(step, out.clone());
         out
     }
@@ -1507,7 +1575,11 @@ impl<'a> Builder<'a> {
         }
 
         // Only execute if it's supposed to run as default
-        if desc.default && should_run.is_really_default() { self.ensure(step) } else { None }
+        if desc.default && should_run.is_really_default() {
+            self.ensure(step)
+        } else {
+            None
+        }
     }
 
     /// Checks if any of the "should_run" paths is in the `Builder` paths.
@@ -1519,7 +1591,10 @@ impl<'a> Builder<'a> {
             if should_run.paths.iter().any(|s| s.has(path, desc.kind))
                 && !desc.is_excluded(
                     self,
-                    &PathSet::Suite(TaskPath { path: path.clone(), kind: Some(desc.kind) }),
+                    &PathSet::Suite(TaskPath {
+                        path: path.clone(),
+                        kind: Some(desc.kind),
+                    }),
                 )
             {
                 return true;

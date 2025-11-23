@@ -10,5 +10,4 @@ pub struct Crate {
     pub features: Vec<String>,
 }
 
-impl Crate {
-}
+impl Crate {}

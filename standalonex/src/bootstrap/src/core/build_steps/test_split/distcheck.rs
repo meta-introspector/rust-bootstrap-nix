@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Distcheck;
 

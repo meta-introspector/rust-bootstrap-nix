@@ -1,9 +1,16 @@
-use std::collections::{HashMap, HashSet, BTreeSet};
-use syn::{self, visit::{self, Visit}, ItemFn, ItemStruct, ItemEnum, ItemConst, ItemStatic, Type, Expr, ItemImpl};
-use quote::ToTokens;
 use crate::expression_info::ExpressionInfo;
 use crate::type_collector::TypeCollector;
-use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo};
+use crate::{
+    enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo,
+    struct_lattice_info::StructLatticeInfo,
+};
+use quote::ToTokens;
+use std::collections::{BTreeSet, HashMap, HashSet};
+use syn::{
+    self,
+    visit::{self, Visit},
+    Expr, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemStatic, ItemStruct, Type,
+};
 
 // Helper visitor for struct field co-occurrence
 struct StructFieldCoOccurrenceVisitor<'a> {
@@ -18,7 +25,14 @@ impl<'a, 'ast> Visit<'ast> for StructFieldCoOccurrenceVisitor<'a> {
         // to ensure 'base_ident' actually refers to an instance of 'self.struct_name'.
         // For now, we'll assume any field access within the context of this visitor
         // is relevant to the struct being analyzed.
-        if let Some(field_ident) = i.member.clone().into_token_stream().to_string().strip_prefix(".").map(|s| s.to_string()) {
+        if let Some(field_ident) = i
+            .member
+            .clone()
+            .into_token_stream()
+            .to_string()
+            .strip_prefix(".")
+            .map(|s| s.to_string())
+        {
             self.current_field_accesses.insert(field_ident);
         }
         visit::visit_expr_field(self, i);
@@ -33,7 +47,8 @@ impl<'a, 'ast> Visit<'ast> for StructFieldCoOccurrenceVisitor<'a> {
         visit::visit_item_fn(self, i);
         // After visiting the function body, record co-occurrences if any fields were accessed
         if !self.current_field_accesses.is_empty() {
-            self.struct_lattice_info.add_co_occurrence(self.current_field_accesses.clone());
+            self.struct_lattice_info
+                .add_co_occurrence(self.current_field_accesses.clone());
         }
     }
 }
@@ -61,7 +76,8 @@ impl<'a, 'ast> Visit<'ast> for EnumVariantCoOccurrenceVisitor<'a> {
             }
         }
         if !matched_variant_types.is_empty() {
-            self.enum_lattice_info.add_co_occurrence(matched_variant_types);
+            self.enum_lattice_info
+                .add_co_occurrence(matched_variant_types);
         }
         visit::visit_expr_match(self, i);
     }
@@ -71,11 +87,13 @@ impl<'a, 'ast> Visit<'ast> for EnumVariantCoOccurrenceVisitor<'a> {
         if let syn::Expr::Let(expr_let) = &*i.cond {
             if let syn::Pat::TupleStruct(pat_tuple_struct) = &*expr_let.pat {
                 if let Some(segment) = pat_tuple_struct.path.segments.last() {
-                    self.enum_lattice_info.add_co_occurrence(BTreeSet::from([segment.ident.to_string()]));
+                    self.enum_lattice_info
+                        .add_co_occurrence(BTreeSet::from([segment.ident.to_string()]));
                 }
             } else if let syn::Pat::Path(pat_path) = &*expr_let.pat {
                 if let Some(segment) = pat_path.path.segments.last() {
-                    self.enum_lattice_info.add_co_occurrence(BTreeSet::from([segment.ident.to_string()]));
+                    self.enum_lattice_info
+                        .add_co_occurrence(BTreeSet::from([segment.ident.to_string()]));
                 }
             }
         }
@@ -102,7 +120,8 @@ impl<'a, 'ast> Visit<'ast> for ImplMethodCoOccurrenceVisitor<'a> {
         visit::visit_item_fn(self, i);
         // After visiting the function body, record co-occurrences if any methods were called
         if !self.current_method_calls.is_empty() {
-            self.impl_lattice_info.add_co_occurrence(self.current_method_calls.clone());
+            self.impl_lattice_info
+                .add_co_occurrence(self.current_method_calls.clone());
         }
     }
 }
@@ -213,7 +232,9 @@ impl<'ast> Visit<'ast> for TypeUsageVisitor {
     fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
         self.current_depth += 1;
         let struct_name = i.ident.to_string();
-        self.struct_lattices.entry(struct_name.clone()).or_insert_with(|| StructLatticeInfo::new(struct_name));
+        self.struct_lattices
+            .entry(struct_name.clone())
+            .or_insert_with(|| StructLatticeInfo::new(struct_name));
         visit::visit_item_struct(self, i);
         self.current_depth -= 1;
     }
@@ -221,7 +242,10 @@ impl<'ast> Visit<'ast> for TypeUsageVisitor {
     fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
         self.current_depth += 1;
         let enum_name = i.ident.to_string();
-        let enum_lattice_info = self.enum_lattices.entry(enum_name.clone()).or_insert_with(|| EnumLatticeInfo::new(enum_name.clone()));
+        let enum_lattice_info = self
+            .enum_lattices
+            .entry(enum_name.clone())
+            .or_insert_with(|| EnumLatticeInfo::new(enum_name.clone()));
 
         let mut sub_visitor = EnumVariantCoOccurrenceVisitor {
             _enum_name: &enum_name,
@@ -249,14 +273,21 @@ impl<'ast> Visit<'ast> for TypeUsageVisitor {
     fn visit_item_impl(&mut self, i: &'ast ItemImpl) {
         self.current_depth += 1;
         let impl_for_type = if let Type::Path(type_path) = &*i.self_ty {
-            type_path.path.segments.last().map(|segment| segment.ident.to_string())
+            type_path
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
         } else {
             None
         };
 
         if let Some(impl_for_type_name) = impl_for_type {
             // Update impl_lattices
-            let impl_lattice_info = self.impl_lattices.entry(impl_for_type_name.clone()).or_insert_with(|| ImplLatticeInfo::new(impl_for_type_name.clone()));
+            let impl_lattice_info = self
+                .impl_lattices
+                .entry(impl_for_type_name.clone())
+                .or_insert_with(|| ImplLatticeInfo::new(impl_for_type_name.clone()));
 
             // Run the ImplMethodCoOccurrenceVisitor
             let mut sub_visitor = ImplMethodCoOccurrenceVisitor {

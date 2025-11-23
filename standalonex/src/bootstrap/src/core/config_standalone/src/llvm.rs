@@ -36,4 +36,3 @@ define_config! {
         enable_projects: Option<String> = "enable-projects",
     }
 }
-

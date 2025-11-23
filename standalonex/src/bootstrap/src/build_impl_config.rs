@@ -1,26 +1,29 @@
 use crate::prelude::*;
 
-
 use std::collections::{BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
 use std::process::Command;
+use std::sync::OnceLock;
 
-use crate::Build;
-use crate::Compiler;
-use crate::GitRepo;
 use crate::core::config::lld_mode::LldMode;
 use crate::core::config::llvm_lib_unwind::LlvmLibunwind;
 use crate::core::config::target_selection::TargetSelection;
 use crate::utils::channel::GitInfo;
-use crate::utils::helpers::{output, libdir};
+use crate::utils::helpers::{libdir, output};
+use crate::Build;
+use crate::Compiler;
+use crate::GitRepo;
 
 impl Build {
     /// Gets the space-separated set of activated features for the standard library.
     /// This can be configured with the `std-features` key in config.toml.
     pub fn std_features(&self, target: TargetSelection) -> String {
-        let mut features: BTreeSet<&str> =
-            self.config.rust_std_features.iter().map(|s| s.as_str()).collect();
+        let mut features: BTreeSet<&str> = self
+            .config
+            .rust_std_features
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
 
         match self.config.llvm_libunwind(target) {
             LlvmLibunwind::InTree => features.insert("llvm-libunwind"),
@@ -44,7 +47,12 @@ impl Build {
     }
 
     /// Gets the space-separated set of activated features for the compiler.
-    pub fn rustc_features(&self, kind: crate::core::builder::Kind, target: TargetSelection, crates: &[String]) -> String {
+    pub fn rustc_features(
+        &self,
+        kind: crate::core::builder::Kind,
+        target: TargetSelection,
+        crates: &[String],
+    ) -> String {
         let possible_features_by_crates: HashSet<_> = crates
             .iter()
             .flat_map(|krate| &self.crates[krate].features)
@@ -57,7 +65,9 @@ impl Build {
         if self.config.jemalloc && check("jemalloc") {
             features.push("jemalloc");
         }
-        if (self.config.llvm_enabled(target) || kind == crate::core::builder::Kind::Check) && check("llvm") {
+        if (self.config.llvm_enabled(target) || kind == crate::core::builder::Kind::Check)
+            && check("llvm")
+        {
             features.push("llvm");
         }
         // keep in sync with `bootstrap/compile.rs:rustc_cargo_env`
@@ -80,11 +90,18 @@ impl Build {
     /// Component directory that Cargo will produce output into (e.g.
     /// release/debug)
     pub fn cargo_dir(&self) -> &'static str {
-        if self.config.rust_optimize.is_release() { "release" } else { "debug" }
+        if self.config.rust_optimize.is_release() {
+            "release"
+        } else {
+            "debug"
+        }
     }
 
     pub fn tools_dir(&self, compiler: Compiler) -> PathBuf {
-        let out = self.out.join(compiler.host).join(format!("stage{}-tools-bin", compiler.stage));
+        let out = self
+            .out
+            .join(compiler.host)
+            .join(format!("stage{}-tools-bin", compiler.stage));
         t!(fs::create_dir_all(&out));
         out
     }
@@ -101,14 +118,23 @@ impl Build {
             crate::Mode::ToolBootstrap => "-bootstrap-tools",
             crate::Mode::ToolStd | crate::Mode::ToolRustc => "-tools",
         };
-        self.out.join(compiler.host).join(format!("stage{}{}", compiler.stage, suffix))
+        self.out
+            .join(compiler.host)
+            .join(format!("stage{}{}", compiler.stage, suffix))
     }
 
     /// Returns the root output directory for all Cargo output in a given stage,
     /// running a particular compiler, whether or not we're building the
     /// standard library, and targeting the specified architecture.
-    pub fn cargo_out(&self, compiler: Compiler, mode: crate::Mode, target: TargetSelection) -> PathBuf {
-        self.stage_out(compiler, mode).join(target).join(self.cargo_dir())
+    pub fn cargo_out(
+        &self,
+        compiler: Compiler,
+        mode: crate::Mode,
+        target: TargetSelection,
+    ) -> PathBuf {
+        self.stage_out(compiler, mode)
+            .join(target)
+            .join(self.cargo_dir())
     }
 
     /// Root output directory of LLVM for `target`
@@ -165,12 +191,17 @@ impl Build {
     /// NOTE: this is not the same as `!is_rust_llvm` when `llvm_has_patches` is set.
     pub fn is_system_llvm(&self, target: TargetSelection) -> bool {
         match self.config.target_config.get(&target) {
-            Some(crate::core::config::Target { llvm_config: Some(_), .. }) => {
+            Some(crate::core::config::Target {
+                llvm_config: Some(_),
+                ..
+            }) => {
                 let ci_llvm = self.config.llvm_from_ci && target == self.config.build;
                 !ci_llvm
             }
             // We're building from the in-tree src/llvm-project sources.
-            Some(crate::core::config::Target { llvm_config: None, .. }) => false,
+            Some(crate::core::config::Target {
+                llvm_config: None, ..
+            }) => false,
             None => false,
         }
     }
@@ -183,7 +214,10 @@ impl Build {
             // We're using a user-controlled version of LLVM. The user has explicitly told us whether the version has our patches.
             // (They might be wrong, but that's not a supported use-case.)
             // In particular, this tries to support `submodules = false` and `patches = false`, for using a newer version of LLVM that's not through `rust-lang/llvm-project`.
-            Some(crate::core::config::Target { llvm_has_rust_patches: Some(patched), .. }) => *patched,
+            Some(crate::core::config::Target {
+                llvm_has_rust_patches: Some(patched),
+                ..
+            }) => *patched,
             // The user hasn't promised the patches match.
             // This only has our patches if it's downloaded from CI or built from source.
             _ => !self.is_system_llvm(target),
@@ -207,16 +241,24 @@ impl Build {
         if let Some(s) = target_config.and_then(|c| c.llvm_filecheck.as_ref()) {
             s.to_path_buf()
         } else if let Some(s) = target_config.and_then(|c| c.llvm_config.as_ref()) {
-            let llvm_bindir = crate::utils::exec::command(s).arg("--bindir").run_capture_stdout(self).stdout();
-            let filecheck = Path::new(llvm_bindir.trim()).join(crate::utils::helpers::exe("FileCheck", target));
+            let llvm_bindir = crate::utils::exec::command(s)
+                .arg("--bindir")
+                .run_capture_stdout(self)
+                .stdout();
+            let filecheck =
+                Path::new(llvm_bindir.trim()).join(crate::utils::helpers::exe("FileCheck", target));
             if filecheck.exists() {
                 filecheck
             } else {
                 // On Fedora the system LLVM installs FileCheck in the
                 // llvm subdirectory of the libdir.
-                let llvm_libdir = crate::utils::exec::command(s).arg("--libdir").run_capture_stdout(self).stdout();
-                let lib_filecheck =
-                    Path::new(llvm_libdir.trim()).join("llvm").join(crate::utils::helpers::exe("FileCheck", target));
+                let llvm_libdir = crate::utils::exec::command(s)
+                    .arg("--libdir")
+                    .run_capture_stdout(self)
+                    .stdout();
+                let lib_filecheck = Path::new(llvm_libdir.trim())
+                    .join("llvm")
+                    .join(crate::utils::helpers::exe("FileCheck", target));
                 if lib_filecheck.exists() {
                     lib_filecheck
                 } else {
@@ -241,7 +283,8 @@ impl Build {
             } else {
                 base
             };
-            base.join("bin").join(crate::utils::helpers::exe("FileCheck", target))
+            base.join("bin")
+                .join(crate::utils::helpers::exe("FileCheck", target))
         }
     }
 
@@ -258,7 +301,8 @@ impl Build {
 
     /// Returns the libdir of the snapshot compiler.
     pub fn rustc_snapshot_libdir(&self) -> PathBuf {
-        self.rustc_snapshot_sysroot().join(libdir(self.config.build))
+        self.rustc_snapshot_sysroot()
+            .join(libdir(self.config.build))
     }
 
     /// Returns the sysroot of the snapshot compiler.

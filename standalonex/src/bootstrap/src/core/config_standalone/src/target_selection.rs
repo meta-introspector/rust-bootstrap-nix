@@ -15,7 +15,10 @@ pub struct TargetSelectionList(Vec<TargetSelection>);
 
 pub fn target_selection_list(s: &str) -> Result<TargetSelectionList, String> {
     Ok(TargetSelectionList(
-        s.split(',').filter(|s| !s.is_empty()).map(TargetSelection::from_user).collect(),
+        s.split(',')
+            .filter(|s| !s.is_empty())
+            .map(TargetSelection::from_user)
+            .collect(),
     ))
 }
 
@@ -38,7 +41,11 @@ impl TargetSelection {
         let triple = INTERNER.intern_str(triple);
         let file = file.map(|f| INTERNER.intern_str(f));
 
-        Self { triple, file, synthetic: false }
+        Self {
+            triple,
+            file,
+            synthetic: false,
+        }
     }
 
     pub fn create_synthetic(triple: &str, file: &str) -> Self {
@@ -89,7 +96,7 @@ impl TargetSelection {
 }
 
 impl fmt::Display for TargetSelection {
-fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.triple)?;
         if let Some(file) = self.file {
             write!(f, "({file})")?;
@@ -99,13 +106,13 @@ fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 }
 
 impl fmt::Debug for TargetSelection {
-pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    pub fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self}")
     }
 }
 
 impl PartialEq<&str> for TargetSelection {
-fn eq(&self, other: &&str) -> bool {
+    fn eq(&self, other: &&str) -> bool {
         self.triple == *other
     }
 }
@@ -113,7 +120,7 @@ fn eq(&self, other: &&str) -> bool {
 // Targets are often used as directory names throughout bootstrap.
 // This impl makes it more ergonomics to use them as such.
 impl AsRef<Path> for TargetSelection {
-fn as_ref(&self) -> &Path {
+    fn as_ref(&self) -> &Path {
         self.triple.as_ref()
     }
 }

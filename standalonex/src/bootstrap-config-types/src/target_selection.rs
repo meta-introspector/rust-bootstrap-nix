@@ -1,8 +1,8 @@
-use std::fmt;
-use build_helper::prelude::*;
 use crate::LlvmLibunwind;
 use crate::SplitDebuginfo;
 use crate::StringOrBool;
+use build_helper::prelude::*;
+use std::fmt;
 
 //use build_helper::Interned;
 //use build_helper::INTERNER;
@@ -16,15 +16,12 @@ pub struct TargetSelection {
 #[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct TargetSelectionList(pub Vec<TargetSelection>);
 pub fn target_selection_list(s: &str) -> Result<TargetSelectionList, String> {
-    Ok(
-        TargetSelectionList(
-            s
-                .split(',')
-                .filter(|s| !s.is_empty())
-                .map(TargetSelection::from_user)
-                .collect(),
-        ),
-    )
+    Ok(TargetSelectionList(
+        s.split(',')
+            .filter(|s| !s.is_empty())
+            .map(TargetSelection::from_user)
+            .collect(),
+    ))
 }
 impl TargetSelection {
     pub fn from_user(selection: &str) -> Self {
@@ -39,8 +36,8 @@ impl TargetSelection {
         } else {
             (selection, None)
         };
-//        let triple = INTERNER.intern_str(triple);
-//	let file = file.map(|f| INTERNER.intern_str(f));
+        //        let triple = INTERNER.intern_str(triple);
+        //	let file = file.map(|f| INTERNER.intern_str(f));
         Self {
             triple: triple.to_string(),
             file: file.map(|s| s.to_string()),

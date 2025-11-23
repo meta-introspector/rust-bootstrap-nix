@@ -1,5 +1,5 @@
-use std::fmt;
 use serde::{Deserialize, Deserializer};
+use std::fmt;
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub enum LldMode {
     /// Do not use LLD
@@ -35,7 +35,11 @@ impl<'de> Deserialize<'de> for LldMode {
             where
                 E: serde::de::Error,
             {
-                Ok(if v { LldMode::External } else { LldMode::Unused })
+                Ok(if v {
+                    LldMode::External
+                } else {
+                    LldMode::Unused
+                })
             }
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
             where

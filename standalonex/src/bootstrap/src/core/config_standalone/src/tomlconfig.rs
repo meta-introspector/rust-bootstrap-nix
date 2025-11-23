@@ -19,4 +19,3 @@ pub(crate) struct TomlConfig {
     profile: Option<String>,
     stage0_path: Option<PathBuf>,
 }
-

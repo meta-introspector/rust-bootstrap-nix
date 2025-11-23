@@ -1,27 +1,35 @@
-use std::path::{Path, PathBuf};
 use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::OnceLock;
-use std::fs;
 //use crate::BuildConfig;
 use crate::Compiler;
 use crate::Mode;
 //use crate::TargetSelection;
 //use crate::core::config::Target;
+use crate::utils::helpers::{exe, libdir, output};
 use bootstrap_macros::t;
-use crate::utils::helpers::{exe,  output, libdir};
 //use crate::builder::BootstrapCommand;
 
-impl Build { // Wrap functions in an impl block for the Build struct
+impl Build {
+    // Wrap functions in an impl block for the Build struct
     fn local_path(&self, build: &Build) -> PathBuf {
         self.path.strip_prefix(&build.config.src).unwrap().into()
     }
     fn cargo_dir(&self) -> &'static str {
-        if self.config.rust_optimize.is_release() { "release" } else { "debug" }
+        if self.config.rust_optimize.is_release() {
+            "release"
+        } else {
+            "debug"
+        }
     }
 
     fn tools_dir(&self, compiler: Compiler) -> PathBuf {
-        let out = self.out.join(compiler.host).join(format!("stage{}-tools-bin", compiler.stage));
+        let out = self
+            .out
+            .join(compiler.host)
+            .join(format!("stage{}-tools-bin", compiler.stage));
         t!(fs::create_dir_all(&out));
         out
     }
@@ -38,14 +46,18 @@ impl Build { // Wrap functions in an impl block for the Build struct
             Mode::ToolBootstrap => "-bootstrap-tools",
             Mode::ToolStd | Mode::ToolRustc => "-tools",
         };
-        self.out.join(compiler.host).join(format!("stage{}{}", compiler.stage, suffix))
+        self.out
+            .join(compiler.host)
+            .join(format!("stage{}{}", compiler.stage, suffix))
     }
 
     /// Returns the root output directory for all Cargo output in a given stage,
     /// running a particular compiler, whether or not we're building the
     /// standard library, and targeting the specified architecture.
     fn cargo_out(&self, compiler: Compiler, mode: Mode, target: TargetSelection) -> PathBuf {
-        self.stage_out(compiler, mode).join(target).join(self.cargo_dir())
+        self.stage_out(compiler, mode)
+            .join(target)
+            .join(self.cargo_dir())
     }
 
     /// Root output directory of LLVM for `target`
@@ -102,12 +114,17 @@ impl Build { // Wrap functions in an impl block for the Build struct
     /// NOTE: this is not the same as `!is_rust_llvm` when `llvm_has_patches` is set.
     fn is_system_llvm(&self, target: TargetSelection) -> bool {
         match self.config.target_config.get(&target) {
-            Some(Target { llvm_config: Some(_), .. }) => {
+            Some(Target {
+                llvm_config: Some(_),
+                ..
+            }) => {
                 let ci_llvm = self.config.llvm_from_ci && target == self.config.build;
                 !ci_llvm
             }
             // We're building from the in-tree src/llvm-project sources.
-            Some(Target { llvm_config: None, .. }) => false,
+            Some(Target {
+                llvm_config: None, ..
+            }) => false,
             None => false,
         }
     }
@@ -120,7 +137,10 @@ impl Build { // Wrap functions in an impl block for the Build struct
             // We're using a user-controlled version of LLVM. The user has explicitly told us whether the version has our patches.
             // (They might be wrong, but that's not a supported use-case.)
             // In particular, this tries to support `submodules = false` and `patches = false`, for using a newer version of LLVM that's not through `rust-lang/llvm-project`.
-            Some(Target { llvm_has_rust_patches: Some(patched), .. }) => *patched,
+            Some(Target {
+                llvm_has_rust_patches: Some(patched),
+                ..
+            }) => *patched,
             // The user hasn't promised the patches match.
             // This only has our patches if it's downloaded from CI or built from source.
             _ => !self.is_system_llvm(target),
@@ -152,8 +172,9 @@ impl Build { // Wrap functions in an impl block for the Build struct
                 // On Fedora the system LLVM installs FileCheck in the
                 // llvm subdirectory of the libdir.
                 let llvm_libdir = command(s).arg("--libdir").run_capture_stdout(self).stdout();
-                let lib_filecheck =
-                    Path::new(llvm_libdir.trim()).join("llvm").join(exe("FileCheck", target));
+                let lib_filecheck = Path::new(llvm_libdir.trim())
+                    .join("llvm")
+                    .join(exe("FileCheck", target));
                 if lib_filecheck.exists() {
                     lib_filecheck
                 } else {
@@ -202,7 +223,8 @@ impl Build { // Wrap functions in an impl block for the Build struct
 
     /// Returns the libdir of the snapshot compiler.
     fn rustc_snapshot_libdir(&self) -> PathBuf {
-        self.rustc_snapshot_sysroot().join(libdir(self.config.build))
+        self.rustc_snapshot_sysroot()
+            .join(libdir(self.config.build))
     }
 
     /// Returns the sysroot of the snapshot compiler.

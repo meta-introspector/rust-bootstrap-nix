@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Given a `cargo test` subcommand, pass it the appropriate test flags given a `builder`.
 fn prepare_cargo_test(
     cargo: impl Into<BootstrapCommand>,
@@ -47,7 +46,10 @@ fn prepare_cargo_test(
         cargo.arg("-p").arg(krate);
     }
 
-    cargo.arg("--").args(builder.config.test_args()).args(libtest_args);
+    cargo
+        .arg("--")
+        .args(builder.config.test_args())
+        .args(libtest_args);
     if !builder.config.verbose_tests {
         cargo.arg("--quiet");
     }
@@ -62,17 +64,26 @@ fn prepare_cargo_test(
     // by `Cargo::new` and that actually makes things go wrong.
     if builder.kind != Kind::Miri {
         let mut dylib_path = dylib_path();
-        dylib_path.insert(0, PathBuf::from(&*builder.sysroot_target_libdir(compiler, target)));
+        dylib_path.insert(
+            0,
+            PathBuf::from(&*builder.sysroot_target_libdir(compiler, target)),
+        );
         cargo.env(dylib_path_var(), env::join_paths(&dylib_path).unwrap());
     }
 
     if builder.remote_tested(target) {
         cargo.env(
             format!("CARGO_TARGET_{}_RUNNER", envify(&target.triple)),
-            format!("{} run 0", builder.tool_exe(Tool::RemoteTestClient).display()),
+            format!(
+                "{} run 0",
+                builder.tool_exe(Tool::RemoteTestClient).display()
+            ),
         );
     } else if let Some(tool) = builder.runner(target) {
-        cargo.env(format!("CARGO_TARGET_{}_RUNNER", envify(&target.triple)), tool);
+        cargo.env(
+            format!("CARGO_TARGET_{}_RUNNER", envify(&target.triple)),
+            tool,
+        );
     }
 
     cargo

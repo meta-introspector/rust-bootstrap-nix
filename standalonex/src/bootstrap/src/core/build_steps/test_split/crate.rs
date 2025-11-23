@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Crate {
     pub compiler: Compiler,
@@ -27,7 +26,12 @@ impl Step for Crate {
             .map(|p| builder.crate_paths[&p.assert_single_path().path].clone())
             .collect();
 
-        builder.ensure(Crate { compiler, target: run.target, mode: Mode::Std, crates });
+        builder.ensure(Crate {
+            compiler,
+            target: run.target,
+            mode: Mode::Std,
+            crates,
+        });
     }
 
     /// Runs all unit tests plus documentation tests for a given crate defined
@@ -90,7 +94,14 @@ impl Step for Crate {
             }
 
             // Build `cargo test` command
-            builder::Cargo::new(builder, compiler, mode, SourceType::InTree, target, builder.kind)
+            builder::Cargo::new(
+                builder,
+                compiler,
+                mode,
+                SourceType::InTree,
+                target,
+                builder.kind,
+            )
         };
 
         match mode {

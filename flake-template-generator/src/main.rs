@@ -6,12 +6,12 @@ use crate::statix_checker::run_statix_check;
 //mod prelude;
 mod args;
 mod config_parser;
-mod flake_generator;
 mod file_writer;
+mod flake_generator;
 mod statix_checker;
-pub use args :: Args ;
-pub use serde :: { Deserialize , Serialize } ;
 use crate::flake_generator::generate_flake_nix_content;
+pub use args::Args;
+pub use serde::{Deserialize, Serialize};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -27,12 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.nix.nixpkgs_path
     };
     let system_arch = "aarch64-linux";
-    let flake_nix_content = generate_flake_nix_content(
-        &nixpkgs_url,
-        &system_arch,
-        args.use_rustc_wrapper,
-        None,
-    );
+    let flake_nix_content =
+        generate_flake_nix_content(&nixpkgs_url, &system_arch, args.use_rustc_wrapper, None);
     let config_content = fs::read_to_string(&args.config_path)?;
     write_flake_and_config(&absolute_output_dir, &flake_nix_content, &config_content)?;
     let output_flake_nix_path = absolute_output_dir.join("flake.nix");

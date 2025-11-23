@@ -1,6 +1,5 @@
 use serde_derive::Deserialize;
-#[derive(Debug, Default, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct LocalTargetConfig {
     pub llvm_config: Option<std::path::PathBuf>,
     pub llvm_has_rust_patches: Option<bool>,

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Cargo {
     pub common: common_test_fields::CommonTestFields,
@@ -31,7 +30,10 @@ impl Step for Cargo {
         let compiler = self.common.compiler;
         let host = self.common.host;
 
-        builder.ensure(tool::Cargo { compiler, target: self.common.host });
+        builder.ensure(tool::Cargo {
+            compiler,
+            target: self.common.host,
+        });
         let cargo = tool::prepare_tool_cargo(
             builder,
             compiler,
@@ -44,7 +46,15 @@ impl Step for Cargo {
         );
 
         // NOTE: can't use `run_cargo_test` because we need to overwrite `PATH`
-        let mut cargo = prepare_cargo_test(cargo, &[], &[], "cargo", compiler, self.common.host, builder);
+        let mut cargo = prepare_cargo_test(
+            cargo,
+            &[],
+            &[],
+            "cargo",
+            compiler,
+            self.common.host,
+            builder,
+        );
 
         // Don't run cross-compile tests, we may not have cross-compiled libstd libs
         // available.

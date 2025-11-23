@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RustdocTheme {
     pub common: common_test_fields::CommonTestFields,
@@ -32,14 +31,27 @@ impl Step for RustdocTheme {
         let rustdoc = builder.bootstrap_out.join("rustdoc");
         let mut cmd = builder.tool_cmd(Tool::RustdocTheme);
         cmd.arg(rustdoc.to_str().unwrap())
-            .arg(builder.src.join("src/librustdoc/html/static/css/rustdoc.css").to_str().unwrap())
+            .arg(
+                builder
+                    .src
+                    .join("src/librustdoc/html/static/css/rustdoc.css")
+                    .to_str()
+                    .unwrap(),
+            )
             .env("RUSTC_STAGE", self.common.compiler.stage.to_string())
             .env("RUSTC_SYSROOT", builder.sysroot(self.common.compiler))
-            .env("RUSTDOC_LIBDIR", builder.sysroot_target_libdir(self.common.compiler, self.common.compiler.host))
+            .env(
+                "RUSTDOC_LIBDIR",
+                builder.sysroot_target_libdir(self.common.compiler, self.common.compiler.host),
+            )
             .env("CFG_RELEASE_CHANNEL", &builder.config.channel)
             .env("RUSTDOC_REAL", builder.rustdoc(self.common.compiler))
             .env("RUSTC_BOOTSTRAP", "1");
-        cmd.args(linker_args(builder, self.common.compiler.host, LldThreads::No));
+        cmd.args(linker_args(
+            builder,
+            self.common.compiler.host,
+            LldThreads::No,
+        ));
 
         cmd.delay_failure().run(builder);
     }

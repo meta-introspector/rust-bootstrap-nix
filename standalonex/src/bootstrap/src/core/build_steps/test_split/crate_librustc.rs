@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CrateLibrustc {
     compiler: Compiler,
@@ -23,7 +22,11 @@ impl Step for CrateLibrustc {
         let compiler = builder.compiler_for(builder.top_stage, host, host);
         let crates = run.make_run_crates(Alias::Compiler);
 
-        builder.ensure(CrateLibrustc { compiler, target: run.target, crates });
+        builder.ensure(CrateLibrustc {
+            compiler,
+            target: run.target,
+            crates,
+        });
     }
 
     fn run(self, builder: &Builder<'_>) {

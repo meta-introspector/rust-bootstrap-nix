@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Miri {
     pub common: common_test_fields::CommonTestFields,
@@ -29,8 +28,13 @@ impl Miri {
         cargo.env("MIRI_SYSROOT", &miri_sysroot);
 
         let mut cargo = BootstrapCommand::from(cargo);
-        let _guard =
-            builder.msg(Kind::Build, compiler.stage, "miri sysroot", compiler.host, target);
+        let _guard = builder.msg(
+            Kind::Build,
+            compiler.stage,
+            "miri sysroot",
+            compiler.host,
+            target,
+        );
         cargo.run(builder);
 
         // # Determine where Miri put its sysroot.
@@ -109,7 +113,9 @@ impl Step for Miri {
         // Miri has its own "target dir" for ui test dependencies. Make sure it gets cleared when
         // the sysroot gets rebuilt, to avoid "found possibly newer version of crate `std`" errors.
         if !builder.config.dry_run {
-            let ui_test_dep_dir = builder.stage_out(host_compiler, Mode::ToolStd).join("miri_ui");
+            let ui_test_dep_dir = builder
+                .stage_out(host_compiler, Mode::ToolStd)
+                .join("miri_ui");
             // The mtime of `miri_sysroot` changes when the sysroot gets rebuilt (also see
             // <https://github.com/RalfJung/rustc-build-sysroot/commit/10ebcf60b80fe2c3dc765af0ff19fdc0da4b7466>).
             // We can hence use that directly as a signal to clear the ui test dir.

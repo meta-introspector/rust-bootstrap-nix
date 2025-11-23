@@ -1,4 +1,7 @@
-use syn::{ItemFn, ItemStruct, ItemEnum, ItemTrait, ItemType, ItemUnion, ItemConst, ItemStatic, ItemMacro, ItemMod};
+use syn::{
+    ItemConst, ItemEnum, ItemFn, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemType,
+    ItemUnion,
+};
 
 pub trait DeclarationVisitor<'ast> {
     fn visit_fn(&mut self, i: &'ast ItemFn);

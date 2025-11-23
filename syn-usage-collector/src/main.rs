@@ -1,7 +1,7 @@
 use anyhow::Result;
-use walkdir::WalkDir;
 use std::fs;
 use syn_usage_collector::TypeUsageCollector;
+use walkdir::WalkDir;
 
 fn main() -> Result<()> {
     let mut all_collected_types = TypeUsageCollector::default();

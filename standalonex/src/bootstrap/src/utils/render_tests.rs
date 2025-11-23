@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// This module renders the JSON output of libtest into a human-readable form, trying to be as
 /// similar to libtest's native output as possible.
 ///
@@ -8,7 +7,6 @@ use crate::prelude::*;
 /// about the executed tests. Doing so suppresses the human-readable output, and (compared to Cargo
 /// and rustc) libtest doesn't include the rendered human-readable output as a JSON field. We had
 /// to reimplement all the rendering logic in this module because of that.
-
 use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{ChildStdout, Stdio};
 use std::time::Duration;
@@ -163,7 +161,10 @@ impl<'a> Renderer<'a> {
         self.executed_tests += 1;
 
         // Keep this in sync with the "up-to-date" ignore message inserted by compiletest.
-        if let Outcome::Ignored { reason: Some("up-to-date") } = outcome {
+        if let Outcome::Ignored {
+            reason: Some("up-to-date"),
+        } = outcome
+        {
             self.up_to_date_tests += 1;
         }
 
@@ -189,7 +190,9 @@ impl<'a> Renderer<'a> {
 
     fn render_test_outcome_verbose(&self, outcome: Outcome<'_>, test: &TestOutcome) {
         print!("test {} ... ", test.name);
-        self.builder.colored_stdout(|stdout| outcome.write_long(stdout)).unwrap();
+        self.builder
+            .colored_stdout(|stdout| outcome.write_long(stdout))
+            .unwrap();
         if let Some(exec_time) = test.exec_time {
             print!(" ({exec_time:.2?})");
         }
@@ -208,7 +211,9 @@ impl<'a> Renderer<'a> {
         }
 
         self.terse_tests_in_line += 1;
-        self.builder.colored_stdout(|stdout| outcome.write_short(stdout, &test.name)).unwrap();
+        self.builder
+            .colored_stdout(|stdout| outcome.write_short(stdout, &test.name))
+            .unwrap();
         let _ = std::io::stdout().flush();
     }
 
@@ -259,7 +264,9 @@ impl<'a> Renderer<'a> {
         }
 
         print!("\ntest result: ");
-        self.builder.colored_stdout(|stdout| outcome.write_long(stdout)).unwrap();
+        self.builder
+            .colored_stdout(|stdout| outcome.write_long(stdout))
+            .unwrap();
         println!(
             ". {} passed; {} failed; {} ignored; {} measured; {} filtered out{time}\n",
             suite.passed,
@@ -308,7 +315,9 @@ impl<'a> Renderer<'a> {
             }
             Message::Test(TestMessage::Ignored(outcome)) => {
                 self.render_test_outcome(
-                    Outcome::Ignored { reason: outcome.message.as_deref() },
+                    Outcome::Ignored {
+                        reason: outcome.message.as_deref(),
+                    },
                     &outcome,
                 );
             }

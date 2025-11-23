@@ -1,11 +1,11 @@
 //pub mod prelude;
 //use crate::prelude::*;
 //use syn::Token;
-use proc_macro :: TokenStream ;
-use quote :: quote ;
-use syn :: braced ;
-use syn :: parse :: { Parse , ParseStream , Result } ;
-use syn :: { parse_macro_input , Ident , LitStr , Token } ;
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::braced;
+use syn::parse::{Parse, ParseStream, Result};
+use syn::{parse_macro_input, Ident, LitStr, Token};
 
 extern crate proc_macro;
 struct ConfigInput {
@@ -49,9 +49,12 @@ impl Parse for ConfigField {
 }
 #[proc_macro]
 pub fn define_config(input: TokenStream) -> TokenStream {
-    let ConfigInput { attrs, ident, fields, .. } = parse_macro_input!(
-        input as ConfigInput
-    );
+    let ConfigInput {
+        attrs,
+        ident,
+        fields,
+        ..
+    } = parse_macro_input!(input as ConfigInput);
     let field_names: Vec<_> = fields.iter().map(|f| &f.ident).collect();
     let field_types: Vec<_> = fields.iter().map(|f| &f.ty).collect();
     let field_keys: Vec<_> = fields

@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ErrorIndex {
     pub common: common_test_fields::CommonTestFields,
@@ -20,7 +19,8 @@ impl Step for ErrorIndex {
         // is normally used to build rustdoc for other tests (like compiletest
         // tests in tests/rustdoc) so that it shares the same artifacts.
         let compiler =
-            run.builder.compiler_for(run.builder.top_stage, run.builder.build.build, run.target);
+            run.builder
+                .compiler_for(run.builder.top_stage, run.builder.build.build, run.target);
         run.builder.ensure(ErrorIndex {
             common: common_test_fields::CommonTestFields {
                 stage: run.builder.top_stage,
@@ -47,8 +47,13 @@ impl Step for ErrorIndex {
         let mut tool = tool::ErrorIndex::command(builder);
         tool.arg("markdown").arg(&output);
 
-        let guard =
-            builder.msg(Kind::Test, compiler.stage, "error-index", compiler.host, compiler.host);
+        let guard = builder.msg(
+            Kind::Test,
+            compiler.stage,
+            "error-index",
+            compiler.host,
+            compiler.host,
+        );
         let _time = helpers::timeit(builder);
         tool.run_capture(builder);
         drop(guard);

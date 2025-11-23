@@ -1,18 +1,16 @@
 use crate::prelude::*;
 
-
 /// `./x.py clean`
 ///
 /// Responsible for cleaning out a build directory of all old and stale
 /// artifacts to prepare for a fresh build. Currently doesn't remove the
 /// `build/cache` directory (download cache) or the `build/$target/llvm`
 /// directory unless the `--all` flag is present.
-
 use std::fs;
 use std::io::{self, ErrorKind};
 use std::path::Path;
 
-use crate::core::builder::{Builder, RunConfig, ShouldRun, Step, crate_description};
+use crate::core::builder::{crate_description, Builder, RunConfig, ShouldRun, Step};
 use crate::utils::helpers::t;
 //use crate::{BuildConfig, Compiler, Kind, Mode, Subcommand};
 
@@ -134,7 +132,12 @@ fn clean_specific_stage(build: &Build, stage: u32) {
             let stage_prefix = format!("stage{}", stage);
 
             // if current entry is not related with the target stage, continue
-            if !entry.file_name().to_str().unwrap_or("").contains(&stage_prefix) {
+            if !entry
+                .file_name()
+                .to_str()
+                .unwrap_or("")
+                .contains(&stage_prefix)
+            {
                 continue;
             }
 

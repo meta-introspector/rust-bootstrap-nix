@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 pub mod subcommand_groups;
-use subcommand_groups::{QaTool, BuildTool, DistTool, MiscTool};
+use subcommand_groups::{BuildTool, DistTool, MiscTool, QaTool};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Subcommand {
@@ -44,25 +44,29 @@ impl Subcommand {
 
     pub fn compiletest_rustc_args(&self) -> Vec<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref compiletest_rustc_args, .. }) => {
-                compiletest_rustc_args.iter().flat_map(|s| s.split_whitespace()).collect()
-            }
+            Subcommand::Qa(QaTool::Test {
+                ref compiletest_rustc_args,
+                ..
+            }) => compiletest_rustc_args
+                .iter()
+                .flat_map(|s| s.split_whitespace())
+                .collect(),
             _ => vec![],
         }
     }
 
     pub fn fail_fast(&self) -> bool {
         match self {
-            Subcommand::Qa(QaTool::Test { no_fail_fast, .. }) | Subcommand::Qa(QaTool::Miri { no_fail_fast, .. }) => {
-                !no_fail_fast
-            }
+            Subcommand::Qa(QaTool::Test { no_fail_fast, .. })
+            | Subcommand::Qa(QaTool::Miri { no_fail_fast, .. }) => !no_fail_fast,
             _ => false,
         }
     }
 
     pub fn doc_tests(&self) -> DocTests {
         match self {
-            Subcommand::Qa(QaTool::Test { doc, no_doc, .. }) | Subcommand::Qa(QaTool::Miri { no_doc, doc, .. }) => {
+            Subcommand::Qa(QaTool::Test { doc, no_doc, .. })
+            | Subcommand::Qa(QaTool::Miri { no_doc, doc, .. }) => {
                 if *doc {
                     DocTests::Only
                 } else if *no_doc {
@@ -84,7 +88,9 @@ impl Subcommand {
 
     pub fn extra_checks(&self) -> Option<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref extra_checks, .. }) => extra_checks.as_ref().map(String::as_str),
+            Subcommand::Qa(QaTool::Test {
+                ref extra_checks, ..
+            }) => extra_checks.as_ref().map(String::as_str),
             _ => None,
         }
     }
@@ -105,14 +111,18 @@ impl Subcommand {
 
     pub fn rustfix_coverage(&self) -> bool {
         match self {
-            Subcommand::Qa(QaTool::Test { rustfix_coverage, .. }) => *rustfix_coverage,
+            Subcommand::Qa(QaTool::Test {
+                rustfix_coverage, ..
+            }) => *rustfix_coverage,
             _ => false,
         }
     }
 
     pub fn compare_mode(&self) -> Option<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref compare_mode, .. }) => compare_mode.as_ref().map(|s| &s[..]),
+            Subcommand::Qa(QaTool::Test {
+                ref compare_mode, ..
+            }) => compare_mode.as_ref().map(|s| &s[..]),
             _ => None,
         }
     }

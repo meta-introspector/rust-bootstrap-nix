@@ -1,7 +1,7 @@
-use build_helper::prelude::*;
-use build_helper::exit;
-use crate::Kind;
 use crate::DocTests;
+use crate::Kind;
+use build_helper::exit;
+use build_helper::prelude::*;
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum QaTool {
     Bench {
@@ -316,49 +316,42 @@ pub enum Subcommand {
 impl Subcommand {
     pub fn kind(&self) -> Kind {
         match self {
-            Subcommand::Qa(qa_tool) => {
-                match qa_tool {
-                    QaTool::Bench { .. } => Kind::Bench,
-                    QaTool::Check { .. } => Kind::Check,
-                    QaTool::Clippy { .. } => Kind::Clippy,
-                    QaTool::Fix { .. } => Kind::Fix,
-                    QaTool::Format { .. } => Kind::Format,
-                    QaTool::Test { .. } => Kind::Test,
-                    QaTool::Miri { .. } => Kind::Miri,
-                    QaTool::Suggest { .. } => Kind::Suggest,
-                    QaTool::Perf { .. } => Kind::Perf,
-                }
-            }
-            Subcommand::Build(build_tool) => {
-                match build_tool {
-                    BuildTool::Build { .. } => Kind::Build,
-                    BuildTool::Doc { .. } => Kind::Doc,
-                }
-            }
-            Subcommand::Dist(dist_tool) => {
-                match dist_tool {
-                    DistTool::Dist { .. } => Kind::Dist,
-                    DistTool::Install { .. } => Kind::Install,
-                }
-            }
-            Subcommand::Misc(misc_tool) => {
-                match misc_tool {
-                    MiscTool::Clean { .. } => Kind::Clean,
-                    MiscTool::Run { .. } => Kind::Run,
-                    MiscTool::Setup { .. } => Kind::Setup,
-                    MiscTool::Vendor { .. } => Kind::Vendor,
-                }
-            }
+            Subcommand::Qa(qa_tool) => match qa_tool {
+                QaTool::Bench { .. } => Kind::Bench,
+                QaTool::Check { .. } => Kind::Check,
+                QaTool::Clippy { .. } => Kind::Clippy,
+                QaTool::Fix { .. } => Kind::Fix,
+                QaTool::Format { .. } => Kind::Format,
+                QaTool::Test { .. } => Kind::Test,
+                QaTool::Miri { .. } => Kind::Miri,
+                QaTool::Suggest { .. } => Kind::Suggest,
+                QaTool::Perf { .. } => Kind::Perf,
+            },
+            Subcommand::Build(build_tool) => match build_tool {
+                BuildTool::Build { .. } => Kind::Build,
+                BuildTool::Doc { .. } => Kind::Doc,
+            },
+            Subcommand::Dist(dist_tool) => match dist_tool {
+                DistTool::Dist { .. } => Kind::Dist,
+                DistTool::Install { .. } => Kind::Install,
+            },
+            Subcommand::Misc(misc_tool) => match misc_tool {
+                MiscTool::Clean { .. } => Kind::Clean,
+                MiscTool::Run { .. } => Kind::Run,
+                MiscTool::Setup { .. } => Kind::Setup,
+                MiscTool::Vendor { .. } => Kind::Vendor,
+            },
         }
     }
     pub fn compiletest_rustc_args(&self) -> Vec<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref compiletest_rustc_args, .. }) => {
-                compiletest_rustc_args
-                    .iter()
-                    .flat_map(|s| s.split_whitespace())
-                    .collect()
-            }
+            Subcommand::Qa(QaTool::Test {
+                ref compiletest_rustc_args,
+                ..
+            }) => compiletest_rustc_args
+                .iter()
+                .flat_map(|s| s.split_whitespace())
+                .collect(),
             _ => vec![],
         }
     }
@@ -392,9 +385,9 @@ impl Subcommand {
     }
     pub fn extra_checks(&self) -> Option<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref extra_checks, .. }) => {
-                extra_checks.as_ref().map(String::as_str)
-            }
+            Subcommand::Qa(QaTool::Test {
+                ref extra_checks, ..
+            }) => extra_checks.as_ref().map(String::as_str),
             _ => None,
         }
     }
@@ -412,23 +405,23 @@ impl Subcommand {
     }
     pub fn rustfix_coverage(&self) -> bool {
         match self {
-            Subcommand::Qa(QaTool::Test { rustfix_coverage, .. }) => *rustfix_coverage,
+            Subcommand::Qa(QaTool::Test {
+                rustfix_coverage, ..
+            }) => *rustfix_coverage,
             _ => false,
         }
     }
     pub fn compare_mode(&self) -> Option<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref compare_mode, .. }) => {
-                compare_mode.as_ref().map(|s| &s[..])
-            }
+            Subcommand::Qa(QaTool::Test {
+                ref compare_mode, ..
+            }) => compare_mode.as_ref().map(|s| &s[..]),
             _ => None,
         }
     }
     pub fn pass(&self) -> Option<&str> {
         match self {
-            Subcommand::Qa(QaTool::Test { ref pass, .. }) => {
-                pass.as_ref().map(|s| &s[..])
-            }
+            Subcommand::Qa(QaTool::Test { ref pass, .. }) => pass.as_ref().map(|s| &s[..]),
             _ => None,
         }
     }
@@ -466,19 +459,15 @@ impl Subcommand {
 /// Returns the shell completion for a given shell, if the result differs from the current
 /// content of `path`. If `path` does not exist, always returns `Some`.
 use crate::Flags;
-pub fn get_completion<G: clap_complete::Generator>(
-    shell: G,
-    path: &Path,
-) -> Option<String> {
+pub fn get_completion<G: clap_complete::Generator>(shell: G, path: &Path) -> Option<String> {
     let mut cmd = Flags::command();
     let current = if !path.exists() {
         String::new()
     } else {
-        std::fs::read_to_string(path)
-            .unwrap_or_else(|_| {
-                eprintln!("couldn't read {}", path.display());
-                exit!(1)
-            })
+        std::fs::read_to_string(path).unwrap_or_else(|_| {
+            eprintln!("couldn't read {}", path.display());
+            exit!(1)
+        })
     };
     let mut buf = Vec::new();
     clap_complete::generate(shell, &mut cmd, "x.py", &mut buf);

@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-use clap::{Parser, Subcommand, Args};
 use super::traits::is_runnable::IsRunnable;
+use clap::{Args, Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -125,10 +125,6 @@ pub struct LayeredComposeArgs {
     /// Path to the config.lock file for caching and reproducibility.
     #[arg(long)]
     pub config_lock_path: Option<PathBuf>,
-    
-    
-
-
 }
 
 impl IsRunnable for LayeredComposeArgs {

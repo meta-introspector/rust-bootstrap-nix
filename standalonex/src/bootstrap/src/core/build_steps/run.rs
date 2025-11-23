@@ -6,11 +6,11 @@ use crate::prelude::*;
 
 use std::path::PathBuf;
 
-use crate::Mode;
 use crate::core::build_steps::dist::distdir;
 use crate::core::build_steps::test;
 use crate::core::build_steps::tool::{self, SourceType, Tool};
 use crate::core::builder::{Builder, Kind, RunConfig, ShouldRun, Step};
+use crate::Mode;
 //use crate::core::config::TargetSelection;
 //use crate::core::config::flags::get_completion;
 use crate::utils::exec::command;
@@ -41,7 +41,10 @@ impl Step for BuildManifest {
             panic!("\n\nfailed to specify `dist.upload-addr` in `config.toml`\n\n")
         });
 
-        let today = command("date").arg("+%Y-%m-%d").run_capture_stdout(builder).stdout();
+        let today = command("date")
+            .arg("+%Y-%m-%d")
+            .run_capture_stdout(builder)
+            .stdout();
 
         cmd.arg(sign);
         cmd.arg(distdir(builder));
@@ -149,7 +152,9 @@ impl Step for Miri {
             &[],
         );
         miri.add_rustc_lib_path(builder);
-        miri.arg("--").arg("--target").arg(target.rustc_target_arg());
+        miri.arg("--")
+            .arg("--target")
+            .arg(target.rustc_target_arg());
 
         // miri tests need to know about the stage sysroot
         miri.arg("--sysroot").arg(miri_sysroot);

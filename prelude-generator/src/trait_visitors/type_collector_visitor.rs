@@ -1,6 +1,6 @@
-use syn::visit::Visit;
-use std::collections::HashSet;
 use crate::trait_visitors::vernacular_walk::VernacularWalk;
+use std::collections::HashSet;
+use syn::visit::Visit;
 
 #[derive(Debug, Default)]
 pub struct TypeCollectorVisitor {
@@ -109,16 +109,20 @@ impl<'ast> VernacularWalk<'ast> for TypeCollectorVisitor {
     fn walk_type(&mut self, i: &'ast syn::Type) {
         syn::visit::visit_type(self, i);
     }
-    fn walk_bare_fn(&mut self, i: &'ast syn::TypeBareFn) { // Added
+    fn walk_bare_fn(&mut self, i: &'ast syn::TypeBareFn) {
+        // Added
         syn::visit::visit_type_bare_fn(self, i);
     }
-    fn walk_macro(&mut self, i: &'ast syn::Macro) { // Added
+    fn walk_macro(&mut self, i: &'ast syn::Macro) {
+        // Added
         syn::visit::visit_macro(self, i);
     }
-    fn walk_type_path(&mut self, i: &'ast syn::TypePath) { // Added
+    fn walk_type_path(&mut self, i: &'ast syn::TypePath) {
+        // Added
         syn::visit::visit_type_path(self, i);
     }
-    fn walk_type_param_bound(&mut self, i: &'ast syn::TypeParamBound) { // Added
+    fn walk_type_param_bound(&mut self, i: &'ast syn::TypeParamBound) {
+        // Added
         syn::visit::visit_type_param_bound(self, i);
     }
     fn walk_variant(&mut self, _i: &'ast syn::Variant) {} // Added

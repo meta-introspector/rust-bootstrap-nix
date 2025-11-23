@@ -1,29 +1,35 @@
+use quote::ToTokens;
 use std::{
     env, fs, io,
-    path::{PathBuf},
+    path::PathBuf,
     process::{Command, Stdio},
 };
-use tempfile::tempdir;
 use syn;
-use quote::ToTokens;
+use tempfile::tempdir;
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: {} <wrapped_code_path> <rollup_data_dir>", args[0]);
-        return Ok(())
+        return Ok(());
     }
 
     let wrapped_code_path = PathBuf::from(&args[1]);
     let rollup_data_dir = PathBuf::from(&args[2]);
 
     if !wrapped_code_path.is_file() {
-        eprintln!("Error: Wrapped code file does not exist: {}", wrapped_code_path.display());
-        return Ok(())
+        eprintln!(
+            "Error: Wrapped code file does not exist: {}",
+            wrapped_code_path.display()
+        );
+        return Ok(());
     }
     if !rollup_data_dir.is_dir() {
-        eprintln!("Error: Rollup data directory does not exist: {}", rollup_data_dir.display());
-        return Ok(())
+        eprintln!(
+            "Error: Rollup data directory does not exist: {}",
+            rollup_data_dir.display()
+        );
+        return Ok(());
     }
 
     // 1. Create a temporary Rust project
@@ -126,7 +132,7 @@ fn main() {{
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
-        return Ok(())
+        return Ok(());
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -135,8 +141,14 @@ fn main() {{
     let metrics_end_tag = "--- METRICS_END ---";
 
     let mut rollup_report_content = String::new();
-    rollup_report_content.push_str(&format!("# Rollup Report for Function: {}\n\n", function_name));
-    rollup_report_content.push_str(&format!("## Original Code (`{}`):\n", wrapped_code_path.display()));
+    rollup_report_content.push_str(&format!(
+        "# Rollup Report for Function: {}\n\n",
+        function_name
+    ));
+    rollup_report_content.push_str(&format!(
+        "## Original Code (`{}`):\n",
+        wrapped_code_path.display()
+    ));
     rollup_report_content.push_str("```rust\n");
     rollup_report_content.push_str(&wrapped_code_content); // Use the cleaned wrapped_code_content
     rollup_report_content.push_str("\n```\n\n");
@@ -170,12 +182,18 @@ fn main() {{
         }
         Err(e) => {
             // Handle parsing error, maybe log it or include in the report
-            eprintln!("Error parsing wrapped code for use statement analysis: {}", e);
+            eprintln!(
+                "Error parsing wrapped code for use statement analysis: {}",
+                e
+            );
         }
     }
 
     rollup_report_content.push_str("## Use Statement Analysis:\n");
-    rollup_report_content.push_str(&format!("*   **Total Use Statements Processed:** {}\n", total_use_statements));
+    rollup_report_content.push_str(&format!(
+        "*   **Total Use Statements Processed:** {}\n",
+        total_use_statements
+    ));
     rollup_report_content.push_str("*   **Types of Use Statements:**\n");
     rollup_report_content.push_str(&format!("    *   `std::`: {}\n", std_uses));
     rollup_report_content.push_str(&format!("    *   `crate::`: {}\n", crate_uses));
@@ -191,8 +209,14 @@ fn main() {{
         }
     }
 
-    fs::write(rollup_data_dir.join("rollup_report.md"), rollup_report_content)?;
-    println!("Successfully generated rollup_report.md for {}", wrapped_code_path.display());
+    fs::write(
+        rollup_data_dir.join("rollup_report.md"),
+        rollup_report_content,
+    )?;
+    println!(
+        "Successfully generated rollup_report.md for {}",
+        wrapped_code_path.display()
+    );
 
     Ok(())
 }

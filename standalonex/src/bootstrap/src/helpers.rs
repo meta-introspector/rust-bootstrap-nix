@@ -1,12 +1,11 @@
 use crate::prelude::*;
 
-
 use std::fmt::Display;
-use std::path::{Path, PathBuf};
 use std::io;
+use std::path::{Path, PathBuf};
 
-use crate::Build;
 use crate::flags;
+use crate::Build;
 use termcolor::{ColorChoice, StandardStream, WriteColor};
 
 pub fn envify(s: &str) -> String {

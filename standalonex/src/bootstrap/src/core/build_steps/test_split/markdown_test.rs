@@ -1,6 +1,5 @@
 use std::fs;
 
-
 fn markdown_test(builder: &Builder<'_>, compiler: Compiler, markdown: &Path) -> bool {
     if let Ok(contents) = fs::read_to_string(markdown) {
         if !contents.contains("```") {

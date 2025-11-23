@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -15,8 +14,14 @@ pub fn run_nix_build(flake_dir: &Path) -> Result<()> {
 
     if !nix_build_output.status.success() {
         eprintln!("Nix build failed!");
-        eprintln!("Stdout: {}", String::from_utf8_lossy(&nix_build_output.stdout));
-        eprintln!("Stderr: {}", String::from_utf8_lossy(&nix_build_output.stderr));
+        eprintln!(
+            "Stdout: {}",
+            String::from_utf8_lossy(&nix_build_output.stdout)
+        );
+        eprintln!(
+            "Stderr: {}",
+            String::from_utf8_lossy(&nix_build_output.stderr)
+        );
         return Err("Nix build failed".into());
     }
     println!("Nix build passed. Output in result link.");

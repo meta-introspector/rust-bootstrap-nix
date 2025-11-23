@@ -115,7 +115,10 @@ pub fn check_incompatible_options_for_ci_rustc(
     err!(current_rust_config.optimize, optimize);
     err!(current_rust_config.randomize_layout, randomize_layout);
     err!(current_rust_config.debug_logging, debug_logging);
-    err!(current_rust_config.debuginfo_level_rustc, debuginfo_level_rustc);
+    err!(
+        current_rust_config.debuginfo_level_rustc,
+        debuginfo_level_rustc
+    );
     err!(current_rust_config.rpath, rpath);
     err!(current_rust_config.strip, strip);
     err!(current_rust_config.lld_mode, lld_mode);

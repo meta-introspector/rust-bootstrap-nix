@@ -8,5 +8,3 @@ pub trait CommandMyLocalScriptShTrait {
 pub trait CommandLsTrait {
     fn execute(&self, args: &[&str]) -> Result<String, String>;
 }
-
-

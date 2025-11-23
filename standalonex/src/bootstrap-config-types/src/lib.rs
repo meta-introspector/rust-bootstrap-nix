@@ -26,36 +26,38 @@ pub enum DocTests {
 
 use std::process::Command;
 
-pub use clap::{Parser, ValueEnum, Args, Subcommand};
+pub use clap::{Args, Parser, Subcommand, ValueEnum};
 
-pub use build_helper::git::{GitConfig, output_result as git_output_result, get_closest_merge_commit };
+pub use build_helper::git::{
+    get_closest_merge_commit, output_result as git_output_result, GitConfig,
+};
 
+pub use build_helper::channel;
 pub use build_helper::ci::CiEnv;
 pub use build_helper::exit;
-pub use build_helper::channel;
 pub use build_helper::get_builder_toml;
-pub use build_helper::RUSTC_IF_UNCHANGED_ALLOWED_PATHS;
 pub use build_helper::helpers;
+pub use build_helper::RUSTC_IF_UNCHANGED_ALLOWED_PATHS;
 
-pub use crate::target_selection::{TargetSelection, TargetSelectionList, Target};
-pub use crate::tomlconfig::{TomlConfig};
-pub use crate::rust_optimize::RustOptimize;
-pub use crate::lld_mode::LldMode;
-pub use crate::rustclto::RustcLto;
-pub use crate::llvm_lib_unwind::LlvmLibunwind;
-pub use crate::splitdebuginfo::SplitDebuginfo;
-pub use crate::stringorbool::StringOrBool;
-pub use crate::string_or_int::StringOrInt;
-pub use crate::rustfmt::RustfmtState;
-pub use crate::replaceop::ReplaceOpt;
 pub use crate::changeid::ChangeIdWrapper;
-pub use crate::Kind::Build;
-pub use crate::warnings::Warnings;
 pub use crate::color::Color;
-pub use crate::dry_run::DryRun;
 pub use crate::config_base::Config;
 pub use crate::config_part2::check_incompatible_options_for_ci_rustc;
 pub use crate::config_part6::OptimizeVisitor;
+pub use crate::dry_run::DryRun;
+pub use crate::lld_mode::LldMode;
+pub use crate::llvm_lib_unwind::LlvmLibunwind;
+pub use crate::replaceop::ReplaceOpt;
+pub use crate::rust_optimize::RustOptimize;
+pub use crate::rustclto::RustcLto;
+pub use crate::rustfmt::RustfmtState;
+pub use crate::splitdebuginfo::SplitDebuginfo;
+pub use crate::string_or_int::StringOrInt;
+pub use crate::stringorbool::StringOrBool;
+pub use crate::target_selection::{Target, TargetSelection, TargetSelectionList};
+pub use crate::tomlconfig::TomlConfig;
+pub use crate::warnings::Warnings;
+pub use crate::Kind::Build;
 pub use config_macros::define_config;
 
 fn output(cmd: &mut Command) -> Vec<u8> {

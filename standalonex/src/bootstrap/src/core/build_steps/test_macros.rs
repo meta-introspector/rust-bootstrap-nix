@@ -1,11 +1,16 @@
 use crate::prelude::*;
 
-
 #[macro_export]
 #[macro_export]
 macro_rules! default_test {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
-        test!($name { path: $path, mode: $mode, suite: $suite, default: true, host: false });
+        test!($name {
+            path: $path,
+            mode: $mode,
+            suite: $suite,
+            default: true,
+            host: false
+        });
     };
 }
 
@@ -29,7 +34,13 @@ macro_rules! default_test_with_compare_mode {
 #[macro_export]
 macro_rules! host_test {
     ($name:ident { path: $path:expr, mode: $mode:expr, suite: $suite:expr }) => {
-        test!($name { path: $path, mode: $mode, suite: $suite, default: true, host: true });
+        test!($name {
+            path: $path,
+            mode: $mode,
+            suite: $suite,
+            default: true,
+            host: true
+        });
     };
 }
 
@@ -95,13 +106,23 @@ macro_rules! coverage_test_alias {
             }
 
             fn make_run(run: RunConfig<'_>) {
-                let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
+                let compiler = run
+                    .builder
+                    .compiler(run.builder.top_stage, run.build_triple());
 
-                run.builder.ensure($name { compiler, target: run.target });
+                run.builder.ensure($name {
+                    compiler,
+                    target: run.target,
+                });
             }
 
             fn run(self, builder: &Builder<'_>) {
-                crate::coverage::Coverage::run_coverage_tests(builder, self.compiler, self.target, Self::MODE);
+                crate::coverage::Coverage::run_coverage_tests(
+                    builder,
+                    self.compiler,
+                    self.target,
+                    Self::MODE,
+                );
             }
         }
     };

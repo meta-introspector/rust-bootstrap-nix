@@ -17,24 +17,36 @@ use crate::core::build_steps::tool::{self, SourceType, Tool};
 use crate::core::build_steps::toolstate::ToolState;
 use crate::core::build_steps::{compile, dist, llvm};
 use crate::core::builder::{
-    self, Alias, Builder, Compiler, Kind, RunConfig, ShouldRun, Step, crate_description,
+    self, crate_description, Alias, Builder, Compiler, Kind, RunConfig, ShouldRun, Step,
 };
 //use crate::core::config::TargetSelection;
 //use crate::core::config::flags::get_completion;
 //use crate::Subcommand;
-use crate::utils::exec::{BootstrapCommand, command};
+use crate::utils::exec::{command, BootstrapCommand};
 use crate::utils::helpers::{
-    self, LldThreads, add_link_lib_path, add_rustdoc_cargo_linker_args, dylib_path, dylib_path_var,
-    linker_args, linker_flags, t, target_supports_cranelift_backend, up_to_date,
+    self, add_link_lib_path, add_rustdoc_cargo_linker_args, dylib_path, dylib_path_var,
+    linker_args, linker_flags, t, target_supports_cranelift_backend, up_to_date, LldThreads,
 };
 use crate::utils::render_tests::{add_flags_and_try_run_tests, try_run_tests};
-use crate::{Language, DocTests, GitInfo, Mode, envify};
+use crate::{envify, DocTests, GitInfo, Language, Mode};
 //use test_definitions_macro::test_definitions;
-default_test!(Ui { path: "tests/ui", mode: "ui", suite: "ui" });
+default_test!(Ui {
+    path: "tests/ui",
+    mode: "ui",
+    suite: "ui"
+});
 
-default_test!(Crashes { path: "tests/crashes", mode: "crashes", suite: "crashes" });
+default_test!(Crashes {
+    path: "tests/crashes",
+    mode: "crashes",
+    suite: "crashes"
+});
 
-default_test!(Codegen { path: "tests/codegen", mode: "codegen", suite: "codegen" });
+default_test!(Codegen {
+    path: "tests/codegen",
+    mode: "codegen",
+    suite: "codegen"
+});
 
 default_test!(CodegenUnits {
     path: "tests/codegen-units",
@@ -42,7 +54,11 @@ default_test!(CodegenUnits {
     suite: "codegen-units"
 });
 
-default_test!(Incremental { path: "tests/incremental", mode: "incremental", suite: "incremental" });
+default_test!(Incremental {
+    path: "tests/incremental",
+    mode: "incremental",
+    suite: "incremental"
+});
 
 default_test_with_compare_mode!(Debuginfo {
     path: "tests/debuginfo",
@@ -51,18 +67,42 @@ default_test_with_compare_mode!(Debuginfo {
     compare_mode: "split-dwarf"
 });
 
-host_test!(UiFullDeps { path: "tests/ui-fulldeps", mode: "ui", suite: "ui-fulldeps" });
+host_test!(UiFullDeps {
+    path: "tests/ui-fulldeps",
+    mode: "ui",
+    suite: "ui-fulldeps"
+});
 
-host_test!(Rustdoc { path: "tests/rustdoc", mode: "rustdoc", suite: "rustdoc" });
-host_test!(RustdocUi { path: "tests/rustdoc-ui", mode: "ui", suite: "rustdoc-ui" });
+host_test!(Rustdoc {
+    path: "tests/rustdoc",
+    mode: "rustdoc",
+    suite: "rustdoc"
+});
+host_test!(RustdocUi {
+    path: "tests/rustdoc-ui",
+    mode: "ui",
+    suite: "rustdoc-ui"
+});
 
-host_test!(RustdocJson { path: "tests/rustdoc-json", mode: "rustdoc-json", suite: "rustdoc-json" });
+host_test!(RustdocJson {
+    path: "tests/rustdoc-json",
+    mode: "rustdoc-json",
+    suite: "rustdoc-json"
+});
 
-host_test!(Pretty { path: "tests/pretty", mode: "pretty", suite: "pretty" });
+host_test!(Pretty {
+    path: "tests/pretty",
+    mode: "pretty",
+    suite: "pretty"
+});
 
 /// Special-handling is needed for `run-make`, so don't use `default_test` for defining `RunMake`
 /// tests.
-default_test!(Assembly { path: "tests/assembly", mode: "assembly", suite: "assembly" });
+default_test!(Assembly {
+    path: "tests/assembly",
+    mode: "assembly",
+    suite: "assembly"
+});
 
 /// Coverage tests are a bit more complicated than other test suites, because
 /// we want to run the same set of test files in multiple different modes,

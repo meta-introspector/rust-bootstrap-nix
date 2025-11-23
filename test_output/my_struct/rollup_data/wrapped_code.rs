@@ -1,2 +1,4 @@
 use prelude::*;
-pub struct MyStruct { field : i32 , }
+pub struct MyStruct {
+    field: i32,
+}

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
@@ -9,12 +8,12 @@ use std::{io, str};
 use sha2::digest::Digest;
 use termcolor::{ColorChoice, StandardStream, WriteColor};
 
-use crate::Build;
-use crate::DependencyType;
 use crate::core::config::dry_run::DryRun;
 use crate::core::config::flags;
 use crate::utils::exec::{BehaviorOnFailure, BootstrapCommand, CommandOutput, OutputMode};
 use crate::utils::helpers::{mtime, set_file_times};
+use crate::Build;
+use crate::DependencyType;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -213,12 +212,17 @@ Executed at: {executed_at}"#,
             // but if that fails just fall back to a slow `copy` operation.
         } else {
             if let Err(e) = fs::copy(&src, dst) {
-                panic!("failed to copy `{}` to `{}`: {}", src.display(), dst.display(), e)
+                panic!(
+                    "failed to copy `{}` to `{}`: {}",
+                    src.display(),
+                    dst.display(),
+                    e
+                )
             }
             t!(fs::set_permissions(dst, metadata.permissions()));
 
             // Restore file times because changing permissions on e.g. Linux using `chmod` can cause
-            // file access time to change. 
+            // file access time to change.
             let file_times = fs::FileTimes::new()
                 .set_accessed(t!(metadata.accessed()))
                 .set_modified(t!(metadata.modified()));
@@ -334,13 +338,20 @@ Executed at: {executed_at}"#,
     }
 
     pub fn symlink_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, src: P, link: Q) -> io::Result<()> {
-        if self.config.dry_run { return Ok(()); }
+        if self.config.dry_run {
+            return Ok(());
+        }
         if cfg!(unix) {
             std::os::unix::fs::symlink(src.as_ref(), link.as_ref())
-        } /* else if cfg!(windows) {
+        }
+        /* else if cfg!(windows) {
             std::os::windows::fs::symlink_file(src.as_ref(), link.as_ref())
-        } */ else {
-            Err(io::Error::new(io::ErrorKind::Other, "symlinks not supported on this platform"))
+        } */
+        else {
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                "symlinks not supported on this platform",
+            ))
         }
     }
 

@@ -1,6 +1,5 @@
 use crate::prelude::*;
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-#[derive(Default)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Default)]
 pub enum DryRun {
     #[default]
     Disabled,

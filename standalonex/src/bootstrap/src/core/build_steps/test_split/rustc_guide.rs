@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RustcGuide;
 
@@ -24,8 +23,11 @@ impl Step for RustcGuide {
         let src = builder.src.join(relative_path);
         let mut rustbook_cmd = builder.tool_cmd(Tool::Rustbook).delay_failure();
         rustbook_cmd.arg("linkcheck").arg(&src);
-        let toolstate =
-            if rustbook_cmd.run(builder) { ToolState::TestPass } else { ToolState::TestFail };
+        let toolstate = if rustbook_cmd.run(builder) {
+            ToolState::TestPass
+        } else {
+            ToolState::TestFail
+        };
         builder.save_toolstate("rustc-dev-guide", toolstate);
     }
 }

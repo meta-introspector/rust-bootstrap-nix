@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::declaration::ResolvedDependency;
+use std::collections::HashMap;
 
 pub fn get_rust_language_symbols() -> HashMap<String, ResolvedDependency> {
     let mut symbols = HashMap::new();
@@ -49,21 +49,32 @@ pub fn get_rust_language_symbols() -> HashMap<String, ResolvedDependency> {
 }
 
 fn add_primitive_type(symbols: &mut HashMap<String, ResolvedDependency>, id: &str) {
-    symbols.insert(id.to_string(), ResolvedDependency {
-        id: id.to_string(),
-        dependency_type: "primitive_type".to_string(),
-        crate_name: "std".to_string(),
-        module_path: "std".to_string(),
-        usage_count: 0,
-    });
+    symbols.insert(
+        id.to_string(),
+        ResolvedDependency {
+            id: id.to_string(),
+            dependency_type: "primitive_type".to_string(),
+            crate_name: "std".to_string(),
+            module_path: "std".to_string(),
+            usage_count: 0,
+        },
+    );
 }
 
-fn add_std_lib_symbol(symbols: &mut HashMap<String, ResolvedDependency>, id: &str, dep_type: &str, module_path: Option<&str>) {
-    symbols.insert(id.to_string(), ResolvedDependency {
-        id: id.to_string(),
-        dependency_type: dep_type.to_string(),
-        crate_name: "std".to_string(),
-        module_path: module_path.unwrap_or("std").to_string(),
-        usage_count: 0,
-    });
+fn add_std_lib_symbol(
+    symbols: &mut HashMap<String, ResolvedDependency>,
+    id: &str,
+    dep_type: &str,
+    module_path: Option<&str>,
+) {
+    symbols.insert(
+        id.to_string(),
+        ResolvedDependency {
+            id: id.to_string(),
+            dependency_type: dep_type.to_string(),
+            crate_name: "std".to_string(),
+            module_path: module_path.unwrap_or("std").to_string(),
+            usage_count: 0,
+        },
+    );
 }

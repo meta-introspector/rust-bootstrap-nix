@@ -35,7 +35,12 @@ pub struct TestSuite {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum TestSuiteMetadata {
-    CargoPackage { crates: Vec<String>, target: String, host: String, stage: u32 },
+    CargoPackage {
+        crates: Vec<String>,
+        target: String,
+        host: String,
+        stage: u32,
+    },
     Compiletest {
         suite: String,
         mode: String,

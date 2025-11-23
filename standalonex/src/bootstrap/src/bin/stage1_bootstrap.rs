@@ -1,7 +1,6 @@
 use crate::prelude::*;
 
-
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::process::Command;
 
 #[derive(Serialize, Deserialize, Debug)]

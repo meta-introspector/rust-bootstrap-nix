@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// C-compiler probing and detection.
 ///
 /// This module will fill out the `cc` and `cxx` maps of `Build` by looking for
@@ -23,13 +22,12 @@ use crate::prelude::*;
 /// It is intended that after this module has run no C/C++ compiler will
 /// ever be probed for. Instead the compilers found here will be used for
 /// everything.
-
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::{env, iter};
 
 //use crate::core::config::TargetSelection;
-use crate::utils::exec::{BootstrapCommand, command};
+use crate::utils::exec::{command, BootstrapCommand};
 //use crate::{BuildConfig};
 
 // The `cc` crate doesn't provide a way to obtain a path to the detected archiver,
@@ -99,9 +97,12 @@ pub fn find(build: &Build) {
         crate::Subcommand::Clean { .. }
         | crate::Subcommand::Suggest { .. }
         | crate::Subcommand::Format { .. }
-        | crate::Subcommand::Setup { .. } => {
-            build.hosts.iter().cloned().chain(iter::once(build.build)).collect()
-        }
+        | crate::Subcommand::Setup { .. } => build
+            .hosts
+            .iter()
+            .cloned()
+            .chain(iter::once(build.build))
+            .collect(),
 
         _ => {
             // For all targets we're going to need a C compiler for building some shims
@@ -189,9 +190,11 @@ fn default_compiler(
         // When compiling for android we may have the NDK configured in the
         // config.toml in which case we look there. Otherwise the default
         // compiler already takes into account the triple in question.
-        t if t.contains("android") => {
-            build.config.android_ndk.as_ref().map(|ndk| ndk_compiler(compiler, &target.triple, ndk))
-        }
+        t if t.contains("android") => build
+            .config
+            .android_ndk
+            .as_ref()
+            .map(|ndk| ndk_compiler(compiler, &target.triple, ndk)),
 
         // The default gcc version from OpenBSD may be too old, try using egcc,
         // which is a gcc version from ports, if this is the case.
@@ -238,14 +241,16 @@ fn default_compiler(
         | "sbpfv1-solana-solana"
         | "sbpfv2-solana-solana"
         | "sbpfv3-solana-solana"
-        | "sbpfv4-solana-solana" => {
-            Some(build.llvm_bin(target).join(compiler.clang()))
-        }
+        | "sbpfv4-solana-solana" => Some(build.llvm_bin(target).join(compiler.clang())),
 
         t if t.contains("musl") && compiler == Language::C => {
             if let Some(root) = build.musl_root(target) {
                 let guess = root.join("bin/musl-gcc");
-                if guess.exists() { Some(guess) } else { None }
+                if guess.exists() {
+                    Some(guess)
+                } else {
+                    None
+                }
             } else {
                 None
             }
@@ -272,7 +277,10 @@ pub(crate) fn ndk_compiler(compiler: Language, triple: &str, ndk: &Path) -> Path
             "arm" | "armv7" | "armv7neon" | "thumbv7" | "thumbv7neon" => "armv7a",
             other => other,
         };
-        std::iter::once(arch_new).chain(triple_iter).collect::<Vec<&str>>().join("-")
+        std::iter::once(arch_new)
+            .chain(triple_iter)
+            .collect::<Vec<&str>>()
+            .join("-")
     } else {
         triple.to_string()
     };
@@ -291,7 +299,12 @@ pub(crate) fn ndk_compiler(compiler: Language, triple: &str, ndk: &Path) -> Path
         // emulation layer that can cope (e.g. BSDs).
         "linux-x86_64"
     };
-    ndk.join("toolchains").join("llvm").join("prebuilt").join(host_tag).join("bin").join(compiler)
+    ndk.join("toolchains")
+        .join("llvm")
+        .join("prebuilt")
+        .join(host_tag)
+        .join("bin")
+        .join(compiler)
 }
 
 /// The target programming language for a native compiler.

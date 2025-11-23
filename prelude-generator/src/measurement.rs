@@ -1,7 +1,7 @@
-use std::time::Instant;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use serde::Serialize;
+use std::time::Instant;
 
 // A simple struct to hold function metrics
 #[derive(Debug, Serialize, Clone)]
@@ -33,7 +33,9 @@ lazy_static::lazy_static! {
 // Function to be called at the start of a wrapped function
 pub fn record_function_entry(function_name: &str) {
     let mut metrics = METRICS.lock().unwrap();
-    let entry = metrics.entry(function_name.to_string()).or_insert_with(FunctionMetrics::new);
+    let entry = metrics
+        .entry(function_name.to_string())
+        .or_insert_with(FunctionMetrics::new);
     entry.start_time = Instant::now();
     entry.call_count += 1;
     // println!("[MEASURE] Entering function: {}"); // Removed print

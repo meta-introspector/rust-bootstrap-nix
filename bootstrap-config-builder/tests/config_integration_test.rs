@@ -1,8 +1,7 @@
 use bootstrap_config_builder::prelude::*;
 
-
-use bootstrap_config_builder::config::AppConfig;
 use bootstrap_config_builder::args::Args;
+use bootstrap_config_builder::config::AppConfig;
 use bootstrap_config_builder::utils::format_file;
 use std::path::PathBuf;
 
@@ -48,16 +47,34 @@ fn test_app_config_deserialization() {
 
     assert_eq!(config.stage, Some("test_stage".to_string()));
     assert_eq!(config.target, Some("test_target".to_string()));
-    assert_eq!(config.project_root, Some(PathBuf::from("/test/project_root")));
+    assert_eq!(
+        config.project_root,
+        Some(PathBuf::from("/test/project_root"))
+    );
     assert_eq!(config.system, Some("test_system".to_string()));
     assert_eq!(config.output, Some(PathBuf::from("/test/output")));
-    assert_eq!(config.rust_bootstrap_nix_flake_ref, Some("test_bootstrap_ref".to_string()));
+    assert_eq!(
+        config.rust_bootstrap_nix_flake_ref,
+        Some("test_bootstrap_ref".to_string())
+    );
     assert_eq!(config.rust_src_flake_ref, Some("test_src_ref".to_string()));
     assert_eq!(config.nixpkgs_path, Some(PathBuf::from("/test/nixpkgs")));
-    assert_eq!(config.rust_overlay_path, Some(PathBuf::from("/test/rust_overlay")));
-    assert_eq!(config.rust_bootstrap_nix_path, Some(PathBuf::from("/test/bootstrap_nix_path")));
-    assert_eq!(config.configuration_nix_path, Some(PathBuf::from("/test/config_nix_path")));
-    assert_eq!(config.rust_src_flake_path, Some(PathBuf::from("/test/rust_src_path")));
+    assert_eq!(
+        config.rust_overlay_path,
+        Some(PathBuf::from("/test/rust_overlay"))
+    );
+    assert_eq!(
+        config.rust_bootstrap_nix_path,
+        Some(PathBuf::from("/test/bootstrap_nix_path"))
+    );
+    assert_eq!(
+        config.configuration_nix_path,
+        Some(PathBuf::from("/test/config_nix_path"))
+    );
+    assert_eq!(
+        config.rust_src_flake_path,
+        Some(PathBuf::from("/test/rust_src_path"))
+    );
     assert_eq!(config.dry_run, Some(true));
     assert_eq!(config.rustc_path, Some(PathBuf::from("/test/rustc")));
     assert_eq!(config.cargo_path, Some(PathBuf::from("/test/cargo")));
@@ -71,11 +88,26 @@ fn test_app_config_deserialization() {
     assert_eq!(config.build_dir, Some(PathBuf::from("/test/build_dir")));
     assert_eq!(config.build_jobs, Some(8));
     assert_eq!(config.home_dir, Some(PathBuf::from("/test/home")));
-    assert_eq!(config.cargo_home_dir, Some(PathBuf::from("/test/cargo_home")));
-    assert_eq!(config.install_prefix, Some(PathBuf::from("/test/install_prefix")));
-    assert_eq!(config.install_sysconfdir, Some(PathBuf::from("/test/install_sysconfdir")));
-    assert_eq!(config.dist_sign_folder, Some(PathBuf::from("/test/dist_sign_folder")));
-    assert_eq!(config.dist_upload_addr, Some("test_upload_addr".to_string()));
+    assert_eq!(
+        config.cargo_home_dir,
+        Some(PathBuf::from("/test/cargo_home"))
+    );
+    assert_eq!(
+        config.install_prefix,
+        Some(PathBuf::from("/test/install_prefix"))
+    );
+    assert_eq!(
+        config.install_sysconfdir,
+        Some(PathBuf::from("/test/install_sysconfdir"))
+    );
+    assert_eq!(
+        config.dist_sign_folder,
+        Some(PathBuf::from("/test/dist_sign_folder"))
+    );
+    assert_eq!(
+        config.dist_upload_addr,
+        Some("test_upload_addr".to_string())
+    );
     assert_eq!(config.llvm_download_ci_llvm, Some(true));
     assert_eq!(config.llvm_ninja, Some(true));
     assert_eq!(config.change_id, Some("test_change_id".to_string()));

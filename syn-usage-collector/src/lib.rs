@@ -1,11 +1,14 @@
-use syn::{visit::{self, Visit}, File, Type};
-use std::collections::{HashMap, HashSet};
 use anyhow::Result;
+use std::collections::{HashMap, HashSet};
+use syn::{
+    visit::{self, Visit},
+    File, Type,
+};
 
 #[derive(Debug, Default)]
 pub struct TypeUsageCollector {
     /// Stores usage of types: TypeA -> AST Node Type -> Count of TypeB -> Set of TypeB groups
-    pub type_usage: HashMap<String, HashMap<String, HashMap<usize, HashSet<HashSet<String>>>>>, 
+    pub type_usage: HashMap<String, HashMap<String, HashMap<usize, HashSet<HashSet<String>>>>>,
     pub all_types: HashSet<String>,
 }
 
@@ -25,7 +28,11 @@ impl<'ast> Visit<'ast> for TypeUsageCollector {
 /// Helper function to convert a syn::Type to a String representation.
 fn type_to_string(ty: &Type) -> Option<String> {
     match ty {
-        Type::Path(type_path) => type_path.path.segments.last().map(|segment| segment.ident.to_string()),
+        Type::Path(type_path) => type_path
+            .path
+            .segments
+            .last()
+            .map(|segment| segment.ident.to_string()),
         // Add other Type variants as needed
         _ => None,
     }

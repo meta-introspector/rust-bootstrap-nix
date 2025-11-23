@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Compilation of native dependencies like LLVM.
 ///
 /// Native projects like LLVM unfortunately aren't suited just yet for
@@ -10,7 +9,6 @@ use crate::prelude::*;
 ///
 /// LLVM and compiler-rt are essentially just wired up to everything else to
 /// ensure that they're always in place if needed.
-
 use std::env;
 use std::env::consts::EXE_EXTENSION;
 use std::ffi::{OsStr, OsString};
@@ -25,9 +23,9 @@ use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
 //use crate::core::config::{Config, TargetSelection};
 use crate::utils::exec::command;
 use crate::utils::helpers::{
-    self, HashStamp, exe, get_clang_cl_resource_dir, t, unhashed_basename, up_to_date,
+    self, exe, get_clang_cl_resource_dir, t, unhashed_basename, up_to_date, HashStamp,
 };
-use crate::{Language, GitInfo, Kind, generate_smart_stamp_hash};
+use crate::{generate_smart_stamp_hash, GitInfo, Kind, Language};
 
 #[derive(Clone)]
 pub struct LlvmResult {
@@ -111,7 +109,10 @@ pub fn prebuilt_llvm_config(
             llvm_cmake_dir.push("lib");
             llvm_cmake_dir.push("cmake");
             llvm_cmake_dir.push("llvm");
-            return LlvmBuildStatus::AlreadyBuilt(LlvmResult { llvm_config, llvm_cmake_dir });
+            return LlvmBuildStatus::AlreadyBuilt(LlvmResult {
+                llvm_config,
+                llvm_cmake_dir,
+            });
         }
     }
 
@@ -127,7 +128,10 @@ pub fn prebuilt_llvm_config(
     llvm_config_ret_dir.push("bin");
     let build_llvm_config = llvm_config_ret_dir.join(exe("llvm-config", builder.config.build));
     let llvm_cmake_dir = out_dir.join("lib/cmake/llvm");
-    let res = LlvmResult { llvm_config: build_llvm_config, llvm_cmake_dir };
+    let res = LlvmResult {
+        llvm_config: build_llvm_config,
+        llvm_cmake_dir,
+    };
 
     static STAMP_HASH_MEMO: OnceLock<String> = OnceLock::new();
     let smart_stamp_hash = STAMP_HASH_MEMO.get_or_init(|| {
@@ -155,18 +159,27 @@ pub fn prebuilt_llvm_config(
         return LlvmBuildStatus::AlreadyBuilt(res);
     }
 
-    LlvmBuildStatus::ShouldBuild(Meta { stamp, res, out_dir, root: root.into() })
+    LlvmBuildStatus::ShouldBuild(Meta {
+        stamp,
+        res,
+        out_dir,
+        root: root.into(),
+    })
 }
 
 /// This retrieves the LLVM sha we *want* to use, according to git history.
 pub(crate) fn detect_llvm_sha(config: &Config, is_git: bool) -> String {
     let llvm_sha = if is_git {
-        get_closest_merge_commit(Some(&config.src), &config.git_config(), &[
-            config.src.join("src/llvm-project"),
-            config.src.join("src/bootstrap/download-ci-llvm-stamp"),
-            // the LLVM shared object file is named `LLVM-12-rust-{version}-nightly`
-            config.src.join("src/version"),
-        ])
+        get_closest_merge_commit(
+            Some(&config.src),
+            &config.git_config(),
+            &[
+                config.src.join("src/llvm-project"),
+                config.src.join("src/bootstrap/download-ci-llvm-stamp"),
+                // the LLVM shared object file is named `LLVM-12-rust-{version}-nightly`
+                config.src.join("src/version"),
+            ],
+        )
         .unwrap()
     } else if let Some(info) = crate::utils::channel::read_commit_info_file(&config.src) {
         info.sha.trim().to_owned()
@@ -263,7 +276,10 @@ pub(crate) fn is_ci_llvm_modified(config: &Config) -> bool {
 
     let llvm_sha = detect_llvm_sha(config, true);
     let head_sha = crate::output(
-        helpers::git(Some(&config.src)).arg("rev-parse").arg("HEAD").as_command_mut(),
+        helpers::git(Some(&config.src))
+            .arg("rev-parse")
+            .arg("HEAD")
+            .as_command_mut(),
     );
     let head_sha = head_sha.trim();
     llvm_sha == head_sha
@@ -305,13 +321,21 @@ impl Step for Llvm {
         };
 
         // If LLVM has already been built or been downloaded through download-ci-llvm, we avoid building it again.
-        let Meta { stamp, res, out_dir, root } = match prebuilt_llvm_config(builder, target, true) {
+        let Meta {
+            stamp,
+            res,
+            out_dir,
+            root,
+        } = match prebuilt_llvm_config(builder, target, true) {
             LlvmBuildStatus::AlreadyBuilt(p) => return p,
             LlvmBuildStatus::ShouldBuild(m) => m,
         };
 
         if builder.llvm_link_shared() && target.is_windows() {
-            panic!("shared linking to LLVM is not currently supported on {}", target.triple);
+            panic!(
+                "shared linking to LLVM is not currently supported on {}",
+                target.triple
+            );
         }
 
         let _guard = builder.msg_unstaged(Kind::Build, "LLVM", target);
@@ -323,7 +347,10 @@ impl Step for Llvm {
         let mut cfg = cmake::Config::new(builder.src.join(root));
         let mut ldflags = LdFlags::default();
 
-        let profile = match (builder.config.llvm_optimize, builder.config.llvm_release_debuginfo) {
+        let profile = match (
+            builder.config.llvm_optimize,
+            builder.config.llvm_release_debuginfo,
+        ) {
             (false, _) => "Debug",
             (true, false) => "Release",
             (true, true) => "RelWithDebInfo",
@@ -344,10 +371,26 @@ impl Step for Llvm {
             None => "AVR;M68k;CSKY;Xtensa",
         };
 
-        let assertions = if builder.config.llvm_assertions { "ON" } else { "OFF" };
-        let plugins = if builder.config.llvm_plugins { "ON" } else { "OFF" };
-        let enable_tests = if builder.config.llvm_tests { "ON" } else { "OFF" };
-        let enable_warnings = if builder.config.llvm_enable_warnings { "ON" } else { "OFF" };
+        let assertions = if builder.config.llvm_assertions {
+            "ON"
+        } else {
+            "OFF"
+        };
+        let plugins = if builder.config.llvm_plugins {
+            "ON"
+        } else {
+            "OFF"
+        };
+        let enable_tests = if builder.config.llvm_tests {
+            "ON"
+        } else {
+            "OFF"
+        };
+        let enable_warnings = if builder.config.llvm_enable_warnings {
+            "ON"
+        } else {
+            "OFF"
+        };
 
         cfg.out_dir(&out_dir)
             .profile(profile)
@@ -510,22 +553,31 @@ impl Step for Llvm {
 
         // https://llvm.org/docs/HowToCrossCompileLLVM.html
         if target != builder.config.build {
-            let LlvmResult { llvm_config, .. } =
-                builder.ensure(Llvm { target: builder.config.build });
+            let LlvmResult { llvm_config, .. } = builder.ensure(Llvm {
+                target: builder.config.build,
+            });
             if !builder.config.dry_run {
-                let llvm_bindir =
-                    command(&llvm_config).arg("--bindir").run_capture_stdout(builder).stdout();
+                let llvm_bindir = command(&llvm_config)
+                    .arg("--bindir")
+                    .run_capture_stdout(builder)
+                    .stdout();
                 let host_bin = Path::new(llvm_bindir.trim());
                 cfg.define(
                     "LLVM_TABLEGEN",
                     host_bin.join("llvm-tblgen").with_extension(EXE_EXTENSION),
                 );
                 // LLVM_NM is required for cross compiling using MSVC
-                cfg.define("LLVM_NM", host_bin.join("llvm-nm").with_extension(EXE_EXTENSION));
+                cfg.define(
+                    "LLVM_NM",
+                    host_bin.join("llvm-nm").with_extension(EXE_EXTENSION),
+                );
             }
             cfg.define("LLVM_CONFIG_PATH", llvm_config);
             if builder.config.llvm_clang {
-                let build_bin = builder.llvm_out(builder.config.build).join("build").join("bin");
+                let build_bin = builder
+                    .llvm_out(builder.config.build)
+                    .join("build")
+                    .join("bin");
                 let clang_tblgen = build_bin.join("clang-tblgen").with_extension(EXE_EXTENSION);
                 if !builder.config.dry_run && !clang_tblgen.exists() {
                     panic!("unable to find {}", clang_tblgen.display());
@@ -536,14 +588,21 @@ impl Step for Llvm {
 
         let llvm_version_suffix = if let Some(ref suffix) = builder.config.llvm_version_suffix {
             // Allow version-suffix="" to not define a version suffix at all.
-            if !suffix.is_empty() { Some(suffix.to_string()) } else { None }
+            if !suffix.is_empty() {
+                Some(suffix.to_string())
+            } else {
+                None
+            }
         } else if builder.config.channel == "dev" {
             // Changes to a version suffix require a complete rebuild of the LLVM.
             // To avoid rebuilds during a time of version bump, don't include rustc
             // release number on the dev channel.
             Some("-rust-dev".to_string())
         } else {
-            Some(format!("-rust-{}-{}", builder.version, builder.config.channel))
+            Some(format!(
+                "-rust-{}-{}",
+                builder.version, builder.config.channel
+            ))
         };
         if let Some(ref suffix) = llvm_version_suffix {
             cfg.define("LLVM_VERSION_SUFFIX", suffix);
@@ -564,8 +623,10 @@ impl Step for Llvm {
 
         // Helper to find the name of LLVM's shared library on darwin and linux.
         let find_llvm_lib_name = |extension| {
-            let version =
-                command(&res.llvm_config).arg("--version").run_capture_stdout(builder).stdout();
+            let version = command(&res.llvm_config)
+                .arg("--version")
+                .run_capture_stdout(builder)
+                .stdout();
             let major = version.split('.').next().unwrap();
 
             match &llvm_version_suffix {
@@ -622,8 +683,14 @@ fn check_llvm_version(builder: &Builder<'_>, llvm_config: &Path) {
         return;
     }
 
-    let version = command(llvm_config).arg("--version").run_capture_stdout(builder).stdout();
-    let mut parts = version.split('.').take(2).filter_map(|s| s.parse::<u32>().ok());
+    let version = command(llvm_config)
+        .arg("--version")
+        .run_capture_stdout(builder)
+        .stdout();
+    let mut parts = version
+        .split('.')
+        .take(2)
+        .filter_map(|s| s.parse::<u32>().ok());
     if let (Some(major), Some(_minor)) = (parts.next(), parts.next()) {
         if major >= 18 {
             return;
@@ -652,7 +719,8 @@ fn configure_cmake(
     if builder.ninja() {
         cfg.generator("Ninja");
     }
-    cfg.target(&target.triple).host(&builder.config.build.triple);
+    cfg.target(&target.triple)
+        .host(&builder.config.build.triple);
 
     if target != builder.config.build {
         cfg.define("CMAKE_CROSSCOMPILING", "True");
@@ -694,7 +762,10 @@ fn configure_cmake(
                 // macOS uses a different name for building i386
                 cfg.define("CMAKE_OSX_ARCHITECTURES", "i386");
             } else {
-                cfg.define("CMAKE_OSX_ARCHITECTURES", target.triple.split('-').next().unwrap());
+                cfg.define(
+                    "CMAKE_OSX_ARCHITECTURES",
+                    target.triple.split('-').next().unwrap(),
+                );
             }
         }
     }
@@ -924,7 +995,9 @@ impl Step for Enzyme {
         }
         let target = self.target;
 
-        let LlvmResult { llvm_config, .. } = builder.ensure(Llvm { target: self.target });
+        let LlvmResult { llvm_config, .. } = builder.ensure(Llvm {
+            target: self.target,
+        });
 
         static STAMP_HASH_MEMO: OnceLock<String> = OnceLock::new();
         let smart_stamp_hash = STAMP_HASH_MEMO.get_or_init(|| {
@@ -958,9 +1031,13 @@ impl Step for Enzyme {
         let _time = helpers::timeit(builder);
         t!(fs::create_dir_all(&out_dir));
 
-        builder
-            .config
-            .update_submodule(Path::new("src").join("tools").join("enzyme").to_str().unwrap());
+        builder.config.update_submodule(
+            Path::new("src")
+                .join("tools")
+                .join("enzyme")
+                .to_str()
+                .unwrap(),
+        );
         let mut cfg = cmake::Config::new(builder.src.join("src/tools/enzyme/enzyme/"));
         // FIXME(ZuseZ4): Find a nicer way to use Enzyme Debug builds
         //cfg.profile("Debug");
@@ -969,7 +1046,10 @@ impl Step for Enzyme {
 
         // Re-use the same flags as llvm to control the level of debug information
         // generated for lld.
-        let profile = match (builder.config.llvm_optimize, builder.config.llvm_release_debuginfo) {
+        let profile = match (
+            builder.config.llvm_optimize,
+            builder.config.llvm_release_debuginfo,
+        ) {
             (false, _) => "Debug",
             (true, false) => "Release",
             (true, true) => "RelWithDebInfo",
@@ -1013,7 +1093,10 @@ impl Step for Lld {
         }
         let target = self.target;
 
-        let LlvmResult { llvm_config, llvm_cmake_dir } = builder.ensure(Llvm { target });
+        let LlvmResult {
+            llvm_config,
+            llvm_cmake_dir,
+        } = builder.ensure(Llvm { target });
 
         // The `dist` step packages LLD next to LLVM's binaries for download-ci-llvm. The root path
         // we usually expect here is `./build/$triple/ci-llvm/`, with the binaries in its `bin`
@@ -1085,7 +1168,10 @@ impl Step for Lld {
 
         // Re-use the same flags as llvm to control the level of debug information
         // generated for lld.
-        let profile = match (builder.config.llvm_optimize, builder.config.llvm_release_debuginfo) {
+        let profile = match (
+            builder.config.llvm_optimize,
+            builder.config.llvm_release_debuginfo,
+        ) {
             (false, _) => "Debug",
             (true, false) => "Release",
             (true, true) => "RelWithDebInfo",
@@ -1100,7 +1186,9 @@ impl Step for Lld {
             // Use the host llvm-tblgen binary.
             cfg.define(
                 "LLVM_TABLEGEN_EXE",
-                llvm_config.with_file_name("llvm-tblgen").with_extension(EXE_EXTENSION),
+                llvm_config
+                    .with_file_name("llvm-tblgen")
+                    .with_extension(EXE_EXTENSION),
             );
         }
 
@@ -1140,7 +1228,9 @@ impl Step for Sanitizers {
             return runtimes;
         }
 
-        let LlvmResult { llvm_config, .. } = builder.ensure(Llvm { target: builder.config.build });
+        let LlvmResult { llvm_config, .. } = builder.ensure(Llvm {
+            target: builder.config.build,
+        });
         if builder.config.dry_run {
             return runtimes;
         }
@@ -1183,8 +1273,11 @@ impl Step for Sanitizers {
         // flags on MacOS. A long-standing bug in the CMake rules for compiler-rt
         // causes architecture detection to be skipped when this flag is present,
         // and compilation fails. https://github.com/llvm/llvm-project/issues/88780
-        let suppressed_compiler_flag_prefixes: &[&str] =
-            if self.target.contains("apple-darwin") { &["-mmacosx-version-min="] } else { &[] };
+        let suppressed_compiler_flag_prefixes: &[&str] = if self.target.contains("apple-darwin") {
+            &["-mmacosx-version-min="]
+        } else {
+            &[]
+        };
         configure_cmake(
             builder,
             self.target,
@@ -1228,8 +1321,10 @@ fn supported_sanitizers(
             .iter()
             .map(move |c| SanitizerRuntime {
                 cmake_target: format!("clang_rt.{}_{}_dynamic", c, os),
-                path: out_dir
-                    .join(format!("build/lib/darwin/libclang_rt.{}_{}_dynamic.dylib", c, os)),
+                path: out_dir.join(format!(
+                    "build/lib/darwin/libclang_rt.{}_{}_dynamic.dylib",
+                    c, os
+                )),
                 name: format!("librustc-{}_rt.{}.dylib", channel, c),
             })
             .collect()
@@ -1252,12 +1347,16 @@ fn supported_sanitizers(
         "aarch64-apple-ios-sim" => darwin_libs("iossim", &["asan", "tsan"]),
         "aarch64-apple-ios-macabi" => darwin_libs("osx", &["asan", "lsan", "tsan"]),
         "aarch64-unknown-fuchsia" => common_libs("fuchsia", "aarch64", &["asan"]),
-        "aarch64-unknown-linux-gnu" => {
-            common_libs("linux", "aarch64", &["asan", "lsan", "msan", "tsan", "hwasan"])
-        }
-        "aarch64-unknown-linux-ohos" => {
-            common_libs("linux", "aarch64", &["asan", "lsan", "msan", "tsan", "hwasan"])
-        }
+        "aarch64-unknown-linux-gnu" => common_libs(
+            "linux",
+            "aarch64",
+            &["asan", "lsan", "msan", "tsan", "hwasan"],
+        ),
+        "aarch64-unknown-linux-ohos" => common_libs(
+            "linux",
+            "aarch64",
+            &["asan", "lsan", "msan", "tsan", "hwasan"],
+        ),
         "loongarch64-unknown-linux-gnu" | "loongarch64-unknown-linux-musl" => {
             common_libs("linux", "loongarch64", &["asan", "lsan", "msan", "tsan"])
         }
@@ -1271,9 +1370,11 @@ fn supported_sanitizers(
         }
         "x86_64-unknown-illumos" => common_libs("illumos", "x86_64", &["asan"]),
         "x86_64-pc-solaris" => common_libs("solaris", "x86_64", &["asan"]),
-        "x86_64-unknown-linux-gnu" => {
-            common_libs("linux", "x86_64", &["asan", "dfsan", "lsan", "msan", "safestack", "tsan"])
-        }
+        "x86_64-unknown-linux-gnu" => common_libs(
+            "linux",
+            "x86_64",
+            &["asan", "dfsan", "lsan", "msan", "safestack", "tsan"],
+        ),
         "x86_64-unknown-linux-musl" => {
             common_libs("linux", "x86_64", &["asan", "lsan", "msan", "tsan"])
         }
@@ -1319,8 +1420,12 @@ impl Step for CrtBeginEnd {
             return out_dir;
         }
 
-        let crtbegin_src = builder.src.join("src/llvm-project/compiler-rt/lib/builtins/crtbegin.c");
-        let crtend_src = builder.src.join("src/llvm-project/compiler-rt/lib/builtins/crtend.c");
+        let crtbegin_src = builder
+            .src
+            .join("src/llvm-project/compiler-rt/lib/builtins/crtbegin.c");
+        let crtend_src = builder
+            .src
+            .join("src/llvm-project/compiler-rt/lib/builtins/crtend.c");
         if up_to_date(&crtbegin_src, &out_dir.join("crtbeginS.o"))
             && up_to_date(&crtend_src, &out_dir.join("crtendS.o"))
         {

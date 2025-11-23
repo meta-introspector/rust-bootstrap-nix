@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Ord, PartialOrd)]
 pub struct RunMakeSupport {
     pub common: common_test_fields::CommonTestFields,
@@ -15,7 +14,9 @@ impl Step for RunMakeSupport {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
+        let compiler = run
+            .builder
+            .compiler(run.builder.top_stage, run.build_triple());
         run.builder.ensure(RunMakeSupport {
             common: common_test_fields::CommonTestFields {
                 stage: run.builder.top_stage,
@@ -46,7 +47,9 @@ impl Step for RunMakeSupport {
         let lib_name = "librun_make_support.rlib";
         let lib = builder.tools_dir(self.common.compiler).join(lib_name);
 
-        let cargo_out = builder.cargo_out(self.common.compiler, Mode::ToolStd, self.common.target).join(lib_name);
+        let cargo_out = builder
+            .cargo_out(self.common.compiler, Mode::ToolStd, self.common.target)
+            .join(lib_name);
         builder.copy_link(&cargo_out, &lib);
         lib
     }

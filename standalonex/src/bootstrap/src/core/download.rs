@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::env;
 use std::ffi::OsString;
 use std::fs::{self, File};
@@ -13,7 +12,7 @@ use build_helper::ci::CiEnv;
 use xz2::bufread::XzDecoder;
 
 use crate::core::config::BUILDER_CONFIG_FILENAME;
-use crate::utils::exec::{BootstrapCommand, command};
+use crate::utils::exec::{command, BootstrapCommand};
 use crate::utils::helpers::{check_run, exe, hex_encode, move_file, program_out_of_date};
 //use crate::{Config, t};
 
@@ -38,7 +37,9 @@ fn extract_curl_version(out: &[u8]) -> semver::Version {
 fn curl_version() -> semver::Version {
     let mut curl = Command::new("curl");
     curl.arg("-V");
-    let Ok(out) = curl.output() else { return semver::Version::new(1, 0, 0) };
+    let Ok(out) = curl.output() else {
+        return semver::Version::new(1, 0, 0);
+    };
     let out = out.stdout;
     extract_curl_version(&out)
 }
@@ -88,7 +89,11 @@ impl Config {
     /// on NixOS
     fn should_fix_bins_and_dylibs(&self) -> bool {
         let val = *SHOULD_FIX_BINS_AND_DYLIBS.get_or_init(|| {
-            match Command::new("uname").arg("-s").stderr(Stdio::inherit()).output() {
+            match Command::new("uname")
+                .arg("-s")
+                .stderr(Stdio::inherit())
+                .output()
+            {
                 Err(_) => return false,
                 Ok(output) if !output.status.success() => return false,
                 Ok(output) => {
@@ -309,11 +314,16 @@ impl Config {
         // `tarball` ends with `.tar.xz`; strip that suffix
         // example: `rust-dev-nightly-x86_64-unknown-linux-gnu`
         let uncompressed_filename =
-            Path::new(tarball.file_name().expect("missing tarball filename")).file_stem().unwrap();
+            Path::new(tarball.file_name().expect("missing tarball filename"))
+                .file_stem()
+                .unwrap();
         let directory_prefix = Path::new(Path::new(uncompressed_filename).file_stem().unwrap());
 
         // decompress the file
-        let data = t!(File::open(tarball), format!("file {} not found", tarball.display()));
+        let data = t!(
+            File::open(tarball),
+            format!("file {} not found", tarball.display())
+        );
         let decompressor = XzDecoder::new(BufReader::new(data));
 
         let mut tar = tar::Archive::new(decompressor);
@@ -324,7 +334,11 @@ impl Config {
         // `compile::Sysroot` needs to know the contents of the `rustc-dev` tarball to avoid adding
         // it to the sysroot unless it was explicitly requested. But parsing the 100 MB tarball is slow.
         // Cache the entries when we extract it so we only have to read it once.
-        let mut recorded_entries = if is_ci_rustc { recorded_entries(dst, pattern) } else { None };
+        let mut recorded_entries = if is_ci_rustc {
+            recorded_entries(dst, pattern)
+        } else {
+            None
+        };
 
         for member in t!(tar.entries()) {
             let mut member = t!(member);
@@ -344,7 +358,11 @@ impl Config {
             short_path = short_path.strip_prefix(pattern).unwrap_or(short_path);
             let dst_path = dst.join(short_path);
             self.verbose(|| {
-                println!("extracting {} to {}", original_path.display(), dst.display())
+                println!(
+                    "extracting {} to {}",
+                    original_path.display(),
+                    dst.display()
+                )
             });
             if !t!(member.unpack_in(dst)) {
                 panic!("path traversal attack ??");
@@ -360,7 +378,10 @@ impl Config {
         }
         let dst_dir = dst.join(directory_prefix);
         if dst_dir.exists() {
-            t!(fs::remove_dir_all(&dst_dir), format!("failed to remove {}", dst_dir.display()));
+            t!(
+                fs::remove_dir_all(&dst_dir),
+                format!("failed to remove {}", dst_dir.display())
+            );
         }
     }
 
@@ -438,7 +459,13 @@ impl Config {
         }
 
         let filename = format!("clippy-{version}-{host}.tar.xz");
-        self.download_component(DownloadSource::Dist, filename, "clippy-preview", date, "stage0");
+        self.download_component(
+            DownloadSource::Dist,
+            filename,
+            "clippy-preview",
+            date,
+            "stage0",
+        );
         if self.should_fix_bins_and_dylibs() {
             self.fix_bin_or_dylib(&cargo_clippy);
             self.fix_bin_or_dylib(&cargo_clippy.with_file_name(exe("clippy-driver", host)));
@@ -595,7 +622,9 @@ impl Config {
                 self.fix_bin_or_dylib(&bin_root.join("bin").join("rustc"));
                 self.fix_bin_or_dylib(&bin_root.join("bin").join("rustdoc"));
                 self.fix_bin_or_dylib(
-                    &bin_root.join("libexec").join("rust-analyzer-proc-macro-srv"),
+                    &bin_root
+                        .join("libexec")
+                        .join("rust-analyzer-proc-macro-srv"),
                 );
                 let lib_dir = bin_root.join("lib");
                 for lib in t!(fs::read_dir(&lib_dir), lib_dir.display().to_string()) {
@@ -635,8 +664,11 @@ impl Config {
             return;
         }
 
-        let cache_dst =
-            self.bootstrap_cache_path.as_ref().cloned().unwrap_or_else(|| self.out.join("cache"));
+        let cache_dst = self
+            .bootstrap_cache_path
+            .as_ref()
+            .cloned()
+            .unwrap_or_else(|| self.out.join("cache"));
 
         let cache_dir = cache_dst.join(key);
         if !cache_dir.exists() {
@@ -648,13 +680,17 @@ impl Config {
         let (base_url, url, should_verify) = match mode {
             DownloadSource::CI => {
                 let dist_server = if self.llvm_assertions {
-                    self.stage0_metadata.config.artifacts_with_llvm_assertions_server.clone()
+                    self.stage0_metadata
+                        .config
+                        .artifacts_with_llvm_assertions_server
+                        .clone()
                 } else {
                     self.stage0_metadata.config.artifacts_server.clone()
                 };
                 let url = format!(
                     "{}/{filename}",
-                    key.strip_suffix(&format!("-{}", self.llvm_assertions)).unwrap()
+                    key.strip_suffix(&format!("-{}", self.llvm_assertions))
+                        .unwrap()
                 );
                 (dist_server, url, false)
             }
@@ -674,7 +710,11 @@ impl Config {
                 target at this time, see https://doc.rust-lang.org/nightly\
                 /rustc/platform-support.html for more information."
             );
-            let sha256 = self.stage0_metadata.checksums_sha256.get(&url).expect(&error);
+            let sha256 = self
+                .stage0_metadata
+                .checksums_sha256
+                .get(&url)
+                .expect(&error);
             if tarball.exists() {
                 if self.verify(&tarball, sha256) {
                     self.unpack(&tarball, &bin_root, prefix);
@@ -726,7 +766,7 @@ download-rustc = false
         use build_helper::exit;
 
         use crate::core::build_steps::llvm::detect_llvm_sha;
-//        use crate::core::config::check_incompatible_options_for_ci_llvm;
+        //        use crate::core::config::check_incompatible_options_for_ci_llvm;
 
         if !self.llvm_from_ci {
             return;
@@ -757,7 +797,10 @@ download-rustc = false
             let file_times = fs::FileTimes::new().set_accessed(now).set_modified(now);
 
             let llvm_config = llvm_root.join("bin").join(exe("llvm-config", self.build));
-            t!(crate::utils::helpers::set_file_times(llvm_config, file_times));
+            t!(crate::utils::helpers::set_file_times(
+                llvm_config,
+                file_times
+            ));
 
             if self.should_fix_bins_and_dylibs() {
                 let llvm_lib = llvm_root.join("lib");
@@ -777,7 +820,10 @@ download-rustc = false
 
             match self.get_builder_toml("ci-llvm") {
                 Ok(ci_config_toml) => {
-                    t!(check_incompatible_options_for_ci_llvm(current_config_toml, ci_config_toml));
+                    t!(check_incompatible_options_for_ci_llvm(
+                        current_config_toml,
+                        ci_config_toml
+                    ));
                 }
                 Err(e) if e.to_string().contains("unknown field") => {
                     println!(
@@ -798,15 +844,21 @@ download-rustc = false
         let llvm_assertions = self.llvm_assertions;
 
         let cache_prefix = format!("llvm-{llvm_sha}-{llvm_assertions}");
-        let cache_dst =
-            self.bootstrap_cache_path.as_ref().cloned().unwrap_or_else(|| self.out.join("cache"));
+        let cache_dst = self
+            .bootstrap_cache_path
+            .as_ref()
+            .cloned()
+            .unwrap_or_else(|| self.out.join("cache"));
 
         let rustc_cache = cache_dst.join(cache_prefix);
         if !rustc_cache.exists() {
             t!(fs::create_dir_all(&rustc_cache));
         }
         let base = if llvm_assertions {
-            &self.stage0_metadata.config.artifacts_with_llvm_assertions_server
+            &self
+                .stage0_metadata
+                .config
+                .artifacts_with_llvm_assertions_server
         } else {
             &self.stage0_metadata.config.artifacts_server
         };
@@ -824,7 +876,11 @@ download-rustc = false
     [llvm]
     download-ci-llvm = false
     ";
-            self.download_file(&format!("{base}/{llvm_sha}/{filename}"), &tarball, help_on_error);
+            self.download_file(
+                &format!("{base}/{llvm_sha}/{filename}"),
+                &tarball,
+                help_on_error,
+            );
         }
         let llvm_root = self.ci_llvm_root();
         self.unpack(&tarball, &llvm_root, "rust-dev");
@@ -866,8 +922,7 @@ pub(crate) fn is_download_ci_available(target_triple: &str, llvm_assertions: boo
         "x86_64-unknown-netbsd",
     ];
 
-    const SUPPORTED_PLATFORMS_WITH_ASSERTIONS: &[&str] =
-        &["x86_64-pc-windows-msvc"];
+    const SUPPORTED_PLATFORMS_WITH_ASSERTIONS: &[&str] = &["x86_64-pc-windows-msvc"];
 
     if llvm_assertions {
         SUPPORTED_PLATFORMS_WITH_ASSERTIONS.contains(&target_triple)

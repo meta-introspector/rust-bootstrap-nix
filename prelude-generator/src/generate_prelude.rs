@@ -9,7 +9,10 @@ pub fn generate_prelude(
     dry_run: bool,
     force: bool,
 ) -> Result<()> {
-    println!("  -> Entering generate_prelude for src_dir: {}", src_dir.display());
+    println!(
+        "  -> Entering generate_prelude for src_dir: {}",
+        src_dir.display()
+    );
     let prelude_path = src_dir.join("prelude.rs");
 
     if dry_run {
@@ -23,7 +26,10 @@ pub fn generate_prelude(
             println!("  -> Skipping prelude file generation for {} (file exists, use --force to overwrite).", prelude_path.display());
         } else {
             println!("  -> Generating prelude file: {}", prelude_path.display());
-            println!("    -> Writing prelude content to: {}", prelude_path.display());
+            println!(
+                "    -> Writing prelude content to: {}",
+                prelude_path.display()
+            );
             fs::write(&prelude_path, prelude_content)?;
         }
     }

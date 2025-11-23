@@ -1,6 +1,5 @@
 use serde_derive::Deserialize;
-#[derive(Debug, Default, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct LocalBuild {
     pub build: Option<String>,
     pub host: Option<Vec<String>>,

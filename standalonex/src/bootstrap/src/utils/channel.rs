@@ -1,19 +1,17 @@
 use crate::prelude::*;
 
-
 /// Build configuration for Rust's release channels.
 ///
 /// Implements the stable/beta/nightly channel distinctions by setting various
 /// flags like the `unstable_features`, calculating variables like `release` and
 /// `package_vers`, and otherwise indicating to the compiler what it should
 /// print out as part of its version information.
-
 use std::fs;
 use std::path::Path;
 
 use super::helpers;
 //use crate::BuildConfig;
-use crate::utils::helpers::{start_process};
+use crate::utils::helpers::start_process;
 
 #[derive(Clone, Default)]
 pub enum GitInfo {
@@ -47,7 +45,11 @@ impl GitInfo {
         }
 
         // Make sure git commands work
-        match helpers::git(Some(dir)).arg("rev-parse").as_command_mut().output() {
+        match helpers::git(Some(dir))
+            .arg("rev-parse")
+            .as_command_mut()
+            .output()
+        {
             Ok(ref out) if out.status.success() => {}
             _ => return GitInfo::Absent,
         }
@@ -67,10 +69,18 @@ impl GitInfo {
                 .arg("--pretty=format:%cd")
                 .as_command_mut(),
         );
-        let ver_hash = 
-            start_process(helpers::git(Some(dir)).arg("rev-parse").arg("HEAD").as_command_mut());
+        let ver_hash = start_process(
+            helpers::git(Some(dir))
+                .arg("rev-parse")
+                .arg("HEAD")
+                .as_command_mut(),
+        );
         let short_ver_hash = start_process(
-            helpers::git(Some(dir)).arg("rev-parse").arg("--short=9").arg("HEAD").as_command_mut(),
+            helpers::git(Some(dir))
+                .arg("rev-parse")
+                .arg("--short=9")
+                .arg("HEAD")
+                .as_command_mut(),
         );
         GitInfo::Present(Some(Info {
             commit_date: ver_date().trim().to_string(),

@@ -42,8 +42,7 @@ impl syn::parse::Parse for TestDefinitionArgs {
             suite: suite.ok_or_else(|| content.error("expected `suite`"))?,
             default: default.ok_or_else(|| content.error("expected `default`"))?,
             host: host.ok_or_else(|| content.error("expected `host`"))?,
-            compare_mode: compare_mode
-                .ok_or_else(|| content.error("expected `compare_mode`"))?,
+            compare_mode: compare_mode.ok_or_else(|| content.error("expected `compare_mode`"))?,
         })
     }
 }

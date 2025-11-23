@@ -31,9 +31,7 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to read config file: {}", args.config_file))?;
     let config = Some(
         toml::from_str::<Config>(&config_content)
-            .with_context(|| {
-                format!("Failed to parse config file: {}", args.config_file)
-            })?,
+            .with_context(|| format!("Failed to parse config file: {}", args.config_file))?,
     );
     if let Some(c) = &config {
         debug!("Parsed config: {:?}", c);
@@ -58,20 +56,19 @@ fn main() -> Result<()> {
         debug!("Executing Nix command: {:?}", command);
         let output = command
             .output()
-            .with_context(|| {
-                format!("Failed to execute nix flake show for '{}'", flake_ref)
-            })?;
+            .with_context(|| format!("Failed to execute nix flake show for '{}'", flake_ref))?;
         if !output.status.success() {
             anyhow::bail!(
-                "Nix command failed for flake show '{}':\n{}\nStderr: {}", flake_ref,
-                String::from_utf8_lossy(& output.stdout), String::from_utf8_lossy(&
-                output.stderr)
+                "Nix command failed for flake show '{}':\n{}\nStderr: {}",
+                flake_ref,
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
             );
         }
         let json_output: Value = serde_json::from_slice(&output.stdout)
             .with_context(|| "Failed to parse nix flake show JSON output")?;
         if args.json {
-            println!("{}", serde_json::to_string_pretty(& json_output) ?);
+            println!("{}", serde_json::to_string_pretty(&json_output)?);
         } else {
             println!("Flake Attributes for {}:", flake_ref);
             if let Some(inputs) = json_output.get("inputs") {
@@ -104,14 +101,12 @@ fn main() -> Result<()> {
     if let Some(c) = &config {
         println!("\nNix Packages from config.toml:");
         for (pkg_name, pkg_version) in &c.nix_packages {
-            match find_nix_package_store_path(
-                pkg_name.as_str(),
-                Some(pkg_version.as_str()),
-            ) {
+            match find_nix_package_store_path(pkg_name.as_str(), Some(pkg_version.as_str())) {
                 Ok(Some(path)) => println!("  - {}: {}", pkg_name, path),
                 Ok(None) => {
                     println!(
-                        "  - {}: Not found in store (version: {})", pkg_name, pkg_version
+                        "  - {}: Not found in store (version: {})",
+                        pkg_name, pkg_version
                     )
                 }
                 Err(e) => eprintln!("  - Error finding {}: {}", pkg_name, e),

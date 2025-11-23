@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RustInstaller;
 
@@ -31,7 +30,16 @@ impl Step for RustInstaller {
             bootstrap_host,
             bootstrap_host,
         );
-        run_cargo_test(cargo, &[], &[], "installer", None, compiler, bootstrap_host, builder);
+        run_cargo_test(
+            cargo,
+            &[],
+            &[],
+            "installer",
+            None,
+            compiler,
+            bootstrap_host,
+            builder,
+        );
 
         // We currently don't support running the test.sh script outside linux(?) environments.
         // Eventually this should likely migrate to #[test]s in rust-installer proper rather than a

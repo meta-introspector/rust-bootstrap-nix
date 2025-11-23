@@ -1,5 +1,5 @@
-use std::collections::{HashMap, BTreeSet};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeSet, HashMap};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct EnumLatticeInfo {
@@ -19,7 +19,10 @@ impl EnumLatticeInfo {
     }
 
     pub fn add_co_occurrence(&mut self, variant_types: BTreeSet<String>) {
-        let key = variant_types.into_iter().collect::<Vec<String>>().join("::");
+        let key = variant_types
+            .into_iter()
+            .collect::<Vec<String>>()
+            .join("::");
         *self.variant_type_co_occurrences.entry(key).or_insert(0) += 1;
         self.total_expressions_analyzed += 1;
     }

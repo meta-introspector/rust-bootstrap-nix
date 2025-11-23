@@ -1,6 +1,6 @@
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
 use std::path::Path;
-use anyhow::{Result, anyhow};
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]

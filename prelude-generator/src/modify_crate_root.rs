@@ -1,12 +1,15 @@
 use anyhow::Result;
+use prettyplease;
 use std::fs;
 use std::path::Path;
 use syn::Item;
-use prettyplease;
 
 /// Modifies the crate root (`lib.rs` or `main.rs`) to ensure it contains `pub mod prelude;`.
 pub fn modify_crate_root(src_dir: &Path, dry_run: bool, force: bool) -> Result<()> {
-    println!("  -> Entering modify_crate_root for src_dir: {}", src_dir.display());
+    println!(
+        "  -> Entering modify_crate_root for src_dir: {}",
+        src_dir.display()
+    );
     let lib_rs = src_dir.join("lib.rs");
     let main_rs = src_dir.join("main.rs");
 
@@ -48,8 +51,14 @@ pub fn modify_crate_root(src_dir: &Path, dry_run: bool, force: bool) -> Result<(
             if crate_root_path.exists() && !force {
                 println!("  -> Skipping crate root modification for {} (file exists, use --force to overwrite).", crate_root_path.display());
             } else {
-                println!("  -> Adding 'pub mod prelude;' to: {}", crate_root_path.display());
-                println!("    -> Writing modified content to: {}", crate_root_path.display());
+                println!(
+                    "  -> Adding 'pub mod prelude;' to: {}",
+                    crate_root_path.display()
+                );
+                println!(
+                    "    -> Writing modified content to: {}",
+                    crate_root_path.display()
+                );
                 fs::write(&crate_root_path, new_content)?;
             }
         }
@@ -60,9 +69,9 @@ pub fn modify_crate_root(src_dir: &Path, dry_run: bool, force: bool) -> Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
     use std::io::Write;
     use std::path::PathBuf;
+    use tempfile::tempdir;
 
     fn setup_test_file(dir: &tempfile::TempDir, file_name: &str, content: &str) -> PathBuf {
         let file_path = dir.path().join(file_name);

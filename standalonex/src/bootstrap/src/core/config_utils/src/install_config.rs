@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use serde_derive::Deserialize;
-#[derive(Debug, Default, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct Install {
     pub prefix: Option<PathBuf>,
     pub sysconfdir: Option<PathBuf>,

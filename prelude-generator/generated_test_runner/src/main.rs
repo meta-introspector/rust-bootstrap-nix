@@ -1,8 +1,8 @@
 use anyhow::Result;
-use tempfile::tempdir;
+use prelude_generator::*;
 use std::fs;
 use std::path::{Path, PathBuf};
-use prelude_generator::*;
+use tempfile::tempdir;
 
 fn main() -> Result<()> {
     println!("Running generated tests...");

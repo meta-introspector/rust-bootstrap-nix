@@ -1,6 +1,3 @@
-
-
-
 pub fn generate_step1_flake(
     nixpkgs_ref: &str,
     rust_overlay_ref: &str,

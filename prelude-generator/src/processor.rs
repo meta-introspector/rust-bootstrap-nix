@@ -1,9 +1,9 @@
-use anyhow::Result;
-use std::path::PathBuf;
-use std::collections::HashSet;
 use anyhow::Context;
-use std::time::{Instant, Duration};
-use std::fs; // Use std::fs for synchronous operations
+use anyhow::Result;
+use std::collections::HashSet;
+use std::fs;
+use std::path::PathBuf;
+use std::time::{Duration, Instant}; // Use std::fs for synchronous operations
 
 use crate::args::Args;
 use crate::report::generate_report;
@@ -20,9 +20,16 @@ pub fn process_crates(args: &Args) -> Result<()> {
         let cache_dir = PathBuf::from(&args.path).join(".prelude_cache");
         if cache_dir.exists() {
             let count = fs::read_dir(&cache_dir)?.count();
-            println!("Prelude cache at {} contains {} items.", cache_dir.display(), count);
+            println!(
+                "Prelude cache at {} contains {} items.",
+                cache_dir.display(),
+                count
+            );
         } else {
-            println!("Prelude cache directory not found at {}.", cache_dir.display());
+            println!(
+                "Prelude cache directory not found at {}.",
+                cache_dir.display()
+            );
         }
         return Ok(());
     }
@@ -32,18 +39,22 @@ pub fn process_crates(args: &Args) -> Result<()> {
     if args.report {
         if let Some(results_file_path) = &args.results_file {
             if results_file_path.exists() {
-                let json_content = fs::read_to_string(results_file_path)
-                    .context("Failed to read results file")?;
+                let json_content =
+                    fs::read_to_string(results_file_path).context("Failed to read results file")?;
                 let results: Vec<FileProcessingResult> = serde_json::from_str(&json_content)
                     .context("Failed to deserialize results from JSON")?;
                 generate_report(&results)?;
             } else {
-                eprintln!("Error: Results file not found at {}. Cannot generate report.", results_file_path.display());
+                eprintln!(
+                    "Error: Results file not found at {}. Cannot generate report.",
+                    results_file_path.display()
+                );
             }
         }
     } else {
         // Perform prelude generation and save results
-        let mut excluded_crates: HashSet<String> = args.exclude_crates.clone().into_iter().collect();
+        let mut excluded_crates: HashSet<String> =
+            args.exclude_crates.clone().into_iter().collect();
         // Always exclude prelude-generator and rust-decl-splitter from processing itself
         excluded_crates.insert("prelude-generator".to_string());
         excluded_crates.insert("rust-decl-splitter".to_string());
@@ -84,7 +95,7 @@ pub fn process_crates(args: &Args) -> Result<()> {
         //     for path in &info.modified_files {
         //         modify_file(path, args.dry_run, args.force)?;
         //     }
-            
+
         //     // Modify crate root to include the prelude
         //     if info.crate_root_modified {
         //         modify_crate_root(&src_dir, args.dry_run, args.force)?;
@@ -92,16 +103,25 @@ pub fn process_crates(args: &Args) -> Result<()> {
         // }
 
         println!("\nPrelude generation complete.");
-        println!("  -> Contents of all_file_processing_results: {:?}", all_file_processing_results);
+        println!(
+            "  -> Contents of all_file_processing_results: {:?}",
+            all_file_processing_results
+        );
 
         // Save results to file
         if let Some(results_file_path) = &args.results_file {
             let json_content = serde_json::to_string_pretty(&all_file_processing_results)
                 .context("Failed to serialize results to JSON")?;
-            println!("  -> Attempting to save processing results to: {}", results_file_path.display());
+            println!(
+                "  -> Attempting to save processing results to: {}",
+                results_file_path.display()
+            );
             fs::write(results_file_path, json_content)
                 .context("Failed to write results to file")?;
-            println!("Processing results saved to {}.", results_file_path.display());
+            println!(
+                "Processing results saved to {}.",
+                results_file_path.display()
+            );
         } else {
             println!("No results file specified. Skipping saving processing results.");
         }

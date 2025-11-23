@@ -47,15 +47,21 @@ pub fn parse_stage0_file(path: &Path) -> Stage0 {
             "compiler_date" => stage0.compiler.date = value.to_owned(),
             "compiler_version" => stage0.compiler.version = value.to_owned(),
             "rustfmt_date" => {
-                stage0.rustfmt.get_or_insert(VersionMetadata::default()).date = value
-                    .to_owned();
+                stage0
+                    .rustfmt
+                    .get_or_insert(VersionMetadata::default())
+                    .date = value.to_owned();
             }
             "rustfmt_version" => {
-                stage0.rustfmt.get_or_insert(VersionMetadata::default()).version = value
-                    .to_owned();
+                stage0
+                    .rustfmt
+                    .get_or_insert(VersionMetadata::default())
+                    .version = value.to_owned();
             }
             dist if dist.starts_with("dist") => {
-                stage0.checksums_sha256.insert(key.to_owned(), value.to_owned());
+                stage0
+                    .checksums_sha256
+                    .insert(key.to_owned(), value.to_owned());
             }
             unsupported => {
                 println!("'{unsupported}' field is not supported.");

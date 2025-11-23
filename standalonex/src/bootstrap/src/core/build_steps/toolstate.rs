@@ -1,12 +1,10 @@
 use crate::prelude::*;
 
-
 /// [Toolstate] checks to keep tools building
 ///
 /// Reachable via `./x.py test` but mostly relevant for CI, since it isn't run locally by default.
 ///
 /// [Toolstate]: https://forge.rust-lang.org/infra/toolstate.html
-
 use std::collections::HashMap;
 use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -45,11 +43,15 @@ pub enum ToolState {
 
 impl fmt::Display for ToolState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match self {
-            ToolState::TestFail => "test-fail",
-            ToolState::TestPass => "test-pass",
-            ToolState::BuildFail => "build-fail",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                ToolState::TestFail => "test-fail",
+                ToolState::TestPass => "test-pass",
+                ToolState::BuildFail => "build-fail",
+            }
+        )
     }
 }
 
@@ -108,7 +110,9 @@ fn check_changed_files(builder: &Builder<'_>, toolstates: &HashMap<Box<str>, Too
         .stdout();
 
     for (tool, submodule) in STABLE_TOOLS.iter().chain(NIGHTLY_TOOLS.iter()) {
-        let changed = output.lines().any(|l| l.starts_with('M') && l.ends_with(submodule));
+        let changed = output
+            .lines()
+            .any(|l| l.starts_with('M') && l.ends_with(submodule));
         eprintln!("Verifying status of {tool}...");
         if !changed {
             continue;
@@ -324,12 +328,21 @@ fn checkout_toolstate_repo(builder: &Builder<'_>) {
 /// Sets up config and authentication for modifying the toolstate repo.
 fn prepare_toolstate_config(builder: &Builder<'_>, token: &str) {
     fn git_config(builder: &Builder<'_>, key: &str, value: &str) {
-        helpers::git(None).arg("config").arg("--global").arg(key).arg(value).run(builder);
+        helpers::git(None)
+            .arg("config")
+            .arg("--global")
+            .arg(key)
+            .arg(value)
+            .run(builder);
     }
 
     // If changing anything here, then please check that `src/ci/publish_toolstate.sh` is up to date
     // as well.
-    git_config(builder, "user.email", "7378925+rust-toolstate-update@users.noreply.github.com");
+    git_config(
+        builder,
+        "user.email",
+        "7378925+rust-toolstate-update@users.noreply.github.com",
+    );
     git_config(builder, "user.name", "Rust Toolstate Update");
     git_config(builder, "credential.helper", "store");
 
@@ -429,7 +442,11 @@ fn commit_toolstate_change(builder: &Builder<'_>, current_toolstate: &ToolstateD
 /// `publish_toolstate.py` script if the PR passes all tests and is merged to
 /// master.
 fn publish_test_results(builder: &Builder<'_>, current_toolstate: &ToolstateData) {
-    let commit = helpers::git(None).arg("rev-parse").arg("HEAD").run_capture(builder).stdout();
+    let commit = helpers::git(None)
+        .arg("rev-parse")
+        .arg("HEAD")
+        .run_capture(builder)
+        .stdout();
 
     let toolstate_serialized = t!(serde_json::to_string(&current_toolstate));
 
@@ -438,7 +455,10 @@ fn publish_test_results(builder: &Builder<'_>, current_toolstate: &ToolstateData
         .join(format!("{}.tsv", OS.expect("linux/windows only")));
     let mut file = t!(fs::read_to_string(&history_path));
     let end_of_first_line = file.find('\n').unwrap();
-    file.insert_str(end_of_first_line, &format!("\n{}\t{}", commit.trim(), toolstate_serialized));
+    file.insert_str(
+        end_of_first_line,
+        &format!("\n{}\t{}", commit.trim(), toolstate_serialized),
+    );
     t!(fs::write(&history_path, file));
 }
 

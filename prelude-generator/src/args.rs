@@ -1,6 +1,6 @@
+use anyhow::Context;
 use clap::Parser;
-use std::path::PathBuf;
-use anyhow::Context; // Add this line
+use std::path::PathBuf; // Add this line
 
 /// Command-line arguments for the prelude generator.
 #[derive(Parser, Debug, Clone, Default)]
@@ -79,7 +79,6 @@ pub struct Args {
     /// Process a single file
     #[clap(long)]
     pub file: Option<String>,
-
 
     /// Stop after processing N statements
     #[clap(long, value_parser, default_value_t = 0)]
@@ -217,13 +216,22 @@ impl Args {
         let mut resolved_paths = Vec::new();
         for p in &self.exclude_paths {
             let resolved_p = if p.is_relative() {
-                if *p == PathBuf::from(".") { // Dereference p here
-                    self.path.canonicalize().context("Failed to canonicalize project root path")?
+                if *p == PathBuf::from(".") {
+                    // Dereference p here
+                    self.path
+                        .canonicalize()
+                        .context("Failed to canonicalize project root path")?
                 } else {
-                    self.path.join(p).canonicalize().context(format!("Failed to canonicalize exclude path: {:?}", p))?
+                    self.path
+                        .join(p)
+                        .canonicalize()
+                        .context(format!("Failed to canonicalize exclude path: {:?}", p))?
                 }
             } else {
-                p.canonicalize().context(format!("Failed to canonicalize absolute exclude path: {:?}", p))?
+                p.canonicalize().context(format!(
+                    "Failed to canonicalize absolute exclude path: {:?}",
+                    p
+                ))?
             };
             resolved_paths.push(resolved_p);
         }

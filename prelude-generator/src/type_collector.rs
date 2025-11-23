@@ -1,6 +1,10 @@
-use std::collections::HashSet;
-use syn::{self, visit::{self, Visit}, Type};
 use quote::ToTokens;
+use std::collections::HashSet;
+use syn::{
+    self,
+    visit::{self, Visit},
+    Type,
+};
 
 pub struct TypeCollector<'a> {
     pub types: &'a mut HashSet<String>,
@@ -12,8 +16,8 @@ impl<'ast, 'a> Visit<'ast> for TypeCollector<'a> {
 
         // Heuristic to filter out primitive types and common standard library types
         let primitive_types = [
-            "bool", "char", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize",
-            "u8", "u16", "u32", "u64", "u128", "usize", "str", "String",
+            "bool", "char", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16",
+            "u32", "u64", "u128", "usize", "str", "String",
             // Common std types that are often not considered 'user-defined' for this analysis
             "Vec", "Option", "Result", "HashMap", "HashSet", "Box", "Arc", "Rc",
         ];
@@ -26,7 +30,7 @@ impl<'ast, 'a> Visit<'ast> for TypeCollector<'a> {
                     if let Some(segment) = type_path.path.segments.last() {
                         self.types.insert(segment.ident.to_string());
                     }
-                },
+                }
                 // For other type variants, we might need more sophisticated logic
                 // For now, we'll just insert the full string representation if it's not a primitive
                 // This might include types like `&str`, `[T]`, `(A, B)`, etc.

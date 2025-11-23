@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Cargotest {
     pub common: common_test_fields::CommonTestFields,
@@ -34,7 +33,10 @@ impl Step for Cargotest {
         let compiler = self.common.compiler;
         let host = self.common.host;
         builder.ensure(compile::Rustc::new(compiler, compiler.host));
-        let cargo = builder.ensure(tool::Cargo { compiler, target: compiler.host });
+        let cargo = builder.ensure(tool::Cargo {
+            compiler,
+            target: compiler.host,
+        });
 
         // Note that this is a short, cryptic, and not scoped directory name. This
         // is currently to minimize the length of path on Windows where we otherwise

@@ -13,9 +13,12 @@ rust_src_flake_path = "{}"
 stage = {}
 target = "{}"
 "###,
-        params.nixpkgs_path.to_string_lossy(), params.rust_overlay_path
-        .to_string_lossy(), params.configuration_nix_path.to_string_lossy(), params
-        .rust_src_flake_path.to_string_lossy(), params.stage, params.target
+        params.nixpkgs_path.to_string_lossy(),
+        params.rust_overlay_path.to_string_lossy(),
+        params.configuration_nix_path.to_string_lossy(),
+        params.rust_src_flake_path.to_string_lossy(),
+        params.stage,
+        params.target
     );
     let config_file_path = "config.toml".to_string();
     fs::write(&config_file_path, config_content).unwrap();

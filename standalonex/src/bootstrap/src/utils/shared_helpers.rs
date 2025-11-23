@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// This module serves two purposes:
 ///     1. It is part of the `utils` module and used in other parts of bootstrap.
 ///     2. It is embedded inside bootstrap shims to avoid a dependency on the bootstrap library.
@@ -8,7 +7,6 @@ use crate::prelude::*;
 ///        size and improves compilation time by minimizing linking time.
 
 #[allow(dead_code)]
-
 use std::env;
 use std::ffi::OsString;
 use std::fs::OpenOptions;
@@ -90,13 +88,18 @@ pub fn maybe_dump(dump_name: String, cmd: &Command) {
     if let Ok(dump_dir) = env::var("DUMP_BOOTSTRAP_SHIMS") {
         let dump_file = format!("{dump_dir}/{dump_name}");
 
-        let mut file = OpenOptions::new().create(true).append(true).open(dump_file).unwrap();
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(dump_file)
+            .unwrap();
 
         let cmd_dump = format!("{:?}\n", cmd);
         let cmd_dump = cmd_dump.replace(&env::var("BUILD_OUT").unwrap(), "${BUILD_OUT}");
         let cmd_dump = cmd_dump.replace(&env::var("CARGO_HOME").unwrap(), "${CARGO_HOME}");
 
-        file.write_all(cmd_dump.as_bytes()).expect("Unable to write file");
+        file.write_all(cmd_dump.as_bytes())
+            .expect("Unable to write file");
     }
 }
 

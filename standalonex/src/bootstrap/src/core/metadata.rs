@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -55,7 +54,10 @@ pub fn build(build: &mut Build) {
                 .filter(|dep| dep.source.is_none())
                 .map(|dep| dep.name)
                 .collect();
-            let has_lib = package.targets.iter().any(|t| t.kind.iter().any(|k| k == "lib"));
+            let has_lib = package
+                .targets
+                .iter()
+                .any(|t| t.kind.iter().any(|k| k == "lib"));
             let krate = Crate {
                 name: name.clone(),
                 deps,

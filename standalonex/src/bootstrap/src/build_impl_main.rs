@@ -1,12 +1,11 @@
 use crate::prelude::*;
 
-
-use build_helper::ci::gha;
-use build_helper::exit;
 use crate::core::builder;
 use crate::core::config::dry_run::DryRun;
-use crate::Subcommand;
 use crate::Build;
+use crate::Subcommand;
+use build_helper::ci::gha;
+use build_helper::exit;
 
 impl Build {
     /// Executes the entire build, as configured by the flags and configuration.
@@ -56,7 +55,10 @@ impl Build {
         // Check for postponed failures from `test --no-fail-fast`.
         let failures = self.delayed_failures.borrow();
         if failures.len() > 0 {
-            eprintln!("\n{} command(s) did not execute successfully:\n", failures.len());
+            eprintln!(
+                "\n{} command(s) did not execute successfully:\n",
+                failures.len()
+            );
             for failure in failures.iter() {
                 eprintln!("  - {}\n", failure);
             }
@@ -132,9 +134,15 @@ impl Build {
         let action = action.into().description();
         let msg = |fmt| format!("{action} {what} {fmt}");
         let msg = if host == target {
-            msg(format_args!("(stage{stage} -> stage{}, {target})", stage + 1))
+            msg(format_args!(
+                "(stage{stage} -> stage{}, {target})",
+                stage + 1
+            ))
         } else {
-            msg(format_args!("(stage{stage}:{host} -> stage{}:{target})", stage + 1))
+            msg(format_args!(
+                "(stage{stage}:{host} -> stage{}:{target})",
+                stage + 1
+            ))
         };
         self.group(&msg)
     }
@@ -146,7 +154,13 @@ impl Build {
         what: impl Display,
         target: impl Into<Option<TargetSelection>>,
     ) -> Option<gha::Group> {
-        self.msg(builder::Kind::Clippy, self.config.stage, what, self.config.build, target)
+        self.msg(
+            builder::Kind::Clippy,
+            self.config.stage,
+            what,
+            self.config.build,
+            target,
+        )
     }
 
     #[must_use = "Groups should not be dropped until the Step finishes running"]
@@ -156,7 +170,13 @@ impl Build {
         what: impl Display,
         target: impl Into<Option<TargetSelection>>,
     ) -> Option<gha::Group> {
-        self.msg(builder::Kind::Check, self.config.stage, what, self.config.build, target)
+        self.msg(
+            builder::Kind::Check,
+            self.config.stage,
+            what,
+            self.config.build,
+            target,
+        )
     }
 
     #[must_use = "Groups should not be dropped until the Step finishes running"]
@@ -167,7 +187,13 @@ impl Build {
         what: impl Display,
         target: impl Into<Option<TargetSelection>> + Copy,
     ) -> Option<gha::Group> {
-        self.msg(builder::Kind::Doc, compiler.stage, what, compiler.host, target.into())
+        self.msg(
+            builder::Kind::Doc,
+            compiler.stage,
+            what,
+            compiler.host,
+            target.into(),
+        )
     }
 
     #[must_use = "Groups should not be dropped until the Step finishes running"]
@@ -178,6 +204,12 @@ impl Build {
         what: impl Display,
         target: impl Into<Option<TargetSelection>>,
     ) -> Option<gha::Group> {
-        self.msg(builder::Kind::Build, compiler.stage, what, compiler.host, target)
+        self.msg(
+            builder::Kind::Build,
+            compiler.stage,
+            what,
+            compiler.host,
+            target,
+        )
     }
 }

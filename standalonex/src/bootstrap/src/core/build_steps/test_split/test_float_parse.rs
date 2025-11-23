@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TestFloatParse {
     pub common: common_test_fields::CommonTestFields,
@@ -36,7 +35,8 @@ impl Step for TestFloatParse {
         let bootstrap_host = self.common.host;
         let compiler = self.common.compiler;
         let path = self.path.to_str().unwrap();
-        let crate_name = self.path
+        let crate_name = self
+            .path
             .components()
             .last()
             .unwrap()
@@ -44,7 +44,9 @@ impl Step for TestFloatParse {
             .to_str()
             .unwrap();
 
-        builder.ensure(tool::TestFloatParse { host: self.common.host });
+        builder.ensure(tool::TestFloatParse {
+            host: self.common.host,
+        });
 
         // Run any unit tests in the crate
         let cargo_test = tool::prepare_tool_cargo(

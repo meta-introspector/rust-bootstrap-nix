@@ -1,9 +1,7 @@
-
-
 use syn::visit;
 
-use split_expanded_lib::{Declaration};
 use crate::symbol_map::SymbolMap;
+use split_expanded_lib::Declaration;
 
 pub struct ReferenceVisitor<'a> {
     pub symbol_map: &'a mut SymbolMap,
@@ -14,7 +12,13 @@ pub struct ReferenceVisitor<'a> {
 }
 
 impl<'a> ReferenceVisitor<'a> {
-    pub fn new(symbol_map: &'a mut SymbolMap, declarations: &'a mut Vec<Declaration>, crate_name: String, module_path: String, verbose: u8) -> Self {
+    pub fn new(
+        symbol_map: &'a mut SymbolMap,
+        declarations: &'a mut Vec<Declaration>,
+        crate_name: String,
+        module_path: String,
+        verbose: u8,
+    ) -> Self {
         ReferenceVisitor {
             symbol_map,
             declarations,
@@ -50,9 +54,34 @@ impl<'ast, 'a> visit::Visit<'ast> for ReferenceVisitor<'a> {
     }
 
     fn visit_path(&mut self, i: &'ast syn::Path) {
-        let ident_str = i.segments.last().map(|s| s.ident.to_string()).unwrap_or_default();
+        let ident_str = i
+            .segments
+            .last()
+            .map(|s| s.ident.to_string())
+            .unwrap_or_default();
         // Basic heuristic to avoid primitive types
-        if !ident_str.is_empty() && !matches!(ident_str.as_str(), "bool" | "u8" | "u16" | "u32" | "u64" | "u128" | "i8" | "i16" | "i32" | "i64" | "i128" | "f32" | "f64" | "char" | "str" | "usize" | "isize") {
+        if !ident_str.is_empty()
+            && !matches!(
+                ident_str.as_str(),
+                "bool"
+                    | "u8"
+                    | "u16"
+                    | "u32"
+                    | "u64"
+                    | "u128"
+                    | "i8"
+                    | "i16"
+                    | "i32"
+                    | "i64"
+                    | "i128"
+                    | "f32"
+                    | "f64"
+                    | "char"
+                    | "str"
+                    | "usize"
+                    | "isize"
+            )
+        {
             let resolved_dep = self.symbol_map.resolve_and_increment_usage(
                 ident_str.clone(),
                 "type".to_string(),
@@ -60,12 +89,14 @@ impl<'ast, 'a> visit::Visit<'ast> for ReferenceVisitor<'a> {
                 self.module_path.clone(),
             );
             if self.verbose > 0 {
-                println!("Resolved Type Reference: id={}, type={}, crate={}, module={}, usage={}",
-                         resolved_dep.id,
-                         resolved_dep.dependency_type,
-                         resolved_dep.crate_name,
-                         resolved_dep.module_path,
-                         resolved_dep.usage_count);
+                println!(
+                    "Resolved Type Reference: id={}, type={}, crate={}, module={}, usage={}",
+                    resolved_dep.id,
+                    resolved_dep.dependency_type,
+                    resolved_dep.crate_name,
+                    resolved_dep.module_path,
+                    resolved_dep.usage_count
+                );
             }
             // TODO: Update the corresponding Declaration with this resolved_dep
         }

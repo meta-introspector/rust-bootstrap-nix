@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Sanity checking performed by bootstrap before actually executing anything.
 ///
 /// This module contains the implementation of ensuring that the build
@@ -10,7 +9,6 @@ use crate::prelude::*;
 ///
 /// In theory if we get past this phase it's a bug if a build fails, but in
 /// practice that's likely not true!
-
 use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
@@ -53,7 +51,10 @@ const LIBSTDCXX_MIN_VERSION_THRESHOLD: usize = 8;
 
 impl Finder {
     pub fn new() -> Self {
-        Self { cache: HashMap::new(), path: env::var_os("PATH").unwrap_or_default() }
+        Self {
+            cache: HashMap::new(),
+            path: env::var_os("PATH").unwrap_or_default(),
+        }
     }
 
     pub fn maybe_have<S: Into<OsString>>(&mut self, cmd: S) -> Option<PathBuf> {
@@ -96,7 +97,8 @@ pub fn check(build: &mut Build) {
     // Skip target sanity checks when we are doing anything with mir-opt tests or Miri
     let skipped_paths = [OsStr::new("mir-opt"), OsStr::new("miri")];
     skip_target_sanity |= build.config.paths.iter().any(|path| {
-        path.components().any(|component| skipped_paths.contains(&component.as_os_str()))
+        path.components()
+            .any(|component| skipped_paths.contains(&component.as_os_str()))
     });
 
     let path = env::var_os("PATH").unwrap_or_default();
@@ -119,7 +121,9 @@ pub fn check(build: &mut Build) {
     #[cfg(not(feature = "bootstrap-self-test"))]
     if !build.config.dry_run && !build.build.is_msvc() && build.config.llvm_from_ci {
         let builder = Builder::new(build);
-        let libcxx_version = builder.ensure(tool::LibcxxVersionTool { target: build.build });
+        let libcxx_version = builder.ensure(tool::LibcxxVersionTool {
+            target: build.build,
+        });
 
         match libcxx_version {
             tool::LibcxxVersion::Gnu(version) => {
@@ -128,7 +132,10 @@ pub fn check(build: &mut Build) {
                         "\nYour system's libstdc++ version is too old for the `llvm.download-ci-llvm` option."
                     );
                     eprintln!("Current version detected: '{}'", version);
-                    eprintln!("Minimum required version: '{}'", LIBSTDCXX_MIN_VERSION_THRESHOLD);
+                    eprintln!(
+                        "Minimum required version: '{}'",
+                        LIBSTDCXX_MIN_VERSION_THRESHOLD
+                    );
                     eprintln!(
                         "Consider upgrading libstdc++ or disabling the `llvm.download-ci-llvm` option."
                     );
@@ -213,7 +220,9 @@ than building it.
         .or_else(|| cmd_finder.maybe_have("reuse"));
 
     let stage0_supported_target_list: HashSet<String> = crate::utils::helpers::output(
-        command(&build.config.initial_rustc).args(["--print", "target-list"]).as_command_mut(),
+        command(&build.config.initial_rustc)
+            .args(["--print", "target-list"])
+            .as_command_mut(),
     )
     .lines()
     .map(|s| s.to_string())
@@ -245,10 +254,13 @@ than building it.
             let mut has_target = false;
             let target_str = target.to_string();
 
-            let missing_targets_hashset: HashSet<_> =
-                STAGE0_MISSING_TARGETS.iter().map(|t| t.to_string()).collect();
-            let duplicated_targets: Vec<_> =
-                stage0_supported_target_list.intersection(&missing_targets_hashset).collect();
+            let missing_targets_hashset: HashSet<_> = STAGE0_MISSING_TARGETS
+                .iter()
+                .map(|t| t.to_string())
+                .collect();
+            let duplicated_targets: Vec<_> = stage0_supported_target_list
+                .intersection(&missing_targets_hashset)
+                .collect();
 
             if !duplicated_targets.is_empty() {
                 println!(
@@ -364,8 +376,11 @@ than building it.
             // There are three builds of cmake on windows: MSVC, MinGW, and
             // Cygwin. The Cygwin build does not have generators for Visual
             // Studio, so detect that here and error.
-            let out =
-                command("cmake").arg("--help").run_always().run_capture_stdout(build).stdout();
+            let out = command("cmake")
+                .arg("--help")
+                .run_always()
+                .run_capture_stdout(build)
+                .stdout();
             if !out.contains("Visual Studio") {
                 panic!(
                     "

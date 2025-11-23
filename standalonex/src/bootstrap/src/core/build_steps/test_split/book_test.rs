@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct BookTest {
     compiler: Compiler,
@@ -83,8 +82,13 @@ impl BookTest {
 
         builder.ensure(compile::Std::new(compiler, host));
 
-        let _guard =
-            builder.msg(Kind::Test, compiler.stage, format!("book {}", self.name), host, host);
+        let _guard = builder.msg(
+            Kind::Test,
+            compiler.stage,
+            format!("book {}", self.name),
+            host,
+            host,
+        );
 
         // Do a breadth-first traversal of the `src/doc` directory and just run
         // tests for all files that end in `*.md`

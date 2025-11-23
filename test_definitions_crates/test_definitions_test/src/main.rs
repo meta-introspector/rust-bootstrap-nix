@@ -58,10 +58,14 @@ pub trait Step {
     fn make_run(run: RunConfig);
     fn run(self, builder: &Builder);
 }
-test_definitions!(
-    MyTest { path : "tests/my_test", mode : "my_mode", suite : "my_suite", default :
-    true, host : false, compare_mode : None }
-);
+test_definitions!(MyTest {
+    path: "tests/my_test",
+    mode: "my_mode",
+    suite: "my_suite",
+    default: true,
+    host: false,
+    compare_mode: None
+});
 fn main() {
     println!("Macro test compiled successfully!");
 }

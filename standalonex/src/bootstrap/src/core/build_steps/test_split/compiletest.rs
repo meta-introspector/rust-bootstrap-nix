@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Compiletest {
     compiler: Compiler,
@@ -78,7 +77,9 @@ impl Step for Compiletest {
         }
 
         // Also provide `rust_test_helpers` for the host.
-        builder.ensure(TestHelpers { target: compiler.host });
+        builder.ensure(TestHelpers {
+            target: compiler.host,
+        });
 
         // ensure that `libproc_macro` is available on the host.
         if suite == "mir-opt" {
@@ -105,14 +106,21 @@ impl Step for Compiletest {
         // compiletest currently has... a lot of arguments, so let's just pass all
         // of them!
 
-        cmd.arg("--compile-lib-path").arg(builder.rustc_libdir(compiler));
-        cmd.arg("--run-lib-path").arg(builder.sysroot_target_libdir(compiler, target));
+        cmd.arg("--compile-lib-path")
+            .arg(builder.rustc_libdir(compiler));
+        cmd.arg("--run-lib-path")
+            .arg(builder.sysroot_target_libdir(compiler, target));
         cmd.arg("--rustc-path").arg(builder.rustc(compiler));
 
         // Minicore auxiliary lib for `no_core` tests that need `core` stubs in cross-compilation
         // scenarios.
-        cmd.arg("--minicore-path")
-            .arg(builder.src.join("tests").join("auxiliary").join("minicore.rs"));
+        cmd.arg("--minicore-path").arg(
+            builder
+                .src
+                .join("tests")
+                .join("auxiliary")
+                .join("minicore.rs"),
+        );
 
         let is_rustdoc = suite.ends_with("rustdoc-ui") || suite.ends_with("rustdoc-js");
 
@@ -123,7 +131,10 @@ impl Step for Compiletest {
             } else {
                 // We need to properly build cargo using the suitable stage compiler.
 
-                let compiler = builder.download_rustc().then_some(compiler).unwrap_or_else(||
+                let compiler = builder
+                    .download_rustc()
+                    .then_some(compiler)
+                    .unwrap_or_else(||
                     // HACK: currently tool stages are off-by-one compared to compiler stages, i.e. if
                     // you give `tool::Cargo` a stage 1 rustc, it will cause stage 2 rustc to be built
                     // and produce a cargo built with stage 2 rustc. To fix this, we need to chop off
@@ -132,7 +143,10 @@ impl Step for Compiletest {
                     // which does a similar hack.
                     builder.compiler(builder.top_stage - 1, compiler.host));
 
-                builder.ensure(tool::Cargo { compiler, target: compiler.host })
+                builder.ensure(tool::Cargo {
+                    compiler,
+                    target: compiler.host,
+                })
             };
 
             cmd.arg("--cargo-path").arg(cargo_path);
@@ -153,9 +167,15 @@ impl Step for Compiletest {
             // Use the beta compiler for jsondocck
             let json_compiler = compiler.with_stage(0);
             cmd.arg("--jsondocck-path")
-                .arg(builder.ensure(tool::JsonDocCk { compiler: json_compiler, target }));
+                .arg(builder.ensure(tool::JsonDocCk {
+                    compiler: json_compiler,
+                    target,
+                }));
             cmd.arg("--jsondoclint-path")
-                .arg(builder.ensure(tool::JsonDocLint { compiler: json_compiler, target }));
+                .arg(builder.ensure(tool::JsonDocLint {
+                    compiler: json_compiler,
+                    target,
+                }));
         }
 
         if matches!(mode, "coverage-map" | "coverage-run") {
@@ -163,8 +183,10 @@ impl Step for Compiletest {
             cmd.arg("--coverage-dump-path").arg(coverage_dump);
         }
 
-        cmd.arg("--src-base").arg(builder.src.join("tests").join(suite));
-        cmd.arg("--build-base").arg(testdir(builder, compiler.host).join(suite));
+        cmd.arg("--src-base")
+            .arg(builder.src.join("tests").join(suite));
+        cmd.arg("--build-base")
+            .arg(testdir(builder, compiler.host).join(suite));
 
         // When top stage is 0, that means that we're testing an externally provided compiler.
         // In that case we need to use its specific sysroot for tests to pass.
@@ -179,7 +201,8 @@ impl Step for Compiletest {
         cmd.arg("--mode").arg(mode);
         cmd.arg("--target").arg(target.rustc_target_arg());
         cmd.arg("--host").arg(&*compiler.host.triple);
-        cmd.arg("--llvm-filecheck").arg(builder.llvm_filecheck(builder.config.build));
+        cmd.arg("--llvm-filecheck")
+            .arg(builder.llvm_filecheck(builder.config.build));
 
         if builder.build.config.llvm_enzyme {
             cmd.arg("--has-enzyme");
@@ -193,10 +216,13 @@ impl Step for Compiletest {
             cmd.arg("--force-rerun");
         }
 
-        let compare_mode = 
-            builder.config.cmd.compare_mode().or_else(|| {
-                if builder.config.test_compare_mode { self.compare_mode } else { None }
-            });
+        let compare_mode = builder.config.cmd.compare_mode().or_else(|| {
+            if builder.config.test_compare_mode {
+                self.compare_mode
+            } else {
+                None
+            }
+        });
 
         if let Some(ref pass) = builder.config.cmd.pass() {
             cmd.arg("--pass");
@@ -226,7 +252,8 @@ impl Step for Compiletest {
             cmd.arg("--only-modified");
         }
         if let Some(compiletest_diff_tool) = &builder.config.compiletest_diff_tool {
-            cmd.arg("--compiletest-diff-tool").arg(compiletest_diff_tool);
+            cmd.arg("--compiletest-diff-tool")
+                .arg(compiletest_diff_tool);
         }
     }
 }

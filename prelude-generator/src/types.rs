@@ -1,9 +1,12 @@
-use serde::{Serialize, Deserialize};
-use std::path::{PathBuf, Path};
-use split_expanded_lib::{Declaration};
-use std::collections::HashMap;
-use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo};
 use crate::expression_info::ExpressionInfo;
+use crate::{
+    enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo,
+    struct_lattice_info::StructLatticeInfo,
+};
+use serde::{Deserialize, Serialize};
+use split_expanded_lib::Declaration;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum FileProcessingStatus {
@@ -20,10 +23,10 @@ pub struct FileProcessingResult {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CollectedPreludeInfo {
-    pub package_name: String, // Added
-    pub manifest_path: PathBuf, // Added
-    pub use_statements: std::collections::HashSet<String>, // Added
-    pub extern_crates: std::collections::HashSet<String>, // Added
+    pub package_name: String,                                  // Added
+    pub manifest_path: PathBuf,                                // Added
+    pub use_statements: std::collections::HashSet<String>,     // Added
+    pub extern_crates: std::collections::HashSet<String>,      // Added
     pub feature_attributes: std::collections::HashSet<String>, // Added
     pub crate_name: String,
     pub crate_root: PathBuf,

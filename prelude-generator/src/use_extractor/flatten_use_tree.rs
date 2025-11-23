@@ -1,5 +1,5 @@
-use syn::UseTree;
 use pipeline_traits::UseStatement;
+use syn::UseTree;
 
 pub fn flatten_use_tree(
     base_path: &mut Vec<String>,

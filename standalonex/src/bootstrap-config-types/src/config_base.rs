@@ -1,7 +1,7 @@
+use crate::Target;
+use crate::TargetSelection;
 use std::cell::*;
 use std::collections::*;
-use crate::TargetSelection;
-use crate::Target;
 use std::path::PathBuf;
 //use crate::flags::Color;
 //use crate::subcommand::Subcommand;
@@ -9,10 +9,10 @@ use crate::DryRun;
 use crate::LldMode;
 use crate::RustOptimize;
 //use crate::DebuginfoLevel;
-use build_helper::channel;
-use crate::RustfmtState;
-use crate::RustcLto;
 use crate::LlvmLibunwind;
+use crate::RustcLto;
+use crate::RustfmtState;
+use build_helper::channel;
 
 use crate::ciconfig::CiConfig;
 //use crate::Config;
@@ -55,7 +55,7 @@ pub struct Config {
     pub rustc_error_format: Option<String>,
     pub json_output: bool,
     pub test_compare_mode: bool,
-//    pub color: Color,
+    //    pub color: Color,
     pub patch_binaries_for_nix: Option<bool>,
     pub stage0_path: Option<PathBuf>,
     pub stage0_metadata: build_helper::stage0_parser::Stage0,
@@ -79,7 +79,7 @@ pub struct Config {
     pub rustc_versions: Vec<String>,
     pub cargo_versions: Vec<String>,
     pub jobs: Option<u32>,
-//    pub cmd: Subcommand,
+    //    pub cmd: Subcommand,
     pub incremental: bool,
     pub dry_run: DryRun,
     pub dump_bootstrap_shims: bool,
@@ -137,10 +137,10 @@ pub struct Config {
     pub rust_overflow_checks: bool,
     pub rust_overflow_checks_std: bool,
     pub rust_debug_logging: bool,
-//    pub rust_debuginfo_level_rustc: DebuginfoLevel,
-//    pub rust_debuginfo_level_std: DebuginfoLevel,
-//    pub rust_debuginfo_level_tools: DebuginfoLevel,
-//    pub rust_debuginfo_level_tests: DebuginfoLevel,
+    //    pub rust_debuginfo_level_rustc: DebuginfoLevel,
+    //    pub rust_debuginfo_level_std: DebuginfoLevel,
+    //    pub rust_debuginfo_level_tools: DebuginfoLevel,
+    //    pub rust_debuginfo_level_tests: DebuginfoLevel,
     pub rust_rpath: bool,
     pub rust_strip: bool,
     pub rust_frame_pointers: bool,

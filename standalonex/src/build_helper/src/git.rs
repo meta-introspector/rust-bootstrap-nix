@@ -1,8 +1,8 @@
 //use crate::prelude::Command;
-use std::process::Stdio;
-pub use std::process::Command;
 use std::path::Path;
 use std::path::PathBuf;
+pub use std::process::Command;
+use std::process::Stdio;
 //use crate::prelude::*;
 pub struct GitConfig<'a> {
     pub git_repository: &'a str,
@@ -16,14 +16,13 @@ pub fn output_result(cmd: &mut Command) -> Result<String, String> {
         Err(e) => return Err(format!("failed to run command: {:?}: {}", cmd, e)),
     };
     if !output.status.success() {
-        return Err(
-            format!(
-                "command did not execute successfully: {:?}\n\
+        return Err(format!(
+            "command did not execute successfully: {:?}\n\
              expected success, got: {}\n{}",
-                cmd, output.status, String::from_utf8(output.stderr).map_err(| err |
-                format!("{err:?}")) ?
-            ),
-        );
+            cmd,
+            output.status,
+            String::from_utf8(output.stderr).map_err(|err| format!("{err:?}"))?
+        ));
     }
     String::from_utf8(output.stdout).map_err(|err| format!("{err:?}"))
 }
@@ -65,23 +64,14 @@ pub fn rev_exists(rev: &str, git_dir: Option<&Path>) -> Result<bool, String> {
     match output.status.code() {
         Some(0) => Ok(true),
         Some(128) => Ok(false),
-        None => {
-            Err(
-                format!(
-                    "git didn't exit properly: {}", String::from_utf8(output.stderr)
-                    .map_err(| err | format!("{err:?}")) ?
-                ),
-            )
-        }
-        Some(code) => {
-            Err(
-                format!(
-                    "git command exited with status code: {code}: {}",
-                    String::from_utf8(output.stderr).map_err(| err | format!("{err:?}"))
-                    ?
-                ),
-            )
-        }
+        None => Err(format!(
+            "git didn't exit properly: {}",
+            String::from_utf8(output.stderr).map_err(|err| format!("{err:?}"))?
+        )),
+        Some(code) => Err(format!(
+            "git command exited with status code: {code}: {}",
+            String::from_utf8(output.stderr).map_err(|err| format!("{err:?}"))?
+        )),
     }
 }
 /// Returns the master branch from which we can take diffs to see changes.
@@ -137,8 +127,7 @@ pub fn get_closest_merge_commit(
     if let Some(git_dir) = git_dir {
         git.current_dir(git_dir);
     }
-    let merge_base = git_upstream_merge_base(config, git_dir)
-        .unwrap_or_else(|_| "HEAD".into());
+    let merge_base = git_upstream_merge_base(config, git_dir).unwrap_or_else(|_| "HEAD".into());
     git.args([
         "rev-list",
         &format!("--author={}", config.git_merge_commit_email),
@@ -165,24 +154,15 @@ pub fn get_git_modified_files(
     if let Some(git_dir) = git_dir {
         git.current_dir(git_dir);
     }
-    let files = output_result(
-            git.args(["diff-index", "--name-status", merge_base.trim()]),
-        )?
+    let files = output_result(git.args(["diff-index", "--name-status", merge_base.trim()]))?
         .lines()
         .filter_map(|f| {
             let (status, name) = f.trim().split_once(char::is_whitespace).unwrap();
             if status == "D" {
                 None
-            } else if Path::new(name)
-                .extension()
-                .map_or(
-                    false,
-                    |ext| {
-                        extensions.is_empty()
-                            || extensions.contains(&ext.to_str().unwrap())
-                    },
-                )
-            {
+            } else if Path::new(name).extension().map_or(false, |ext| {
+                extensions.is_empty() || extensions.contains(&ext.to_str().unwrap())
+            }) {
                 Some(name.to_owned())
             } else {
                 None
@@ -204,10 +184,12 @@ pub fn get_git_untracked_files(
         git.current_dir(git_dir);
     }
     let files = output_result(
-            git.arg("ls-files").arg("--others").arg("--exclude-standard"),
-        )?
-        .lines()
-        .map(|s| s.trim().to_owned())
-        .collect();
+        git.arg("ls-files")
+            .arg("--others")
+            .arg("--exclude-standard"),
+    )?
+    .lines()
+    .map(|s| s.trim().to_owned())
+    .collect();
     Ok(Some(files))
 }

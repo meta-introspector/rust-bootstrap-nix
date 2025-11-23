@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CrateRustdoc {
     host: TargetSelection,
@@ -53,7 +52,9 @@ impl Step for CrateRustdoc {
         let libdir = if builder.download_rustc() {
             builder.rustc_libdir(compiler)
         } else {
-            builder.sysroot_target_libdir(compiler, target).to_path_buf()
+            builder
+                .sysroot_target_libdir(compiler, target)
+                .to_path_buf()
         };
         let mut dylib_path = dylib_path();
         dylib_path.insert(0, PathBuf::from(&*libdir));

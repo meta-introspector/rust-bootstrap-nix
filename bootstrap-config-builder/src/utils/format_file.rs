@@ -1,6 +1,3 @@
-
-
-
 // use anyhow::{Context, Result}; // Commented out
 //use std::fs;
 
@@ -103,7 +100,10 @@ id = "{change_id}"
         .replace("{rust_bootstrap_nix_path}", rust_bootstrap_nix_path)
         .replace("{configuration_nix_path}", configuration_nix_path)
         .replace("{rust_src_flake_path}", rust_src_flake_path)
-        .replace("{rust_bootstrap_nix_flake_ref}", rust_bootstrap_nix_flake_ref)
+        .replace(
+            "{rust_bootstrap_nix_flake_ref}",
+            rust_bootstrap_nix_flake_ref,
+        )
         .replace("{rust_src_flake_ref}", rust_src_flake_ref)
         .replace("{stage}", stage)
         .replace("{target}", target)
@@ -111,10 +111,16 @@ id = "{change_id}"
         .replace("{cargo_path}", cargo_path)
         .replace("{rust_channel}", rust_channel)
         .replace("{rust_download_rustc}", &rust_download_rustc.to_string())
-        .replace("{rust_parallel_compiler}", &rust_parallel_compiler.to_string())
+        .replace(
+            "{rust_parallel_compiler}",
+            &rust_parallel_compiler.to_string(),
+        )
         .replace("{rust_llvm_tools}", &rust_llvm_tools.to_string())
         .replace("{rust_debuginfo_level}", &rust_debuginfo_level.to_string())
-        .replace("{patch_binaries_for_nix}", &patch_binaries_for_nix.to_string())
+        .replace(
+            "{patch_binaries_for_nix}",
+            &patch_binaries_for_nix.to_string(),
+        )
         .replace("{vendor}", &vendor.to_string())
         .replace("{build_dir}", build_dir)
         .replace("{build_jobs}", &build_jobs.to_string())
@@ -124,7 +130,10 @@ id = "{change_id}"
         .replace("{install_sysconfdir}", install_sysconfdir)
         .replace("{dist_sign_folder}", dist_sign_folder)
         .replace("{dist_upload_addr}", dist_upload_addr)
-        .replace("{llvm_download_ci_llvm}", &llvm_download_ci_llvm.to_string())
+        .replace(
+            "{llvm_download_ci_llvm}",
+            &llvm_download_ci_llvm.to_string(),
+        )
         .replace("{llvm_ninja}", &llvm_ninja.to_string())
         .replace("{change_id}", change_id)
 }

@@ -1,9 +1,8 @@
 use crate::prelude::*;
 
-
 use std::collections::BTreeSet;
 use std::env;
-use std::fs::{File, remove_file};
+use std::fs::{remove_file, File};
 use std::io::Write;
 use std::path::Path;
 
@@ -12,7 +11,7 @@ use serde::Deserialize;
 
 use super::flags::Flags;
 use super::{ChangeIdWrapper, Config, RUSTC_IF_UNCHANGED_ALLOWED_PATHS};
-use crate::core::build_steps::clippy::{LintConfig, get_clippy_rules_in_order};
+use crate::core::build_steps::clippy::{get_clippy_rules_in_order, LintConfig};
 use crate::core::build_steps::llvm;
 use crate::core::config::{LldMode, Target, TargetSelection, TomlConfig};
 
@@ -60,7 +59,7 @@ pub fn download_ci_llvm() {
 //   - https://github.com/rust-lang/rust/pull/109162#issuecomment-1496782487
 #[test]
 pub fn detect_src_and_out() {
-pub fn test(cfg: Config, build_dir: Option<&str>) {
+    pub fn test(cfg: Config, build_dir: Option<&str>) {
         // This will bring absolute form of `src/bootstrap` path
         let current_dir = std::env::current_dir().unwrap();
 
@@ -106,7 +105,10 @@ pub fn test(cfg: Config, build_dir: Option<&str>) {
 
     {
         let build_dir = if cfg!(windows) { "C:\\tmp" } else { "/tmp" };
-        test(parse(&format!("build.build-dir = '{build_dir}'")), Some(build_dir));
+        test(
+            parse(&format!("build.build-dir = '{build_dir}'")),
+            Some(build_dir),
+        );
     }
 }
 
@@ -169,7 +171,11 @@ runner = "x86_64-runner"
         crate::core::config::RustcLto::Fat,
         "setting string value without quotes"
     );
-    assert_eq!(config.gdb, Some("bar".into()), "setting string value with quotes");
+    assert_eq!(
+        config.gdb,
+        Some("bar".into()),
+        "setting string value with quotes"
+    );
     assert!(!config.deny_warnings, "setting boolean value");
     assert_eq!(
         config.tools,
@@ -178,7 +184,9 @@ runner = "x86_64-runner"
     );
     assert_eq!(
         config.llvm_build_config,
-        [("foo".to_string(), "bar".to_string())].into_iter().collect(),
+        [("foo".to_string(), "bar".to_string())]
+            .into_iter()
+            .collect(),
         "setting dictionary value"
     );
 
@@ -197,12 +205,19 @@ runner = "x86_64-runner"
         ..Default::default()
     };
     let darwin = TargetSelection::from_user("aarch64-apple-darwin");
-    let darwin_values = Target { runner: Some("apple".into()), ..Default::default() };
+    let darwin_values = Target {
+        runner: Some("apple".into()),
+        ..Default::default()
+    };
     assert_eq!(
         config.target_config,
-        [(x86_64, x86_64_values), (aarch64, aarch64_values), (darwin, darwin_values)]
-            .into_iter()
-            .collect(),
+        [
+            (x86_64, x86_64_values),
+            (aarch64, aarch64_values),
+            (darwin, darwin_values)
+        ]
+        .into_iter()
+        .collect(),
         "setting dictionary value"
     );
     assert!(!config.llvm_from_ci);
@@ -225,7 +240,7 @@ pub fn override_toml_duplicate() {
 
 #[test]
 pub fn profile_user_dist() {
-pub fn get_toml(file: &Path) -> Result<TomlConfig, toml::de::Error> {
+    pub fn get_toml(file: &Path) -> Result<TomlConfig, toml::de::Error> {
         let contents =
             if file.ends_with("config.toml") || env::var_os("RUST_BOOTSTRAP_CONFIG").is_some() {
                 "profile = \"user\"".to_owned()
@@ -247,8 +262,14 @@ pub fn rust_optimize() {
     assert!(!parse("rust.optimize = 0").rust_optimize.is_release());
     assert!(parse("rust.optimize = 1").rust_optimize.is_release());
     assert!(parse("rust.optimize = \"s\"").rust_optimize.is_release());
-    assert_eq!(parse("rust.optimize = 1").rust_optimize.get_opt_level(), Some("1".to_string()));
-    assert_eq!(parse("rust.optimize = \"s\"").rust_optimize.get_opt_level(), Some("s".to_string()));
+    assert_eq!(
+        parse("rust.optimize = 1").rust_optimize.get_opt_level(),
+        Some("1".to_string())
+    );
+    assert_eq!(
+        parse("rust.optimize = \"s\"").rust_optimize.get_opt_level(),
+        Some("s".to_string())
+    );
 }
 
 #[test]
@@ -262,13 +283,16 @@ pub fn verify_file_integrity() {
     let config = parse("");
 
     let tempfile = config.tempdir().join(".tmp-test-file");
-    File::create(&tempfile).unwrap().write_all(b"dummy value").unwrap();
+    File::create(&tempfile)
+        .unwrap()
+        .write_all(b"dummy value")
+        .unwrap();
     assert!(tempfile.exists());
 
-    assert!(
-        config
-            .verify(&tempfile, "7e255dd9542648a8779268a0f268b891a198e9828e860ed23f826440e786eae5")
-    );
+    assert!(config.verify(
+        &tempfile,
+        "7e255dd9542648a8779268a0f268b891a198e9828e860ed23f826440e786eae5"
+    ));
 
     remove_file(tempfile).unwrap();
 }
@@ -276,10 +300,22 @@ pub fn verify_file_integrity() {
 #[test]
 pub fn rust_lld() {
     assert!(matches!(parse("").lld_mode, LldMode::Unused));
-    assert!(matches!(parse("rust.use-lld = \"self-contained\"").lld_mode, LldMode::SelfContained));
-    assert!(matches!(parse("rust.use-lld = \"external\"").lld_mode, LldMode::External));
-    assert!(matches!(parse("rust.use-lld = true").lld_mode, LldMode::External));
-    assert!(matches!(parse("rust.use-lld = false").lld_mode, LldMode::Unused));
+    assert!(matches!(
+        parse("rust.use-lld = \"self-contained\"").lld_mode,
+        LldMode::SelfContained
+    ));
+    assert!(matches!(
+        parse("rust.use-lld = \"external\"").lld_mode,
+        LldMode::External
+    ));
+    assert!(matches!(
+        parse("rust.use-lld = true").lld_mode,
+        LldMode::External
+    ));
+    assert!(matches!(
+        parse("rust.use-lld = false").lld_mode,
+        LldMode::Unused
+    ));
 }
 
 #[test]
@@ -314,8 +350,19 @@ pub fn order_of_clippy_rules() {
     let config = Config::parse(Flags::parse(&args));
 
     let actual = match config.cmd.clone() {
-        crate::Subcommand::Clippy { allow, deny, warn, forbid, .. } => {
-            let cfg = LintConfig { allow, deny, warn, forbid };
+        crate::Subcommand::Clippy {
+            allow,
+            deny,
+            warn,
+            forbid,
+            ..
+        } => {
+            let cfg = LintConfig {
+                allow,
+                deny,
+                warn,
+                forbid,
+            };
             get_clippy_rules_in_order(&args, &cfg)
         }
         _ => panic!("invalid subcommand"),
@@ -333,13 +380,27 @@ pub fn order_of_clippy_rules() {
 
 #[test]
 pub fn clippy_rule_separate_prefix() {
-    let args =
-        vec!["clippy".to_string(), "-A clippy:all".to_string(), "-W clippy::style".to_string()];
+    let args = vec![
+        "clippy".to_string(),
+        "-A clippy:all".to_string(),
+        "-W clippy::style".to_string(),
+    ];
     let config = Config::parse(Flags::parse(&args));
 
     let actual = match config.cmd.clone() {
-        crate::Subcommand::Clippy { allow, deny, warn, forbid, .. } => {
-            let cfg = LintConfig { allow, deny, warn, forbid };
+        crate::Subcommand::Clippy {
+            allow,
+            deny,
+            warn,
+            forbid,
+            ..
+        } => {
+            let cfg = LintConfig {
+                allow,
+                deny,
+                warn,
+                forbid,
+            };
             get_clippy_rules_in_order(&args, &cfg)
         }
         _ => panic!("invalid subcommand"),
@@ -354,15 +415,21 @@ pub fn verbose_tests_default_value() {
     let config = Config::parse(Flags::parse(&["build".into(), "compiler".into()]));
     assert_eq!(config.verbose_tests, false);
 
-    let config = Config::parse(Flags::parse(&["build".into(), "compiler".into(), "-v".into()]));
+    let config = Config::parse(Flags::parse(&[
+        "build".into(),
+        "compiler".into(),
+        "-v".into(),
+    ]));
     assert_eq!(config.verbose_tests, true);
 }
 
 #[test]
 pub fn parse_rust_std_features() {
     let config = parse("rust.std-features = [\"panic-unwind\", \"backtrace\"]");
-    let expected_features: BTreeSet<String> =
-        ["panic-unwind", "backtrace"].into_iter().map(|s| s.to_string()).collect();
+    let expected_features: BTreeSet<String> = ["panic-unwind", "backtrace"]
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
     assert_eq!(config.rust_std_features, expected_features);
 }
 
@@ -443,7 +510,8 @@ pub fn check_rustc_if_unchanged_paths() {
     let normalised_allowed_paths: Vec<_> = RUSTC_IF_UNCHANGED_ALLOWED_PATHS
         .iter()
         .map(|t| {
-            t.strip_prefix(":!").expect(&format!("{t} doesn't have ':!' prefix, but it should."))
+            t.strip_prefix(":!")
+                .expect(&format!("{t} doesn't have ':!' prefix, but it should."))
         })
         .collect();
 

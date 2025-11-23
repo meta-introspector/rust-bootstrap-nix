@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::fmt::Debug;
 use std::hash::Hash;
 
@@ -40,7 +39,9 @@ pub struct CheckStdConfig {
 
 impl CheckStdConfig {
     pub fn new(override_build_kind: Option<Kind>) -> Self {
-        Self { override_build_kind }
+        Self {
+            override_build_kind,
+        }
     }
 }
 
@@ -79,8 +80,6 @@ impl StdTaskConfig for ClippyStdConfig {
     }
 }
 
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CheckRustcConfig {
     pub override_build_kind: Option<Kind>,
@@ -88,7 +87,9 @@ pub struct CheckRustcConfig {
 
 impl CheckRustcConfig {
     pub fn new(override_build_kind: Option<Kind>) -> Self {
-        Self { override_build_kind }
+        Self {
+            override_build_kind,
+        }
     }
 }
 
@@ -109,16 +110,29 @@ pub struct LintConfig {
 impl LintConfig {
     pub fn new(builder: &Builder<'_>) -> Self {
         match builder.config.cmd.clone() {
-            Subcommand::Clippy { allow, deny, warn, forbid, .. } => {
-                Self { allow, warn, deny, forbid }
-            }
+            Subcommand::Clippy {
+                allow,
+                deny,
+                warn,
+                forbid,
+                ..
+            } => Self {
+                allow,
+                warn,
+                deny,
+                forbid,
+            },
             _ => unreachable!("LintConfig can only be called from `clippy` subcommands."),
         }
     }
 
     pub fn merge(&self, other: &Self) -> Self {
         let merged = |self_attr: &[String], other_attr: &[String]| -> Vec<String> {
-            self_attr.iter().cloned().chain(other_attr.iter().cloned()).collect()
+            self_attr
+                .iter()
+                .cloned()
+                .chain(other_attr.iter().cloned())
+                .collect()
         };
         // This is written this way to ensure we get a compiler error if we add a new field.
         Self {

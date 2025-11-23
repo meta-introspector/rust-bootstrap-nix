@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use super::parse_value_from_args;
 
 #[test]
@@ -14,9 +13,18 @@ fn test_parse_value_from_args() {
         "x86_64-unknown-linux".into(),
     ];
 
-    assert_eq!(parse_value_from_args(args.as_slice(), "--stage").unwrap(), "1");
-    assert_eq!(parse_value_from_args(args.as_slice(), "--version").unwrap(), "2");
-    assert_eq!(parse_value_from_args(args.as_slice(), "--target").unwrap(), "x86_64-unknown-linux");
+    assert_eq!(
+        parse_value_from_args(args.as_slice(), "--stage").unwrap(),
+        "1"
+    );
+    assert_eq!(
+        parse_value_from_args(args.as_slice(), "--version").unwrap(),
+        "2"
+    );
+    assert_eq!(
+        parse_value_from_args(args.as_slice(), "--target").unwrap(),
+        "x86_64-unknown-linux"
+    );
     assert!(parse_value_from_args(args.as_slice(), "random-key").is_none());
 
     let args = vec![
@@ -26,6 +34,12 @@ fn test_parse_value_from_args() {
         "random-value".into(),
         "--sysroot=/x/y/z".into(),
     ];
-    assert_eq!(parse_value_from_args(args.as_slice(), "--key").unwrap(), "value");
-    assert_eq!(parse_value_from_args(args.as_slice(), "--sysroot").unwrap(), "/x/y/z");
+    assert_eq!(
+        parse_value_from_args(args.as_slice(), "--key").unwrap(),
+        "value"
+    );
+    assert_eq!(
+        parse_value_from_args(args.as_slice(), "--sysroot").unwrap(),
+        "/x/y/z"
+    );
 }

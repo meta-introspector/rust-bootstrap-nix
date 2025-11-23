@@ -36,7 +36,10 @@ impl ToTokens for GeneratedTrait {
         let name = Ident::new(&self.name, proc_macro2::Span::call_site());
         let generics = &self.generics;
         let where_clause = &self.where_clause;
-        let visibility = self.visibility.as_ref().map_or_else(|| quote!{}, |v| quote!{#v});
+        let visibility = self
+            .visibility
+            .as_ref()
+            .map_or_else(|| quote! {}, |v| quote! {#v});
 
         let methods = self.methods.iter().map(|m| {
             let sig: TokenStream = m.signature.parse().expect("Invalid method signature");
@@ -54,7 +57,7 @@ impl ToTokens for GeneratedTrait {
 
         let supertraits = &self.supertraits;
         let supertraits_tokens = if supertraits.is_empty() {
-            quote!{}
+            quote! {}
         } else {
             quote! { : #(#supertraits),* }
         };

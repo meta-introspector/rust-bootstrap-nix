@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use git_utils;
 use anyhow::Result;
+use git_utils;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -43,7 +43,12 @@ pub fn create_and_push_branch(
     println!("Performing Git operations...");
 
     // Explicitly checkout the base branch to ensure a stable HEAD
-    run_git_command(repo_root, &["checkout", base_branch_name], "Failed to checkout base branch", dry_run)?;
+    run_git_command(
+        repo_root,
+        &["checkout", base_branch_name],
+        "Failed to checkout base branch",
+        dry_run,
+    )?;
 
     // Check if branch already exists
     let branch_exists_output = Command::new("git")
@@ -53,10 +58,23 @@ pub fn create_and_push_branch(
 
     if branch_exists_output.status.success() {
         println!("Branch '{}' already exists. Checking it out.", branch_name);
-        run_git_command(repo_root, &["checkout", branch_name], "Failed to checkout existing branch", dry_run)?;
+        run_git_command(
+            repo_root,
+            &["checkout", branch_name],
+            "Failed to checkout existing branch",
+            dry_run,
+        )?;
     } else {
-        println!("Branch '{}' does not exist. Creating and checking it out.", branch_name);
-        run_git_command(repo_root, &["checkout", "-b", branch_name], "Failed to create and checkout new branch", dry_run)?;
+        println!(
+            "Branch '{}' does not exist. Creating and checking it out.",
+            branch_name
+        );
+        run_git_command(
+            repo_root,
+            &["checkout", "-b", branch_name],
+            "Failed to create and checkout new branch",
+            dry_run,
+        )?;
     }
 
     // Add generated files
@@ -72,11 +90,21 @@ pub fn create_and_push_branch(
         println!("Dry run: Would commit with message: '{}'", commit_message);
     } else {
         // Assuming a default author for now, this should ideally be configurable
-        git_utils::commit_files(repo_root, &commit_message, "Rust Bootstrap", "rust-bootstrap@example.com")?;
+        git_utils::commit_files(
+            repo_root,
+            &commit_message,
+            "Rust Bootstrap",
+            "rust-bootstrap@example.com",
+        )?;
     }
 
     // Push branch
-    run_git_command(repo_root, &["push", "origin", branch_name], "Failed to push branch", dry_run)?;
+    run_git_command(
+        repo_root,
+        &["push", "origin", branch_name],
+        "Failed to push branch",
+        dry_run,
+    )?;
     println!("Successfully pushed branch: {}", branch_name);
 
     Ok(())

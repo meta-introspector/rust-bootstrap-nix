@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use sha2::Digest;
 
 use super::EditorKind;

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Linkcheck {
     host: TargetSelection,
@@ -68,10 +67,18 @@ impl Step for Linkcheck {
         let linkchecker = builder.tool_cmd(Tool::Linkchecker);
 
         // Run the linkchecker.
-        let _guard =
-            builder.msg(Kind::Test, compiler.stage, "Linkcheck", bootstrap_host, bootstrap_host);
+        let _guard = builder.msg(
+            Kind::Test,
+            compiler.stage,
+            "Linkcheck",
+            bootstrap_host,
+            bootstrap_host,
+        );
         let _time = helpers::timeit(builder);
-        linkchecker.delay_failure().arg(builder.out.join(host).join("doc")).run(builder);
+        linkchecker
+            .delay_failure()
+            .arg(builder.out.join(host).join("doc"))
+            .run(builder);
     }
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {

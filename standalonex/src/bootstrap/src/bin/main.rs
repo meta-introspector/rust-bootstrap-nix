@@ -30,7 +30,9 @@ fn main() {
     let mut config = parse::parse(flags);
 
     // Resolve Nix paths dynamically if not already set
-    config.resolve_nix_paths().expect("Failed to resolve Nix paths");
+    config
+        .resolve_nix_paths()
+        .expect("Failed to resolve Nix paths");
 
     let mut build_results = Vec::new();
 
@@ -40,7 +42,10 @@ fn main() {
             new_config.initial_rustc = PathBuf::from(rustc_version);
             new_config.initial_cargo = PathBuf::from(cargo_version);
 
-            println!("Building with rustc: {} and cargo: {}", rustc_version, cargo_version);
+            println!(
+                "Building with rustc: {} and cargo: {}",
+                rustc_version, cargo_version
+            );
 
             let mut build_lock;
             let _build_lock_guard;
@@ -51,14 +56,18 @@ fn main() {
                 let lock_path = new_config.out.join("lock");
                 let pid = fs::read_to_string(&lock_path);
 
-                build_lock = RwLock::new(/*t!*/(fs::OpenOptions::new()
-                    .write(true)
-                    .truncate(true)
-                    .create(true)
-                    .open(&lock_path)));
+                build_lock = RwLock::new(
+                    /*t!*/
+                    (fs::OpenOptions::new()
+                        .write(true)
+                        .truncate(true)
+                        .create(true)
+                        .open(&lock_path)),
+                );
                 _build_lock_guard = match build_lock.try_write() {
                     Ok(mut lock) => {
-                        /*t!*/(lock.write(process::id().to_string().as_ref()));
+                        /*t!*/
+                        (lock.write(process::id().to_string().as_ref()));
                         lock
                     }
                     err => {
@@ -69,7 +78,8 @@ fn main() {
                             println!("WARNING: build directory locked, waiting for lock");
                         }
                         let mut lock = /*t!*/(build_lock.write());
-                        /*t!*/(lock.write(process::id().to_string().as_ref()));
+                        /*t!*/
+                        (lock.write(process::id().to_string().as_ref()));
                         lock
                     }
                 };
@@ -79,13 +89,20 @@ fn main() {
                 Build::new(new_config).build();
             });
 
-            build_results.push((rustc_version.clone(), cargo_version.clone(), build_result.is_ok()));
+            build_results.push((
+                rustc_version.clone(),
+                cargo_version.clone(),
+                build_result.is_ok(),
+            ));
         }
     }
 
     println!("Build results:");
     for (rustc_version, cargo_version, success) in &build_results {
-        println!("  rustc: {}, cargo: {}, success: {}", rustc_version, cargo_version, success);
+        println!(
+            "  rustc: {}, cargo: {}, success: {}",
+            rustc_version, cargo_version, success
+        );
     }
 }
 
@@ -110,7 +127,10 @@ fn check_version(config: &Config) -> Option<String> {
             // We only use the last_warned_id if it exists in `CONFIG_CHANGE_HISTORY`.
             // Otherwise, we may retrieve all the changes if it's not the highest value.
             // For better understanding, refer to `change_tracker::find_recent_config_change_ids`.
-            if CONFIG_CHANGE_HISTORY.iter().any(|config| config.change_id == last_warned_id) {
+            if CONFIG_CHANGE_HISTORY
+                .iter()
+                .any(|config| config.change_id == last_warned_id)
+            {
                 id = last_warned_id;
             }
         };
@@ -135,7 +155,9 @@ fn check_version(config: &Config) -> Option<String> {
     } else {
         msg.push_str("WARNING: The `change-id` is missing in the `config.toml`. This means that you will not be able to track the major changes made to the bootstrap configurations.\n");
         msg.push_str("NOTE: to silence this warning, ");
-        msg.push_str(&format!("add `change-id = {latest_change_id}` at the top of `config.toml`"));
+        msg.push_str(&format!(
+            "add `change-id = {latest_change_id}` at the top of `config.toml`"
+        ));
     };
 
     Some(msg)

@@ -5,15 +5,15 @@
 
 #![deny(warnings)]
 
+pub mod channel;
 pub mod ci;
 pub mod drop_bomb;
 pub mod git;
+pub mod helpers;
+pub mod llvm;
 pub mod metrics;
 pub mod stage0_parser;
 pub mod util;
-pub mod channel;
-pub mod llvm;
-pub mod helpers;
 
 /// The default set of crates for opt-dist to collect LLVM profiles.
 pub const LLVM_PGO_CRATES: &[&str] = &[
@@ -44,7 +44,7 @@ pub fn get_builder_toml() -> String {
 pub const RUSTC_IF_UNCHANGED_ALLOWED_PATHS: &[&str] = &[];
 
 pub use crate::channel::GitInfo;
-pub use crate::util::output;
 pub use crate::channel::GitInfo as ChannelGitInfo;
+pub use crate::util::output;
 
 pub mod prelude;

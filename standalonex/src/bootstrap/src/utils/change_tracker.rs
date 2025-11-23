@@ -1,10 +1,8 @@
 use crate::prelude::*;
 
-
 /// This module facilitates the tracking system for major changes made to the bootstrap,
 /// with the goal of keeping developers synchronized with important modifications in
 /// the bootstrap.
-
 use std::fmt::Display;
 
 #[cfg(test)]
@@ -39,12 +37,18 @@ impl Display for ChangeSeverity {
 }
 
 pub fn find_recent_config_change_ids(current_id: usize) -> Vec<ChangeInfo> {
-    if !CONFIG_CHANGE_HISTORY.iter().any(|config| config.change_id == current_id) {
+    if !CONFIG_CHANGE_HISTORY
+        .iter()
+        .any(|config| config.change_id == current_id)
+    {
         // If the current change-id is greater than the most recent one, return
         // an empty list (it may be due to switching from a recent branch to an
         // older one); otherwise, return the full list (assuming the user provided
         // the incorrect change-id by accident).
-        if let Some(config) = CONFIG_CHANGE_HISTORY.iter().max_by_key(|config| config.change_id) {
+        if let Some(config) = CONFIG_CHANGE_HISTORY
+            .iter()
+            .max_by_key(|config| config.change_id)
+        {
             if current_id > config.change_id {
                 return Vec::new();
             }
@@ -53,8 +57,10 @@ pub fn find_recent_config_change_ids(current_id: usize) -> Vec<ChangeInfo> {
         return CONFIG_CHANGE_HISTORY.to_vec();
     }
 
-    let index =
-        CONFIG_CHANGE_HISTORY.iter().position(|config| config.change_id == current_id).unwrap();
+    let index = CONFIG_CHANGE_HISTORY
+        .iter()
+        .position(|config| config.change_id == current_id)
+        .unwrap();
 
     CONFIG_CHANGE_HISTORY
         .iter()

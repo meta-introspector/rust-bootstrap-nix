@@ -1,7 +1,11 @@
-use std::collections::{HashSet, HashMap};
-use std::path::PathBuf;
-use syn::{self, visit::{self, Visit}, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 use quote::{quote, ToTokens};
+use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
+use syn::{
+    self,
+    visit::{self, Visit},
+    ItemConst, ItemEnum, ItemFn, ItemStatic, ItemStruct,
+};
 
 use crate::types::{Declaration, DeclarationItem}; // Assuming types are re-exported from lib.rs
 
@@ -61,7 +65,13 @@ pub struct DeclsVisitor<'a> {
 }
 
 impl<'a> DeclsVisitor<'a> {
-    pub fn new(source_file: PathBuf, crate_name: String, verbosity: u8, file_extern_crates: HashSet<String>, warnings: &'a mut Vec<String>) -> Self {
+    pub fn new(
+        source_file: PathBuf,
+        crate_name: String,
+        verbosity: u8,
+        file_extern_crates: HashSet<String>,
+        warnings: &'a mut Vec<String>,
+    ) -> Self {
         DeclsVisitor {
             declarations: HashMap::new(),
             fn_count: 0,
@@ -86,9 +96,9 @@ impl<'a> DeclsVisitor<'a> {
 
     fn is_proc_macro_item(attrs: &[syn::Attribute]) -> bool {
         attrs.iter().any(|attr| {
-            attr.path().is_ident("proc_macro") ||
-            attr.path().is_ident("proc_macro_derive") ||
-            attr.path().is_ident("proc_macro_attribute")
+            attr.path().is_ident("proc_macro")
+                || attr.path().is_ident("proc_macro_derive")
+                || attr.path().is_ident("proc_macro_attribute")
         })
     }
 
@@ -99,7 +109,7 @@ impl<'a> DeclsVisitor<'a> {
                 for segment in type_path.path.segments.iter() {
                     identifiers.insert(segment.ident.to_string());
                 }
-            },
+            }
             _ => {} // Handle other types if necessary
         }
         identifiers
@@ -112,14 +122,14 @@ impl<'a> DeclsVisitor<'a> {
                 for segment in expr_path.path.segments.iter() {
                     identifiers.insert(segment.ident.to_string());
                 }
-            },
+            }
             syn::Expr::Call(expr_call) => {
                 identifiers.extend(self.extract_identifiers_from_expr(&expr_call.func));
-            },
+            }
             syn::Expr::MethodCall(expr_method_call) => {
                 identifiers.insert(expr_method_call.method.to_string());
                 identifiers.extend(self.extract_identifiers_from_expr(&expr_method_call.receiver));
-            },
+            }
             _ => {} // Handle other expression types if necessary
         }
         identifiers
@@ -235,13 +245,16 @@ impl<'ast, 'a> Visit<'ast> for DeclsVisitor<'a> {
 
         impl<'ast, 'b, 'a> Visit<'ast> for FunctionBodyVisitor<'b, 'a> {
             fn visit_expr(&mut self, i: &'ast syn::Expr) {
-                self.referenced_types.extend(self.parent.extract_identifiers_from_expr(i));
-                self.referenced_functions.extend(self.parent.extract_identifiers_from_expr(i));
+                self.referenced_types
+                    .extend(self.parent.extract_identifiers_from_expr(i));
+                self.referenced_functions
+                    .extend(self.parent.extract_identifiers_from_expr(i));
                 syn::visit::visit_expr(self, i);
             }
 
             fn visit_type(&mut self, i: &'ast syn::Type) {
-                self.referenced_types.extend(self.parent.extract_identifiers_from_type(i));
+                self.referenced_types
+                    .extend(self.parent.extract_identifiers_from_type(i));
                 syn::visit::visit_type(self, i);
             }
         }
@@ -465,7 +478,10 @@ impl<'ast, 'a> Visit<'ast> for DeclsVisitor<'a> {
 
     fn visit_item(&mut self, i: &'ast syn::Item) {
         if self.verbosity >= 2 {
-            self.warnings.push(format!("  [split-expanded-lib] DeclsVisitor: Visiting item of type: {:?}", i));
+            self.warnings.push(format!(
+                "  [split-expanded-lib] DeclsVisitor: Visiting item of type: {:?}",
+                i
+            ));
         }
 
         let is_public = match i {
@@ -476,7 +492,9 @@ impl<'ast, 'a> Visit<'ast> for DeclsVisitor<'a> {
             syn::Item::Static(item_static) => matches!(item_static.vis, syn::Visibility::Public(_)),
             syn::Item::Struct(item_struct) => matches!(item_struct.vis, syn::Visibility::Public(_)),
             syn::Item::Trait(item_trait) => matches!(item_trait.vis, syn::Visibility::Public(_)),
-            syn::Item::TraitAlias(item_trait_alias) => matches!(item_trait_alias.vis, syn::Visibility::Public(_)),
+            syn::Item::TraitAlias(item_trait_alias) => {
+                matches!(item_trait_alias.vis, syn::Visibility::Public(_))
+            }
             syn::Item::Type(item_type) => matches!(item_type.vis, syn::Visibility::Public(_)),
             syn::Item::Union(item_union) => matches!(item_union.vis, syn::Visibility::Public(_)),
             _ => false, // For other item types, assume not public for now

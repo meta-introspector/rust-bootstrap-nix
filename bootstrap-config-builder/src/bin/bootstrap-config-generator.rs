@@ -6,10 +6,14 @@ fn main() -> Result<()> {
     debug!("Raw CLI Arguments: {:?}\n", args);
     let mut app_config = if let Some(config_file_path) = &args.config_file {
         info!("Loading configuration from file: {:?}\n", config_file_path);
-        let config_content = fs::read_to_string(config_file_path)
-            .context(format!("Failed to read config file: {:?}\n", config_file_path))?;
-        toml::from_str(&config_content)
-            .context(format!("Failed to parse config file: {:?}\n", config_file_path))?
+        let config_content = fs::read_to_string(config_file_path).context(format!(
+            "Failed to read config file: {:?}\n",
+            config_file_path
+        ))?;
+        toml::from_str(&config_content).context(format!(
+            "Failed to parse config file: {:?}\n",
+            config_file_path
+        ))?
     } else {
         AppConfig::default()
     };
@@ -44,21 +48,25 @@ fn main() -> Result<()> {
             .context("rust_src_flake_path is required for lattice generation")?
             .to_str()
             .context("rust_src_flake_path contains non-UTF8 characters")?;
-        let architecture = app_config.architecture.as_deref().unwrap_or("aarch64-linux");
+        let architecture = app_config
+            .architecture
+            .as_deref()
+            .unwrap_or("aarch64-linux");
         let stage = app_config.stage.as_deref().unwrap_or("stage0");
         let step = app_config.step.as_deref().unwrap_or("step1-configure");
-        let resolved_build_rustc_path = find_nix_package_store_path(
-                "rustc",
-                Some(&build_rustc_version),
-            )?
-            .context(
-                format!("Could not find rustc path for version {}", build_rustc_version),
-            )?;
-        let output_dir = PathBuf::from(
-            format!("flakes/{}/{}/{}/{}", build_rustc_version, architecture, stage, step),
-        );
-        fs::create_dir_all(&output_dir)
-            .context(format!("Failed to create output directory: {:?}", output_dir))?;
+        let resolved_build_rustc_path =
+            find_nix_package_store_path("rustc", Some(&build_rustc_version))?.context(format!(
+                "Could not find rustc path for version {}",
+                build_rustc_version
+            ))?;
+        let output_dir = PathBuf::from(format!(
+            "flakes/{}/{}/{}/{}",
+            build_rustc_version, architecture, stage, step
+        ));
+        fs::create_dir_all(&output_dir).context(format!(
+            "Failed to create output directory: {:?}",
+            output_dir
+        ))?;
         let flake_nix_path = output_dir.join("flake.nix");
         let flake_nix_content = format!(
             r#"{{
@@ -86,14 +94,16 @@ fn main() -> Result<()> {
 }}"#,
             build_rustc_version, architecture, solana_rustc_path, architecture
         );
-        fs::write(&flake_nix_path, flake_nix_content)
-            .context(format!("Failed to write flake.nix to {:?}\n", flake_nix_path))?;
-        info!(
-            "Generated flake.nix for rustc {} at {:?}\n", build_rustc_version,
+        fs::write(&flake_nix_path, flake_nix_content).context(format!(
+            "Failed to write flake.nix to {:?}\n",
             flake_nix_path
+        ))?;
+        info!(
+            "Generated flake.nix for rustc {} at {:?}\n",
+            build_rustc_version, flake_nix_path
         );
-        let config_toml_path = output_dir
-            .join(format!("generated_config_{}.toml", build_rustc_version));
+        let config_toml_path =
+            output_dir.join(format!("generated_config_{}.toml", build_rustc_version));
         let config_content = construct_config_content(
             architecture,
             project_root,
@@ -120,7 +130,10 @@ fn main() -> Result<()> {
             rust_src_flake_path,
             stage,
             app_config.target.as_deref().unwrap_or_default(),
-            app_config.rust_bootstrap_nix_flake_ref.as_deref().unwrap_or_default(),
+            app_config
+                .rust_bootstrap_nix_flake_ref
+                .as_deref()
+                .unwrap_or_default(),
             app_config.rust_src_flake_ref.as_deref().unwrap_or_default(),
             &resolved_build_rustc_path,
             cargo_path,
@@ -167,25 +180,28 @@ fn main() -> Result<()> {
             app_config.llvm_ninja.unwrap_or(false),
             app_config.change_id.as_deref().unwrap_or_default(),
         );
-        fs::write(&config_toml_path, config_content)
-            .context(
-                format!("Failed to write config.toml to {:?}\n", config_toml_path),
-            )?;
-        info!(
-            "Generated config.toml for rustc {} at {:?}\n", build_rustc_version,
+        fs::write(&config_toml_path, config_content).context(format!(
+            "Failed to write config.toml to {:?}\n",
             config_toml_path
+        ))?;
+        info!(
+            "Generated config.toml for rustc {} at {:?}\n",
+            build_rustc_version, config_toml_path
         );
     } else {
         info!(
-            "Starting config generation for stage {:?} and target {:?}\n", app_config
-            .stage, app_config.target
+            "Starting config generation for stage {:?} and target {:?}\n",
+            app_config.stage, app_config.target
         );
         info!("Running precondition checks...\n");
         preconditions::check_nix_command_available()?;
         info!("Nix command available.\n");
         info!("Validating project root: {:?}\n", app_config.project_root);
         let project_root = validate_project_root(
-            app_config.project_root.as_ref().context("Project root is required")?,
+            app_config
+                .project_root
+                .as_ref()
+                .context("Project root is required")?,
         )?;
         let flake_path_str = project_root
             .to_str()
@@ -230,7 +246,10 @@ fn main() -> Result<()> {
                 .unwrap_or_default(),
             app_config.stage.as_deref().unwrap_or_default(),
             app_config.target.as_deref().unwrap_or_default(),
-            app_config.rust_bootstrap_nix_flake_ref.as_deref().unwrap_or_default(),
+            app_config
+                .rust_bootstrap_nix_flake_ref
+                .as_deref()
+                .unwrap_or_default(),
             app_config.rust_src_flake_ref.as_deref().unwrap_or_default(),
             app_config
                 .rustc_path
@@ -292,10 +311,10 @@ fn main() -> Result<()> {
         } else {
             let output_path = app_config.output.unwrap_or_else(|| "config.toml".into());
             info!("Writing generated config to file: {:?}\n", output_path);
-            fs::write(&output_path, config_content)
-                .context(
-                    format!("Failed to write config to file: {:?}\n", output_path),
-                )?;
+            fs::write(&output_path, config_content).context(format!(
+                "Failed to write config to file: {:?}\n",
+                output_path
+            ))?;
             info!("Config successfully written to {:?}\n", output_path);
         }
     }

@@ -15,16 +15,26 @@ pub fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String 
         for segment in type_path.path.segments.iter() {
             let ident_str = segment.ident.to_string();
             match ident_str.as_str() {
-                "HashMap" => { uses.insert("use std::collections::HashMap;\n"); },
-                "PathBuf" => { uses.insert("use std::path::PathBuf;\n"); },
-                "String" => { uses.insert("use std::string::String;\n"); },
-                "syn" => { 
+                "HashMap" => {
+                    uses.insert("use std::collections::HashMap;\n");
+                }
+                "PathBuf" => {
+                    uses.insert("use std::path::PathBuf;\n");
+                }
+                "String" => {
+                    uses.insert("use std::string::String;\n");
+                }
+                "syn" => {
                     uses.insert("use syn::{ItemConst, ItemStruct};\n");
                     uses.insert("use syn::visit::Visit;\n");
-                },
-                "clap" => { uses.insert("use clap::{Parser, Args, Command};\n"); },
-                "serde" => { uses.insert("use serde::{Serialize, Deserialize};\n"); },
-                _ => {},
+                }
+                "clap" => {
+                    uses.insert("use clap::{Parser, Args, Command};\n");
+                }
+                "serde" => {
+                    uses.insert("use serde::{Serialize, Deserialize};\n");
+                }
+                _ => {}
             }
 
             // Recursively check generic arguments
@@ -43,8 +53,12 @@ pub fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String 
         if attr.path().is_ident("derive") {
             if let syn::Meta::List(meta_list) = &attr.meta {
                 meta_list.tokens.to_string().contains("Parser")
-            } else { false }
-        } else { false }
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }) {
         uses.insert("use clap::{Parser, Args, Command};\n");
         uses.insert("use std::path::PathBuf;\n"); // Args often uses PathBuf
@@ -54,9 +68,14 @@ pub fn get_required_uses_for_item_struct(structure: &syn::ItemStruct) -> String 
     if structure.attrs.iter().any(|attr| {
         if attr.path().is_ident("derive") {
             if let syn::Meta::List(meta_list) = &attr.meta {
-                meta_list.tokens.to_string().contains("Serialize") || meta_list.tokens.to_string().contains("Deserialize")
-            } else { false }
-        } else { false }
+                meta_list.tokens.to_string().contains("Serialize")
+                    || meta_list.tokens.to_string().contains("Deserialize")
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }) {
         uses.insert("use serde::{Serialize, Deserialize};\n");
     }

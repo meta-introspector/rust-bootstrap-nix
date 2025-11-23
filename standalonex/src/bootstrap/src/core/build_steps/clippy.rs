@@ -1,16 +1,14 @@
-use crate::prelude::*;
 use crate::core::types::LintConfig;
-
+use crate::prelude::*;
 
 /// Implementation of running clippy on the compiler, standard library and various tools.
-
 //use super::compile::{librustc_stamp, libstd_stamp, run_cargo, rustc_cargo, std_cargo};
-use super::tool::{SourceType, prepare_tool_cargo};
+use super::tool::{prepare_tool_cargo, SourceType};
 use super::{check, compile};
 //use crate::builder::{Builder, ShouldRun};
 //use crate::core::build_steps::compile::std_crates_for_run_make;
 use crate::core::builder;
-use crate::core::builder::{Alias, Kind, RunConfig, Step, crate_description};
+use crate::core::builder::{crate_description, Alias, Kind, RunConfig, Step};
 //use crate::{Mode, Subcommand, TargetSelection};
 //use crate::core::types::{LintConfig, Rustc, RustcConfig};
 //use crate::core::build_steps::rustc_step_common::rustc_should_run;
@@ -31,7 +29,13 @@ fn lint_args(builder: &Builder<'_>, config: &LintConfig, ignored_rules: &[&str])
         arr.iter().copied().map(String::from)
     }
 
-    let Subcommand::Clippy { fix, allow_dirty, allow_staged, .. } = &builder.config.cmd else {
+    let Subcommand::Clippy {
+        fix,
+        allow_dirty,
+        allow_staged,
+        ..
+    } = &builder.config.cmd
+    else {
         unreachable!("clippy::lint_args can only be called from `clippy` subcommands.");
     };
 
@@ -64,7 +68,11 @@ fn lint_args(builder: &Builder<'_>, config: &LintConfig, ignored_rules: &[&str])
     let all_args = std::env::args().collect::<Vec<_>>();
     args.extend(get_clippy_rules_in_order(&all_args, config));
 
-    args.extend(ignored_rules.iter().map(|lint| format!("-Aclippy::{}", lint)));
+    args.extend(
+        ignored_rules
+            .iter()
+            .map(|lint| format!("-Aclippy::{}", lint)),
+    );
     args.extend(builder.config.free_args.clone());
     args
 }
@@ -75,14 +83,20 @@ fn lint_args(builder: &Builder<'_>, config: &LintConfig, ignored_rules: &[&str])
 pub fn get_clippy_rules_in_order(all_args: &[String], config: &LintConfig) -> Vec<String> {
     let mut result = vec![];
 
-    for (prefix, item) in
-        [("-A", &config.allow), ("-D", &config.deny), ("-W", &config.warn), ("-F", &config.forbid)]
-    {
+    for (prefix, item) in [
+        ("-A", &config.allow),
+        ("-D", &config.deny),
+        ("-W", &config.warn),
+        ("-F", &config.forbid),
+    ] {
         item.iter().for_each(|v| {
             let rule = format!("{prefix}{v}");
             // Arguments added by bootstrap in LintConfig won't show up in the all_args list, so
             // put them at the end of the command line.
-            let position = all_args.iter().position(|t| t == &rule || t == v).unwrap_or(usize::MAX);
+            let position = all_args
+                .iter()
+                .position(|t| t == &rule || t == v)
+                .unwrap_or(usize::MAX);
             result.push((position, rule));
         });
     }
@@ -90,10 +104,6 @@ pub fn get_clippy_rules_in_order(all_args: &[String], config: &LintConfig) -> Ve
     result.sort_by_key(|&(position, _)| position);
     result.into_iter().map(|v| v.1).collect()
 }
-
-
-
-
 
 impl Step for Std {
     type Output = ();
@@ -106,7 +116,11 @@ impl Step for Std {
     fn make_run(run: RunConfig<'_>) {
         let crates = std_crates_for_run_make(&run);
         let config = LintConfig::new(run.builder);
-        run.builder.ensure(Std { target: run.target, config, crates });
+        run.builder.ensure(Std {
+            target: run.target,
+            config,
+            crates,
+        });
     }
 
     fn run(self, builder: &Builder<'_>) {
@@ -130,8 +144,10 @@ impl Step for Std {
             cargo.arg("-p").arg(krate);
         }
 
-        let _guard =
-            builder.msg_clippy(format_args!("library{}", crate_description(&self.crates)), target);
+        let _guard = builder.msg_clippy(
+            format_args!("library{}", crate_description(&self.crates)),
+            target,
+        );
 
         run_cargo(
             builder,
@@ -145,8 +161,6 @@ impl Step for Std {
     }
 }
 
-
-
 impl Step for Rustc<LintConfig> {
     type Output = ();
     const ONLY_HOSTS: bool = true;
@@ -159,7 +173,11 @@ impl Step for Rustc<LintConfig> {
     fn make_run(run: RunConfig<'_>) {
         let crates = run.make_run_crates(Alias::Compiler);
         let config = <LintConfig as RustcTaskConfig>::default_config(run.builder);
-        run.builder.ensure(Rustc { target: run.target, crates, config });
+        run.builder.ensure(Rustc {
+            target: run.target,
+            crates,
+            config,
+        });
     }
 
     /// Lints the compiler.
@@ -200,8 +218,10 @@ impl Step for Rustc<LintConfig> {
             cargo.arg("-p").arg(krate);
         }
 
-        let _guard =
-            builder.msg_clippy(format_args!("compiler{}", crate_description(&self.crates)), target);
+        let _guard = builder.msg_clippy(
+            format_args!("compiler{}", crate_description(&self.crates)),
+            target,
+        );
 
         run_cargo(
             builder,
@@ -333,7 +353,10 @@ impl Step for CI {
 
     fn make_run(run: RunConfig<'_>) {
         let config = LintConfig::new(run.builder);
-        run.builder.ensure(CI { target: run.target, config });
+        run.builder.ensure(CI {
+            target: run.target,
+            config,
+        });
     }
 
     fn run(self, builder: &Builder<'_>) -> Self::Output {
@@ -355,7 +378,10 @@ impl Step for CI {
         let compiler_clippy_cfg = LintConfig {
             allow: vec!["clippy::all".into()],
             warn: vec![],
-            deny: vec!["clippy::correctness".into(), "clippy::clone_on_ref_ptr".into()],
+            deny: vec![
+                "clippy::correctness".into(),
+                "clippy::clone_on_ref_ptr".into(),
+            ],
             forbid: vec![],
         };
 

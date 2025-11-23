@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::path::PathBuf;
 use std::{env, fs};
 
@@ -10,9 +9,9 @@ use crate::core::builder;
 use crate::core::builder::{Builder, Cargo as CargoCommand, RunConfig, ShouldRun, Step};
 //use crate::core::config::TargetSelection;
 use crate::utils::channel::GitInfo;
-use crate::utils::exec::{BootstrapCommand, command};
+use crate::utils::exec::{command, BootstrapCommand};
 use crate::utils::helpers::{add_dylib_path, exe, t};
-use crate::{Compiler, Kind, Mode, gha};
+use crate::{gha, Compiler, Kind, Mode};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum SourceType {
@@ -56,7 +55,13 @@ impl Builder<'_> {
                 *target,
             ),
             // doesn't depend on compiler, same as host compiler
-            _ => self.msg(Kind::Build, build_stage, format_args!("tool {tool}"), *host, *target),
+            _ => self.msg(
+                Kind::Build,
+                build_stage,
+                format_args!("tool {tool}"),
+                *host,
+                *target,
+            ),
         }
     }
 }
@@ -116,7 +121,11 @@ impl Step for ToolBuild {
 
         builder.save_toolstate(
             tool,
-            if build_success { ToolState::TestFail } else { ToolState::BuildFail },
+            if build_success {
+                ToolState::TestFail
+            } else {
+                ToolState::BuildFail
+            },
         );
 
         if !build_success {
@@ -179,7 +188,10 @@ pub fn prepare_tool_cargo(
     cargo.env("CFG_RELEASE_CHANNEL", &builder.config.channel);
     cargo.env("CFG_VERSION", builder.rust_version());
     cargo.env("CFG_RELEASE_NUM", &builder.version);
-    cargo.env("DOC_RUST_LANG_ORG_CHANNEL", builder.doc_rust_lang_org_channel());
+    cargo.env(
+        "DOC_RUST_LANG_ORG_CHANNEL",
+        builder.doc_rust_lang_org_channel(),
+    );
     if let Some(ref ver_date) = builder.rust_info().commit_date() {
         cargo.env("CFG_VER_DATE", ver_date);
     }
@@ -246,7 +258,9 @@ fn copy_link_tool_bin(
     mode: Mode,
     name: &str,
 ) -> PathBuf {
-    let cargo_out = builder.cargo_out(compiler, mode, target).join(exe(name, target));
+    let cargo_out = builder
+        .cargo_out(compiler, mode, target)
+        .join(exe(name, target));
     let bin = builder.tools_dir(compiler).join(exe(name, target));
     builder.copy_link(&cargo_out, &bin);
     bin
@@ -469,7 +483,9 @@ impl ErrorIndex {
         let compiler = builder.compiler_for(builder.top_stage, host, host);
         let mut cmd = command(builder.ensure(ErrorIndex { compiler }));
         let mut dylib_paths = builder.rustc_lib_paths(compiler);
-        dylib_paths.push(PathBuf::from(&builder.sysroot_target_libdir(compiler, compiler.host)));
+        dylib_paths.push(PathBuf::from(
+            &builder.sysroot_target_libdir(compiler, compiler.host),
+        ));
         add_dylib_path(dylib_paths, &mut cmd);
         cmd
     }
@@ -491,8 +507,10 @@ impl Step for ErrorIndex {
         // src/tools/error-index-generator` which almost nobody does.
         // Normally, `x.py test` or `x.py doc` will use the
         // `ErrorIndex::command` function instead.
-        let compiler =
-            run.builder.compiler(run.builder.top_stage.saturating_sub(1), run.builder.config.build);
+        let compiler = run.builder.compiler(
+            run.builder.top_stage.saturating_sub(1),
+            run.builder.config.build,
+        );
         run.builder.ensure(ErrorIndex { compiler });
     }
 
@@ -526,7 +544,9 @@ impl Step for RemoteTestServer {
 
     fn make_run(run: RunConfig<'_>) {
         run.builder.ensure(RemoteTestServer {
-            compiler: run.builder.compiler(run.builder.top_stage, run.builder.config.build),
+            compiler: run
+                .builder
+                .compiler(run.builder.top_stage, run.builder.config.build),
             target: run.target,
         });
     }
@@ -578,7 +598,9 @@ impl Step for Rustdoc {
             if !target_compiler.is_snapshot(builder) {
                 panic!("rustdoc in stage 0 must be snapshot rustdoc");
             }
-            return builder.initial_rustc.with_file_name(exe("rustdoc", target_compiler.host));
+            return builder
+                .initial_rustc
+                .with_file_name(exe("rustdoc", target_compiler.host));
         }
         let target = target_compiler.host;
 
@@ -600,7 +622,10 @@ impl Step for Rustdoc {
             let files_to_track = &["src/librustdoc", "src/tools/rustdoc"];
 
             // Check if unchanged
-            if builder.config.last_modified_commit(files_to_track, "download-rustc", true).is_some()
+            if builder
+                .config
+                .last_modified_commit(files_to_track, "download-rustc", true)
+                .is_some()
             {
                 let precompiled_rustdoc = builder
                     .config
@@ -696,12 +721,15 @@ impl Step for Cargo {
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
         let builder = run.builder;
-        run.path("src/tools/cargo").default_condition(builder.tool_enabled("cargo"))
+        run.path("src/tools/cargo")
+            .default_condition(builder.tool_enabled("cargo"))
     }
 
     fn make_run(run: RunConfig<'_>) {
         run.builder.ensure(Cargo {
-            compiler: run.builder.compiler(run.builder.top_stage, run.builder.config.build),
+            compiler: run
+                .builder
+                .compiler(run.builder.top_stage, run.builder.config.build),
             target: run.target,
         });
     }
@@ -768,12 +796,15 @@ impl Step for RustAnalyzer {
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
         let builder = run.builder;
-        run.path("src/tools/rust-analyzer").default_condition(builder.tool_enabled("rust-analyzer"))
+        run.path("src/tools/rust-analyzer")
+            .default_condition(builder.tool_enabled("rust-analyzer"))
     }
 
     fn make_run(run: RunConfig<'_>) {
         run.builder.ensure(RustAnalyzer {
-            compiler: run.builder.compiler(run.builder.top_stage, run.builder.config.build),
+            compiler: run
+                .builder
+                .compiler(run.builder.top_stage, run.builder.config.build),
             target: run.target,
         });
     }
@@ -817,7 +848,9 @@ impl Step for RustAnalyzerProcMacroSrv {
 
     fn make_run(run: RunConfig<'_>) {
         run.builder.ensure(RustAnalyzerProcMacroSrv {
-            compiler: run.builder.compiler(run.builder.top_stage, run.builder.config.build),
+            compiler: run
+                .builder
+                .compiler(run.builder.top_stage, run.builder.config.build),
             target: run.target,
         });
     }
@@ -865,7 +898,9 @@ impl Step for LlvmBitcodeLinker {
 
     fn make_run(run: RunConfig<'_>) {
         run.builder.ensure(LlvmBitcodeLinker {
-            compiler: run.builder.compiler(run.builder.top_stage, run.builder.config.build),
+            compiler: run
+                .builder
+                .compiler(run.builder.top_stage, run.builder.config.build),
             extra_features: Vec::new(),
             target: run.target,
         });
@@ -907,9 +942,10 @@ impl Step for LlvmBitcodeLinker {
             .join(exe(bin_name, self.compiler.host));
 
         if self.compiler.stage > 0 {
-            let bindir_self_contained = builder
-                .sysroot(self.compiler)
-                .join(format!("lib/rustlib/{}/bin/self-contained", self.target.triple));
+            let bindir_self_contained = builder.sysroot(self.compiler).join(format!(
+                "lib/rustlib/{}/bin/self-contained",
+                self.target.triple
+            ));
             t!(fs::create_dir_all(&bindir_self_contained));
             let bin_destination = bindir_self_contained.join(exe(bin_name, self.compiler.host));
             builder.copy_link(&tool_out, &bin_destination);
@@ -942,7 +978,10 @@ impl Step for LibcxxVersionTool {
     }
 
     fn run(self, builder: &Builder<'_>) -> LibcxxVersion {
-        let out_dir = builder.out.join(self.target.to_string()).join("libcxx-version");
+        let out_dir = builder
+            .out
+            .join(self.target.to_string())
+            .join("libcxx-version");
         let executable = out_dir.join(exe("libcxx-version", self.target));
 
         // This is a sanity-check specific step, which means it is frequently called (when using
@@ -964,7 +1003,10 @@ impl Step for LibcxxVersionTool {
             cmd.run(builder);
 
             if !executable.exists() {
-                panic!("Something went wrong. {} is not present", executable.display());
+                panic!(
+                    "Something went wrong. {} is not present",
+                    executable.display()
+                );
             }
         }
 
@@ -1126,7 +1168,8 @@ impl Builder<'_> {
         // right location to run `compiler`.
         let mut lib_paths: Vec<PathBuf> = vec![
             self.build.rustc_snapshot_libdir(),
-            self.cargo_out(compiler, Mode::ToolBootstrap, *host).join("deps"),
+            self.cargo_out(compiler, Mode::ToolBootstrap, *host)
+                .join("deps"),
         ];
 
         // On MSVC a tool may invoke a C compiler (e.g., compiletest in run-make

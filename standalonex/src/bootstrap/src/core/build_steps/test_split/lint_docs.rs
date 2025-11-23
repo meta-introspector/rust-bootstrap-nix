@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct LintDocs {
     pub common: common_test_fields::CommonTestFields,
@@ -16,7 +15,9 @@ impl Step for LintDocs {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        let compiler = run.builder.compiler(run.builder.top_stage, run.builder.config.build);
+        let compiler = run
+            .builder
+            .compiler(run.builder.top_stage, run.builder.config.build);
         run.builder.ensure(LintDocs {
             common: common_test_fields::CommonTestFields {
                 stage: run.builder.top_stage,

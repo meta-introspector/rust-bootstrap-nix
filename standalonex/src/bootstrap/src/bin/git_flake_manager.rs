@@ -1,8 +1,8 @@
 use crate::prelude::*;
 
-use std::path::PathBuf;
-use std::fs;
 use serde::Deserialize;
+use std::fs;
+use std::path::PathBuf;
 
 use bootstrap::src::core::generate_steps::git_modules::create_branch::create_and_push_branch;
 

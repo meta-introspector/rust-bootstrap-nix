@@ -1,6 +1,6 @@
+use crate::core::config::string_or_int::StringOrInt;
 use crate::prelude::*;
 use serde::Deserializer;
-use crate::core::config::string_or_int::StringOrInt;
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq)]
 pub enum DebuginfoLevel {
@@ -15,12 +15,10 @@ pub enum DebuginfoLevel {
 // NOTE: can't derive(Deserialize) because the intermediate trip through toml::Value only
 // deserializes i64, and derive() only generates visit_u64
 impl<'de> Deserialize<'de> for DebuginfoLevel {
-fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-
-
         Ok(match Deserialize::deserialize(deserializer)? {
             StringOrInt::String(s) if s == "none" => DebuginfoLevel::None,
             StringOrInt::Int(0) => DebuginfoLevel::None,
@@ -48,7 +46,7 @@ fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 }
 /// Suitable for passing to `-C debuginfo`
 impl Display for DebuginfoLevel {
-fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use DebuginfoLevel::*;
         f.write_str(match self {
             None => "0",

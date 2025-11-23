@@ -1,11 +1,9 @@
 use crate::prelude::*;
 
-
 /// Implementation of the install aspects of the compiler.
 ///
 /// This module is responsible for installing the standard library,
 /// compiler, and documentation.
-
 use std::path::{Component, Path, PathBuf};
 use std::{env, fs};
 
@@ -83,7 +81,10 @@ fn install_sh(
     // this case, we only need to check the `DESTDIR` path, disregarding the
     // `prefix` and `sysconfdir` paths.
     if let Some(destdir) = &destdir_env {
-        assert!(is_dir_writable_for_user(destdir), "User doesn't have write access on DESTDIR.");
+        assert!(
+            is_dir_writable_for_user(destdir),
+            "User doesn't have write access on DESTDIR."
+        );
     } else {
         assert!(
             is_dir_writable_for_user(&prefix),
@@ -96,7 +97,10 @@ fn install_sh(
     }
 
     let datadir = prefix.join(default_path(&builder.config.datadir, "share"));
-    let docdir = prefix.join(default_path(&builder.config.docdir, &format!("share/doc/{package}")));
+    let docdir = prefix.join(default_path(
+        &builder.config.docdir,
+        &format!("share/doc/{package}"),
+    ));
     let mandir = prefix.join(default_path(&builder.config.mandir, "share/man"));
     let libdir = prefix.join(default_path(&builder.config.libdir, "lib"));
     let bindir = prefix.join(&builder.config.bindir); // Default in config.rs
@@ -106,9 +110,14 @@ fn install_sh(
 
     let mut cmd = command(SHELL);
     cmd.current_dir(&empty_dir)
-        .arg(sanitize_sh(&tarball.decompressed_output().join("install.sh")))
+        .arg(sanitize_sh(
+            &tarball.decompressed_output().join("install.sh"),
+        ))
         .arg(format!("--prefix={}", prepare_dir(&destdir_env, prefix)))
-        .arg(format!("--sysconfdir={}", prepare_dir(&destdir_env, sysconfdir)))
+        .arg(format!(
+            "--sysconfdir={}",
+            prepare_dir(&destdir_env, sysconfdir)
+        ))
         .arg(format!("--datadir={}", prepare_dir(&destdir_env, datadir)))
         .arg(format!("--docdir={}", prepare_dir(&destdir_env, docdir)))
         .arg(format!("--bindir={}", prepare_dir(&destdir_env, bindir)))
@@ -120,7 +129,10 @@ fn install_sh(
 }
 
 fn default_path(config: &Option<PathBuf>, default: &str) -> PathBuf {
-    config.as_ref().cloned().unwrap_or_else(|| PathBuf::from(default))
+    config
+        .as_ref()
+        .cloned()
+        .unwrap_or_else(|| PathBuf::from(default))
 }
 
 fn prepare_dir(destdir_env: &Option<PathBuf>, mut path: PathBuf) -> String {
@@ -145,7 +157,9 @@ fn prepare_dir(destdir_env: &Option<PathBuf>, mut path: PathBuf) -> String {
     // directory. To prevent relative paths from breaking this converts relative paths to absolute
     // paths. std::fs::canonicalize is not used as that requires the path to actually be present.
     if path.is_relative() {
-        path = std::env::current_dir().expect("failed to get the current directory").join(path);
+        path = std::env::current_dir()
+            .expect("failed to get the current directory")
+            .join(path);
         assert!(path.is_absolute(), "could not make the path relative");
     }
 
@@ -314,7 +328,9 @@ impl Step for Src {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        run.builder.ensure(Src { stage: run.builder.top_stage });
+        run.builder.ensure(Src {
+            stage: run.builder.top_stage,
+        });
     }
 
     fn run(self, builder: &Builder<'_>) {

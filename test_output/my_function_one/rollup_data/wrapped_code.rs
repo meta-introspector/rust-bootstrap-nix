@@ -1,2 +1,7 @@
 use prelude::*;
-pub fn my_function_one () -> i32 { measurement :: record_function_entry (stringify ! (my_function_one)) ; let __result = { 1 + 2 } ; measurement :: record_function_exit (stringify ! (my_function_one)) ; __result }
+pub fn my_function_one() -> i32 {
+    measurement::record_function_entry(stringify!(my_function_one));
+    let __result = { 1 + 2 };
+    measurement::record_function_exit(stringify!(my_function_one));
+    __result
+}

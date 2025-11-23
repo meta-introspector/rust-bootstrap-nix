@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CodegenGCC {
     pub common: common_test_fields::CommonTestFields,
@@ -30,8 +29,11 @@ impl Step for CodegenGCC {
         }
 
         let triple = run.target.triple;
-        let target_supported =
-            if triple.contains("linux") { triple.contains("x86_64") } else { false };
+        let target_supported = if triple.contains("linux") {
+            triple.contains("x86_64")
+        } else {
+            false
+        };
         if !target_supported {
             builder.info("target not supported by rustc_codegen_gcc. skipping");
             return;
@@ -42,7 +44,11 @@ impl Step for CodegenGCC {
             return;
         }
 
-        if !builder.config.codegen_backends(run.target).contains(&"gcc".to_owned()) {
+        if !builder
+            .config
+            .codegen_backends(run.target)
+            .contains(&"gcc".to_owned())
+        {
             builder.info("gcc not in rust.codegen-backends. skipping");
             return;
         }
@@ -61,10 +67,11 @@ impl Step for CodegenGCC {
         let compiler = self.common.compiler;
         let target = self.common.target;
 
-        builder.ensure(compile::Std::new_with_extra_rust_args(compiler, target, &[
-            "-Csymbol-mangling-version=v0",
-            "-Cpanic=abort",
-        ]));
+        builder.ensure(compile::Std::new_with_extra_rust_args(
+            compiler,
+            target,
+            &["-Csymbol-mangling-version=v0", "-Cpanic=abort"],
+        ));
 
         // If we're not doing a full bootstrap but we're testing a stage2
         // version of libstd, then what we're actually testing is the libstd
@@ -83,9 +90,11 @@ impl Step for CodegenGCC {
             );
 
             cargo.current_dir(&builder.src.join("compiler/rustc_codegen_gcc"));
-            cargo
-                .arg("--manifest-path")
-                .arg(builder.src.join("compiler/rustc_codegen_gcc/build_system/Cargo.toml"));
+            cargo.arg("--manifest-path").arg(
+                builder
+                    .src
+                    .join("compiler/rustc_codegen_gcc/build_system/Cargo.toml"),
+            );
             compile::rustc_cargo_env(builder, &mut cargo, target, compiler.stage);
 
             // Avoid incremental cache issues when changing rustc

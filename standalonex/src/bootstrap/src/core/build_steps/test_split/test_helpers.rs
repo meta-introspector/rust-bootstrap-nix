@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TestHelpers {
     pub common: common_test_fields::CommonTestFields,

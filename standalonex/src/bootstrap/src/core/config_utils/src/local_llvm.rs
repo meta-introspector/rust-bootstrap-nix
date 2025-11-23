@@ -1,6 +1,5 @@
 use serde_derive::Deserialize;
-#[derive(Debug, Default, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct LocalLlvm {
     pub optimize: Option<bool>,
     pub thin_lto: Option<bool>,

@@ -1,11 +1,8 @@
+use std::collections::HashSet;
 use syn::{
     visit::{self, Visit},
-    Ident,
-    Path,
-    Macro,
-    Item,
+    Ident, Item, Macro, Path,
 };
-use std::collections::HashSet;
 
 pub struct DependencyCollector {
     pub dependencies: HashSet<String>,

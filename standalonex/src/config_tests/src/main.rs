@@ -1,5 +1,5 @@
-use config_macros::define_config;
 use config_core::Merge;
+use config_macros::define_config;
 
 define_config! {
     struct MyConfig {
@@ -68,7 +68,10 @@ fn main() {
 
     // Test ReplaceOpt::IgnoreDuplicate
     let mut merged_ignore = complex_config_a.clone();
-    merged_ignore.merge(complex_config_b.clone(), config_core::ReplaceOpt::IgnoreDuplicate);
+    merged_ignore.merge(
+        complex_config_b.clone(),
+        config_core::ReplaceOpt::IgnoreDuplicate,
+    );
     assert_eq!(merged_ignore.name, Some("AppA".to_string()));
     assert_eq!(merged_ignore.version, Some(1.0));
     assert_eq!(merged_ignore.enabled, Some(true));
@@ -81,12 +84,17 @@ fn main() {
     let complex_config_c = complex_config_a.clone(); // Use a clone to move into the closure
     let res = std::panic::catch_unwind(move || {
         let mut merged_error = complex_config_c;
-        merged_error.merge(complex_config_b.clone(), config_core::ReplaceOpt::ErrorOnDuplicate);
+        merged_error.merge(
+            complex_config_b.clone(),
+            config_core::ReplaceOpt::ErrorOnDuplicate,
+        );
     });
     assert!(res.is_err());
 
-    println!("ComplexConfig ReplaceOpt::ErrorOnDuplicate tests passed (panic caught)!
-");
+    println!(
+        "ComplexConfig ReplaceOpt::ErrorOnDuplicate tests passed (panic caught)!
+"
+    );
 
     println!("All tests passed!");
 }

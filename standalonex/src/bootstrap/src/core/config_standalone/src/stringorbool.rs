@@ -7,13 +7,13 @@ pub enum StringOrBool {
 }
 
 impl Default for StringOrBool {
-fn default() -> StringOrBool {
+    fn default() -> StringOrBool {
         StringOrBool::Bool(false)
     }
 }
 
 impl StringOrBool {
-pub fn is_string_or_true(&self) -> bool {
+    pub fn is_string_or_true(&self) -> bool {
         matches!(self, Self::String(_) | Self::Bool(true))
     }
 }

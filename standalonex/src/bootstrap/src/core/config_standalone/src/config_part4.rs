@@ -1,10 +1,6 @@
 use crate::prelude::*;
 use std::path::absolute;
 impl Config {
-
-
-
-
     pub(crate) fn parse_inner(
         mut flags: Flags,
         get_toml: impl Fn(&Path) -> Result<TomlConfig, toml::de::Error>,
@@ -20,7 +16,11 @@ impl Config {
         config.on_fail = flags.on_fail;
         config.cmd = flags.cmd;
         config.incremental = flags.incremental;
-        config.dry_run = if flags.dry_run { DryRun::UserSelected } else { DryRun::Disabled };
+        config.dry_run = if flags.dry_run {
+            DryRun::UserSelected
+        } else {
+            DryRun::Disabled
+        };
         config.dump_bootstrap_shims = flags.dump_bootstrap_shims;
         config.keep_stage = flags.keep_stage;
         config.keep_stage_std = flags.keep_stage_std;
@@ -95,8 +95,14 @@ impl Config {
             // and Cargo, which doesn't work when the caller is specìfying a custom local rustc or
             // Cargo in their config.toml.
             let build = toml.build.get_or_insert_with(Default::default);
-            build.rustc = build.rustc.take().or(std::env::var_os("RUSTC").map(|p| p.into()));
-            build.cargo = build.cargo.take().or(std::env::var_os("CARGO").map(|p| p.into()));
+            build.rustc = build
+                .rustc
+                .take()
+                .or(std::env::var_os("RUSTC").map(|p| p.into()));
+            build.cargo = build
+                .cargo
+                .take()
+                .or(std::env::var_os("CARGO").map(|p| p.into()));
         }
 
         if let Some(include) = &toml.profile {
@@ -125,7 +131,7 @@ impl Config {
 
         let mut override_toml = TomlConfig::default();
         for option in flags.set.iter() {
-pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
+            pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
                 toml::from_str(option).and_then(|table: toml::Value| TomlConfig::deserialize(table))
             }
 
@@ -167,7 +173,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         set(&mut config.ci.channel_file, channel_file.map(PathBuf::from));
         set(&mut config.ci.version_file, version_file.map(PathBuf::from));
         set(&mut config.ci.tools_dir, tools_dir.map(PathBuf::from));
-        set(&mut config.ci.llvm_project_dir, llvm_project_dir.map(PathBuf::from));
+        set(
+            &mut config.ci.llvm_project_dir,
+            llvm_project_dir.map(PathBuf::from),
+        );
         set(&mut config.ci.gcc_dir, gcc_dir.map(PathBuf::from));
 
         config.change_id = toml.change_id.inner;
@@ -230,7 +239,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             config.build = TargetSelection::from_user(&file_build);
         };
 
-        set(&mut config.out, flags.build_dir.or_else(|| build_dir.map(PathBuf::from)));
+        set(
+            &mut config.out,
+            flags.build_dir.or_else(|| build_dir.map(PathBuf::from)),
+        );
         // NOTE: Bootstrap spawns various commands with different working directories.
         // To avoid writing to random places on the file system, `config.out` needs to be an absolute path.
         if !config.out.is_absolute() {
@@ -286,14 +298,20 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         config.hosts = if let Some(TargetSelectionList(arg_host)) = flags.host {
             arg_host
         } else if let Some(file_host) = host {
-            file_host.iter().map(|h| TargetSelection::from_user(h)).collect()
+            file_host
+                .iter()
+                .map(|h| TargetSelection::from_user(h))
+                .collect()
         } else {
             vec![config.build]
         };
         config.targets = if let Some(TargetSelectionList(arg_target)) = flags.target {
             arg_target
         } else if let Some(file_target) = target {
-            file_target.iter().map(|h| TargetSelection::from_user(h)).collect()
+            file_target
+                .iter()
+                .map(|h| TargetSelection::from_user(h))
+                .collect()
         } else {
             // If target is *not* configured, then default to the host
             // toolchains.
@@ -311,7 +329,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         config.bootstrap_cache_path = bootstrap_cache_path;
         set(&mut config.low_priority, low_priority);
         set(&mut config.compiler_docs, compiler_docs);
-        set(&mut config.library_docs_private_items, library_docs_private_items);
+        set(
+            &mut config.library_docs_private_items,
+            library_docs_private_items,
+        );
         set(&mut config.docs_minification, docs_minification);
         set(&mut config.docs, docs);
         set(&mut config.locked_deps, locked_deps);
@@ -335,7 +356,15 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         config.verbose_tests = config.is_verbose();
 
         if let Some(install) = toml.install {
-            let Install { prefix, sysconfdir, docdir, bindir, libdir, mandir, datadir } = install;
+            let Install {
+                prefix,
+                sysconfdir,
+                docdir,
+                bindir,
+                libdir,
+                mandir,
+                datadir,
+            } = install;
             config.prefix = prefix.map(PathBuf::from);
             config.sysconfdir = sysconfdir.map(PathBuf::from);
             config.datadir = datadir.map(PathBuf::from);
@@ -350,8 +379,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             config.mandir = mandir.map(PathBuf::from);
         }
 
-        config.llvm_assertions =
-            toml.llvm.as_ref().map_or(false, |llvm| llvm.assertions.unwrap_or(false));
+        config.llvm_assertions = toml
+            .llvm
+            .as_ref()
+            .map_or(false, |llvm| llvm.assertions.unwrap_or(false));
 
         // Store off these values as options because if they're not provided
         // we'll infer default values for them later
@@ -383,12 +414,18 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             };
 
         let default = config.channel == "dev";
-        config.omit_git_hash = toml.rust.as_ref().and_then(|r| r.omit_git_hash).unwrap_or(default);
+        config.omit_git_hash = toml
+            .rust
+            .as_ref()
+            .and_then(|r| r.omit_git_hash)
+            .unwrap_or(default);
 
         config.rust_info = GitInfo::new(config.omit_git_hash, &config.src); // config.src is still the overall source root
         config.cargo_info = GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("cargo"));
-        config.rust_analyzer_info =
-            GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("rust-analyzer"));
+        config.rust_analyzer_info = GitInfo::new(
+            config.omit_git_hash,
+            &config.ci.tools_dir.join("rust-analyzer"),
+        );
         config.clippy_info =
             GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("clippy"));
         config.miri_info = GitInfo::new(config.omit_git_hash, &config.ci.tools_dir.join("miri"));
@@ -510,11 +547,14 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             config.rustc_default_linker = default_linker;
             config.musl_root = musl_root.map(PathBuf::from);
             config.save_toolstates = save_toolstates.map(PathBuf::from);
-            set(&mut config.deny_warnings, match flags.warnings {
-                Warnings::Deny => Some(true),
-                Warnings::Warn => Some(false),
-                Warnings::Default => deny_warnings,
-            });
+            set(
+                &mut config.deny_warnings,
+                match flags.warnings {
+                    Warnings::Deny => Some(true),
+                    Warnings::Warn => Some(false),
+                    Warnings::Default => deny_warnings,
+                },
+            );
             set(&mut config.backtrace_on_ice, backtrace_on_ice);
             set(&mut config.rust_verify_llvm_ir, verify_llvm_ir);
             config.rust_thin_lto_import_instr_limit = thin_lto_import_instr_limit;
@@ -546,8 +586,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             config.rust_codegen_units_std = codegen_units_std.map(threads_from_config);
             config.rust_profile_use = flags.rust_profile_use.or(profile_use);
             config.rust_profile_generate = flags.rust_profile_generate.or(profile_generate);
-            config.rust_lto =
-                lto.as_deref().map(|value| RustcLto::from_str(value).unwrap()).unwrap_or_default();
+            config.rust_lto = lto
+                .as_deref()
+                .map(|value| RustcLto::from_str(value).unwrap())
+                .unwrap_or_default();
             config.rust_validate_mir_opts = validate_mir_opts;
         } else {
             config.rust_profile_use = flags.rust_profile_use;
@@ -631,7 +673,9 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             }
 
             config.llvm_targets.clone_from(&targets);
-            config.llvm_experimental_targets.clone_from(&experimental_targets);
+            config
+                .llvm_experimental_targets
+                .clone_from(&experimental_targets);
             config.llvm_link_jobs = link_jobs;
             config.llvm_version_suffix.clone_from(&version_suffix);
             config.llvm_clang_cl.clone_from(&clang_cl);
@@ -766,7 +810,9 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
                     })
                 });
 
-                config.target_config.insert(TargetSelection::from_user(&triple), target);
+                config
+                    .target_config
+                    .insert(TargetSelection::from_user(&triple), target);
             }
         }
 
@@ -874,11 +920,13 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         config.rust_debug_logging = debug_logging.unwrap_or(config.rustc_debug_assertions);
 
         let with_defaults = |debuginfo_level_specific: Option<_>| {
-            debuginfo_level_specific.or(debuginfo_level).unwrap_or(if debug == Some(true) {
-                DebuginfoLevel::Limited
-            } else {
-                DebuginfoLevel::None
-            })
+            debuginfo_level_specific
+                .or(debuginfo_level)
+                .unwrap_or(if debug == Some(true) {
+                    DebuginfoLevel::Limited
+                } else {
+                    DebuginfoLevel::None
+                })
         };
         config.rust_debuginfo_level_rustc = with_defaults(debuginfo_level_rustc);
         config.rust_debuginfo_level_std = with_defaults(debuginfo_level_std);
@@ -890,33 +938,39 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
 
         let download_rustc = config.download_rustc_commit.is_some();
         // See https://github.com/rust-lang/compiler-team/issues/326
-        config.stage = match config.cmd {
-            Subcommand::Check { .. } => flags.stage.or(check_stage).unwrap_or(0),
-            // `download-rustc` only has a speed-up for stage2 builds. Default to stage2 unless explicitly overridden.
-            Subcommand::Doc { .. } => {
-                flags.stage.or(doc_stage).unwrap_or(if download_rustc { 2 } else { 0 })
-            }
-            Subcommand::Build { .. } => {
-                flags.stage.or(build_stage).unwrap_or(if download_rustc { 2 } else { 1 })
-            }
-            Subcommand::Test { .. } | Subcommand::Miri { .. } => {
-                flags.stage.or(test_stage).unwrap_or(if download_rustc { 2 } else { 1 })
-            }
-            Subcommand::Bench { .. } => flags.stage.or(bench_stage).unwrap_or(2),
-            Subcommand::Dist { .. } => flags.stage.or(dist_stage).unwrap_or(2),
-            Subcommand::Install { .. } => flags.stage.or(install_stage).unwrap_or(2),
-            Subcommand::Perf { .. } => flags.stage.unwrap_or(1),
-            // These are all bootstrap tools, which don't depend on the compiler.
-            // The stage we pass shouldn't matter, but use 0 just in case.
-            Subcommand::Clean { .. }
-            | Subcommand::Clippy { .. }
-            | Subcommand::Fix { .. }
-            | Subcommand::Run { .. }
-            | Subcommand::Setup { .. }
-            | Subcommand::Format { .. }
-            | Subcommand::Suggest { .. }
-            | Subcommand::Vendor { .. } => flags.stage.unwrap_or(0),
-        };
+        config.stage =
+            match config.cmd {
+                Subcommand::Check { .. } => flags.stage.or(check_stage).unwrap_or(0),
+                // `download-rustc` only has a speed-up for stage2 builds. Default to stage2 unless explicitly overridden.
+                Subcommand::Doc { .. } => {
+                    flags
+                        .stage
+                        .or(doc_stage)
+                        .unwrap_or(if download_rustc { 2 } else { 0 })
+                }
+                Subcommand::Build { .. } => flags
+                    .stage
+                    .or(build_stage)
+                    .unwrap_or(if download_rustc { 2 } else { 1 }),
+                Subcommand::Test { .. } | Subcommand::Miri { .. } => flags
+                    .stage
+                    .or(test_stage)
+                    .unwrap_or(if download_rustc { 2 } else { 1 }),
+                Subcommand::Bench { .. } => flags.stage.or(bench_stage).unwrap_or(2),
+                Subcommand::Dist { .. } => flags.stage.or(dist_stage).unwrap_or(2),
+                Subcommand::Install { .. } => flags.stage.or(install_stage).unwrap_or(2),
+                Subcommand::Perf { .. } => flags.stage.unwrap_or(1),
+                // These are all bootstrap tools, which don't depend on the compiler.
+                // The stage we pass shouldn't matter, but use 0 just in case.
+                Subcommand::Clean { .. }
+                | Subcommand::Clippy { .. }
+                | Subcommand::Fix { .. }
+                | Subcommand::Run { .. }
+                | Subcommand::Setup { .. }
+                | Subcommand::Format { .. }
+                | Subcommand::Suggest { .. }
+                | Subcommand::Vendor { .. } => flags.stage.unwrap_or(0),
+            };
 
         // CI should always run stage 2 builds, unless it specifically states otherwise
         #[cfg(not(test))]
@@ -951,7 +1005,6 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         config
     }
 
-
     /// Runs a command, printing out nice contextual information if it fails.
     /// Exits if the command failed to execute at all, otherwise returns its
     /// `status.success()`.
@@ -960,9 +1013,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         let mut test_args = match self.cmd {
             Subcommand::Test { ref test_args, .. }
             | Subcommand::Bench { ref test_args, .. }
-            | Subcommand::Miri { ref test_args, .. } => {
-                test_args.iter().flat_map(|s| s.split_whitespace()).collect()
-            }
+            | Subcommand::Miri { ref test_args, .. } => test_args
+                .iter()
+                .flat_map(|s| s.split_whitespace())
+                .collect(),
             _ => vec![],
         };
         test_args.extend(self.free_args.iter().map(|s| s.as_str()));
@@ -988,7 +1042,8 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
         );
 
         let mut git = helpers::git(Some(&self.src));
-        git.arg("show").arg(format!("{commit}:{}", file.to_str().unwrap()));
+        git.arg("show")
+            .arg(format!("{commit}:{}", file.to_str().unwrap()));
         output(git.as_command_mut())
     }
 
@@ -1000,8 +1055,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
                 .read_file_by_commit(&PathBuf::from("src/ci/channel"), commit)
                 .trim()
                 .to_owned();
-            let version =
-                self.read_file_by_commit(&self.ci.version_file, commit).trim().to_owned();
+            let version = self
+                .read_file_by_commit(&self.ci.version_file, commit)
+                .trim()
+                .to_owned();
             (channel, version)
         } else {
             let channel = fs::read_to_string(&self.ci.channel_file);
@@ -1203,7 +1260,10 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     }
 
     pub fn sanitizers_enabled(&self, target: TargetSelection) -> bool {
-        self.target_config.get(&target).and_then(|t| t.sanitizers).unwrap_or(self.sanitizers)
+        self.target_config
+            .get(&target)
+            .and_then(|t| t.sanitizers)
+            .unwrap_or(self.sanitizers)
     }
 
     pub fn needs_sanitizer_runtime_built(&self, target: TargetSelection) -> bool {
@@ -1233,12 +1293,17 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     }
 
     pub fn any_profiler_enabled(&self) -> bool {
-        self.target_config.values().any(|t| matches!(&t.profiler, Some(p) if p.is_string_or_true()))
+        self.target_config
+            .values()
+            .any(|t| matches!(&t.profiler, Some(p) if p.is_string_or_true()))
             || self.profiler
     }
 
     pub fn rpath_enabled(&self, target: TargetSelection) -> bool {
-        self.target_config.get(&target).and_then(|t| t.rpath).unwrap_or(self.rust_rpath)
+        self.target_config
+            .get(&target)
+            .and_then(|t| t.rpath)
+            .unwrap_or(self.rust_rpath)
     }
 
     pub fn llvm_enabled(&self, target: TargetSelection) -> bool {
@@ -1268,7 +1333,8 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     pub fn submodules(&self) -> bool {
         // If not specified in config, the default is to only manage
         // submodules if we're currently inside a git repository.
-        self.submodules.unwrap_or(self.rust_info.is_managed_git_subrepository())
+        self.submodules
+            .unwrap_or(self.rust_info.is_managed_git_subrepository())
     }
 
     pub fn codegen_backends(&self, target: TargetSelection) -> &[String] {
@@ -1430,11 +1496,20 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
             ));
         }
 
-        let stage0_version =
-            semver::Version::parse(stage0_output.next().unwrap().split('-').next().unwrap().trim())
-                .unwrap();
+        let stage0_version = semver::Version::parse(
+            stage0_output
+                .next()
+                .unwrap()
+                .split('-')
+                .next()
+                .unwrap()
+                .trim(),
+        )
+        .unwrap();
         let source_version = semver::Version::parse(
-            fs::read_to_string(self.src.join("src/version")).unwrap().trim(),
+            fs::read_to_string(self.src.join("src/version"))
+                .unwrap()
+                .trim(),
         )
         .unwrap();
         if !(source_version == stage0_version
@@ -1450,7 +1525,7 @@ pub fn get_table(option: &str) -> Result<TomlConfig, toml::de::Error> {
     }
 
     /// Returns the commit to download, or `None` if we shouldn't download CI artifacts.
-pub fn download_ci_rustc_commit(
+    pub fn download_ci_rustc_commit(
         &self,
         download_rustc: Option<StringOrBool>,
         llvm_assertions: bool,
@@ -1513,8 +1588,12 @@ pub fn download_ci_rustc_commit(
         };
 
         if CiEnv::is_ci() && {
-            let head_sha =
-                output(helpers::git(Some(&self.src)).arg("rev-parse").arg("HEAD").as_command_mut());
+            let head_sha = output(
+                helpers::git(Some(&self.src))
+                    .arg("rev-parse")
+                    .arg("HEAD")
+                    .as_command_mut(),
+            );
             let head_sha = head_sha.trim();
             commit == head_sha
         } {
@@ -1528,7 +1607,7 @@ pub fn download_ci_rustc_commit(
         Some(commit)
     }
 
-pub fn parse_download_ci_llvm(
+    pub fn parse_download_ci_llvm(
         &self,
         download_ci_llvm: Option<StringOrBool>,
         asserts: bool,
@@ -1552,7 +1631,11 @@ pub fn parse_download_ci_llvm(
                 .is_none();
 
             // Return false if there are untracked changes, otherwise check if CI LLVM is available.
-            if has_changes { false } else { llvm::is_ci_llvm_available(self, asserts) }
+            if has_changes {
+                false
+            } else {
+                llvm::is_ci_llvm_available(self, asserts)
+            }
         };
 
         match download_ci_llvm {
@@ -1599,7 +1682,8 @@ pub fn parse_download_ci_llvm(
 
         // Warn if there were changes to the compiler or standard library since the ancestor commit.
         let mut git = helpers::git(Some(&self.src));
-        git.args(["diff-index", "--quiet", &commit, "--"]).args(modified_paths);
+        git.args(["diff-index", "--quiet", &commit, "--"])
+            .args(modified_paths);
 
         let has_changes = !t!(git.as_command_mut().status()).success();
         if has_changes {

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RustAnalyzer {
     pub common: common_test_fields::CommonTestFields,
@@ -16,7 +15,9 @@ impl Step for RustAnalyzer {
     }
 
     fn make_run(run: RunConfig<'_>) {
-        let compiler = run.builder.compiler(run.builder.top_stage, run.build_triple());
+        let compiler = run
+            .builder
+            .compiler(run.builder.top_stage, run.build_triple());
         run.builder.ensure(Self {
             common: common_test_fields::CommonTestFields {
                 stage: run.builder.top_stage,
@@ -63,6 +64,15 @@ impl Step for RustAnalyzer {
         cargo.env("SKIP_SLOW_TESTS", "1");
 
         cargo.add_rustc_lib_path(builder);
-        run_cargo_test(cargo, &[], &[], "rust-analyzer", "rust-analyzer", compiler, host, builder);
+        run_cargo_test(
+            cargo,
+            &[],
+            &[],
+            "rust-analyzer",
+            "rust-analyzer",
+            compiler,
+            host,
+            builder,
+        );
     }
 }

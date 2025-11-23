@@ -1,7 +1,5 @@
-
 #[derive(Debug)]
 pub struct TargetSelection(pub String);
-
 
 impl TargetSelection {
     pub fn from_user(s: &str) -> Self {
@@ -14,4 +12,3 @@ impl Default for TargetSelection {
         TargetSelection::from_user("x86_64-unknown-linux-gnu") // Placeholder default
     }
 }
-

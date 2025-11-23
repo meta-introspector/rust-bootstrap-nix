@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::path::PathBuf;
 
 use crate::core::build_steps::tool::SUBMODULES_FOR_RUSTBOOK;
@@ -60,7 +59,10 @@ impl Step for Vendor {
         }
 
         // These submodules must be present for `x vendor` to work.
-        for submodule in SUBMODULES_FOR_RUSTBOOK.iter().chain(["src/tools/cargo"].iter()) {
+        for submodule in SUBMODULES_FOR_RUSTBOOK
+            .iter()
+            .chain(["src/tools/cargo"].iter())
+        {
             builder.build.require_submodule(submodule, None);
         }
 

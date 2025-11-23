@@ -2,10 +2,9 @@
 //use crate::subcommand::Subcommand;
 //use crate::DebuginfoLevel;
 
-use crate::TomlConfig;
 use crate::llvm::Llvm;
+use crate::TomlConfig;
 //use crate::Flags;
-
 
 /// Compares the current `Llvm` options against those in the CI LLVM builder and detects any incompatible options.
 /// It does this by destructuring the `Llvm` instance to make sure every `Llvm` field is covered and not missing.
@@ -16,27 +15,39 @@ pub(crate) fn check_incompatible_options_for_ci_llvm(
 ) -> Result<(), String> {
     macro_rules! err {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
-            return
-            Err(format!("ERROR: Setting `llvm.{}` is incompatible with `llvm.download-ci-llvm`. \
+            if let Some(current) = &$current {
+                if Some(current) != $expected.as_ref() {
+                    return Err(format!(
+                        "ERROR: Setting `llvm.{}` is incompatible with `llvm.download-ci-llvm`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
-            "None/" } else { "" }, $expected,)); }; };
+                        stringify!($expected).replace("_", "-"),
+                        $current,
+                        if $expected.is_some() { "None/" } else { "" },
+                        $expected,
+                    ));
+                };
+            };
         };
     }
     macro_rules! warn {
         ($current:expr, $expected:expr) => {
-            if let Some(current) = &$current { if Some(current) != $expected .as_ref() {
-            println!("WARNING: `llvm.{}` has no effect with `llvm.download-ci-llvm`. \
+            if let Some(current) = &$current {
+                if Some(current) != $expected.as_ref() {
+                    println!(
+                        "WARNING: `llvm.{}` has no effect with `llvm.download-ci-llvm`. \
                         Current value: {:?}, Expected value(s): {}{:?}",
-            stringify!($expected) .replace("_", "-"), $current, if $expected .is_some() {
-            "None/" } else { "" }, $expected,); }; };
+                        stringify!($expected).replace("_", "-"),
+                        $current,
+                        if $expected.is_some() { "None/" } else { "" },
+                        $expected,
+                    );
+                };
+            };
         };
     }
-    let (Some(current_llvm_config), Some(ci_llvm_config)) = (
-        current_config_toml.llvm,
-        ci_config_toml.llvm,
-    ) else {
+    let (Some(current_llvm_config), Some(ci_llvm_config)) =
+        (current_config_toml.llvm, ci_config_toml.llvm)
+    else {
         return Ok(());
     };
     let Llvm {
@@ -76,7 +87,10 @@ pub(crate) fn check_incompatible_options_for_ci_llvm(
     err!(current_llvm_config.release_debuginfo, release_debuginfo);
     err!(current_llvm_config.libzstd, libzstd);
     err!(current_llvm_config.targets, targets);
-    err!(current_llvm_config.experimental_targets, experimental_targets);
+    err!(
+        current_llvm_config.experimental_targets,
+        experimental_targets
+    );
     err!(current_llvm_config.clang_cl, clang_cl);
     err!(current_llvm_config.version_suffix, version_suffix);
     err!(current_llvm_config.cflags, cflags);

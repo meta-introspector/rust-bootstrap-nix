@@ -1,6 +1,5 @@
 use std::ffi::{OsStr, OsString};
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Tidy;
 
@@ -54,8 +53,12 @@ impl Step for Tidy {
                 crate::exit!(1);
             }
             let all = false;
-            crate::core::build_steps::format::format(builder, !builder.config.cmd.bless(), all, &[
-            ]);
+            crate::core::build_steps::format::format(
+                builder,
+                !builder.config.cmd.bless(),
+                all,
+                &[],
+            );
         }
 
         builder.info("tidy check");

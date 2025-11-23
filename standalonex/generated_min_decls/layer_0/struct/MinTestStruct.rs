@@ -1,1 +1,3 @@
-pub struct MinTestStruct { pub id : u32 , }
+pub struct MinTestStruct {
+    pub id: u32,
+}

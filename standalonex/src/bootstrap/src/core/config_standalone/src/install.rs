@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use config_macros::define_config;
 
 define_config! {

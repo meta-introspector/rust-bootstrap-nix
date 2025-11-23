@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use std::ffi::OsString;
 use std::ffi::OsStr;
+use std::ffi::OsString;
 #[cfg(test)]
 mod tests;
 
@@ -35,7 +35,8 @@ impl Drop for DropBomb {
         if !self.defused && !std::thread::panicking() {
             panic!(
                 "command constructed at `{}` was dropped without being executed: `{}`",
-                self.armed_location, self.command.to_string_lossy()
+                self.armed_location,
+                self.command.to_string_lossy()
             )
         }
     }

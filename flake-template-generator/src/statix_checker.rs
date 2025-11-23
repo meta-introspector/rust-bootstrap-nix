@@ -13,8 +13,8 @@ pub fn run_statix_check(
         .output()?;
     if !statix_output.status.success() {
         eprintln!("Statix check failed!");
-        eprintln!("Stdout: {}", String::from_utf8_lossy(& statix_output.stdout));
-        eprintln!("Stderr: {}", String::from_utf8_lossy(& statix_output.stderr));
+        eprintln!("Stdout: {}", String::from_utf8_lossy(&statix_output.stdout));
+        eprintln!("Stderr: {}", String::from_utf8_lossy(&statix_output.stderr));
         return Err("Statix check failed".into());
     }
     println!("Statix check passed.");

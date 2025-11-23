@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CrateBootstrap {
     path: PathBuf,
@@ -22,7 +21,10 @@ impl Step for CrateBootstrap {
     fn make_run(run: RunConfig<'_>) {
         for path in run.paths {
             let path = path.assert_single_path().path.clone();
-            run.builder.ensure(CrateBootstrap { host: run.target, path });
+            run.builder.ensure(CrateBootstrap {
+                host: run.target,
+                path,
+            });
         }
     }
 
@@ -45,6 +47,15 @@ impl Step for CrateBootstrap {
             &[],
         );
         let crate_name = path.rsplit_once('/').unwrap().1;
-        run_cargo_test(cargo, &[], &[], crate_name, crate_name, compiler, bootstrap_host, builder);
+        run_cargo_test(
+            cargo,
+            &[],
+            &[],
+            crate_name,
+            crate_name,
+            compiler,
+            bootstrap_host,
+            builder,
+        );
     }
 }

@@ -10,12 +10,14 @@ pub enum LlvmLibunwind {
 impl FromStr for LlvmLibunwind {
     type Err = String;
 
-fn from_str(value: &str) -> Result<Self, Self::Err> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
             "no" => Ok(Self::No),
             "in-tree" => Ok(Self::InTree),
             "system" => Ok(Self::System),
-            invalid => Err(format!("Invalid value '{invalid}' for rust.llvm-libunwind config.")),
+            invalid => Err(format!(
+                "Invalid value '{invalid}' for rust.llvm-libunwind config."
+            )),
         }
     }
 }

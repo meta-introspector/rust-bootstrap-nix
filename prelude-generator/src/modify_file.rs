@@ -1,8 +1,8 @@
 use anyhow::Result;
+use prettyplease;
 use std::fs;
 use std::path::Path;
 use syn::Item;
-use prettyplease;
 
 /// Modifies a source file to remove its `use` statements and add `use crate::prelude::*;`.
 pub fn modify_file(path: &Path, dry_run: bool, force: bool) -> Result<()> {
@@ -52,9 +52,9 @@ pub fn modify_file(path: &Path, dry_run: bool, force: bool) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
     use std::io::Write;
     use std::path::PathBuf;
+    use tempfile::tempdir;
 
     fn setup_test_file(dir: &tempfile::TempDir, file_name: &str, content: &str) -> PathBuf {
         let file_path = dir.path().join(file_name);
@@ -66,8 +66,10 @@ mod tests {
     #[test]
     fn test_modify_file_adds_prelude_and_removes_uses() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(&dir, "test_file.rs",
-            "use std::collections::HashMap;\nuse crate::another_module;\n\nfn main() {}\n"
+        let file_path = setup_test_file(
+            &dir,
+            "test_file.rs",
+            "use std::collections::HashMap;\nuse crate::another_module;\n\nfn main() {}\n",
         );
 
         modify_file(&file_path, false, true)?;
@@ -84,8 +86,10 @@ mod tests {
     #[test]
     fn test_modify_file_dry_run() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(&dir, "test_file.rs",
-            "use std::collections::HashMap;\nfn main() {}\n"
+        let file_path = setup_test_file(
+            &dir,
+            "test_file.rs",
+            "use std::collections::HashMap;\nfn main() {}\n",
         );
         let original_content = fs::read_to_string(&file_path)?;
 
@@ -100,9 +104,7 @@ mod tests {
     #[test]
     fn test_modify_file_no_use_statements() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(&dir, "test_file.rs",
-            "fn main() {}\n"
-        );
+        let file_path = setup_test_file(&dir, "test_file.rs", "fn main() {}\n");
         let original_content = fs::read_to_string(&file_path)?;
 
         modify_file(&file_path, false, false)?;
@@ -116,9 +118,7 @@ mod tests {
     #[test]
     fn test_modify_file_no_force_no_overwrite() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(&dir, "test_file.rs",
-            "use std::fmt;\nfn some_func() {}\n"
-        );
+        let file_path = setup_test_file(&dir, "test_file.rs", "use std::fmt;\nfn some_func() {}\n");
         let original_content = fs::read_to_string(&file_path)?;
 
         // Attempt to modify without force, file exists, should skip
@@ -132,9 +132,7 @@ mod tests {
     #[test]
     fn test_modify_file_force_overwrite() -> Result<()> {
         let dir = tempdir()?;
-        let file_path = setup_test_file(&dir, "test_file.rs",
-            "use std::fmt;\nfn some_func() {}\n"
-        );
+        let file_path = setup_test_file(&dir, "test_file.rs", "use std::fmt;\nfn some_func() {}\n");
 
         // Modify once with force=true
         modify_file(&file_path, false, true)?;

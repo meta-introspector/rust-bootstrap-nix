@@ -78,8 +78,8 @@ pub fn process_config(parsed_config: ParsedConfig) -> BootstrapConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bootstrap_config_utils::parsed_config::ParsedConfig;
     use bootstrap_config_utils::dry_run::DryRun;
+    use bootstrap_config_utils::parsed_config::ParsedConfig;
     use std::path::PathBuf;
     #[test]
     fn test_process_config() {

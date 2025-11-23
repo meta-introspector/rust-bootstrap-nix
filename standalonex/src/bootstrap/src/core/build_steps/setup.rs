@@ -1,18 +1,16 @@
 use crate::prelude::*;
 
-
 /// First time setup of a dev environment
 ///
 /// These are build-and-run steps for `./x.py setup`, which allows quickly setting up the directory
 /// for modifying, building, and running the compiler and library. Running arbitrary configuration
 /// allows setting up things that cannot be simply captured inside the config.toml, in addition to
 /// leading people away from manually editing most of the config.toml values.
-
 use std::env::consts::EXE_SUFFIX;
 use std::fmt::Write as _;
 use std::fs::File;
 use std::io::Write;
-use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
+use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
 use std::str::FromStr;
 use std::{fmt, fs, io};
 
@@ -40,7 +38,11 @@ static PROFILE_DIR: &str = "src/bootstrap/defaults";
 
 impl Profile {
     fn include_path(&self, src_path: &Path) -> PathBuf {
-        PathBuf::from(format!("{}/{PROFILE_DIR}/config.{}.toml", src_path.display(), self))
+        PathBuf::from(format!(
+            "{}/{PROFILE_DIR}/config.{}.toml",
+            src_path.display(),
+            self
+        ))
     }
 
     pub fn all() -> impl Iterator<Item = Self> {
@@ -122,7 +124,12 @@ impl Step for Profile {
             return;
         }
 
-        let path = &run.builder.config.config.clone().unwrap_or(PathBuf::from("config.toml"));
+        let path = &run
+            .builder
+            .config
+            .config
+            .clone()
+            .unwrap_or(PathBuf::from("config.toml"));
         if path.exists() {
             run.builder.logger.error(&format_args!(
                 "ERROR: you asked for a new config file, but one already exists at `{}`",
@@ -188,7 +195,9 @@ pub fn setup(builder: &Builder<'_>, profile: Profile) {
 
     builder.logger.info(&format_args!(""));
 
-    builder.logger.info(&format_args!("To get started, try one of the following commands:"));
+    builder.logger.info(&format_args!(
+        "To get started, try one of the following commands:"
+    ));
     for cmd in suggestions {
         builder.logger.info(&format_args!("- `x.py {cmd}`"));
     }
@@ -207,7 +216,11 @@ pub fn setup(builder: &Builder<'_>, profile: Profile) {
         ));
     }
 
-    let path = &builder.config.config.clone().unwrap_or(PathBuf::from("config.toml"));
+    let path = &builder
+        .config
+        .config
+        .clone()
+        .unwrap_or(PathBuf::from("config.toml"));
     setup_config_toml(builder, path, profile);
 }
 
@@ -226,7 +239,10 @@ fn setup_config_toml(builder: &Builder<'_>, path: &PathBuf, profile: Profile) {
     t!(fs::write(path, settings));
 
     let include_path = profile.include_path(&builder.config.src);
-    builder.logger.info(&format_args!("`x.py` will now use the configuration at {}", include_path.display()));
+    builder.logger.info(&format_args!(
+        "`x.py` will now use the configuration at {}",
+        include_path.display()
+    ));
 }
 
 /// Creates a toolchain link for stage1 using `rustup`
@@ -258,7 +274,9 @@ impl Step for Link {
         }
 
         if !rustup_installed(builder) {
-            builder.logger.warn(&format_args!("WARNING: `rustup` is not installed; Skipping `stage1` toolchain linking."));
+            builder.logger.warn(&format_args!(
+                "WARNING: `rustup` is not installed; Skipping `stage1` toolchain linking."
+            ));
             return;
         }
 
@@ -275,7 +293,11 @@ fn rustup_installed(builder: &Builder<'_>) -> bool {
     let mut rustup = command("rustup");
     rustup.arg("--version");
 
-    rustup.allow_failure().run_always().run_capture_stdout(builder).is_success()
+    rustup
+        .allow_failure()
+        .run_always()
+        .run_capture_stdout(builder)
+        .is_success()
 }
 
 fn stage_dir_exists(stage_path: &str) -> bool {
@@ -302,7 +324,9 @@ fn attempt_toolchain_link(builder: &Builder<'_>, stage_path: &str) {
             "Added `stage1` rustup toolchain; try `cargo +stage1 build` on a separate rust project to run a newly-built toolchain"
         ));
     } else {
-        builder.logger.error(&format_args!("`rustup` failed to link stage 1 build to `stage1` toolchain"));
+        builder.logger.error(&format_args!(
+            "`rustup` failed to link stage 1 build to `stage1` toolchain"
+        ));
         builder.logger.error(&format_args!(
             "To manually link stage 1 build to `stage1` toolchain, run:\n
             `rustup toolchain link stage1 {}`",
@@ -391,27 +415,41 @@ pub fn interactive_path(builder: &Builder<'_>) -> io::Result<Profile> {
         input.parse()
     }
 
-    builder.logger.info(&format_args!("Welcome to the Rust project! What do you want to do with x.py?"));
+    builder.logger.info(&format_args!(
+        "Welcome to the Rust project! What do you want to do with x.py?"
+    ));
     for ((letter, _), profile) in abbrev_all() {
-        builder.logger.info(&format_args!("{}) {}: {}", letter, profile, profile.purpose()));
+        builder.logger.info(&format_args!(
+            "{}) {}: {}",
+            letter,
+            profile,
+            profile.purpose()
+        ));
     }
     let template = loop {
         print!(
             "Please choose one ({}): ",
-            abbrev_all().map(|((l, _), _)| l).collect::<Vec<_>>().join("/")
+            abbrev_all()
+                .map(|((l, _), _)| l)
+                .collect::<Vec<_>>()
+                .join("/")
         );
         io::stdout().flush()?;
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
         if input.is_empty() {
-            builder.logger.error(&format_args!("EOF on stdin, when expecting answer to question.  Giving up."));
+            builder.logger.error(&format_args!(
+                "EOF on stdin, when expecting answer to question.  Giving up."
+            ));
             crate::exit!(1);
         }
         break match parse_with_abbrev(&input) {
             Ok(profile) => profile,
             Err(err) => {
                 builder.logger.error(&format_args!("ERROR: {err}"));
-                builder.logger.error(&format_args!("NOTE: press Ctrl+C to exit"));
+                builder
+                    .logger
+                    .error(&format_args!("NOTE: press Ctrl+C to exit"));
                 continue;
             }
         };
@@ -495,14 +533,21 @@ fn install_git_hook_maybe(builder: &Builder<'_>) -> io::Result<()> {
     ));
 
     if prompt_user("Would you like to install the git hook?: [y/N]")? != Some(PromptResult::Yes) {
-        builder.logger.info(&format_args!("Ok, skipping installation!"));
+        builder
+            .logger
+            .info(&format_args!("Ok, skipping installation!"));
         return Ok(());
     }
     if !hooks_dir.exists() {
         // We need to (try to) create the hooks directory first.
         let _ = fs::create_dir(hooks_dir);
     }
-    let src = builder.config.src.join("src").join("etc").join("pre-push.sh");
+    let src = builder
+        .config
+        .src
+        .join("src")
+        .join("etc")
+        .join("pre-push.sh");
     match fs::hard_link(src, &dst) {
         Err(e) => {
             builder.logger.error(&format_args!(
@@ -512,7 +557,9 @@ fn install_git_hook_maybe(builder: &Builder<'_>) -> io::Result<()> {
             ));
             return Err(e);
         }
-        Ok(_) => builder.logger.info(&format_args!("Linked `src/etc/pre-push.sh` to `.git/hooks/pre-push`")),
+        Ok(_) => builder.logger.info(&format_args!(
+            "Linked `src/etc/pre-push.sh` to `.git/hooks/pre-push`"
+        )),
     };
     Ok(())
 }
@@ -549,8 +596,13 @@ Select which editor you would like to set up [default: None]: ";
                 "4" | "helix" => return Ok(Some(EditorKind::Helix)),
                 "" => return Ok(None),
                 _ => {
-                    builder.logger.error(&format_args!("ERROR: unrecognized option '{}'", input.trim()));
-                    builder.logger.error(&format_args!("NOTE: press Ctrl+C to exit"));
+                    builder.logger.error(&format_args!(
+                        "ERROR: unrecognized option '{}'",
+                        input.trim()
+                    ));
+                    builder
+                        .logger
+                        .error(&format_args!("NOTE: press Ctrl+C to exit"));
                 }
             };
         }
@@ -615,7 +667,14 @@ Select which editor you would like to set up [default: None]: ";
     }
 
     fn backup_extension(&self) -> String {
-        format!("{}.bak", self.settings_short_path().extension().unwrap().to_str().unwrap())
+        format!(
+            "{}.bak",
+            self.settings_short_path()
+                .extension()
+                .unwrap()
+                .to_str()
+                .unwrap()
+        )
     }
 }
 
@@ -652,10 +711,14 @@ impl Step for Editor {
                 if let Some(editor_kind) = editor_kind {
                     while !t!(create_editor_settings_maybe(builder, editor_kind.clone())) {}
                 } else {
-                    builder.logger.info(&format_args!("Ok, skipping editor setup!"));
+                    builder
+                        .logger
+                        .info(&format_args!("Ok, skipping editor setup!"));
                 }
             }
-            Err(e) => builder.logger.error(&format_args!("Could not determine the editor: {e}")),
+            Err(e) => builder
+                .logger
+                .error(&format_args!("Could not determine the editor: {e}")),
         }
     }
 }
@@ -719,7 +782,9 @@ fn create_editor_settings_maybe(builder: &Builder<'_>, editor: EditorKind) -> io
             // exists but user modified, back it up
             Some(false) => {
                 // exists and is not current version or outdated, so back it up
-                let backup = settings_path.clone().with_extension(editor.backup_extension());
+                let backup = settings_path
+                    .clone()
+                    .with_extension(editor.backup_extension());
                 builder.logger.warn(&format_args!(
                     "WARNING: copying `{}` to `{}`",
                     settings_path.file_name().unwrap().to_str().unwrap(),
@@ -731,9 +796,13 @@ fn create_editor_settings_maybe(builder: &Builder<'_>, editor: EditorKind) -> io
             _ => "Created",
         };
         fs::write(&settings_path, editor.settings_template())?;
-        builder.logger.info(&format_args!("{verb} `{}`", settings_filename));
+        builder
+            .logger
+            .info(&format_args!("{verb} `{}`", settings_filename));
     } else {
-        builder.logger.info(&format_args!("\n{}", editor.settings_template()));
+        builder
+            .logger
+            .info(&format_args!("\n{}", editor.settings_template()));
     }
     Ok(should_create)
 }

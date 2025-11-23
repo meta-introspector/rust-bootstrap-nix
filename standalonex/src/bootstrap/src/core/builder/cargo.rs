@@ -9,7 +9,7 @@ use crate::core::build_steps::{compile, test};
 //use crate::core::config::SplitDebuginfo;
 //use crate::core::config::flags::Color;
 use crate::utils::helpers::{
-    self, LldThreads, add_link_lib_path, check_cfg_arg, linker_args, linker_flags,
+    self, add_link_lib_path, check_cfg_arg, linker_args, linker_flags, LldThreads,
 };
 //use crate::{
 //    BootstrapCommand, Language, Compiler, DocTests, DryRun, EXTRA_CHECK_CFGS, GitInfo, Mode,
@@ -254,7 +254,8 @@ impl Cargo {
 
         if let Some(target_linker) = builder.linker(target) {
             let target = crate::envify(&target.triple);
-            self.command.env(format!("CARGO_TARGET_{target}_LINKER"), target_linker);
+            self.command
+                .env(format!("CARGO_TARGET_{target}_LINKER"), target_linker);
         }
         // We want to set -Clinker using Cargo, therefore we only call `linker_flags` and not
         // `linker_args` here.
@@ -266,7 +267,10 @@ impl Cargo {
         }
 
         if !builder.config.dry_run
-            && builder.cc.borrow()[&target].args().iter().any(|arg| arg == "-gz")
+            && builder.cc.borrow()[&target]
+                .args()
+                .iter()
+                .any(|arg| arg == "-gz")
         {
             self.rustflags.arg("-Clink-arg=-gz");
         }
@@ -309,7 +313,8 @@ impl Cargo {
             self.command.env(format!("CC_{triple_underscored}"), &cc);
 
             let cflags = builder.cflags(target, GitRepo::Rustc, CLang::C).join(" ");
-            self.command.env(format!("CFLAGS_{triple_underscored}"), &cflags);
+            self.command
+                .env(format!("CFLAGS_{triple_underscored}"), &cflags);
 
             if let Some(ar) = builder.ar(target) {
                 let ranlib = format!("{} s", ar.display());
@@ -349,7 +354,9 @@ impl From<Cargo> for BootstrapCommand {
         }
 
         if !cargo.allow_features.is_empty() {
-            cargo.command.env("RUSTC_ALLOW_FEATURES", cargo.allow_features);
+            cargo
+                .command
+                .env("RUSTC_ALLOW_FEATURES", cargo.allow_features);
         }
         cargo.command
     }
@@ -476,7 +483,11 @@ impl Builder<'_> {
         }
 
         let profile_var = |name: &str| {
-            let profile = if self.config.rust_optimize.is_release() { "RELEASE" } else { "DEV" };
+            let profile = if self.config.rust_optimize.is_release() {
+                "RELEASE"
+            } else {
+                "DEV"
+            };
             format!("CARGO_PROFILE_{}_{}", profile, name)
         };
 
@@ -519,10 +530,17 @@ impl Builder<'_> {
         assert!(!use_snapshot || stage == 0 || self.local_rebuild);
 
         let maybe_sysroot = self.sysroot(compiler);
-        let sysroot = if use_snapshot { self.rustc_snapshot_sysroot() } else { &maybe_sysroot };
+        let sysroot = if use_snapshot {
+            self.rustc_snapshot_sysroot()
+        } else {
+            &maybe_sysroot
+        };
         let libdir = self.rustc_libdir(compiler);
 
-        let sysroot_str = sysroot.as_os_str().to_str().expect("sysroot should be UTF-8");
+        let sysroot_str = sysroot
+            .as_os_str()
+            .to_str()
+            .expect("sysroot should be UTF-8");
         if self.is_verbose() && !matches!(self.config.dry_run, DryRun::SelfCheck) {
             println!("using sysroot {sysroot_str}");
         }
@@ -815,7 +833,10 @@ impl Builder<'_> {
             rustflags.arg(&format!("-Zstack-protector={stack_protector}"));
         }
 
-        if !matches!(cmd_kind, Kind::Build | Kind::Check | Kind::Clippy | Kind::Fix) && want_rustdoc
+        if !matches!(
+            cmd_kind,
+            Kind::Build | Kind::Check | Kind::Clippy | Kind::Fix
+        ) && want_rustdoc
         {
             cargo.env("RUSTDOC_LIBDIR", self.rustc_libdir(compiler));
         }
@@ -911,7 +932,10 @@ impl Builder<'_> {
             prepare_behaviour_dump_dir(self.build);
 
             cargo
-                .env("DUMP_BOOTSTRAP_SHIMS", self.build.out.join("bootstrap-shims-dump"))
+                .env(
+                    "DUMP_BOOTSTRAP_SHIMS",
+                    self.build.out.join("bootstrap-shims-dump"),
+                )
                 .env("BUILD_OUT", &self.build.out)
                 .env("CARGO_HOME", t!(home::cargo_home()));
         };
@@ -947,8 +971,10 @@ impl Builder<'_> {
         // platform-specific environment variable as a workaround.
         if mode == Mode::ToolRustc || mode == Mode::Codegen {
             if let Some(llvm_config) = self.llvm_config(target) {
-                let llvm_libdir =
-                    command(llvm_config).arg("--libdir").run_capture_stdout(self).stdout();
+                let llvm_libdir = command(llvm_config)
+                    .arg("--libdir")
+                    .run_capture_stdout(self)
+                    .stdout();
                 add_link_lib_path(vec![llvm_libdir.trim().into()], &mut cargo);
             }
         }
@@ -1123,7 +1149,11 @@ impl Builder<'_> {
             cargo.arg("-v");
         }
 
-        match (mode, self.config.rust_codegen_units_std, self.config.rust_codegen_units) {
+        match (
+            mode,
+            self.config.rust_codegen_units_std,
+            self.config.rust_codegen_units,
+        ) {
             (Mode::Std, Some(n), _) | (_, _, Some(n)) => {
                 cargo.env(profile_var("CODEGEN_UNITS"), n.to_string());
             }
@@ -1156,7 +1186,11 @@ impl Builder<'_> {
 
         cargo.env(
             "RUSTC_LINK_STD_INTO_RUSTC_DRIVER",
-            if self.link_std_into_rustc_driver(target) { "1" } else { "0" },
+            if self.link_std_into_rustc_driver(target) {
+                "1"
+            } else {
+                "0"
+            },
         );
 
         // When building incrementally we default to a lower ThinLTO import limit
@@ -1171,7 +1205,11 @@ impl Builder<'_> {
 
             if let Some(limit) = limit {
                 if stage == 0
-                    || self.config.default_codegen_backend(target).unwrap_or_default() == "llvm"
+                    || self
+                        .config
+                        .default_codegen_backend(target)
+                        .unwrap_or_default()
+                        == "llvm"
                 {
                     rustflags.arg(&format!("-Cllvm-args=-import-instr-limit={limit}"));
                 }

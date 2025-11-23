@@ -270,10 +270,10 @@ impl From<ParsedConfig> for Config {
         config.omit_git_hash = parsed_config.omit_git_hash;
         // config.skip: Vec<PathBuf>, // Needs mapping from Vec<String> if ParsedConfig has it
         config.include_default_paths = true; // Default value
-        // config.rustc_error_format: Option<String>, // Direct map
-        // config.json_output: bool, // Direct map
-        // config.test_compare_mode: bool, // Direct map
-        // config.color: Color, // Needs conversion
+                                             // config.rustc_error_format: Option<String>, // Direct map
+                                             // config.json_output: bool, // Direct map
+                                             // config.test_compare_mode: bool, // Direct map
+                                             // config.color: Color, // Needs conversion
         config.patch_binaries_for_nix = parsed_config.patch_binaries_for_nix;
         // config.stage0_path: Option<PathBuf>, // Direct map
         // config.stage0_metadata: build_helper::stage0_parser::Stage0, // Complex
@@ -294,7 +294,7 @@ impl From<ParsedConfig> for Config {
         config.incremental = parsed_config.incremental;
         config.dry_run = parsed_config.dry_run;
         config.dump_bootstrap_shims = false; // Default value
-        // config.free_args: Vec<String>, // Direct map
+                                             // config.free_args: Vec<String>, // Direct map
 
         config.download_rustc_commit = parsed_config.download_rustc_commit;
 
@@ -329,8 +329,9 @@ impl From<ParsedConfig> for Config {
         // config.lld_mode: LldMode, // Needs conversion
         config.lld_enabled = parsed_config.lld_enabled;
         config.llvm_tools_enabled = parsed_config.llvm_tools_enabled;
-        config.llvm_bitcode_linker_enabled =
-            parsed_config.llvm_bitcode_linker_enabled.unwrap_or_default();
+        config.llvm_bitcode_linker_enabled = parsed_config
+            .llvm_bitcode_linker_enabled
+            .unwrap_or_default();
 
         // config.llvm_cflags: Option<String>, // Direct map
         // config.llvm_cxxflags: Option<String>, // Direct map
@@ -377,8 +378,16 @@ impl From<ParsedConfig> for Config {
         // config.reproducible_artifacts: Vec<String>, // Direct map
 
         config.build = parsed_config.build;
-        config.hosts = parsed_config.hosts.into_iter().map(TargetSelection::from).collect();
-        config.targets = parsed_config.targets.into_iter().map(TargetSelection::from).collect();
+        config.hosts = parsed_config
+            .hosts
+            .into_iter()
+            .map(TargetSelection::from)
+            .collect();
+        config.targets = parsed_config
+            .targets
+            .into_iter()
+            .map(TargetSelection::from)
+            .collect();
         config.local_rebuild = parsed_config.local_rebuild.unwrap_or_default();
         config.jemalloc = parsed_config.jemalloc.unwrap_or_default();
         config.control_flow_guard = parsed_config.control_flow_guard.unwrap_or_default();

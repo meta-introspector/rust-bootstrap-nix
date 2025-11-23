@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Compilation of native dependencies like GCC.
 ///
 /// Native projects like GCC unfortunately aren't suited just yet for
@@ -10,7 +9,6 @@ use crate::prelude::*;
 ///
 /// GCC and compiler-rt are essentially just wired up to everything else to
 /// ensure that they're always in place if needed.
-
 use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -18,8 +16,8 @@ use std::sync::OnceLock;
 use crate::core::builder::{Builder, RunConfig, ShouldRun, Step};
 //use crate::core::config::TargetSelection;
 use crate::utils::exec::command;
-use crate::utils::helpers::{self, HashStamp, t};
-use crate::{Kind, generate_smart_stamp_hash};
+use crate::utils::helpers::{self, t, HashStamp};
+use crate::{generate_smart_stamp_hash, Kind};
 
 pub struct Meta {
     stamp: HashStamp,
@@ -74,7 +72,12 @@ pub fn prebuilt_gcc_config(builder: &Builder<'_>, target: TargetSelection) -> Gc
         return GccBuildStatus::AlreadyBuilt;
     }
 
-    GccBuildStatus::ShouldBuild(Meta { stamp, out_dir, install_dir, root })
+    GccBuildStatus::ShouldBuild(Meta {
+        stamp,
+        out_dir,
+        install_dir,
+        root,
+    })
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -100,8 +103,12 @@ impl Step for Gcc {
         let target = self.target;
 
         // If GCC has already been built, we avoid building it again.
-        let Meta { stamp, out_dir, install_dir, root } = match prebuilt_gcc_config(builder, target)
-        {
+        let Meta {
+            stamp,
+            out_dir,
+            install_dir,
+            root,
+        } = match prebuilt_gcc_config(builder, target) {
             GccBuildStatus::AlreadyBuilt => return true,
             GccBuildStatus::ShouldBuild(m) => m,
         };
@@ -115,7 +122,9 @@ impl Step for Gcc {
             return true;
         }
 
-        command(root.join("contrib/download_prerequisites")).current_dir(&root).run(builder);
+        command(root.join("contrib/download_prerequisites"))
+            .current_dir(&root)
+            .run(builder);
         command(root.join("configure"))
             .current_dir(&out_dir)
             .arg("--enable-host-shared")
@@ -125,8 +134,14 @@ impl Step for Gcc {
             .arg("--disable-multilib")
             .arg(format!("--prefix={}", install_dir.display()))
             .run(builder);
-        command("make").current_dir(&out_dir).arg(format!("-j{}", builder.jobs())).run(builder);
-        command("make").current_dir(&out_dir).arg("install").run(builder);
+        command("make")
+            .current_dir(&out_dir)
+            .arg(format!("-j{}", builder.jobs()))
+            .run(builder);
+        command("make")
+            .current_dir(&out_dir)
+            .arg("install")
+            .run(builder);
 
         let lib_alias = install_dir.join("lib/libgccjit.so.0");
         if !lib_alias.exists() {

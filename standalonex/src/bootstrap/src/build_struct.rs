@@ -1,15 +1,14 @@
 use crate::prelude::*;
 
-
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
-use build_helper::ci::gha;
-use crate::core::config::Config;
 use crate::core::config::target_selection::TargetSelection;
-use crate::enums::{DocTests, GitRepo};
+use crate::core::config::Config;
 use crate::crate_struct::Crate;
+use crate::enums::{DocTests, GitRepo};
+use build_helper::ci::gha;
 
 /// Global configuration for the build system.
 ///

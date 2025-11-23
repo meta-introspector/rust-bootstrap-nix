@@ -1,6 +1,6 @@
+use crate::core::config::config_part6::OptimizeVisitor;
 use crate::prelude::*;
 use serde::Deserializer;
-use crate::core::config::config_part6::OptimizeVisitor;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RustOptimize {
@@ -10,13 +10,13 @@ pub enum RustOptimize {
 }
 
 impl Default for RustOptimize {
-fn default() -> RustOptimize {
+    fn default() -> RustOptimize {
         RustOptimize::Bool(false)
     }
 }
 
 impl<'de> Deserialize<'de> for RustOptimize {
-fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {

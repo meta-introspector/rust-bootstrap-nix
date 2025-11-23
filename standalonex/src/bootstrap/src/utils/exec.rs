@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 use std::ffi::OsStr;
 use std::fmt::{Debug, Formatter};
 use std::path::Path;
@@ -120,17 +119,26 @@ impl BootstrapCommand {
 
     #[must_use]
     pub fn delay_failure(self) -> Self {
-        Self { failure_behavior: BehaviorOnFailure::DelayFail, ..self }
+        Self {
+            failure_behavior: BehaviorOnFailure::DelayFail,
+            ..self
+        }
     }
 
     #[must_use]
     pub fn fail_fast(self) -> Self {
-        Self { failure_behavior: BehaviorOnFailure::Exit, ..self }
+        Self {
+            failure_behavior: BehaviorOnFailure::Exit,
+            ..self
+        }
     }
 
     #[must_use]
     pub fn allow_failure(self) -> Self {
-        Self { failure_behavior: BehaviorOnFailure::Ignore, ..self }
+        Self {
+            failure_behavior: BehaviorOnFailure::Ignore,
+            ..self
+        }
     }
 
     pub fn run_always(&mut self) -> &mut Self {
@@ -142,7 +150,9 @@ impl BootstrapCommand {
     /// Returns true if the command has succeeded.
     #[track_caller]
     pub fn run(&mut self, builder: &Build) -> bool {
-        builder.run(self, OutputMode::Print, OutputMode::Print).is_success()
+        builder
+            .run(self, OutputMode::Print, OutputMode::Print)
+            .is_success()
     }
 
     /// Run the command, while capturing and returning all its output.
@@ -289,32 +299,44 @@ impl CommandOutput {
     #[must_use]
     pub fn stdout(&self) -> String {
         String::from_utf8(
-            self.stdout.clone().expect("Accessing stdout of a command that did not capture stdout"),
+            self.stdout
+                .clone()
+                .expect("Accessing stdout of a command that did not capture stdout"),
         )
         .expect("Cannot parse process stdout as UTF-8")
     }
 
     #[must_use]
     pub fn stdout_if_present(&self) -> Option<String> {
-        self.stdout.as_ref().and_then(|s| String::from_utf8(s.clone()).ok())
+        self.stdout
+            .as_ref()
+            .and_then(|s| String::from_utf8(s.clone()).ok())
     }
 
     #[must_use]
     pub fn stdout_if_ok(&self) -> Option<String> {
-        if self.is_success() { Some(self.stdout()) } else { None }
+        if self.is_success() {
+            Some(self.stdout())
+        } else {
+            None
+        }
     }
 
     #[must_use]
     pub fn stderr(&self) -> String {
         String::from_utf8(
-            self.stderr.clone().expect("Accessing stderr of a command that did not capture stderr"),
+            self.stderr
+                .clone()
+                .expect("Accessing stderr of a command that did not capture stderr"),
         )
         .expect("Cannot parse process stderr as UTF-8")
     }
 
     #[must_use]
     pub fn stderr_if_present(&self) -> Option<String> {
-        self.stderr.as_ref().and_then(|s| String::from_utf8(s.clone()).ok())
+        self.stderr
+            .as_ref()
+            .and_then(|s| String::from_utf8(s.clone()).ok())
     }
 }
 

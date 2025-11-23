@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RustdocJSStd {
     pub common: common_test_fields::CommonTestFields,
@@ -13,7 +12,8 @@ impl Step for RustdocJSStd {
 
     fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
         let default = run.builder.config.nodejs.is_some();
-        run.suite_path("tests/rustdoc-js-std").default_condition(default)
+        run.suite_path("tests/rustdoc-js-std")
+            .default_condition(default)
     }
 
     fn make_run(run: RunConfig<'_>) {
@@ -29,8 +29,11 @@ impl Step for RustdocJSStd {
     }
 
     fn run(self, builder: &Builder<'_>) {
-        let nodejs =
-            builder.config.nodejs.as_ref().expect("need nodejs to run rustdoc-js-std tests");
+        let nodejs = builder
+            .config
+            .nodejs
+            .as_ref()
+            .expect("need nodejs to run rustdoc-js-std tests");
         let mut command = command(nodejs);
         command
             .arg(builder.src.join("src/tools/rustdoc-js/tester.js"))

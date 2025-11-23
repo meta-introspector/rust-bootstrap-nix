@@ -22,9 +22,10 @@ pub fn run_git_command(
         anyhow::bail!(
             "Git command failed: {}
 Stdout: {}
-Stderr: {}", error_message,
-            String::from_utf8_lossy(& output.stdout), String::from_utf8_lossy(& output
-            .stderr)
+Stderr: {}",
+            error_message,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
         );
     }
     Ok(())
@@ -39,7 +40,9 @@ pub fn output_result(cmd: &mut Command) -> Result<String> {
         anyhow::bail!(
             "Command did not execute successfully: {:?}\nExpected success, got: {}
 Stderr: {}",
-            cmd, output.status, String::from_utf8_lossy(& output.stderr)
+            cmd,
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
         );
     }
     String::from_utf8(output.stdout)

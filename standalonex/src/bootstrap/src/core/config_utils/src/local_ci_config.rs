@@ -1,6 +1,5 @@
 use serde_derive::Deserialize;
-#[derive(Debug, Default, Deserialize)]
-#[derive(Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct LocalCiConfig {
     pub channel_file: Option<std::path::PathBuf>,
     pub version_file: Option<std::path::PathBuf>,

@@ -1,7 +1,7 @@
-use syn::{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Ident};
-use std::collections::HashMap;
-use regex::Regex;
 use once_cell::sync::Lazy;
+use regex::Regex;
+use std::collections::HashMap;
+use syn::{visit::Visit, Ident, ItemConst, ItemEnum, ItemFn, ItemStatic, ItemStruct};
 
 // Lazy static regex for splitting identifiers
 static RE_SPLIT_IDENT: Lazy<Regex> = Lazy::new(|| {
@@ -10,7 +10,8 @@ static RE_SPLIT_IDENT: Lazy<Regex> = Lazy::new(|| {
 });
 
 pub fn tokenize_ident_to_subwords(ident_str: &str) -> Vec<String> {
-    RE_SPLIT_IDENT.split(ident_str)
+    RE_SPLIT_IDENT
+        .split(ident_str)
         .filter(|s| !s.is_empty())
         .map(|s| s.to_lowercase())
         .collect()

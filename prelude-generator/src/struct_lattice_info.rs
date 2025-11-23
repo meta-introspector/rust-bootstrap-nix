@@ -1,5 +1,5 @@
-use std::collections::{HashMap, BTreeSet};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeSet, HashMap};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct StructLatticeInfo {

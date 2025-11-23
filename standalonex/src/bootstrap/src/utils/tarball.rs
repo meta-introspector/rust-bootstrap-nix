@@ -1,13 +1,11 @@
 use crate::prelude::*;
 
-
 /// Facilitates the management and generation of tarballs.
 ///
 /// Tarballs efficiently hold Rust compiler build artifacts and
 /// capture a snapshot of each bootstrap stage.
 /// In uplifting, a tarball from Stage N captures essential components
 /// to assemble Stage N + 1 compiler.
-
 use std::path::{Path, PathBuf};
 
 use crate::core::build_steps::dist::distdir;
@@ -35,9 +33,10 @@ impl OverlayKind {
     fn legal_and_readme(&self) -> &[&str] {
         match self {
             OverlayKind::Rust => &["COPYRIGHT", "LICENSE-APACHE", "LICENSE-MIT", "README.md"],
-            OverlayKind::Llvm => {
-                &["src/llvm-project/llvm/LICENSE.TXT", "src/llvm-project/llvm/README.txt"]
-            }
+            OverlayKind::Llvm => &[
+                "src/llvm-project/llvm/LICENSE.TXT",
+                "src/llvm-project/llvm/README.txt",
+            ],
             OverlayKind::Cargo => &[
                 "src/tools/cargo/README.md",
                 "src/tools/cargo/LICENSE-MIT",
@@ -83,20 +82,23 @@ impl OverlayKind {
         match self {
             OverlayKind::Rust => builder.rust_version(),
             OverlayKind::Llvm => builder.rust_version(),
-            OverlayKind::Cargo => {
-                builder.cargo_info.version(builder, &builder.release_num("cargo"))
-            }
-            OverlayKind::Clippy => {
-                builder.clippy_info.version(builder, &builder.release_num("clippy"))
-            }
-            OverlayKind::Miri => builder.miri_info.version(builder, &builder.release_num("miri")),
-            OverlayKind::Rustfmt => {
-                builder.rustfmt_info.version(builder, &builder.release_num("rustfmt"))
-            }
+            OverlayKind::Cargo => builder
+                .cargo_info
+                .version(builder, &builder.release_num("cargo")),
+            OverlayKind::Clippy => builder
+                .clippy_info
+                .version(builder, &builder.release_num("clippy")),
+            OverlayKind::Miri => builder
+                .miri_info
+                .version(builder, &builder.release_num("miri")),
+            OverlayKind::Rustfmt => builder
+                .rustfmt_info
+                .version(builder, &builder.release_num("rustfmt")),
             OverlayKind::Rls => builder.release(&builder.release_num("rls")),
-            OverlayKind::RustAnalyzer => builder
-                .rust_analyzer_info
-                .version(builder, &builder.release_num("rust-analyzer/crates/rust-analyzer")),
+            OverlayKind::RustAnalyzer => builder.rust_analyzer_info.version(
+                builder,
+                &builder.release_num("rust-analyzer/crates/rust-analyzer"),
+            ),
             OverlayKind::RustcCodegenCranelift => builder.rust_version(),
             OverlayKind::LlvmBitcodeLinker => builder.rust_version(),
         }
@@ -209,7 +211,8 @@ impl<'a> Tarball<'a> {
     ) {
         let destdir = self.image_dir.join(destdir.as_ref());
         t!(std::fs::create_dir_all(&destdir));
-        self.builder.copy_link(src.as_ref(), &destdir.join(new_name));
+        self.builder
+            .copy_link(src.as_ref(), &destdir.join(new_name));
     }
 
     pub(crate) fn add_legal_and_readme_to(&self, destdir: impl AsRef<Path>) {
@@ -271,7 +274,9 @@ impl<'a> Tarball<'a> {
         }
 
         self.run(|this, cmd| {
-            cmd.arg("combine").arg("--input-tarballs").arg(input_tarballs);
+            cmd.arg("combine")
+                .arg("--input-tarballs")
+                .arg(input_tarballs);
             this.non_bare_args(cmd);
         })
     }
@@ -316,7 +321,10 @@ impl<'a> Tarball<'a> {
 
     fn run(self, build_cli: impl FnOnce(&Tarball<'a>, &mut BootstrapCommand)) -> GeneratedTarball {
         t!(std::fs::create_dir_all(&self.overlay_dir));
-        self.builder.create(&self.overlay_dir.join("version"), &self.overlay.version(self.builder));
+        self.builder.create(
+            &self.overlay_dir.join("version"),
+            &self.overlay.version(self.builder),
+        );
         if let Some(info) = self.builder.rust_info().info() {
             channel::write_commit_hash_file(&self.overlay_dir, &info.sha);
             channel::write_commit_info_file(&self.overlay_dir, info);
@@ -328,10 +336,13 @@ impl<'a> Tarball<'a> {
         }
 
         for file in self.overlay.legal_and_readme() {
-            self.builder.install(&self.builder.src.join(file), &self.overlay_dir, 0o644);
+            self.builder
+                .install(&self.builder.src.join(file), &self.overlay_dir, 0o644);
         }
 
-        let mut cmd = self.builder.tool_cmd(crate::core::build_steps::tool::Tool::RustInstaller);
+        let mut cmd = self
+            .builder
+            .tool_cmd(crate::core::build_steps::tool::Tool::RustInstaller);
 
         let package_name = self.package_name();
         self.builder.info(&format!("Dist {package_name}"));
@@ -340,7 +351,10 @@ impl<'a> Tarball<'a> {
         build_cli(&self, &mut cmd);
         cmd.arg("--work-dir").arg(&self.temp_dir);
         if let Some(formats) = &self.builder.config.dist_compression_formats {
-            assert!(!formats.is_empty(), "dist.compression-formats can't be empty");
+            assert!(
+                !formats.is_empty(),
+                "dist.compression-formats can't be empty"
+            );
             cmd.arg("--compression-formats").arg(formats.join(","));
         }
 
@@ -397,7 +411,10 @@ impl<'a> Tarball<'a> {
             for entry in walkdir::WalkDir::new(&decompressed_output) {
                 let entry = t!(entry);
                 if entry.path_is_symlink() {
-                    panic!("generated a symlink in a tarball: {}", entry.path().display());
+                    panic!(
+                        "generated a symlink in a tarball: {}",
+                        entry.path().display()
+                    );
                 }
             }
         }

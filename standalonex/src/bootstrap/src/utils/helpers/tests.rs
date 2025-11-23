@@ -1,7 +1,6 @@
 use crate::prelude::*;
 
-
-use std::fs::{self, File, remove_file};
+use std::fs::{self, remove_file, File};
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -29,9 +28,15 @@ fn test_make() {
 #[test]
 fn test_beta_rev_parsing() {
     // single digit revision
-    assert_eq!(extract_beta_rev("1.99.9-beta.7 (xxxxxx)"), Some("7".to_string()));
+    assert_eq!(
+        extract_beta_rev("1.99.9-beta.7 (xxxxxx)"),
+        Some("7".to_string())
+    );
     // multiple digits
-    assert_eq!(extract_beta_rev("1.99.9-beta.777 (xxxxxx)"), Some("777".to_string()));
+    assert_eq!(
+        extract_beta_rev("1.99.9-beta.777 (xxxxxx)"),
+        Some("777".to_string())
+    );
     // nightly channel (no beta revision)
     assert_eq!(extract_beta_rev("1.99.9-nightly (xxxxxx)"), None);
     // stable channel (no beta revision)
@@ -49,7 +54,10 @@ fn test_string_to_hex_encode() {
 
 #[test]
 fn test_check_cfg_arg() {
-    assert_eq!(check_cfg_arg("bootstrap", None), "--check-cfg=cfg(bootstrap)");
+    assert_eq!(
+        check_cfg_arg("bootstrap", None),
+        "--check-cfg=cfg(bootstrap)"
+    );
     assert_eq!(
         check_cfg_arg("target_arch", Some(&["s360"])),
         "--check-cfg=cfg(target_arch,values(\"s360\"))"
@@ -62,10 +70,15 @@ fn test_check_cfg_arg() {
 
 #[test]
 fn test_program_out_of_date() {
-    let config =
-        Config::parse(Flags::parse(&["check".to_owned(), "--config=/does/not/exist".to_owned()]));
+    let config = Config::parse(Flags::parse(&[
+        "check".to_owned(),
+        "--config=/does/not/exist".to_owned(),
+    ]));
     let tempfile = config.tempdir().join(".tmp-stamp-file");
-    File::create(&tempfile).unwrap().write_all(b"dummy value").unwrap();
+    File::create(&tempfile)
+        .unwrap()
+        .write_all(b"dummy value")
+        .unwrap();
     assert!(tempfile.exists());
 
     // up-to-date
@@ -78,8 +91,10 @@ fn test_program_out_of_date() {
 
 #[test]
 fn test_symlink_dir() {
-    let config =
-        Config::parse(Flags::parse(&["check".to_owned(), "--config=/does/not/exist".to_owned()]));
+    let config = Config::parse(Flags::parse(&[
+        "check".to_owned(),
+        "--config=/does/not/exist".to_owned(),
+    ]));
     let tempdir = config.tempdir().join(".tmp-dir");
     let link_path = config.tempdir().join(".tmp-link");
 
@@ -99,19 +114,26 @@ fn test_symlink_dir() {
 
 #[test]
 fn test_set_file_times_sanity_check() {
-    let config =
-        Config::parse(Flags::parse(&["check".to_owned(), "--config=/does/not/exist".to_owned()]));
+    let config = Config::parse(Flags::parse(&[
+        "check".to_owned(),
+        "--config=/does/not/exist".to_owned(),
+    ]));
     let tempfile = config.tempdir().join(".tmp-file");
 
     {
-        File::create(&tempfile).unwrap().write_all(b"dummy value").unwrap();
+        File::create(&tempfile)
+            .unwrap()
+            .write_all(b"dummy value")
+            .unwrap();
         assert!(tempfile.exists());
     }
 
     // This might only fail on Windows (if file is default read-only then we try to modify file
     // times).
     let unix_epoch = std::time::SystemTime::UNIX_EPOCH;
-    let target_time = fs::FileTimes::new().set_accessed(unix_epoch).set_modified(unix_epoch);
+    let target_time = fs::FileTimes::new()
+        .set_accessed(unix_epoch)
+        .set_modified(unix_epoch);
     set_file_times(&tempfile, target_time).unwrap();
 
     let found_metadata = fs::metadata(tempfile).unwrap();

@@ -1,12 +1,10 @@
-
-use std::path::PathBuf;
-use clap::Parser;
 use crate::args::Args;
+use clap::Parser;
+use std::path::PathBuf;
 //use crate::config_parser::Config;
 use crate::Config;
 use pipeline_traits::read_config;
 pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
-
     let args = Args::parse();
 
     // Determine the project root. If args.path is ".", resolve it to the actual current directory.
@@ -18,7 +16,6 @@ pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     } else {
         PathBuf::from(&args.path)
     };
-
 
     let config = if let Some(config_file_path) = &args.config_file_path {
         Some(read_config(config_file_path, &project_root)?)
