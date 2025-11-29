@@ -136,7 +136,7 @@ pub async fn collect_prelude_info(
             let mut item_consts = Vec::new();
             for declaration in &first_result.declarations {
                 if let DeclarationItem::Const(s) = &declaration.item {
-                    if let Ok(item_const) = syn::parse_str::<ItemConst>(s) {
+                    if let Ok(item_const) = syn::parse_str::<ItemConst>(&s) {
                         item_consts.push(item_const);
                     }
                 }
@@ -157,12 +157,12 @@ pub async fn collect_prelude_info(
 
 
         collected_info_list.push(CollectedPreludeInfo {
-            package_name: package.name.clone(),
+                        package_name: package.name.to_string(),
             manifest_path: package.manifest_path.into_std_path_buf(),
             use_statements: package_use_statements,
             extern_crates: package_extern_crates,
             feature_attributes: package_feature_attributes,
-            crate_name: package.name, // Placeholder
+            crate_name: package.name.to_string(), // Placeholder
             crate_root: package_src_dir.parent().unwrap().to_path_buf().into(), // Placeholder
             prelude_content: String::new(), // Placeholder
             modified_files: Vec::new(), // Placeholder

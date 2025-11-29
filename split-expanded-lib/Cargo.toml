@@ -26,7 +26,6 @@ regex = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 [features]
 cargo_submodule_tool_lib_enabled = ["dep:cargo-submodule-tool-lib"]
-syn_enabled = ["dep:syn"]
 toml_edit_enabled = ["dep:toml_edit"]
 clap_enabled = ["dep:clap"]
 cargo_repo_sync_lib_enabled = ["dep:cargo-repo-sync-lib"]
@@ -34,10 +33,6 @@ git2_enabled = ["dep:git2"]
 hex_enabled = ["dep:hex"]
 cargo_metadata_enabled = ["dep:cargo_metadata"]
 sha1_enabled = ["dep:sha1"]
-anyhow_enabled = ["dep:anyhow"]
 pathdiff_enabled = ["dep:pathdiff"]
-serde_enabled = ["dep:serde"]
-serde_json_enabled = ["dep:serde_json"]
-walkdir_enabled = ["dep:walkdir"]
 git_wrapper_lib_enabled = ["dep:git-wrapper-lib"]
 

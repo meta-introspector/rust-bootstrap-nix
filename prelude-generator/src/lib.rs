@@ -42,6 +42,9 @@ pub mod processor_tests;
 pub mod trait_visitors;
 pub mod conceptual_traits;
 pub mod trait_generator;
+pub mod constant_reporting;
+pub mod types;
+
 pub use args::Args;
 pub use trait_visitors::vernacular_declaration_visitor::VernacularDeclarationVisitor;
 pub use trait_visitors::vernacular_walk::VernacularWalk;
@@ -57,9 +60,13 @@ pub use test_extractor::{collect_all_test_cases, generate_test_report_json, gene
 pub use pipeline_traits::{AstStatistics, VariableInfo, FunctionInfo, ImportInfo};
 pub use ast_decoder::AstTraversalFunctor;
 pub use bag_of_words_visitor::{BagOfWordsVisitor, tokenize_ident_to_subwords};
-pub mod constant_reporting;
-pub mod types;
-pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo};
+pub use types::{FileProcessingResult, FileProcessingStatus, CollectedPreludeInfo, CollectedProjectInfo, CollectedAnalysisData, SplitExpandedBinInputs};
+pub use symbol_map::SymbolMap; // Added
+pub use declaration_processing; // Added
+pub use expression_info; // Added
+pub use enum_lattice_info; // Added
+pub use impl_lattice_info; // Added
+pub use struct_lattice_info; // Added
 pub use split_expanded_lib::{Declaration, ErrorSample, RustcInfo, FileMetadata as SplitExpandedFileMetadata, SerializableDeclaration, PublicSymbol};
 
 pub type PipelineConfig = pipeline_traits::Config;

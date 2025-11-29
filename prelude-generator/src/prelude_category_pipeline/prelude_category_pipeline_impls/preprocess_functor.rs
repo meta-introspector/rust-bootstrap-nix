@@ -9,7 +9,7 @@ use pipeline_traits::{PipelineFunctor, ClassifiedUseStatements, UseStatement};
 
 // PreprocessFunctor
 pub struct PreprocessFunctor;
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineConfig> for PreprocessFunctor {
     fn map<'writer>(
         &'writer self,
@@ -43,6 +43,7 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineC
                             syn_details: None,
                             llvm_details: None,
                             linux_details: None,
+                            rustc_tool_details: None, // Added
                         });
                     } else {
                         new_classified_uses.push(UseStatement {
@@ -55,6 +56,7 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineC
                             syn_details: None,
                             llvm_details: None,
                             linux_details: None,
+                            rustc_tool_details: None, // Added
                         });
                     }
                 } else {
@@ -68,6 +70,7 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineC
                         syn_details: use_statement.syn_details,
                         llvm_details: use_statement.llvm_details,
                         linux_details: use_statement.linux_details,
+                        rustc_tool_details: None, // Added
                     });
                 }
             }

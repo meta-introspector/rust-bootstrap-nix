@@ -24,6 +24,7 @@ pub fn flatten_use_tree(
                 syn_details: None,
                 llvm_details: None,
                 linux_details: None,
+                rustc_tool_details: None, // Added
             });
         }
         UseTree::Rename(rename) => {
@@ -41,6 +42,7 @@ pub fn flatten_use_tree(
                 syn_details: None,
                 llvm_details: None,
                 linux_details: None,
+                rustc_tool_details: None, // Added
             });
         }
         UseTree::Glob(_glob) => {
@@ -59,6 +61,7 @@ pub fn flatten_use_tree(
                 syn_details: None,
                 llvm_details: None,
                 linux_details: None,
+                rustc_tool_details: None, // Added
             });
         }
         UseTree::Group(group) => {

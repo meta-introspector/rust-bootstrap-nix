@@ -5,7 +5,7 @@ use std::boxed::Box;
 
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, ValidatedFile};
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 // AstReconstructionFunctor
 pub struct AstReconstructionFunctor;
 

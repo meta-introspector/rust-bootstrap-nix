@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use crate::measurement;
 use pipeline_traits::{PipelineFunctor, UseStatements, ClassifiedUseStatements, UseStatement};
 use syn;
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 // ClassifyUsesFunctor
 pub struct ClassifyUsesFunctor;
 
@@ -33,6 +33,7 @@ impl PipelineFunctor<UseStatements, ClassifiedUseStatements, PipelineConfig> for
                     syn_details: None,
                     llvm_details: None,
                     linux_details: None,
+rustc_tool_details: None,
                 };
 
                 // Basic heuristic for classification based on use_statement content

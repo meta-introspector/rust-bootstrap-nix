@@ -8,7 +8,7 @@ use syn; // Add this import
 use prettyplease; // Add this import
 
 use pipeline_traits::{PipelineFunctor, RawFile, ParsedFile};
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 // ParseFunctor
 #[allow(dead_code)] // Suppress dead_code warning for ParseFunctor
 pub struct ParseFunctor;

@@ -9,10 +9,11 @@ use pipeline_traits::{PipelineFunctor, ParsedFile, ValidatedFile};
 use indoc::indoc;
 use tempfile::tempdir;
 use super::utils::copy_dir_all;
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
+use crate::args::Args; // Added explicit use
 // HuggingFaceValidatorFunctor
 pub struct HuggingFaceValidatorFunctor {
-    pub args: crate::Args,
+    pub args: Args, // Adjusted
     pub hf_validator_path: Option<PathBuf>,
 }
 

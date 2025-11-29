@@ -5,7 +5,7 @@ use std::future::Future;
 use std::boxed::Box;
 
 use pipeline_traits::PipelineFunctor;
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {
     label: &'a str,

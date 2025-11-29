@@ -85,7 +85,7 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
                 let file_content = fs::read_to_string(&file_path)
                     .context(format!("Failed to read file: {:?}", file_path))?;
                 match syn::parse_file(&file_content) {
-                    Ok(file) => parsed_files.push((file_path.clone(), file)),
+                    Ok(file) => parsed_files.push((file_path.clone().to_path_buf(), file)),
                     Err(e) => {
                         eprintln!("Warning: Could not re-parse file for Pass 2 {}: {}", file_path.display(), e);
                         // Collect this error as well if needed

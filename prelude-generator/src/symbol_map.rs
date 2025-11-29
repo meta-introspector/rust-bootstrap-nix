@@ -27,13 +27,13 @@ impl SymbolMap {
             // For now, a simple heuristic: assume all top-level items in a package belong to that crate.
             // This will need to be refined with actual AST analysis later.
             // We'll just add the crate name itself as a resolved dependency for now.
-            self.map.insert(
-                crate_name.clone(),
+                        self.map.insert(
+                crate_name.to_string(),
                 ResolvedDependency {
-                    id: crate_name.clone(),
+                    id: crate_name.to_string(),
                     dependency_type: "crate".to_string(),
-                    crate_name: crate_name.clone(),
-                    module_path: crate_name.clone(), // Placeholder
+                    crate_name: crate_name.to_string(),
+                    module_path: crate_name.to_string(), // Placeholder
                     usage_count: 0,
                 },
             );

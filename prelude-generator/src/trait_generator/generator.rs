@@ -86,7 +86,7 @@ pub fn generate_traits(
         if let split_expanded_lib::types::DeclarationItem::Struct(item_struct_str) =
             &declaration.item
         {
-            let parsed_item_struct: syn::ItemStruct = syn::parse_str(item_struct_str).context(
+            let parsed_item_struct: syn::ItemStruct = syn::parse_str(&item_struct_str).context(
                 format!("Failed to parse struct string: {}", item_struct_str),
             )?;
 

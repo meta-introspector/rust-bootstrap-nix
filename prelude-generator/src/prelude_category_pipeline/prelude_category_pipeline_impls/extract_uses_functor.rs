@@ -11,7 +11,7 @@ use syn;
 
 // ExtractUsesFunctor
 pub struct ExtractUsesFunctor;
-use crate::PipelineConfig;
+use pipeline_traits::Config as PipelineConfig;
 impl PipelineFunctor<ParsedFile, UseStatements, PipelineConfig> for ExtractUsesFunctor {
     fn map<'writer>(
         &'writer self,
