@@ -5,10 +5,10 @@ use std::collections::HashMap;
 use std::path::Path;
 use tokio::runtime::Builder; // Re-added
 use crate::cli::{CliArgs, LayeredComposeArgs};
-use crate::config::Config;
 use crate::config_lock::{StageLock, StageStatus};
 use crate::stages::Stage;
 use prelude_generator::types::CollectedAnalysisData; // Re-added
+use standalonex::bootstrap::core::config_standalone::Config as CanonicalConfig;
 
 pub struct PreludeInfoCollectionStage;
 
@@ -21,7 +21,7 @@ impl Stage for PreludeInfoCollectionStage {
     fn run( // Make it synchronous
         &self,
         project_root: &Path,
-        config: &Config,
+        config: &CanonicalConfig,
         cli_args: &CliArgs,
         layered_compose_args: &LayeredComposeArgs,
         stage_lock: &mut StageLock,
@@ -34,7 +34,7 @@ impl Stage for PreludeInfoCollectionStage {
 
         println!("Calling prelude-generator::collect_prelude_info to extract constants...");
 
-        let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default();
+        let exclude_paths = config.skip.clone(); // Changed config.paths.exclude_paths to config.skip
 
         let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
             path: project_root.to_path_buf(), // Search the entire project
@@ -62,7 +62,7 @@ impl Stage for PreludeInfoCollectionStage {
         // Call prelude-generator's type_usage_analyzer::analyze_type_usage directly
         println!("Calling prelude-generator::type_usage_analyzer::analyze_type_usage...");
 
-        let generated_decls_root = config.paths.generated_declarations_root.clone();
+        let generated_decls_root = config.out.clone(); // Changed config.paths.generated_declarations_root to config.out
         // Ensure the output directory for generated declarations exists
         let runtime = Builder::new_current_thread()
             .enable_all()
@@ -81,7 +81,7 @@ impl Stage for PreludeInfoCollectionStage {
             // ... (rest of type analysis logic)
         }
 
-        let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // exclude_paths comes from config.paths
+        let exclude_paths = config.skip.clone(); // Changed config.paths.exclude_paths to config.skip
 
         let prelude_generator_args_for_collect_prelude = prelude_generator::Args {
             path: project_root.to_path_buf(), // Search the entire project

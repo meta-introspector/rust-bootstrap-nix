@@ -17,7 +17,7 @@ pub use anyhow::Result;
 pub use clap::Parser;
 //pub use clap::Command;
 pub use crate::args::Args;
-pub use crate::config::AppConfig;
+pub use crate::config::load_canonical_config;
 pub use crate::preconditions;
 pub use crate::utils::compose_path;
 pub use crate::utils::construct_config_content::construct_config_content;

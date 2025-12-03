@@ -1,9 +1,9 @@
-use std::path::Path;
-use split_expanded_lib::{Declaration, RustcInfo};
 use crate::symbol_map::SymbolMap;
-use syn::visit::Visit; // Added
+use crate::trait_visitors::dependency_analysis_visitor::DependencyAnalysisVisitor;
 use anyhow::Context;
-use crate::trait_visitors::dependency_analysis_visitor::DependencyAnalysisVisitor; // Added
+use split_expanded_lib::{Declaration, RustcInfo};
+use std::path::Path;
+use syn::visit::Visit; // Added // Added
 
 pub async fn extract_all_declarations_from_file(
     file_path: &Path,
@@ -22,14 +22,18 @@ pub async fn extract_all_declarations_from_file(
         verbose,
         warnings,
         canonical_output_root,
-    ).await?;
+    )
+    .await?;
 
     // Parse the file content into a syn::File
-    let file_content = tokio::fs::read_to_string(file_path)
-        .await
-        .context(format!("Failed to read file for AST parsing: {}", file_path.display()))?;
-    let syntax_tree = syn::parse_file(&file_content)
-        .context(format!("Failed to parse file as Rust syntax tree for dependency analysis: {}", file_path.display()))?;
+    let file_content = tokio::fs::read_to_string(file_path).await.context(format!(
+        "Failed to read file for AST parsing: {}",
+        file_path.display()
+    ))?;
+    let syntax_tree = syn::parse_file(&file_content).context(format!(
+        "Failed to parse file as Rust syntax tree for dependency analysis: {}",
+        file_path.display()
+    ))?;
 
     // Create an instance of our DependencyAnalysisVisitor
     let mut visitor = DependencyAnalysisVisitor::default();
@@ -39,8 +43,16 @@ pub async fn extract_all_declarations_from_file(
 
     // For now, let's just print the collected dependencies
     if verbose >= 1 {
-        warnings.push(format!("Dependencies collected by visitor for {}: {:?}", file_path.display(), visitor.dependencies));
-        warnings.push(format!("Types used collected by visitor for {}: {:?}", file_path.display(), visitor.types_used));
+        warnings.push(format!(
+            "Dependencies collected by visitor for {}: {:?}",
+            file_path.display(),
+            visitor.dependencies
+        ));
+        warnings.push(format!(
+            "Types used collected by visitor for {}: {:?}",
+            file_path.display(),
+            visitor.types_used
+        ));
     }
 
     let declarations = extraction_result.declarations;

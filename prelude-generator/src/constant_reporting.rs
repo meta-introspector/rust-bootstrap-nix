@@ -1,14 +1,15 @@
 use anyhow::Result;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use syn::{Lit, Type};
 use tokio::fs;
 use walkdir::WalkDir;
-use syn::{Lit, Type};
 
-pub async fn generate_numerical_constants_report(
-    output_dir: &PathBuf,
-) -> Result<()> {
-    println!("  -> Generating numerical constants report from directory: {}", output_dir.display());
+pub async fn generate_numerical_constants_report(output_dir: &PathBuf) -> Result<()> {
+    println!(
+        "  -> Generating numerical constants report from directory: {}",
+        output_dir.display()
+    );
 
     let mut constants_by_type_and_size: HashMap<String, HashMap<String, usize>> = HashMap::new();
 
@@ -26,7 +27,10 @@ pub async fn generate_numerical_constants_report(
                         if let syn::Item::Const(constant) = item {
                             let type_name = get_type_name(&constant.ty);
                             let value_str = get_constant_value_string(&constant.expr);
-                            println!("         Found constant: {} (type: {}, value: {})", constant.ident, type_name, value_str);
+                            println!(
+                                "         Found constant: {} (type: {}, value: {})",
+                                constant.ident, type_name, value_str
+                            );
 
                             if !type_name.is_empty() && !value_str.is_empty() {
                                 *constants_by_type_and_size
@@ -37,7 +41,7 @@ pub async fn generate_numerical_constants_report(
                             }
                         }
                     }
-                },
+                }
                 Err(e) => {
                     eprintln!("       Failed to parse file {}: {}", path.display(), e);
                 }

@@ -11,6 +11,7 @@ use cli::{CliArgs};
 use serde::{Deserialize}; // Added for caching
 use chrono::Utc; // Added for timestamps in ConfigLock
 use sha2::{Sha256, Digest}; // Added for hashing config.toml
+use standalonex::bootstrap::core::config_standalone::Config as CanonicalConfig;
 
 mod cli;
 mod config;
@@ -89,7 +90,7 @@ async fn calculate_file_hash(file_path: &Path) -> anyhow::Result<String> {
 //     }
 // }
 
-pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
+pub async fn run_self_composition_workflow_lib(config: &CanonicalConfig, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -105,7 +106,7 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
     std::fs::create_dir_all(metadata_file.parent().unwrap())?;
 
     // Correct way to handle output redirection for cargo metadata
-    let output = Command::new(&config.rust.cargo)
+    let output = Command::new(&config.initial_cargo)
         .args(&["metadata", "--format-version", "1"])
         .output().await?;
 
@@ -129,16 +130,16 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
         None,    // package_filter
         false,   // dry_run
         false,   // force
-        config.rust.rustc_version.clone(),
-        config.rust.rustc_host.clone(),
+        config.download_rustc_commit.clone().unwrap_or_default(), // rustc_version
+        config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // rustc_host
     ).await?;
 
     // 3. Run split-expanded-bin
     println!("Running split-expanded-bin...");
     let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
     let rustc_info = split_expanded_lib::RustcInfo {
-        version: config.rust.rustc_version.clone(),
-        host: config.rust.rustc_host.clone(),
+        version: config.download_rustc_commit.clone().unwrap_or_default(), // rustc_version
+        host: config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // rustc_host
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
         split_expanded_lib::ProcessExpandedManifestInputs {
@@ -163,7 +164,7 @@ pub async fn run_self_composition_workflow_lib(config: &crate::config::Config, a
 
 use stages::orchestrator::StageOrchestrator; // Import StageOrchestrator
 
-pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
+pub async fn run_layered_composition_workflow_lib(config: &CanonicalConfig, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
     println!("Debug: layered_compose_args.dry_run = {}", layered_compose_args.dry_run);
     println!("Running layered composition workflow...");
     println!("Config: {:?}", config);
@@ -180,8 +181,8 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     println!("-------------------------------------------\n");
 
     let project_root = std::env::current_dir()?; // Get the actual project root
-    let _generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
-    let _exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
+    let _generated_decls_root = config.out.clone(); // Use configurable path
+    let _exclude_paths = config.skip.clone(); // Use configurable exclusion paths
 
     // Define cache directories for intermediate results
     let _cache_dir = project_root.join(".gemini").join("cache").join("layered_compose");
@@ -232,7 +233,7 @@ pub async fn run_layered_composition_workflow_lib(config: &crate::config::Config
     Ok(())
 }
 
-pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
+pub async fn run_standalonex_composition_workflow_lib(config: &CanonicalConfig, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?.join("standalonex");
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -246,7 +247,7 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
     // 1. Run cargo metadata for standalonex
     println!("Collecting full workspace metadata for standalonex using cargo metadata...");
     std::fs::create_dir_all(metadata_file.parent().unwrap())?;
-    let output = Command::new(&config.rust.cargo)
+    let output = Command::new(&config.initial_cargo) // Changed config.rust.cargo to config.initial_cargo
         .args(&["metadata", "--format-version", "1"])
         .current_dir(&project_root) // Run cargo metadata in the standalonex project root
         .output().await?;
@@ -272,16 +273,16 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
         None,    // package_filter
         false,   // dry_run
         false,   // force
-        config.rust.rustc_version.clone(),
-        config.rust.rustc_host.clone(),
+        config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     ).await?;
 
     // 3. Run split-expanded-bin for standalonex
     println!("Running split-expanded-bin for standalonex...");
     let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
     let rustc_info = split_expanded_lib::RustcInfo {
-        version: config.rust.rustc_version.clone(),
-        host: config.rust.rustc_host.clone(),
+        version: config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        host: config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
         split_expanded_lib::ProcessExpandedManifestInputs {
@@ -320,8 +321,8 @@ pub async fn run_standalonex_composition_workflow_lib(config: &crate::config::Co
     Ok(())
 }
 
-pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, args: &CliArgs) -> anyhow::Result<()> {
-    let rustc_project_root = PathBuf::from(&config.rust.rustc_source).join("vendor/rust/rust-bootstrap-nix");
+pub async fn run_rustc_composition_workflow_lib(config: &CanonicalConfig, args: &CliArgs) -> anyhow::Result<()> {
+    let rustc_project_root = config.rustc_source.clone().unwrap_or_default().join("vendor/rust/rust-bootstrap-nix"); // Changed PathBuf::from(&config.rust.rustc_source) to config.rustc_source.clone().unwrap_or_default()
     let metadata_file = rustc_project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = rustc_project_root.join("expanded");
 
@@ -334,7 +335,7 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
     // 1. Run cargo metadata for rustc
     println!("Collecting full workspace metadata for rustc using cargo metadata...");
     std::fs::create_dir_all(metadata_file.parent().unwrap())?;
-    let output = Command::new(&config.rust.cargo)
+    let output = Command::new(&config.initial_cargo) // Changed config.rust.cargo to config.initial_cargo
         .args(&["metadata", "--format-version", "1"])
         .current_dir(&rustc_project_root) // Run cargo metadata in the rustc project root
         .output().await?;
@@ -360,16 +361,16 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
         None,    // package_filter
         false,   // dry_run
         false,   // force
-        config.rust.rustc_version.clone(),
-        config.rust.rustc_host.clone(),
+        config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     ).await?;
 
     // 3. Run split-expanded-bin for rustc
     println!("Running split-expanded-bin for rustc...");
     let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
     let rustc_info = split_expanded_lib::RustcInfo {
-        version: config.rust.rustc_version.clone(),
-        host: config.rust.rustc_host.clone(),
+        version: config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        host: config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
         split_expanded_lib::ProcessExpandedManifestInputs {
@@ -391,7 +392,8 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
     let organize_inputs = layered_crate_organizer::OrganizeLayeredDeclarationsInputs {
         project_root: &rustc_project_root,
         verbosity: args.verbosity,
-                    compile_flag: args.compile,        canonical_output_root: &canonical_output_root,
+        compile_flag: args.compile,
+        canonical_output_root: &canonical_output_root,
         top_level_cargo_toml_path: &top_level_cargo_toml_path,
         collected_analysis_data: CollectedAnalysisData::default(),
         code_graph: CodeGraph::default(),
@@ -402,7 +404,7 @@ pub async fn run_rustc_composition_workflow_lib(config: &crate::config::Config, 
 
     // 5. Generate system.toml
     println!("Generating system.toml after rustc composition...");
-    run_update_system_toml_workflow_lib(config, Some(warnings_from_split_expanded_lib)).await?;
+    run_update_system_toml_workflow_lib(config, Some(warnings_from_split_expanded_lib)).await?; // config is already CanonicalConfig
 
     Ok(())
 }

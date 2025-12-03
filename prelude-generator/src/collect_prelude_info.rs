@@ -1,20 +1,19 @@
-
-use std::path::{Path, PathBuf};
-use std::collections::HashSet;
-use std::fs;
-use anyhow::{Context, Result};
-use crate::types::CollectedPreludeInfo;
-use crate::use_extractor::get_rustc_info;
-use cargo_metadata::{MetadataCommand};
-use walkdir::WalkDir;
-use crate::declaration_processing::extract_all_declarations_from_file;
-use split_expanded_lib::RustcInfo as SplitExpandedRustcInfo; // Alias to avoid name collision
-use crate::trait_generator::generator::generate_traits;
-use crate::trait_generator::writer::write_trait_to_file;
 use crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure;
 use crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure;
+use crate::declaration_processing::extract_all_declarations_from_file;
+use crate::trait_generator::generator::generate_traits;
+use crate::trait_generator::writer::write_trait_to_file;
+use crate::types::CollectedPreludeInfo;
+use crate::use_extractor::get_rustc_info;
+use anyhow::{Context, Result};
+use cargo_metadata::MetadataCommand;
 use split_expanded_lib::types::DeclarationItem;
+use split_expanded_lib::RustcInfo as SplitExpandedRustcInfo; // Alias to avoid name collision
+use std::collections::HashSet;
+use std::fs;
+use std::path::{Path, PathBuf};
 use syn::ItemConst;
+use walkdir::WalkDir;
 
 // Helper function to canonicalize a single PathBuf
 fn canonicalize_path_buf(path: &Path) -> Result<PathBuf> {
@@ -43,7 +42,10 @@ pub async fn collect_prelude_info(
     workspace_path: &Path,
     args: &crate::Args, // Add args here
 ) -> Result<Vec<CollectedPreludeInfo>> {
-    println!("Debug: collect_prelude_info received dry_run = {}", args.dry_run);
+    println!(
+        "Debug: collect_prelude_info received dry_run = {}",
+        args.dry_run
+    );
     // Canonicalize workspace_path
     let canonical_workspace_path = canonicalize_path_buf(workspace_path)?;
 
@@ -64,7 +66,8 @@ pub async fn collect_prelude_info(
     let mut collected_info_list = Vec::new();
 
     // Canonicalize exclude paths once
-    let canonical_exclude_paths = canonicalize_exclude_paths(&args.exclude_paths, &canonical_workspace_path)?;
+    let canonical_exclude_paths =
+        canonicalize_exclude_paths(&args.exclude_paths, &canonical_workspace_path)?;
 
     for package in metadata.packages {
         let mut package_use_statements = HashSet::new();
@@ -73,7 +76,9 @@ pub async fn collect_prelude_info(
 
         let package_src_dir = package.manifest_path.parent().unwrap().join("src");
 
-        let mut all_declarations_extraction_results: Vec<crate::types::AllDeclarationsExtractionResult> = Vec::new();
+        let mut all_declarations_extraction_results: Vec<
+            crate::types::AllDeclarationsExtractionResult,
+        > = Vec::new();
 
         if package_src_dir.exists() && package_src_dir.is_dir() {
             for entry in WalkDir::new(&package_src_dir)
@@ -81,16 +86,18 @@ pub async fn collect_prelude_info(
                 .filter_entry(|e| {
                     // Canonicalize entry path for comparison
                     if let Ok(canonical_entry_path) = canonicalize_path_buf(e.path()) {
-                        !canonical_exclude_paths.iter().any(|exclude_path| {
-                            canonical_entry_path.starts_with(exclude_path)
-                        })
+                        !canonical_exclude_paths
+                            .iter()
+                            .any(|exclude_path| canonical_entry_path.starts_with(exclude_path))
                     } else {
                         // If canonicalization fails, treat as not excluded (or handle error)
                         true
                     }
                 })
                 .filter_map(|e| e.ok())
-                .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"))
+                .filter(|e| {
+                    e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs")
+                })
             {
                 let file_path = entry.path();
                 // Assuming a default verbosity and canonical_output_root for now
@@ -100,13 +107,14 @@ pub async fn collect_prelude_info(
                 let extraction_result = extract_all_declarations_from_file(
                     file_path,
                     &Path::new("."), // Placeholder for output_dir
-                    false, // Placeholder for dry_run
+                    false,           // Placeholder for dry_run
                     verbose,
                     &split_expanded_rustc_info, // Use the aliased RustcInfo
                     &package.name,
                     &mut Vec::new(), // Placeholder for warnings
                     canonical_output_root,
-                ).await?;
+                )
+                .await?;
 
                 package_use_statements.extend(extraction_result.file_metadata.global_uses.clone());
                 package_extern_crates.extend(extraction_result.file_metadata.extern_crates.clone());
@@ -120,7 +128,10 @@ pub async fn collect_prelude_info(
         // For now, we'll just pass the first extraction result as a placeholder
         if let Some(first_result) = all_declarations_extraction_results.first() {
             let generated_traits = generate_traits(first_result)?;
-            println!("Generated traits for package {}: {:?}", package.name, generated_traits);
+            println!(
+                "Generated traits for package {}: {:?}",
+                package.name, generated_traits
+            );
 
             // Determine output directory for generated traits
             let generated_traits_output_dir = canonical_workspace_path.join("generated_traits");
@@ -143,31 +154,40 @@ pub async fn collect_prelude_info(
             }
 
             if !item_consts.is_empty() {
-                let numerical_constants_output_dir = canonical_workspace_path.join("generated_numerical_constants");
+                let numerical_constants_output_dir =
+                    canonical_workspace_path.join("generated_numerical_constants");
                 fs::create_dir_all(&numerical_constants_output_dir)
                     .context("Failed to create generated_numerical_constants output directory")?;
-                write_numerical_constants_to_hierarchical_structure(&item_consts, &numerical_constants_output_dir).await?;
+                write_numerical_constants_to_hierarchical_structure(
+                    &item_consts,
+                    &numerical_constants_output_dir,
+                )
+                .await?;
 
-                let string_constants_output_dir = canonical_workspace_path.join("generated_string_constants");
+                let string_constants_output_dir =
+                    canonical_workspace_path.join("generated_string_constants");
                 fs::create_dir_all(&string_constants_output_dir)
                     .context("Failed to create generated_string_constants output directory")?;
-                write_string_constants_to_hierarchical_structure(&item_consts, &string_constants_output_dir).await?;
+                write_string_constants_to_hierarchical_structure(
+                    &item_consts,
+                    &string_constants_output_dir,
+                )
+                .await?;
             }
         }
 
-
         collected_info_list.push(CollectedPreludeInfo {
-                        package_name: package.name.to_string(),
+            package_name: package.name.to_string(),
             manifest_path: package.manifest_path.into_std_path_buf(),
             use_statements: package_use_statements,
             extern_crates: package_extern_crates,
             feature_attributes: package_feature_attributes,
             crate_name: package.name.to_string(), // Placeholder
             crate_root: package_src_dir.parent().unwrap().to_path_buf().into(), // Placeholder
-            prelude_content: String::new(), // Placeholder
-            modified_files: Vec::new(), // Placeholder
-            crate_root_modified: false, // Placeholder
-            file_processing_results: Vec::new(), // Placeholder
+            prelude_content: String::new(),       // Placeholder
+            modified_files: Vec::new(),           // Placeholder
+            crate_root_modified: false,           // Placeholder
+            file_processing_results: Vec::new(),  // Placeholder
         });
     }
 

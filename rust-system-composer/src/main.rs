@@ -13,6 +13,7 @@ use cli::{CliArgs, Commands};
 
 mod config;
 use config::Config;
+use standalonex::bootstrap::core::config_standalone::Config as CanonicalConfig;
 
 mod layered_crate_organizer;
 mod system_config;
@@ -30,30 +31,33 @@ async fn main() -> anyhow::Result<()> {
     )
         .context(format!("Failed to load configuration from {}", args.config_file.as_ref().unwrap().display()))?;
 
+    // Convert to CanonicalConfig
+    let canonical_config = config.to_canonical_config();
+
     match &args.command {
         Commands::SelfCompose {} => {
             println!("Running self-composition workflow...");
-            run_self_composition_workflow(&config, &args).await?;
+            run_self_composition_workflow(&canonical_config, &args).await?;
         }
         Commands::RustcCompose {} => {
             println!("Running rustc composition workflow...");
-            run_rustc_composition_workflow(&config, &args).await?;
+            run_rustc_composition_workflow(&canonical_config, &args).await?;
         }
         Commands::StandaloneXCompose {} => {
             println!("Running standalonex composition workflow...");
-            run_standalonex_composition_workflow(&config, &args).await?;
+            run_standalonex_composition_workflow(&canonical_config, &args).await?;
         }
         Commands::UpdateSystemToml {} => {
             println!("Updating system.toml with project configuration...");
-            run_update_system_toml_workflow(&config, None).await?;
+            run_update_system_toml_workflow(&canonical_config, None).await?;
         }
         Commands::Vendorize {} => {
             println!("Running vendorization workflow...");
-            run_vendorize_workflow(&config, &args).await?;
+            run_vendorize_workflow(&canonical_config, &args).await?;
         }
         Commands::LayeredCompose(layered_compose_args) => {
             println!("Running layered composition workflow...");
-            run_layered_composition_workflow(&config, &args, layered_compose_args).await?;
+            run_layered_composition_workflow(&canonical_config, &args, layered_compose_args).await?;
         }
         Commands::CommandReport { .. } => {
             println!("Command report workflow not yet implemented.");
@@ -65,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<String>>) -> anyhow::Result<()> {
+async fn run_update_system_toml_workflow(config: &CanonicalConfig, warnings: Option<Vec<String>>) -> anyhow::Result<()> {
     use tokio::fs;
 
     let args = CliArgs::parse(); // Re-parse args to get generated_declarations_root
@@ -110,7 +114,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     let generated_declarations_root = if let Some(ref path) = args.generated_declarations_root {
         path.clone()
     } else {
-        config.paths.generated_declarations_root.clone()
+        config.out.clone() // Use config.out for generated_declarations_root
     };
 
     // Collect generated projects
@@ -174,7 +178,7 @@ async fn run_update_system_toml_workflow(config: &Config, warnings: Option<Vec<S
     Ok(())
 }
 
-async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
+async fn run_self_composition_workflow(config: &CanonicalConfig, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?;
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -190,7 +194,7 @@ async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyho
     std::fs::create_dir_all(metadata_file.parent().unwrap())?;
 
     // Correct way to handle output redirection for cargo metadata
-    let output = Command::new(&config.rust.cargo)
+    let output = Command::new(&config.initial_cargo)
         .args(&["metadata", "--format-version", "1"])
         .output().await?;
 
@@ -214,16 +218,16 @@ async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyho
         None,    // package_filter
         false,   // dry_run
         false,   // force
-        config.rust.rustc_version.clone(),
-        config.rust.rustc_host.clone(),
+        config.download_rustc_commit.clone().unwrap_or_default(), // rustc_version
+        config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // rustc_host
     ).await?;
 
     // 3. Run split-expanded-bin
     println!("Running split-expanded-bin...");
     let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
     let rustc_info = split_expanded_lib::RustcInfo {
-        version: config.rust.rustc_version.clone(),
-        host: config.rust.rustc_host.clone(),
+        version: config.download_rustc_commit.clone().unwrap_or_default(), // rustc_version
+        host: config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // rustc_host
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
         split_expanded_lib::ProcessExpandedManifestInputs {
@@ -246,14 +250,14 @@ async fn run_self_composition_workflow(config: &Config, args: &CliArgs) -> anyho
     Ok(())
 }
 
-async fn run_layered_composition_workflow(config: &Config, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
+async fn run_layered_composition_workflow(config: &CanonicalConfig, args: &CliArgs, layered_compose_args: &cli::LayeredComposeArgs) -> anyhow::Result<()> {
     println!("Running layered composition workflow...");
     println!("Config: {:?}", config);
     println!("Args: {:?}", args);
 
     let project_root = std::env::current_dir()?; // Get the actual project root
-    let generated_decls_root = config.paths.generated_declarations_root.clone(); // Use configurable path
-    let exclude_paths = config.paths.exclude_paths.clone().unwrap_or_default(); // Use configurable exclusion paths
+    let generated_decls_root = config.out.clone(); // Use configurable path
+    let exclude_paths = config.skip.clone(); // Use configurable exclusion paths
 
     // Call prelude-generator's collect_prelude_info to extract constants...
     println!("Calling prelude-generator::collect_prelude_info to extract constants...");
@@ -325,8 +329,8 @@ async fn run_layered_composition_workflow(config: &Config, args: &CliArgs, layer
 
     // Determine CodeGraph output path and serialize
     let code_graph_output_path = layered_compose_args.code_graph_output_path.clone().unwrap_or_else(|| {
-        println!("No --code-graph-output-path provided, using default from config: {}", config.paths.code_graph_output_path.display());
-        config.paths.code_graph_output_path.clone()
+        println!("No --code-graph-output-path provided, using default from config: {}", config.command_report_output_path.display()); // Changed to config.command_report_output_path
+        config.command_report_output_path.clone() // Changed to config.command_report_output_path
     });
 
     // Use the absolute path for the code-graph-query-tool
@@ -344,8 +348,8 @@ async fn run_layered_composition_workflow(config: &Config, args: &CliArgs, layer
 
     // If a command report output path is provided, call the code-graph-query-tool
     let command_report_output_path = layered_compose_args.command_report_output_path.clone().unwrap_or_else(|| {
-        println!("No --command-report-output-path provided, using default from config: {}", config.paths.command_report_output_path.display());
-        config.paths.command_report_output_path.clone()
+        println!("No --command-report-output-path provided, using default from config: {}", config.command_report_output_path.display());
+        config.command_report_output_path.clone()
     });
 
     // Use the absolute path for the code-graph-query-tool
@@ -408,7 +412,7 @@ async fn run_layered_composition_workflow(config: &Config, args: &CliArgs, layer
     Ok(())
 }
 
-async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -> anyhow::Result<()> {
+async fn run_standalonex_composition_workflow(config: &CanonicalConfig, args: &CliArgs) -> anyhow::Result<()> {
     let project_root = std::env::current_dir()?.join("standalonex");
     let metadata_file = project_root.join("rust-bootstrap-core/full_metadata.json");
     let expanded_dir = project_root.join("expanded");
@@ -422,7 +426,7 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -
     // 1. Run cargo metadata for standalonex
     println!("Collecting full workspace metadata for standalonex using cargo metadata...");
     std::fs::create_dir_all(metadata_file.parent().unwrap())?;
-    let output = Command::new(&config.rust.cargo)
+    let output = Command::new(&config.initial_cargo) // Changed config.rust.cargo to config.initial_cargo
         .args(&["metadata", "--format-version", "1"])
         .current_dir(&project_root) // Run cargo metadata in the standalonex project root
         .output().await?;
@@ -448,16 +452,16 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -
         None,    // package_filter
         false,   // dry_run
         false,   // force
-        config.rust.rustc_version.clone(),
-        config.rust.rustc_host.clone(),
+        config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     ).await?;
 
     // 3. Run split-expanded-bin for standalonex
     println!("Running split-expanded-bin for standalonex...");
     let expanded_manifest_path = expanded_dir.join("expanded_manifest.json");
     let rustc_info = split_expanded_lib::RustcInfo {
-        version: config.rust.rustc_version.clone(),
-        host: config.rust.rustc_host.clone(),
+        version: config.download_rustc_commit.clone().unwrap_or_default(), // Changed config.rust.rustc_version
+        host: config.hosts.get(0).map_or("".to_string(), |t| t.to_string()), // Changed config.rust.rustc_host
     };
     let warnings_from_split_expanded_lib = split_expanded_lib::process_expanded_manifest(
         split_expanded_lib::ProcessExpandedManifestInputs {
@@ -491,7 +495,7 @@ async fn run_standalonex_composition_workflow(config: &Config, args: &CliArgs) -
 
     // 5. Generate system.toml
     println!("Generating system.toml after standalonex composition...");
-    run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?;
+    run_update_system_toml_workflow(config, Some(warnings_from_split_expanded_lib)).await?; // config is already CanonicalConfig
 
     Ok(())
 }

@@ -1,15 +1,19 @@
 use anyhow::{Context, Result};
+use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::future::Future;
 
-use syn::{self, visit::{self, Visit}, Item, Visibility};
 use quote::quote;
+use syn::{
+    self,
+    visit::{self, Visit},
+    Item, Visibility,
+};
 
 // Removed: use crate::measurement; as it's no longer in the same crate
-use pipeline_traits::{PipelineFunctor, ParsedFile};
-use pipeline_traits::{AstStatistics, VariableInfo, FunctionInfo};
-use pipeline_traits::Config; // Added this line
+use pipeline_traits::Config;
+use pipeline_traits::{AstStatistics, FunctionInfo, VariableInfo};
+use pipeline_traits::{ParsedFile, PipelineFunctor}; // Added this line
 
 /// Helper struct to traverse the AST and collect statistics
 struct AstVisitor {
@@ -27,11 +31,15 @@ impl AstVisitor {
     }
 
     fn increment_node_type_count(&mut self, node_type: &str) {
-        *self.stats.node_type_counts.entry(node_type.to_string()).or_insert(0) += 1;
+        *self
+            .stats
+            .node_type_counts
+            .entry(node_type.to_string())
+            .or_insert(0) += 1;
     }
 }
 
-impl <'ast> Visit<'ast> for AstVisitor {
+impl<'ast> Visit<'ast> for AstVisitor {
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
         self.increment_node_type_count("function");
 
@@ -50,7 +58,7 @@ impl <'ast> Visit<'ast> for AstVisitor {
 
         let visibility_str = match &i.vis {
             Visibility::Public(_) => "public".to_string(),
-            Visibility::Restricted(r) => format!("restricted({})", quote!{#r.path}.to_string()),
+            Visibility::Restricted(r) => format!("restricted({})", quote! {#r.path}.to_string()),
             Visibility::Inherited => "private".to_string(),
             //_ => "unknown".to_string(), // Catch-all for any other variants
         };
@@ -143,11 +151,14 @@ impl PipelineFunctor<ParsedFile, AstStatistics, Config> for AstTraversalFunctor 
             let ParsedFile(parsed_code, file_path) = input;
 
             let stats = tokio::task::spawn_blocking(move || -> anyhow::Result<AstStatistics> {
-                let ast = syn::parse_file(&parsed_code).context("Failed to parse code into AST for traversal")?;
+                let ast = syn::parse_file(&parsed_code)
+                    .context("Failed to parse code into AST for traversal")?;
                 let mut visitor = AstVisitor::new(file_path);
                 syn::visit::visit_file(&mut visitor, &ast);
                 Ok(visitor.stats)
-            }).await.context("Blocking task for AST parsing failed")??;
+            })
+            .await
+            .context("Blocking task for AST parsing failed")??;
 
             // Removed: measurement::record_function_exit("AstTraversalFunctor::map");
             Ok(stats)

@@ -1,12 +1,12 @@
+use crate::args::Args;
+use crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure;
+use crate::pipeline;
 use crate::type_extractor;
 use crate::BagOfWordsVisitor;
-use pipeline_traits::Config; // Use Config from pipeline_traits
 use anyhow::{Context, Result};
-use std::path::{PathBuf, Path};
+use pipeline_traits::Config; // Use Config from pipeline_traits
+use std::path::{Path, PathBuf};
 use syn::visit::Visit;
-use crate::args::Args;
-use crate::pipeline;
-use crate::constant_storage::numerical_constants::write_numerical_constants_to_hierarchical_structure;
 //use pipeline_traits::PipelineConfig; // Added this line
 //use crate::PipelineConfig; // Added this line
 pub mod decl_splitter_handler;
@@ -31,26 +31,38 @@ pub async fn handle_commit_task(_args: &Args, task_id: &str) -> Result<()> {
 }
 
 pub fn handle_analyze_ast(_args: &crate::Args) -> anyhow::Result<()> {
-    let path = _args.ast_analysis_path.clone().ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;
+    let path = _args
+        .ast_analysis_path
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("ast_analysis_path is required when analyze_ast is true"))?;
     println!("Analyzing AST for project: {}", path.display());
     Ok(())
 }
 
 pub fn handle_generate_test_report(_args: &crate::Args) -> anyhow::Result<()> {
-    let _output_file = _args.test_report_output_file.clone().unwrap_or_else(|| PathBuf::from("test_report.json"));
+    let _output_file = _args
+        .test_report_output_file
+        .clone()
+        .unwrap_or_else(|| PathBuf::from("test_report.json"));
     // TODO: Implement generate_test_report_json(&_args.path)?;
     Ok(())
 }
 
 pub fn handle_compile_tests(_args: &crate::Args) -> anyhow::Result<()> {
-    let _input_file = _args.test_report_input_file.clone().ok_or_else(|| anyhow::anyhow!("test_report_input_file is required when compile_tests is true"))?;
-    let _output_dir = _args.test_verification_output_dir.clone().ok_or_else(|| anyhow::anyhow!("test_verification_output_dir is required when compile_tests is true"))?;
+    let _input_file = _args.test_report_input_file.clone().ok_or_else(|| {
+        anyhow::anyhow!("test_report_input_file is required when compile_tests is true")
+    })?;
+    let _output_dir = _args.test_verification_output_dir.clone().ok_or_else(|| {
+        anyhow::anyhow!("test_verification_output_dir is required when compile_tests is true")
+    })?;
     // TODO: Implement generate_test_verification_script_and_report(&_input_file)?;
     Ok(())
 }
 
 pub fn handle_extract_use_statements(_args: &crate::Args) -> anyhow::Result<()> {
-    let output_dir = _args.use_statements_output_dir.clone().ok_or_else(|| anyhow::anyhow!("use_statements_output_dir is required when extract_use_statements is true"))?;
+    let output_dir = _args.use_statements_output_dir.clone().ok_or_else(|| {
+        anyhow::anyhow!("use_statements_output_dir is required when extract_use_statements is true")
+    })?;
     // TODO: Implement actual use statement extraction logic here
     println!("Extracting use statements to: {}", output_dir.display());
     Ok(())
@@ -78,7 +90,8 @@ pub async fn handle_run_pipeline(args: &crate::Args, config: &Config) -> anyhow:
         &dummy_path,
         &args,
         &Some(config.clone()),
-    ).await?;
+    )
+    .await?;
     Ok(())
 }
 
@@ -101,8 +114,13 @@ pub async fn handle_extract_global_level0_decls(
     warnings: &mut Vec<String>,
     canonical_output_root: &Path,
 ) -> anyhow::Result<()> {
-    let output_dir = args.generated_decls_output_dir.clone().ok_or_else(|| anyhow::anyhow!("generated_decls_output_dir is required"))?;
-    tokio::fs::create_dir_all(&output_dir).await.context("Failed to create output directory")?;
+    let output_dir = args
+        .generated_decls_output_dir
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("generated_decls_output_dir is required"))?;
+    tokio::fs::create_dir_all(&output_dir)
+        .await
+        .context("Failed to create output directory")?;
 
     let mut all_public_symbols: Vec<split_expanded_lib::PublicSymbol> = Vec::new();
     let mut all_collected_errors: Vec<split_expanded_lib::ErrorSample> = Vec::new();
@@ -115,25 +133,30 @@ pub async fn handle_extract_global_level0_decls(
     let walker = walkdir::WalkDir::new(project_root)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs"));
+        .filter(|e| {
+            e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == "rs")
+        });
 
     for entry in walker {
         let file_path = entry.path().to_path_buf();
 
-
         let should_process_file = args.filter_names.as_ref().map_or(true, |filter_names| {
-            filter_names.iter().any(|f| file_path.to_string_lossy().contains(f))
+            filter_names
+                .iter()
+                .any(|f| file_path.to_string_lossy().contains(f))
         });
 
         if should_process_file {
-            let extraction_result = split_expanded_lib::processing::extract_declarations_from_single_file(
-                &file_path,
-                &rustc_info_for_split_expanded_lib,
-                &crate_name,
-                args.verbose,
-                warnings,
-                canonical_output_root,
-            ).await?;
+            let extraction_result =
+                split_expanded_lib::processing::extract_declarations_from_single_file(
+                    &file_path,
+                    &rustc_info_for_split_expanded_lib,
+                    &crate_name,
+                    args.verbose,
+                    warnings,
+                    canonical_output_root,
+                )
+                .await?;
 
             let declarations = extraction_result.declarations;
             let errors = extraction_result.errors;
@@ -152,8 +175,8 @@ pub async fn handle_extract_global_level0_decls(
                                 all_string_constants.push(item_const);
                             }
                         }
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
         }
@@ -163,34 +186,69 @@ pub async fn handle_extract_global_level0_decls(
     let public_symbols_output_path = output_dir.join("public_symbols.json");
     let json_content = serde_json::to_string_pretty(&all_public_symbols)
         .context("Failed to serialize public symbols to JSON")?;
-    tokio::fs::write(&public_symbols_output_path, json_content).await
-        .context(format!("Failed to write public symbols to file: {:?}", public_symbols_output_path))?;
+    tokio::fs::write(&public_symbols_output_path, json_content)
+        .await
+        .context(format!(
+            "Failed to write public symbols to file: {:?}",
+            public_symbols_output_path
+        ))?;
 
-    println!("Extracted {} public symbols to {:?}", all_public_symbols.len(), public_symbols_output_path);
+    println!(
+        "Extracted {} public symbols to {:?}",
+        all_public_symbols.len(),
+        public_symbols_output_path
+    );
 
     // Handle errors if any
     if !all_collected_errors.is_empty() {
         let error_output_path = output_dir.join("errors.json");
         let error_json_content = serde_json::to_string_pretty(&all_collected_errors)
             .context("Failed to serialize errors to JSON")?;
-        tokio::fs::write(&error_output_path, error_json_content).await
-            .context(format!("Failed to write errors to file: {:?}", error_output_path))?;
-        eprintln!("{} errors collected during declaration extraction. See {:?}", all_collected_errors.len(), error_output_path);
+        tokio::fs::write(&error_output_path, error_json_content)
+            .await
+            .context(format!(
+                "Failed to write errors to file: {:?}",
+                error_output_path
+            ))?;
+        eprintln!(
+            "{} errors collected during declaration extraction. See {:?}",
+            all_collected_errors.len(),
+            error_output_path
+        );
     }
 
     Ok(())
 }
 
-pub async fn handle_extract_numerical_constants(    _project_root: &PathBuf,
+pub async fn handle_extract_numerical_constants(
+    _project_root: &PathBuf,
     _args: &crate::Args,
     all_numerical_constants: &Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {
-    let numerical_output_dir = _args.generated_decls_output_dir.clone().unwrap().join("numerical_constants");
-    tokio::fs::create_dir_all(&numerical_output_dir).await
-        .context(format!("Failed to create output directory {:?}", numerical_output_dir))?;
-    write_numerical_constants_to_hierarchical_structure(&all_numerical_constants, &numerical_output_dir).await?;
-    println!(r"  -> Numerical constants will be written to: {:?}", numerical_output_dir);
-    println!(r"  -> Total numerical constants extracted: {}", all_numerical_constants.len());
+    let numerical_output_dir = _args
+        .generated_decls_output_dir
+        .clone()
+        .unwrap()
+        .join("numerical_constants");
+    tokio::fs::create_dir_all(&numerical_output_dir)
+        .await
+        .context(format!(
+            "Failed to create output directory {:?}",
+            numerical_output_dir
+        ))?;
+    write_numerical_constants_to_hierarchical_structure(
+        &all_numerical_constants,
+        &numerical_output_dir,
+    )
+    .await?;
+    println!(
+        r"  -> Numerical constants will be written to: {:?}",
+        numerical_output_dir
+    );
+    println!(
+        r"  -> Total numerical constants extracted: {}",
+        all_numerical_constants.len()
+    );
     Ok(())
 }
 
@@ -199,12 +257,30 @@ pub async fn handle_extract_string_constants(
     _args: &crate::Args,
     all_string_constants: &Vec<syn::ItemConst>,
 ) -> anyhow::Result<()> {
-    let string_output_dir = _args.generated_decls_output_dir.clone().unwrap().join("string_constants");
-    tokio::fs::create_dir_all(&string_output_dir).await
-        .context(format!("Failed to create output directory {:?}", string_output_dir))?;
-    crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure(&all_string_constants, &string_output_dir).await?;
-    println!(r"  -> String constants will be written to: {:?}", string_output_dir);
-    println!(r"  -> Total string constants extracted: {}", all_string_constants.len());
+    let string_output_dir = _args
+        .generated_decls_output_dir
+        .clone()
+        .unwrap()
+        .join("string_constants");
+    tokio::fs::create_dir_all(&string_output_dir)
+        .await
+        .context(format!(
+            "Failed to create output directory {:?}",
+            string_output_dir
+        ))?;
+    crate::constant_storage::string_constants::write_string_constants_to_hierarchical_structure(
+        &all_string_constants,
+        &string_output_dir,
+    )
+    .await?;
+    println!(
+        r"  -> String constants will be written to: {:?}",
+        string_output_dir
+    );
+    println!(
+        r"  -> Total string constants extracted: {}",
+        all_string_constants.len()
+    );
     Ok(())
 }
 
@@ -225,7 +301,9 @@ pub fn handle_analyze_bag_of_words(
     for entry in walkdir::WalkDir::new(&project_root)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == r"rs"))
+        .filter(|e| {
+            e.file_type().is_file() && e.path().extension().map_or(false, |ext| ext == r"rs")
+        })
     {
         let path = entry.path();
         if let Ok(content) = std::fs::read_to_string(&path) {
@@ -233,17 +311,27 @@ pub fn handle_analyze_bag_of_words(
                 bag_of_words_visitor.visit_file(&file);
                 files_processed_for_bow += 1;
             } else {
-                eprintln!(r"Warning: Could not parse file for bag of words analysis: {}", path.display());
+                eprintln!(
+                    r"Warning: Could not parse file for bag of words analysis: {}",
+                    path.display()
+                );
             }
         } else {
-            eprintln!(r"Warning: Could not read file for bag of words analysis: {}", path.display());
+            eprintln!(
+                r"Warning: Could not read file for bag of words analysis: {}",
+                path.display()
+            );
         }
     }
 
-    println!(r"Processed {} files for bag of words analysis.", files_processed_for_bow);
+    println!(
+        r"Processed {} files for bag of words analysis.",
+        files_processed_for_bow
+    );
     println!(r"Top 20 most common terms:");
 
-    let mut sorted_terms: Vec<(&String, &usize)> = bag_of_words_visitor.bag_of_words.iter().collect();
+    let mut sorted_terms: Vec<(&String, &usize)> =
+        bag_of_words_visitor.bag_of_words.iter().collect();
     sorted_terms.sort_by(|a, b| b.1.cmp(a.1));
 
     for (term, count) in sorted_terms.iter().take(20) {
@@ -252,7 +340,10 @@ pub fn handle_analyze_bag_of_words(
     Ok(())
 }
 
-pub async fn handle_calculate_layers(project_root: &PathBuf, args: &crate::Args) -> anyhow::Result<()> {
+pub async fn handle_calculate_layers(
+    project_root: &PathBuf,
+    args: &crate::Args,
+) -> anyhow::Result<()> {
     println!("Calculating type layers...");
     let type_map = type_extractor::extract_bag_of_types(project_root, &args.filter_names).await?;
 

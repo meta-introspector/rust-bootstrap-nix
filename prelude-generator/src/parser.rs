@@ -1,14 +1,14 @@
 use anyhow::{Context, Result};
+use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::future::Future;
 
 use crate::measurement;
-use syn; // Add this import
-use prettyplease; // Add this import
+use prettyplease;
+use syn; // Add this import // Add this import
 
-use pipeline_traits::{PipelineFunctor, RawFile, ParsedFile};
 use pipeline_traits::Config as PipelineConfig;
+use pipeline_traits::{ParsedFile, PipelineFunctor, RawFile};
 // ParseFunctor
 #[allow(dead_code)] // Suppress dead_code warning for ParseFunctor
 pub struct ParseFunctor;
@@ -32,7 +32,9 @@ impl PipelineFunctor<RawFile, ParsedFile, PipelineConfig> for ParseFunctor {
                     }
                 };
                 Ok(prettyplease::unparse(&ast))
-            }).await.context("Blocking task for parsing failed")??;
+            })
+            .await
+            .context("Blocking task for parsing failed")??;
 
             measurement::record_function_exit("ParseFunctor::map");
             Ok(ParsedFile(parsed_code, file_path))

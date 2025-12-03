@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
-use std::pin::Pin;
-use std::future::Future;
 use std::boxed::Box;
+use std::future::Future;
+use std::pin::Pin;
 
-use crate::measurement;
 use crate::code_generator;
-use pipeline_traits::{PipelineFunctor, ParsedFile, UseStatements};
+use crate::measurement;
+use pipeline_traits::{ParsedFile, PipelineFunctor, UseStatements};
 
 use syn;
 
@@ -33,7 +33,9 @@ impl PipelineFunctor<ParsedFile, UseStatements, PipelineConfig> for ExtractUsesF
                     }
                 }
                 Ok(UseStatements(use_statements))
-            }).await.context("Blocking task for extracting use statements failed")??;
+            })
+            .await
+            .context("Blocking task for extracting use statements failed")??;
 
             measurement::record_function_exit("ExtractUsesFunctor::map");
             Ok(use_statements)

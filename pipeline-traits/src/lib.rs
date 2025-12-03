@@ -7,17 +7,17 @@ use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
 
-pub mod use_statement_types;
 pub mod rustc_tool_trait;
 pub mod rustc_tools;
+pub mod use_statement_types;
+pub use rustc_tool_trait::RustcToolTrait;
+pub use rustc_tools::{command_rustc_tool::CommandRustcTool, dummy_rustc_tool::DummyRustcTool};
 pub use use_statement_types::{
     CargoDetails, CargoInfo, CargoInfoTrait, GitDetails, GitInfo, GitInfoTrait, LinuxDetails,
     LinuxInfo, LinuxInfoTrait, LlvmDetails, LlvmInfo, LlvmInfoTrait, NixDetails, NixInfo,
-    NixInfoTrait, RustDetails, RustDetailsInfo, RustDetailsInfoTrait, SynDetails, SynInfo,
-    SynInfoTrait, RustcToolDetails, RustcToolInfo, RustcToolInfoTrait,
+    NixInfoTrait, RustDetails, RustDetailsInfo, RustDetailsInfoTrait, RustcToolDetails,
+    RustcToolInfo, RustcToolInfoTrait, SynDetails, SynInfo, SynInfoTrait,
 };
-pub use rustc_tool_trait::RustcToolTrait;
-pub use rustc_tools::{dummy_rustc_tool::DummyRustcTool, command_rustc_tool::CommandRustcTool};
 
 #[derive(Debug)]
 pub struct RawFile(pub String, pub String);

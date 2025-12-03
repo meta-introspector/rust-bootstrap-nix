@@ -27,7 +27,7 @@ impl SymbolMap {
             // For now, a simple heuristic: assume all top-level items in a package belong to that crate.
             // This will need to be refined with actual AST analysis later.
             // We'll just add the crate name itself as a resolved dependency for now.
-                        self.map.insert(
+            self.map.insert(
                 crate_name.to_string(),
                 ResolvedDependency {
                     id: crate_name.to_string(),

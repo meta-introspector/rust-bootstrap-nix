@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-use std::collections::{HashSet, HashMap};
-use serde::{Serialize, Deserialize};
-use chrono::{DateTime, Utc};
-use syn::{self, ItemConst, ItemStruct, ItemEnum, ItemFn, ItemStatic};
 use anyhow::Context;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use std::path::PathBuf;
+use syn::{self, ItemConst, ItemEnum, ItemFn, ItemStatic, ItemStruct};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExpandedManifest {
@@ -163,23 +163,52 @@ impl Declaration {
 
     pub fn get_identifier(&self) -> String {
         match &self.item {
-            DeclarationItem::Const(s) => syn::parse_str::<ItemConst>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_const".to_string()),
-            DeclarationItem::Struct(s) => syn::parse_str::<ItemStruct>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_struct".to_string()),
-            DeclarationItem::Enum(s) => syn::parse_str::<ItemEnum>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_enum".to_string()),
-            DeclarationItem::Fn(s) => syn::parse_str::<ItemFn>(s).map(|item| item.sig.ident.to_string()).unwrap_or_else(|_| "unknown_fn".to_string()),
-            DeclarationItem::Static(s) => syn::parse_str::<ItemStatic>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_static".to_string()),
-            DeclarationItem::Macro(s) => syn::parse_str::<syn::ItemMacro>(s).map(|item| item.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string())).unwrap_or_else(|_| "unknown_macro".to_string()),
-            DeclarationItem::Mod(s) => syn::parse_str::<syn::ItemMod>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_mod".to_string()),
-            DeclarationItem::Trait(s) => syn::parse_str::<syn::ItemTrait>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait".to_string()),
-            DeclarationItem::TraitAlias(s) => syn::parse_str::<syn::ItemTraitAlias>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_trait_alias".to_string()),
-            DeclarationItem::Type(s) => syn::parse_str::<syn::ItemType>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_type".to_string()),
-            DeclarationItem::Union(s) => syn::parse_str::<syn::ItemUnion>(s).map(|item| item.ident.to_string()).unwrap_or_else(|_| "unknown_union".to_string()),
-            DeclarationItem::Other(s) => syn::parse_str::<syn::Item>(s).map(|item| {
-                match item {
+            DeclarationItem::Const(s) => syn::parse_str::<ItemConst>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_const".to_string()),
+            DeclarationItem::Struct(s) => syn::parse_str::<ItemStruct>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_struct".to_string()),
+            DeclarationItem::Enum(s) => syn::parse_str::<ItemEnum>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_enum".to_string()),
+            DeclarationItem::Fn(s) => syn::parse_str::<ItemFn>(s)
+                .map(|item| item.sig.ident.to_string())
+                .unwrap_or_else(|_| "unknown_fn".to_string()),
+            DeclarationItem::Static(s) => syn::parse_str::<ItemStatic>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_static".to_string()),
+            DeclarationItem::Macro(s) => syn::parse_str::<syn::ItemMacro>(s)
+                .map(|item| {
+                    item.ident
+                        .as_ref()
+                        .map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string())
+                })
+                .unwrap_or_else(|_| "unknown_macro".to_string()),
+            DeclarationItem::Mod(s) => syn::parse_str::<syn::ItemMod>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_mod".to_string()),
+            DeclarationItem::Trait(s) => syn::parse_str::<syn::ItemTrait>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_trait".to_string()),
+            DeclarationItem::TraitAlias(s) => syn::parse_str::<syn::ItemTraitAlias>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_trait_alias".to_string()),
+            DeclarationItem::Type(s) => syn::parse_str::<syn::ItemType>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_type".to_string()),
+            DeclarationItem::Union(s) => syn::parse_str::<syn::ItemUnion>(s)
+                .map(|item| item.ident.to_string())
+                .unwrap_or_else(|_| "unknown_union".to_string()),
+            DeclarationItem::Other(s) => syn::parse_str::<syn::Item>(s)
+                .map(|item| match item {
                     syn::Item::Const(item_const) => item_const.ident.to_string(),
                     syn::Item::Enum(item_enum) => item_enum.ident.to_string(),
                     syn::Item::Fn(item_fn) => item_fn.sig.ident.to_string(),
-                    syn::Item::Macro(item_macro) => item_macro.ident.as_ref().map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string()),
+                    syn::Item::Macro(item_macro) => item_macro
+                        .ident
+                        .as_ref()
+                        .map_or_else(|| "unknown_macro".to_string(), |ident| ident.to_string()),
                     syn::Item::Mod(item_mod) => item_mod.ident.to_string(),
                     syn::Item::Static(item_static) => item_static.ident.to_string(),
                     syn::Item::Struct(item_struct) => item_struct.ident.to_string(),
@@ -188,8 +217,8 @@ impl Declaration {
                     syn::Item::Type(item_type) => item_type.ident.to_string(),
                     syn::Item::Union(item_union) => item_union.ident.to_string(),
                     _ => "unknown_other_item".to_string(),
-                }
-            }).unwrap_or_else(|_| "unknown_other_item".to_string()),
+                })
+                .unwrap_or_else(|_| "unknown_other_item".to_string()),
         }
     }
 }
@@ -228,9 +257,7 @@ pub struct ErrorCollection {
 
 impl ErrorCollection {
     pub fn new() -> Self {
-        ErrorCollection {
-            errors: Vec::new(),
-        }
+        ErrorCollection { errors: Vec::new() }
     }
 
     pub fn add_error(&mut self, error: ErrorSample) {
@@ -244,8 +271,10 @@ impl ErrorCollection {
     pub async fn write_to_file(&self, path: &Path) -> anyhow::Result<()> {
         let json_content = serde_json::to_string_pretty(&self.errors)
             .context("Failed to serialize error collection to JSON")?;
-        tokio::fs::write(path, json_content).await
-            .context(format!("Failed to write error collection to file: {:?}", path))?;
+        tokio::fs::write(path, json_content).await.context(format!(
+            "Failed to write error collection to file: {:?}",
+            path
+        ))?;
         Ok(())
     }
 }

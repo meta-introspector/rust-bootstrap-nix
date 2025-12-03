@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use std::path::PathBuf;
 
@@ -24,7 +24,10 @@ impl RustcToolTrait for DummyRustcTool {
     }
 
     async fn run_command(&self, args: &[&str]) -> Result<String> {
-        println!("DummyRustcTool: Running command (no-op) with args: {:?}", args);
+        println!(
+            "DummyRustcTool: Running command (no-op) with args: {:?}",
+            args
+        );
         Ok(format!("Dummy command output for args: {:?}", args))
     }
 }

@@ -1,17 +1,19 @@
-use anyhow::{Result};
-use std::pin::Pin;
-use std::future::Future;
+use anyhow::Result;
 use std::boxed::Box;
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 
 use crate::measurement;
-use pipeline_traits::{PipelineFunctor, UseStatements, ClassifiedUseStatements, UseStatement};
-use syn;
 use pipeline_traits::Config as PipelineConfig;
+use pipeline_traits::{ClassifiedUseStatements, PipelineFunctor, UseStatement, UseStatements};
+use syn;
 // ClassifyUsesFunctor
 pub struct ClassifyUsesFunctor;
 
-impl PipelineFunctor<UseStatements, ClassifiedUseStatements, PipelineConfig> for ClassifyUsesFunctor {
+impl PipelineFunctor<UseStatements, ClassifiedUseStatements, PipelineConfig>
+    for ClassifyUsesFunctor
+{
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
@@ -33,7 +35,7 @@ impl PipelineFunctor<UseStatements, ClassifiedUseStatements, PipelineConfig> for
                     syn_details: None,
                     llvm_details: None,
                     linux_details: None,
-rustc_tool_details: None,
+                    rustc_tool_details: None,
                 };
 
                 // Basic heuristic for classification based on use_statement content
@@ -43,7 +45,7 @@ rustc_tool_details: None,
                             repo_url: "inferred_from_use".to_string(),
                             branch: "inferred_from_use".to_string(),
                             commit_hash: "inferred_from_use".to_string(),
-                        }
+                        },
                     ));
                 }
                 if use_statement.contains("nix") {
@@ -51,32 +53,35 @@ rustc_tool_details: None,
                         pipeline_traits::NixInfo {
                             flake_path: "inferred_from_use".to_string(),
                             output_type: "inferred_from_use".to_string(),
-                        }
+                        },
                     ));
                 }
-                if use_statement.contains("rust") || use_statement.contains("std") || use_statement.contains("core") {
+                if use_statement.contains("rust")
+                    || use_statement.contains("std")
+                    || use_statement.contains("core")
+                {
                     current_use_statement.rust_details = Some(pipeline_traits::RustDetails::Info(
                         pipeline_traits::RustDetailsInfo {
                             version: "inferred_from_use".to_string(),
                             crate_name: "inferred_from_use".to_string(),
                             item_path: "inferred_from_use".to_string(),
-                        }
+                        },
                     ));
                 }
                 if use_statement.contains("cargo") {
-                    current_use_statement.cargo_details = Some(pipeline_traits::CargoDetails::Info(
-                        pipeline_traits::CargoInfo {
+                    current_use_statement.cargo_details = Some(
+                        pipeline_traits::CargoDetails::Info(pipeline_traits::CargoInfo {
                             package_name: "inferred_from_use".to_string(),
                             version: "inferred_from_use".to_string(),
-                        }
-                    ));
+                        }),
+                    );
                 }
                 if use_statement.contains("syn") {
                     current_use_statement.syn_details = Some(pipeline_traits::SynDetails::Info(
                         pipeline_traits::SynInfo {
                             parsed_type: "ItemUse".to_string(),
                             version: "inferred_from_use".to_string(),
-                        }
+                        },
                     ));
                 }
                 if use_statement.contains("llvm") {
@@ -84,24 +89,24 @@ rustc_tool_details: None,
                         pipeline_traits::LlvmInfo {
                             ir_version: "inferred_from_use".to_string(),
                             target_triple: "inferred_from_use".to_string(),
-                        }
+                        },
                     ));
                 }
                 if use_statement.contains("linux") {
-                    current_use_statement.linux_details = Some(pipeline_traits::LinuxDetails::Info(
-                        pipeline_traits::LinuxInfo {
+                    current_use_statement.linux_details = Some(
+                        pipeline_traits::LinuxDetails::Info(pipeline_traits::LinuxInfo {
                             kernel_version: "inferred_from_use".to_string(),
                             architecture: "inferred_from_use".to_string(),
-                        }
-                    ));
+                        }),
+                    );
                 }
 
                 // Attempt to parse the use statement with syn for basic validation
                 match syn::parse_str::<syn::ItemUse>(&use_statement) {
-                    Ok(_) => { /* Further analysis could go here */ },
+                    Ok(_) => { /* Further analysis could go here */ }
                     Err(e) => {
                         current_use_statement.error = Some(e.to_string());
-                    },
+                    }
                 }
                 classified_uses.push(current_use_statement);
             }

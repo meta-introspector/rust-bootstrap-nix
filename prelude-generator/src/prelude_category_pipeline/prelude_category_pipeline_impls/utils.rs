@@ -1,5 +1,5 @@
-use anyhow::{Result};
-use std::path::{Path};
+use anyhow::Result;
+use std::path::Path;
 use tokio::fs;
 
 // Helper function to recursively copy a directory
@@ -8,7 +8,9 @@ pub async fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resul
     let mut stack = vec![src.as_ref().to_path_buf()];
 
     while let Some(current_src) = stack.pop() {
-        let current_dst = dst.as_ref().join(current_src.strip_prefix(src.as_ref()).unwrap());
+        let current_dst = dst
+            .as_ref()
+            .join(current_src.strip_prefix(src.as_ref()).unwrap());
         let mut entries = fs::read_dir(&current_src).await?;
 
         while let Some(entry) = entries.next_entry().await? {

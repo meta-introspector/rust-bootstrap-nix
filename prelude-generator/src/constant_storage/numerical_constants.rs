@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::path::PathBuf;
 use quote::quote;
+use std::path::PathBuf;
 use syn::ItemConst;
 
 const MAX_FILE_SIZE: usize = 4 * 1024; // 4KB

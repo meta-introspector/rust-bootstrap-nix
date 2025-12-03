@@ -35,4 +35,3 @@ pub async fn validate_rust_code(file_path: &PathBuf) -> anyhow::Result<()> {
 
     Ok(())
 }
-

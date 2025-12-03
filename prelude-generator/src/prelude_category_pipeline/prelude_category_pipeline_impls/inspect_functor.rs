@@ -1,11 +1,11 @@
-use anyhow::{Result};
-use std::fmt::Debug;
-use std::pin::Pin;
-use std::future::Future;
+use anyhow::Result;
 use std::boxed::Box;
+use std::fmt::Debug;
+use std::future::Future;
+use std::pin::Pin;
 
-use pipeline_traits::PipelineFunctor;
 use pipeline_traits::Config as PipelineConfig;
+use pipeline_traits::PipelineFunctor;
 // InspectFunctor
 pub struct InspectFunctor<'a, T: Debug> {
     label: &'a str,
@@ -21,7 +21,9 @@ impl<'a, T: Debug> InspectFunctor<'a, T> {
     }
 }
 
-impl<'a, T: Debug + Clone + Send + Sync + 'static> PipelineFunctor<T, T, PipelineConfig> for InspectFunctor<'a, T> {
+impl<'a, T: Debug + Clone + Send + Sync + 'static> PipelineFunctor<T, T, PipelineConfig>
+    for InspectFunctor<'a, T>
+{
     fn map<'writer>(
         &'writer self,
         writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
@@ -29,10 +31,13 @@ impl<'a, T: Debug + Clone + Send + Sync + 'static> PipelineFunctor<T, T, Pipelin
         _config: &'writer Option<PipelineConfig>,
     ) -> Pin<Box<dyn Future<Output = Result<T>> + Send + 'writer>> {
         Box::pin(async move {
-            writer.write_all(format!("--- Inspecting: {} ---\n", self.label).as_bytes()).await?;
-            writer.write_all(format!("{:#?}\n", input).as_bytes()).await?;
+            writer
+                .write_all(format!("--- Inspecting: {} ---\n", self.label).as_bytes())
+                .await?;
+            writer
+                .write_all(format!("{:#?}\n", input).as_bytes())
+                .await?;
             Ok(input)
         })
     }
 }
-

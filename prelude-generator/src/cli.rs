@@ -2,8 +2,8 @@ use crate::args::Args;
 use clap::Parser;
 use std::path::PathBuf;
 //use crate::config_parser::Config;
-use pipeline_traits::Config;
 use pipeline_traits::read_config;
+use pipeline_traits::Config;
 pub fn parse_arguments_and_config() -> anyhow::Result<(Args, Option<Config>)> {
     let args = Args::parse();
 

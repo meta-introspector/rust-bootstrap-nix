@@ -7,7 +7,6 @@ use prelude_generator::command_handlers;
 use prelude_generator::split_expanded_bin_handler; // Added this line
 use prelude_generator::type_usage_analyzer;
 
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("Before Args::parse()");
@@ -16,7 +15,10 @@ async fn main() -> anyhow::Result<()> {
 
     let project_root = args.path.clone();
     let config = if let Some(config_path) = &args.config_file_path {
-        Some(prelude_generator::config_parser::read_config(config_path, &project_root)?) // Changed back to prelude_generator
+        Some(prelude_generator::config_parser::read_config(
+            config_path,
+            &project_root,
+        )?) // Changed back to prelude_generator
     } else {
         None
     };
@@ -30,17 +32,25 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-
-
     let main_project_root = std::env::current_dir()?.parent().unwrap().to_path_buf();
     let canonical_output_root = main_project_root.join("generated");
     tokio::fs::create_dir_all(&canonical_output_root)
         .await
-        .context(format!("Failed to create canonical output root directory: {}", canonical_output_root.display()))?;
+        .context(format!(
+            "Failed to create canonical output root directory: {}",
+            canonical_output_root.display()
+        ))?;
 
     if args_with_config.run_decl_splitter {
         let rustc_info = prelude_generator::use_extractor::rustc_info::get_rustc_info()?;
-        command_handlers::handle_run_decl_splitter(&args_with_config, &project_root, &rustc_info, &mut warnings, &canonical_output_root).await?;
+        command_handlers::handle_run_decl_splitter(
+            &args_with_config,
+            &project_root,
+            &rustc_info,
+            &mut warnings,
+            &canonical_output_root,
+        )
+        .await?;
     } else if args_with_config.analyze_type_usage {
         type_usage_analyzer::analyze_type_usage(&args_with_config).await?;
     } else if args_with_config.extract_global_level0_decls {
@@ -62,16 +72,30 @@ async fn main() -> anyhow::Result<()> {
             &default_crate_name,
             &mut warnings,
             &canonical_output_root,
-        ).await?;
+        )
+        .await?;
 
-        command_handlers::handle_extract_numerical_constants(&project_root, &args_with_config, &all_numerical_constants).await?;
-        command_handlers::handle_extract_string_constants(&project_root, &args_with_config, &all_string_constants).await?;
+        command_handlers::handle_extract_numerical_constants(
+            &project_root,
+            &args_with_config,
+            &all_numerical_constants,
+        )
+        .await?;
+        command_handlers::handle_extract_string_constants(
+            &project_root,
+            &args_with_config,
+            &all_string_constants,
+        )
+        .await?;
     } else if args_with_config.run_split_expanded_bin {
         let rustc_info = prelude_generator::use_extractor::rustc_info::get_rustc_info()?;
 
         let inputs = prelude_generator::types::SplitExpandedBinInputs {
             files_to_process: args_with_config.split_expanded_files.clone(),
-            project_root: args_with_config.split_expanded_project_root.clone().unwrap_or_else(|| PathBuf::from("generated_workspace")),
+            project_root: args_with_config
+                .split_expanded_project_root
+                .clone()
+                .unwrap_or_else(|| PathBuf::from("generated_workspace")),
             rustc_version: rustc_info.version.clone(),
             rustc_host: rustc_info.host.clone(),
             verbose: args_with_config.verbose,
@@ -81,8 +105,7 @@ async fn main() -> anyhow::Result<()> {
             canonical_output_root: &canonical_output_root,
         };
         split_expanded_bin_handler::handle_split_expanded_bin(inputs).await?; // Modified this line
-    }
-    else {
+    } else {
         // Default behavior or error if no specific command flag is set
         println!("No specific command flag set. Use --help for options.");
     }

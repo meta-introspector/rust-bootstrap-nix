@@ -1,17 +1,19 @@
 use anyhow::Context;
-use std::path::{PathBuf};
 use std::fs;
+use std::path::PathBuf;
 
-use split_expanded_lib::ErrorCollection;
-use split_expanded_lib::{Declaration, RustcInfo};
 use crate::gem_parser::GemConfig;
-use toml;
-use split_expanded_lib::SerializableDeclaration;
-use crate::validation::{DeclarationValidator, DependencyValidator};
-use crate::symbol_map::SymbolMap;
 use crate::reference_visitor::ReferenceVisitor;
+use crate::symbol_map::SymbolMap;
+use crate::validation::{DeclarationValidator, DependencyValidator};
+use split_expanded_lib::ErrorCollection;
+use split_expanded_lib::SerializableDeclaration;
+use split_expanded_lib::{Declaration, RustcInfo};
+use toml;
 
-pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInputs<'_>) -> anyhow::Result<()> {
+pub async fn handle_split_expanded_bin(
+    inputs: crate::types::SplitExpandedBinInputs<'_>,
+) -> anyhow::Result<()> {
     println!("Running split-expanded-bin functionality...");
 
     let files_to_process = inputs.files_to_process;
@@ -25,9 +27,13 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
     let canonical_output_root = inputs.canonical_output_root;
 
     if project_root.exists() {
-        fs::remove_dir_all(&project_root).context(format!("Failed to remove existing project root: {:?}", project_root))?;
+        fs::remove_dir_all(&project_root).context(format!(
+            "Failed to remove existing project root: {:?}",
+            project_root
+        ))?;
     }
-    fs::create_dir_all(&project_root).context(format!("Failed to create project root: {:?}", project_root))?;
+    fs::create_dir_all(&project_root)
+        .context(format!("Failed to create project root: {:?}", project_root))?;
 
     let mut error_collection = ErrorCollection::default();
     let gem_config = GemConfig::load_from_file(&PathBuf::from("gems.toml"))?;
@@ -54,7 +60,10 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
         return Ok(());
     }
 
-    let rustc_info = RustcInfo { version: rustc_version, host: rustc_host };
+    let rustc_info = RustcInfo {
+        version: rustc_version,
+        host: rustc_host,
+    };
 
     let mut parsed_files: Vec<(PathBuf, syn::File)> = Vec::new();
 
@@ -63,7 +72,11 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
     for file_path in &files_to_process {
         println!("Processing file for declarations: {:?}", file_path);
 
-        let current_crate_name = project_root.file_name().and_then(|s| s.to_str()).unwrap_or("unknown_crate").to_string();
+        let current_crate_name = project_root
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown_crate")
+            .to_string();
 
         match split_expanded_lib::processing::extract_declarations_from_single_file(
             file_path,
@@ -72,7 +85,9 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
             verbose,
             warnings,
             canonical_output_root,
-        ).await {
+        )
+        .await
+        {
             Ok(extraction_result) => {
                 let declarations = extraction_result.declarations;
                 let errors = extraction_result.errors;
@@ -87,7 +102,11 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
                 match syn::parse_file(&file_content) {
                     Ok(file) => parsed_files.push((file_path.clone().to_path_buf(), file)),
                     Err(e) => {
-                        eprintln!("Warning: Could not re-parse file for Pass 2 {}: {}", file_path.display(), e);
+                        eprintln!(
+                            "Warning: Could not re-parse file for Pass 2 {}: {}",
+                            file_path.display(),
+                            e
+                        );
                         // Collect this error as well if needed
                     }
                 }
@@ -102,9 +121,12 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
                     }
                 }
                 error_collection.errors.extend(errors);
-            },
+            }
             Err(e) => {
-                eprintln!("Error extracting declarations from file {:?}: {}", file_path, e);
+                eprintln!(
+                    "Error extracting declarations from file {:?}: {}",
+                    file_path, e
+                );
                 // Collect this error as well if needed
             }
         }
@@ -115,8 +137,19 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
     for (file_path, file) in parsed_files {
         println!("Processing file for references: {:?}", file_path);
 
-        let current_crate_name = project_root.file_name().and_then(|s| s.to_str()).unwrap_or("unknown_crate").to_string();
-        let current_module_path = file_path.strip_prefix(&project_root).unwrap_or(&file_path).with_extension("").to_str().unwrap_or("unknown_module").to_string().replace("/", "::");
+        let current_crate_name = project_root
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown_crate")
+            .to_string();
+        let current_module_path = file_path
+            .strip_prefix(&project_root)
+            .unwrap_or(&file_path)
+            .with_extension("")
+            .to_str()
+            .unwrap_or("unknown_module")
+            .to_string()
+            .replace("/", "::");
 
         let mut visitor = ReferenceVisitor::new(
             &mut symbol_map,
@@ -129,7 +162,8 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
     }
 
     if let Some(output_path) = _output_global_toml {
-        let serializable_decls: Vec<SerializableDeclaration> = all_declarations.into_iter().map(Into::into).collect();
+        let serializable_decls: Vec<SerializableDeclaration> =
+            all_declarations.into_iter().map(Into::into).collect();
         let toml_string = toml::to_string_pretty(&serializable_decls)
             .context("Failed to serialize declarations to TOML ")?;
         fs::write(&output_path, toml_string)
@@ -140,15 +174,20 @@ pub async fn handle_split_expanded_bin(inputs: crate::types::SplitExpandedBinInp
     if let Some(output_path) = _output_symbol_map {
         let toml_string = toml::to_string_pretty(&symbol_map.map)
             .context("Failed to serialize symbol map to TOML ")?;
-        fs::write(&output_path, toml_string)
-            .context(format!("Failed to write symbol map to file: {:?}", output_path))?;
+        fs::write(&output_path, toml_string).context(format!(
+            "Failed to write symbol map to file: {:?}",
+            output_path
+        ))?;
         println!("Successfully wrote symbol map to {:?}", output_path);
     }
 
     if !error_collection.errors.is_empty() {
         let errors_json_path = project_root.join("collected_errors.json ");
         error_collection.write_to_file(&errors_json_path).await?;
-        eprintln!("Errors collected during processing. See {:?} for details.", errors_json_path);
+        eprintln!(
+            "Errors collected during processing. See {:?} for details.",
+            errors_json_path
+        );
     }
 
     println!("Split expanded bin functionality completed.");

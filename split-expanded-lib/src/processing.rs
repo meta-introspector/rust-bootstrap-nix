@@ -1,17 +1,20 @@
 use anyhow::Context;
-use std::path::Path;
 use std::fmt::Write as FmtWrite; // For writeln! into String
+use std::path::Path;
 use tokio;
 
 use quote::{quote, ToTokens}; // For quote! macro
 
-use std::collections::{HashSet, HashMap}; // For HashMap and HashSet
-use serde_json; // For serde_json::from_str
-use toml; // For toml::to_string_pretty
-use syn::{self, visit::Visit};
 use regex::Regex;
+use serde_json; // For serde_json::from_str
+use std::collections::{HashMap, HashSet}; // For HashMap and HashSet
+use syn::{self, visit::Visit};
+use toml; // For toml::to_string_pretty
 
-use crate::types::{ExpandedManifest, ExpandedFileEntry, FileMetadata, Declaration, DeclarationItem, ErrorSample, RustcInfo, PublicSymbol, ExtractionResult};
+use crate::types::{
+    Declaration, DeclarationItem, ErrorSample, ExpandedFileEntry, ExpandedManifest,
+    ExtractionResult, FileMetadata, PublicSymbol, RustcInfo,
+};
 use crate::visitors::DeclsVisitor; // Assuming visitors are re-exported from lib.rs
 
 pub struct ProcessExpandedManifestInputs<'a> {
@@ -32,16 +35,24 @@ pub async fn process_expanded_manifest(
     let mut warnings: Vec<String> = Vec::new();
 
     if inputs.verbosity >= 1 {
-        warnings.push(format!("split-expanded-lib::process_expanded_manifest started."));
+        warnings.push(format!(
+            "split-expanded-lib::process_expanded_manifest started."
+        ));
         warnings.push(format!("Verbosity level: {}", inputs.verbosity));
     }
 
     // Read expanded manifest
     let manifest_content = tokio::fs::read_to_string(inputs.expanded_manifest_path)
         .await
-        .context(format!("Failed to read expanded manifest file: {}", inputs.expanded_manifest_path.display()))?;
-    let expanded_files: Vec<ExpandedFileEntry> = serde_json::from_str(&manifest_content)
-        .context(format!("Failed to parse expanded manifest JSON from: {}", inputs.expanded_manifest_path.display()))?;
+        .context(format!(
+            "Failed to read expanded manifest file: {}",
+            inputs.expanded_manifest_path.display()
+        ))?;
+    let expanded_files: Vec<ExpandedFileEntry> =
+        serde_json::from_str(&manifest_content).context(format!(
+            "Failed to parse expanded manifest JSON from: {}",
+            inputs.expanded_manifest_path.display()
+        ))?;
 
     let expanded_manifest = ExpandedManifest {
         rustc_version: inputs.rustc_info.version.clone(),
@@ -58,14 +69,21 @@ pub async fn process_expanded_manifest(
 
     // Create project root and src directory if they don't exist
     let src_dir = inputs.project_root.join("src");
-    tokio::fs::create_dir_all(&src_dir)
-        .await
-        .context(format!("Failed to create project src directory: {}", src_dir.display()))?;
+    tokio::fs::create_dir_all(&src_dir).await.context(format!(
+        "Failed to create project src directory: {}",
+        src_dir.display()
+    ))?;
     if inputs.verbosity >= 2 {
         if src_dir.exists() {
-            warnings.push(format!("Created project src directory already exists or was created: {}", src_dir.display()));
+            warnings.push(format!(
+                "Created project src directory already exists or was created: {}",
+                src_dir.display()
+            ));
         } else {
-            warnings.push(format!("Failed to create project src directory (but context handled it): {}", src_dir.display()));
+            warnings.push(format!(
+                "Failed to create project src directory (but context handled it): {}",
+                src_dir.display()
+            ));
         }
     }
     let mut global_declarations: HashMap<String, Declaration> = HashMap::new();
@@ -89,9 +107,9 @@ pub async fn process_expanded_manifest(
         if let Some(ref filter_name) = inputs.package_filter {
             if !expanded_file_entry.package_name.contains(filter_name) {
                 if inputs.verbosity >= 1 {
-                    warnings.push(format!("Skipping expanded file for package {} (does not match filter '{}').",
-                        expanded_file_entry.package_name,
-                        filter_name
+                    warnings.push(format!(
+                        "Skipping expanded file for package {} (does not match filter '{}').",
+                        expanded_file_entry.package_name, filter_name
                     ));
                 }
                 continue; // Skip this file if it doesn't match the filter
@@ -99,7 +117,10 @@ pub async fn process_expanded_manifest(
         }
 
         if inputs.verbosity >= 1 {
-            warnings.push(format!("Processing expanded RS file: {}", expanded_file_entry.expanded_rs_path.display()));
+            warnings.push(format!(
+                "Processing expanded RS file: {}",
+                expanded_file_entry.expanded_rs_path.display()
+            ));
         }
 
         let crate_name = expanded_file_entry.package_name.as_str();
@@ -107,7 +128,10 @@ pub async fn process_expanded_manifest(
 
         if inputs.verbosity >= 2 {
             warnings.push(format!("  Derived crate_name: {}", crate_name));
-            warnings.push(format!("  Associated expanded RS file: {}", expanded_rs_file_path.display()));
+            warnings.push(format!(
+                "  Associated expanded RS file: {}",
+                expanded_rs_file_path.display()
+            ));
         }
 
         let extraction_result = extract_declarations_from_single_file(
@@ -117,13 +141,19 @@ pub async fn process_expanded_manifest(
             inputs.verbosity,
             &mut warnings,
             inputs.canonical_output_root,
-        ).await?;
+        )
+        .await?;
 
         let declarations = extraction_result.declarations;
         let errors = extraction_result.errors;
 
         if inputs.verbosity >= 2 {
-            warnings.push(format!("  Extracted {} declarations and {} errors from {}", declarations.len(), errors.len(), expanded_rs_file_path.display()));
+            warnings.push(format!(
+                "  Extracted {} declarations and {} errors from {}",
+                declarations.len(),
+                errors.len(),
+                expanded_rs_file_path.display()
+            ));
         }
 
         for (identifier, decl) in declarations {
@@ -134,10 +164,18 @@ pub async fn process_expanded_manifest(
         }
         if !errors.is_empty() {
             if inputs.verbosity >= 2 {
-                warnings.push(format!("    Extending all_errors with {} new errors.", errors.len()));
+                warnings.push(format!(
+                    "    Extending all_errors with {} new errors.",
+                    errors.len()
+                ));
             }
             for error in errors {
-                warnings.push(format!("  Error in {}: {} - {}", error.file_path.display(), error.error_type, error.error_message));
+                warnings.push(format!(
+                    "  Error in {}: {} - {}",
+                    error.file_path.display(),
+                    error.error_type,
+                    error.error_message
+                ));
                 if let Some(snippet) = error.code_snippet {
                     warnings.push(format!("    Code Snippet:\n{}", snippet));
                 }
@@ -170,19 +208,33 @@ pub async fn process_expanded_manifest(
     for (decl_id, decl) in &global_declarations {
         let mut current_resolved_dependencies = HashSet::new();
         if inputs.verbosity >= 3 {
-            warnings.push(format!("  Processing dependencies for declaration: {}", decl_id));
+            warnings.push(format!(
+                "  Processing dependencies for declaration: {}",
+                decl_id
+            ));
         }
 
         // Resolve referenced types (internal and external)
         for referenced_type in &decl.referenced_types {
             if let Some(resolved_decl) = global_declarations.get(referenced_type) {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Resolved internal type dependency: {} -> {}", referenced_type, resolved_decl.get_identifier()));
+                    warnings.push(format!(
+                        "    Resolved internal type dependency: {} -> {}",
+                        referenced_type,
+                        resolved_decl.get_identifier()
+                    ));
                 }
-                current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
+                current_resolved_dependencies.insert(format!(
+                    "{}::{}",
+                    resolved_decl.crate_name,
+                    resolved_decl.get_identifier()
+                ));
             } else {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Identified external type dependency: {}", referenced_type));
+                    warnings.push(format!(
+                        "    Identified external type dependency: {}",
+                        referenced_type
+                    ));
                 }
                 // This is an external type dependency
                 current_resolved_dependencies.insert(referenced_type.clone());
@@ -193,12 +245,23 @@ pub async fn process_expanded_manifest(
         for referenced_fn in &decl.referenced_functions {
             if let Some(resolved_decl) = global_declarations.get(referenced_fn) {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Resolved internal function dependency: {} -> {}", referenced_fn, resolved_decl.get_identifier()));
+                    warnings.push(format!(
+                        "    Resolved internal function dependency: {} -> {}",
+                        referenced_fn,
+                        resolved_decl.get_identifier()
+                    ));
                 }
-                current_resolved_dependencies.insert(format!("{}::{}", resolved_decl.crate_name, resolved_decl.get_identifier()));
+                current_resolved_dependencies.insert(format!(
+                    "{}::{}",
+                    resolved_decl.crate_name,
+                    resolved_decl.get_identifier()
+                ));
             } else {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Identified external function dependency: {}", referenced_fn));
+                    warnings.push(format!(
+                        "    Identified external function dependency: {}",
+                        referenced_fn
+                    ));
                 }
                 // This is an external function dependency
                 current_resolved_dependencies.insert(referenced_fn.clone());
@@ -209,7 +272,10 @@ pub async fn process_expanded_manifest(
         for import in &decl.required_imports {
             if !global_declarations.contains_key(import) {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Identified external import dependency: {}", import));
+                    warnings.push(format!(
+                        "    Identified external import dependency: {}",
+                        import
+                    ));
                 }
                 current_resolved_dependencies.insert(import.clone());
             }
@@ -225,9 +291,15 @@ pub async fn process_expanded_manifest(
     for (decl_id, decl) in global_declarations.iter_mut() {
         if let Some(resolved_deps) = dependencies_to_resolve.remove(decl_id) {
             if inputs.verbosity >= 3 {
-                warnings.push(format!("  Populating dependencies for declaration: {}", decl_id));
+                warnings.push(format!(
+                    "  Populating dependencies for declaration: {}",
+                    decl_id
+                ));
             }
-            decl.direct_dependencies = resolved_deps.iter().map(|s| s.split("::").last().unwrap_or(s).to_string()).collect();
+            decl.direct_dependencies = resolved_deps
+                .iter()
+                .map(|s| s.split("::").last().unwrap_or(s).to_string())
+                .collect();
             decl.resolved_dependencies = resolved_deps;
         }
     }
@@ -250,7 +322,10 @@ pub async fn process_expanded_manifest(
     while changed && iteration_count < max_iterations_limit {
         iteration_count += 1;
         if inputs.verbosity >= 2 {
-            warnings.push(format!("  Layering algorithm iteration: {}", iteration_count));
+            warnings.push(format!(
+                "  Layering algorithm iteration: {}",
+                iteration_count
+            ));
         }
         changed = false;
         for (decl_id, decl) in &global_declarations {
@@ -272,7 +347,10 @@ pub async fn process_expanded_manifest(
 
             if new_level > current_level {
                 if inputs.verbosity >= 3 {
-                    warnings.push(format!("    Level changed for {}: {} -> {}", decl_id, current_level, new_level));
+                    warnings.push(format!(
+                        "    Level changed for {}: {} -> {}",
+                        decl_id, current_level, new_level
+                    ));
                 }
                 declaration_levels.insert(decl_id.clone(), new_level);
                 changed = true;
@@ -283,7 +361,10 @@ pub async fn process_expanded_manifest(
 
     if iteration_count >= max_iterations_limit {
         if inputs.verbosity >= 1 {
-            warnings.push(format!("Layering algorithm stopped after {} iterations due to reaching the limit.", max_iterations_limit));
+            warnings.push(format!(
+                "Layering algorithm stopped after {} iterations due to reaching the limit.",
+                max_iterations_limit
+            ));
         }
     }
 
@@ -303,11 +384,15 @@ pub async fn process_expanded_manifest(
             DeclarationItem::Struct(item_str) => {
                 let parsed_item: syn::ItemStruct = syn::parse_str(item_str)
                     .context(format!("Failed to parse struct string: {}", item_str))?;
-                if parsed_item.attrs.iter().any(|attr| attr.path().is_ident("proc_macro")) {
+                if parsed_item
+                    .attrs
+                    .iter()
+                    .any(|attr| attr.path().is_ident("proc_macro"))
+                {
                     has_proc_macros = true;
                 }
                 "struct"
-            },
+            }
             DeclarationItem::Enum(_) => "enum",
             DeclarationItem::Fn(_) => "fn",
             DeclarationItem::Static(_) => "static",
@@ -320,10 +405,14 @@ pub async fn process_expanded_manifest(
             DeclarationItem::Other(_) => "other",
         };
         if inputs.verbosity >= 2 {
-            warnings.push(format!("  Processing declaration '{}' of type '{}' at level {}", identifier, declaration_type, level));
+            warnings.push(format!(
+                "  Processing declaration '{}' of type '{}' at level {}",
+                identifier, declaration_type, level
+            ));
         }
 
-        let declaration_dir = inputs.canonical_output_root
+        let declaration_dir = inputs
+            .canonical_output_root
             .join("rust-bootstrap-core")
             .join("src")
             .join(format!("level_{:02}", level))
@@ -332,12 +421,21 @@ pub async fn process_expanded_manifest(
             .join(&declaration.crate_name);
         tokio::fs::create_dir_all(&declaration_dir)
             .await
-            .context(format!("Failed to create declaration directory: {}", declaration_dir.display()))?;
+            .context(format!(
+                "Failed to create declaration directory: {}",
+                declaration_dir.display()
+            ))?;
         if inputs.verbosity >= 2 {
             if declaration_dir.exists() {
-                warnings.push(format!("  Declaration directory already exists or was created: {}", declaration_dir.display()));
+                warnings.push(format!(
+                    "  Declaration directory already exists or was created: {}",
+                    declaration_dir.display()
+                ));
             } else {
-                warnings.push(format!("  Failed to create declaration directory (but context handled it): {}", declaration_dir.display()));
+                warnings.push(format!(
+                    "  Failed to create declaration directory (but context handled it): {}",
+                    declaration_dir.display()
+                ));
             }
         }
 
@@ -381,34 +479,47 @@ pub async fn process_expanded_manifest(
             DeclarationItem::Other(item) => quote! { #item },
         };
         if inputs.verbosity >= 3 {
-            warnings.push(format!("    Converting item to token stream for '{}'.", identifier));
+            warnings.push(format!(
+                "    Converting item to token stream for '{}'.",
+                identifier
+            ));
         }
         file_content.push_str(&item_token_stream.to_string());
 
         tokio::fs::write(&output_file_path, file_content)
             .await
-            .context(format!("Failed to write declaration to file: {}", output_file_path.display()))?;
+            .context(format!(
+                "Failed to write declaration to file: {}",
+                output_file_path.display()
+            ))?;
         if inputs.verbosity >= 2 {
-            warnings.push(format!("Wrote declaration to file: {}", output_file_path.display()));
+            warnings.push(format!(
+                "Wrote declaration to file: {}",
+                output_file_path.display()
+            ));
         }
 
         generated_module_names.push(identifier);
         if declaration.is_proc_macro {
             if inputs.verbosity >= 3 {
-                warnings.push(format!("  Declaration '{}' is a procedural macro.", declaration.get_identifier()));
+                warnings.push(format!(
+                    "  Declaration '{}' is a procedural macro.",
+                    declaration.get_identifier()
+                ));
             }
             has_proc_macros = true;
         }
     }
 
     // Print generated module names and proc macro flag for the orchestrating script
-    warnings.push(format!("GENERATED_MODULE_NAMES: {}", generated_module_names.join(",")));
+    warnings.push(format!(
+        "GENERATED_MODULE_NAMES: {}",
+        generated_module_names.join(",")
+    ));
     warnings.push(format!("HAS_PROC_MACROS: {}", has_proc_macros));
 
     Ok(warnings)
 }
-
-
 
 pub async fn extract_declarations_from_single_file(
     file_path: &Path,
@@ -419,7 +530,10 @@ pub async fn extract_declarations_from_single_file(
     _canonical_output_root: &Path,
 ) -> anyhow::Result<ExtractionResult> {
     if verbosity >= 2 {
-        warnings.push(format!("  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}", file_path.display()));
+        warnings.push(format!(
+            "  [split-expanded-lib] extract_declarations_from_single_file: Processing file: {}",
+            file_path.display()
+        ));
     }
 
     let mut file_content = tokio::fs::read_to_string(file_path)
@@ -439,25 +553,38 @@ pub async fn extract_declarations_from_single_file(
     let errors: Vec<ErrorSample> = Vec::new();
 
     // Extract global `use` statements and `extern crate` declarations
-    let syntax_tree = syn::parse_file(&file_content)
-        .context(format!("Failed to parse file as Rust syntax tree: {}", file_path.display()))?;
+    let syntax_tree = syn::parse_file(&file_content).context(format!(
+        "Failed to parse file as Rust syntax tree: {}",
+        file_path.display()
+    ))?;
 
     for item in &syntax_tree.items {
         match item {
             syn::Item::Use(item_use) => {
-                file_metadata.global_uses.insert(item_use.to_token_stream().to_string());
-            },
+                file_metadata
+                    .global_uses
+                    .insert(item_use.to_token_stream().to_string());
+            }
             syn::Item::ExternCrate(item_extern_crate) => {
-                file_metadata.extern_crates.insert(item_extern_crate.ident.to_string());
-            },
+                file_metadata
+                    .extern_crates
+                    .insert(item_extern_crate.ident.to_string());
+            }
             _ => {}
         }
     }
 
     let declarations;
     let visitor_declarations_len;
-    { // New scope to limit the lifetime of `visitor`
-        let mut visitor = DeclsVisitor::new(file_path.to_path_buf(), crate_name.to_string(), verbosity, file_metadata.extern_crates.clone(), warnings);
+    {
+        // New scope to limit the lifetime of `visitor`
+        let mut visitor = DeclsVisitor::new(
+            file_path.to_path_buf(),
+            crate_name.to_string(),
+            verbosity,
+            file_metadata.extern_crates.clone(),
+            warnings,
+        );
         visitor.visit_file(&syntax_tree);
         declarations = visitor.declarations;
         visitor_declarations_len = declarations.len();

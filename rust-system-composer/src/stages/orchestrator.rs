@@ -1,10 +1,10 @@
 use crate::cli::{CliArgs, LayeredComposeArgs};
-use crate::config::Config;
 use crate::config_lock::{ConfigLock, StageStatus}; // StageLock is not directly used here
 use crate::stages::prelude_info_collection::PreludeInfoCollectionStage;
 use crate::stages::Stage;
 use anyhow::Result;
 use std::path::Path;
+use standalonex::bootstrap::core::config_standalone::Config as CanonicalConfig;
 
 pub struct StageOrchestrator {
     stages: Vec<Box<dyn Stage>>,
@@ -21,7 +21,7 @@ impl StageOrchestrator {
     pub fn run_stages(
         &self,
         project_root: &Path,
-        config: &Config,
+        config: &CanonicalConfig,
         cli_args: &CliArgs,
         layered_compose_args: &LayeredComposeArgs,
         config_lock: &mut ConfigLock,

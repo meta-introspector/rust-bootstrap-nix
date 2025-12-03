@@ -1,10 +1,10 @@
 use anyhow::Context;
-use std::path::PathBuf;
-use std::collections::HashMap;
 use quote::quote;
+use std::collections::HashMap;
+use std::path::PathBuf;
 
-use crate::utils;
 use crate::type_extractor;
+use crate::utils;
 
 pub async fn process_structs(
     all_structs_by_layer: HashMap<usize, Vec<syn::ItemStruct>>,
@@ -23,10 +23,19 @@ pub async fn process_structs(
         for structure in layer0_structs {
             let struct_name = structure.ident.to_string();
             let layer = 0; // Explicitly set to 0 for Level 0 processing
-            let structs_output_dir = generated_decls_output_dir.join(format!("layer_{}", layer)).join("struct");
-            println!("Attempting to create directory: {}", structs_output_dir.display());
-            tokio::fs::create_dir_all(&structs_output_dir).await
-                .context(format!("Failed to create output directory {:?}, for struct {}", structs_output_dir, struct_name))?;
+            let structs_output_dir = generated_decls_output_dir
+                .join(format!("layer_{}", layer))
+                .join("struct");
+            println!(
+                "Attempting to create directory: {}",
+                structs_output_dir.display()
+            );
+            tokio::fs::create_dir_all(&structs_output_dir)
+                .await
+                .context(format!(
+                    "Failed to create output directory {:?}, for struct {}",
+                    structs_output_dir, struct_name
+                ))?;
 
             let file_name = format!("{}.rs", struct_name);
             let output_path = structs_output_dir.join(&file_name);
@@ -36,31 +45,47 @@ pub async fn process_structs(
                 "DeclsVisitor" => {
                     format!("use syn::{{visit::Visit, ItemConst, ItemFn, ItemStruct, ItemEnum, ItemStatic, Item}};
 {}", content)
-                },
+                }
                 "TypeCollector" => {
-                    format!("use std::collections::HashMap;
+                    format!(
+                        "use std::collections::HashMap;
 use crate::type_extractor::TypeInfo;
-{}", content)
-                },
+{}",
+                        content
+                    )
+                }
                 _ => content,
             };
 
             let result = async {
-                tokio::fs::write(&output_path, code.as_bytes()).await
-                    .context(format!("Failed to write struct {:?} to {:?}", struct_name, output_path))?;
+                tokio::fs::write(&output_path, code.as_bytes())
+                    .await
+                    .context(format!(
+                        "Failed to write struct {:?} to {:?}",
+                        struct_name, output_path
+                    ))?;
                 println!("  -> Wrote struct {:?} to {:?}", struct_name, output_path);
 
                 // Format the generated code
-                utils::format_rust_code(&output_path).await
-                    .context(format!("Struct {:?} formatting failed for {:?}", struct_name, output_path))?;
+                utils::format_rust_code(&output_path)
+                    .await
+                    .context(format!(
+                        "Struct {:?} formatting failed for {:?}",
+                        struct_name, output_path
+                    ))?;
                 println!("  -> Struct {:?} formatted successfully.\n", struct_name);
 
                 // Validate the generated code
-                utils::validate_rust_code(&output_path).await
-                    .context(format!("Struct {:?} validation failed for {:?}", struct_name, output_path))?;
+                utils::validate_rust_code(&output_path)
+                    .await
+                    .context(format!(
+                        "Struct {:?} validation failed for {:?}",
+                        struct_name, output_path
+                    ))?;
                 println!(r"  -> Struct {:?} validated successfully.\n", struct_name);
                 Ok(())
-            }.await;
+            }
+            .await;
 
             if let Err(e) = result {
                 eprintln!(r"Error processing struct {}: {:?}\n", struct_name, e);
@@ -80,15 +105,18 @@ use crate::type_extractor::TypeInfo;
         return Err(anyhow::anyhow!("Struct processing completed with errors."));
     } else {
         println!(r"Declaration processing completed successfully.");
-        return Ok(())
+        return Ok(());
     }
 }
 
 pub fn generate_structs_module(structs: &[syn::ItemStruct]) -> String {
-    let generated_decl_strings: Vec<String> = structs.iter().map(|s| {
-        let tokens = quote! { #s };
-        tokens.to_string()
-    }).collect();
+    let generated_decl_strings: Vec<String> = structs
+        .iter()
+        .map(|s| {
+            let tokens = quote! { #s };
+            tokens.to_string()
+        })
+        .collect();
 
     if generated_decl_strings.is_empty() {
         return "// No struct declarations found in this module.\n".to_string();

@@ -5,6 +5,7 @@ use std::path::Path;
 use crate::cli::{CliArgs, LayeredComposeArgs};
 use crate::config::Config;
 use crate::config_lock::StageLock;
+use standalonex::bootstrap::core::config_standalone::Config as CanonicalConfig;
 
 // #[async_trait] // Temporarily remove async_trait
 pub trait Stage {
@@ -17,7 +18,7 @@ pub trait Stage {
     fn run( // Make it synchronous
         &self,
         project_root: &Path,
-        config: &Config,
+        config: &CanonicalConfig,
         cli_args: &CliArgs,
         layered_compose_args: &LayeredComposeArgs,
         stage_lock: &mut StageLock,

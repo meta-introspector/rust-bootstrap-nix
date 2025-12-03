@@ -1,16 +1,18 @@
-use anyhow::{Result};
-use std::pin::Pin;
-use std::future::Future;
+use anyhow::Result;
 use std::boxed::Box;
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 
 use crate::measurement;
-use pipeline_traits::{PipelineFunctor, ClassifiedUseStatements, UseStatement};
+use pipeline_traits::{ClassifiedUseStatements, PipelineFunctor, UseStatement};
 
 // PreprocessFunctor
 pub struct PreprocessFunctor;
 use pipeline_traits::Config as PipelineConfig;
-impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineConfig> for PreprocessFunctor {
+impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineConfig>
+    for PreprocessFunctor
+{
     fn map<'writer>(
         &'writer self,
         _writer: &'writer mut (impl tokio::io::AsyncWriteExt + Unpin + Send),
@@ -30,7 +32,8 @@ impl PipelineFunctor<ClassifiedUseStatements, ClassifiedUseStatements, PipelineC
 
                     let output = tokio::process::Command::new("rustc") // Use tokio::process::Command
                         .arg(&temp_file_path)
-                        .output().await?;
+                        .output()
+                        .await?;
 
                     if output.status.success() {
                         new_classified_uses.push(UseStatement {

@@ -1,19 +1,22 @@
-use anyhow::Context;
-use std::fs;
-use crate::Args;
-use walkdir::WalkDir;
-use syn::{self, visit::Visit};
-use std::collections::HashMap;
 use crate::expression_info::ExpressionInfo;
-use crate::type_usage_visitor::TypeUsageVisitor;
 use crate::report_generator::generate_report;
-use crate::{struct_lattice_info::StructLatticeInfo, enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo};
+use crate::type_usage_visitor::TypeUsageVisitor;
 use crate::types::CollectedAnalysisData;
-use toml;
-use std::path::{Path, PathBuf}; // Added for path canonicalization
+use crate::Args;
+use crate::{
+    enum_lattice_info::EnumLatticeInfo, impl_lattice_info::ImplLatticeInfo,
+    struct_lattice_info::StructLatticeInfo,
+};
+use anyhow::Context;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256}; // Added for file hashing
+use std::collections::HashMap;
 use std::collections::HashSet; // Added for canonicalized exclude paths
-use sha2::{Sha256, Digest}; // Added for file hashing
-use serde::{Serialize, Deserialize}; // Added for caching CollectedAnalysisData
+use std::fs;
+use std::path::{Path, PathBuf}; // Added for path canonicalization
+use syn::{self, visit::Visit};
+use toml;
+use walkdir::WalkDir; // Added for caching CollectedAnalysisData
 
 // Helper function to canonicalize a single PathBuf
 fn canonicalize_path_buf(path: &Path) -> anyhow::Result<PathBuf> {
@@ -74,12 +77,21 @@ async fn save_to_cache(cache_file_path: &Path, data: &FileAnalysisCache) -> anyh
     Ok(())
 }
 
-pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysisData> { // Modified return type
-    println!("Debug: analyze_type_usage received dry_run = {}", args.dry_run);
+pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysisData> {
+    // Modified return type
+    println!(
+        "Debug: analyze_type_usage received dry_run = {}",
+        args.dry_run
+    );
     println!("Running type usage analysis...");
 
-    let max_expression_depth = args.max_expression_depth.context("Max expression depth must be specified for type usage analysis")?;
-    let output_path = args.output_type_usage_report.as_ref().context("Output path for type usage report must be specified")?;
+    let max_expression_depth = args
+        .max_expression_depth
+        .context("Max expression depth must be specified for type usage analysis")?;
+    let output_path = args
+        .output_type_usage_report
+        .as_ref()
+        .context("Output path for type usage report must be specified")?;
 
     println!("Max Expression Depth: {}", max_expression_depth);
     println!("Output Report Path: {:?}", output_path);
@@ -88,11 +100,16 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
     let canonical_args_path = canonicalize_path_buf(&args.path)?;
 
     // Canonicalize exclude paths once
-    let canonical_exclude_paths = canonicalize_exclude_paths(&args.exclude_paths, &canonical_args_path)?;
+    let canonical_exclude_paths =
+        canonicalize_exclude_paths(&args.exclude_paths, &canonical_args_path)?;
 
     // Define cache directory
-    let cache_dir = canonical_args_path.join(".prelude_cache").join("type_analysis");
-    tokio::fs::create_dir_all(&cache_dir).await.context("Failed to create type analysis cache directory")?;
+    let cache_dir = canonical_args_path
+        .join(".prelude_cache")
+        .join("type_analysis");
+    tokio::fs::create_dir_all(&cache_dir)
+        .await
+        .context("Failed to create type analysis cache directory")?;
 
     let mut all_expression_info: HashMap<String, ExpressionInfo> = HashMap::new();
     let mut all_struct_lattices: HashMap<String, StructLatticeInfo> = HashMap::new();
@@ -104,9 +121,9 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         .filter_entry(|e| {
             // Canonicalize entry path for comparison
             if let Ok(canonical_entry_path) = canonicalize_path_buf(e.path()) {
-                !canonical_exclude_paths.iter().any(|exclude_path| {
-                            canonical_entry_path.starts_with(exclude_path)
-                        })
+                !canonical_exclude_paths
+                    .iter()
+                    .any(|exclude_path| canonical_entry_path.starts_with(exclude_path))
             } else {
                 // If canonicalization fails, treat as not excluded (or handle error)
                 true
@@ -130,7 +147,10 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
                 continue; // Skip processing this file
             }
 
-            println!("Processing file for type usage analysis: {}", file_path.display());
+            println!(
+                "Processing file for type usage analysis: {}",
+                file_path.display()
+            );
 
             let file_content = fs::read_to_string(&file_path)
                 .context(format!("Failed to read file: {:?}", file_path))?;
@@ -138,7 +158,11 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
             let file = match syn::parse_file(&file_content) {
                 Ok(file) => file,
                 Err(e) => {
-                    eprintln!("Warning: Could not parse file {}: {}", file_path.display(), e);
+                    eprintln!(
+                        "Warning: Could not parse file {}: {}",
+                        file_path.display(),
+                        e
+                    );
                     continue;
                 }
             };
@@ -163,9 +187,18 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         }
     }
 
-    generate_report(&all_expression_info, max_expression_depth, output_path, &all_struct_lattices, &all_enum_lattices, &all_impl_lattices, args.dry_run)?;
+    generate_report(
+        &all_expression_info,
+        max_expression_depth,
+        output_path,
+        &all_struct_lattices,
+        &all_enum_lattices,
+        &all_impl_lattices,
+        args.dry_run,
+    )?;
 
-    let collected_data = CollectedAnalysisData { // Construct CollectedAnalysisData
+    let collected_data = CollectedAnalysisData {
+        // Construct CollectedAnalysisData
         expressions: all_expression_info,
         struct_lattices: all_struct_lattices,
         enum_lattices: all_enum_lattices,
@@ -178,8 +211,10 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         } else {
             let toml_content = toml::to_string_pretty(&collected_data)
                 .context("Failed to serialize collected analysis data to TOML")?;
-            fs::write(toml_output_path, toml_content)
-                .context(format!("Failed to write TOML report to {:?}", toml_output_path))?;
+            fs::write(toml_output_path, toml_content).context(format!(
+                "Failed to write TOML report to {:?}",
+                toml_output_path
+            ))?;
             println!("TOML report saved to {:?}", toml_output_path);
         }
     }
@@ -190,12 +225,17 @@ pub async fn analyze_type_usage(args: &Args) -> anyhow::Result<CollectedAnalysis
         } else {
             let json_content = serde_json::to_string_pretty(&collected_data)
                 .context("Failed to serialize collected analysis data to JSON")?;
-            fs::write(json_output_path, json_content)
-                .context(format!("Failed to write JSON report to {:?}", json_output_path))?;
+            fs::write(json_output_path, json_content).context(format!(
+                "Failed to write JSON report to {:?}",
+                json_output_path
+            ))?;
             println!("JSON report saved to {:?}", json_output_path);
         }
     }
 
-    println!("Type usage analysis completed. Report saved to {:?}", output_path);
+    println!(
+        "Type usage analysis completed. Report saved to {:?}",
+        output_path
+    );
     Ok(collected_data) // Return CollectedAnalysisData
 }
